@@ -1,0 +1,56 @@
+.stakeholders {
+  padding: 120px 50px;
+  background: #f7f7f7;
+}
+
+.stake-container {
+  max-width: 1300px;
+  margin: auto;
+}
+
+.stake-container > p {
+  font-size: 12px;
+  letter-spacing: 3px;
+}
+
+.stake-container > h2 {
+  font-size: clamp(45px, 5vw, 70px);
+  line-height: 1;
+  margin: 25px 0 70px;
+}
+
+.stake-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.stake-grid article {
+  background: white;
+  padding: 35px;
+  min-height: 250px;
+}
+
+.stake-icon {
+  font-size: 30px;
+}
+
+.stake-grid h3 {
+  margin-top: 40px;
+  font-size: 25px;
+}
+
+.stake-grid p {
+  color: #777;
+  line-height: 1.6;
+}
+
+@media (max-width: 800px) {
+  .stakeholders {
+    padding: 80px 25px;
+  }
+
+  .stake-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,57 @@
+.sub-ecosystems {
+  padding: 120px 50px;
+  background: white;
+}
+
+.sub-container {
+  max-width: 1300px;
+  margin: auto;
+}
+
+.sub-container > p {
+  font-size: 12px;
+  letter-spacing: 3px;
+}
+
+.sub-container > h2 {
+  font-size: clamp(45px, 5vw, 70px);
+  line-height: 1;
+  margin: 25px 0 70px;
+}
+
+.sub-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.sub-card {
+  min-height: 260px;
+  padding: 30px;
+  background: #f3f3f3;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.sub-card span {
+  color: #888;
+}
+
+.sub-card h3 {
+  font-size: 30px;
+}
+
+.sub-card div {
+  font-size: 13px;
+}
+
+@media (max-width: 800px) {
+  .sub-ecosystems {
+    padding: 80px 25px;
+  }
+
+  .sub-grid {
+    grid-template-columns: 1fr;
+  }
+}
