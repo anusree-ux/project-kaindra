@@ -1,0 +1,51 @@
+.value-proposition {
+  padding: 120px 50px;
+  background: #f3f3f3;
+}
+
+.value-container {
+  max-width: 1300px;
+  margin: auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 100px;
+}
+
+.value-container p {
+  font-size: 12px;
+  letter-spacing: 3px;
+}
+
+.value-container h2 {
+  font-size: clamp(45px, 5vw, 70px);
+  line-height: 1;
+}
+
+.value-list > div {
+  display: grid;
+  grid-template-columns: 40px 1fr 20px;
+  align-items: center;
+  border-bottom: 1px solid #ccc;
+  padding: 20px 0;
+}
+
+.value-list span {
+  color: #999;
+  font-size: 12px;
+}
+
+.value-list h3 {
+  margin: 0;
+  font-size: 20px;
+}
+
+@media (max-width: 800px) {
+  .value-container {
+    grid-template-columns: 1fr;
+    gap: 50px;
+  }
+
+  .value-proposition {
+    padding: 80px 25px;
+  }
+}

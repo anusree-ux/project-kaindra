@@ -1,0 +1,51 @@
+.revenue-streams {
+  padding: 120px 50px;
+  background: #171717;
+  color: white;
+}
+
+.revenue-container {
+  max-width: 1300px;
+  margin: auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 100px;
+}
+
+.revenue-heading p {
+  color: #aaa;
+  font-size: 12px;
+  letter-spacing: 3px;
+}
+
+.revenue-heading h2 {
+  font-size: clamp(45px, 5vw, 70px);
+  line-height: 1;
+}
+
+.revenue-list div {
+  display: grid;
+  grid-template-columns: 50px 1fr;
+  padding: 25px 0;
+  border-bottom: 1px solid #333;
+}
+
+.revenue-list span {
+  color: #777;
+}
+
+.revenue-list h3 {
+  margin: 0;
+  font-size: 22px;
+}
+
+@media (max-width: 800px) {
+  .revenue-streams {
+    padding: 80px 25px;
+  }
+
+  .revenue-container {
+    grid-template-columns: 1fr;
+    gap: 50px;
+  }
+}
