@@ -1,0 +1,64 @@
+.core-pillars {
+  padding: 120px 50px;
+  background: #171717;
+  color: white;
+}
+
+.pillars-container {
+  max-width: 1300px;
+  margin: auto;
+}
+
+.section-number {
+  font-size: 12px;
+  letter-spacing: 3px;
+  color: #aaa;
+}
+
+.pillars-container > h2 {
+  font-size: clamp(45px, 6vw, 80px);
+  line-height: 0.95;
+  margin: 25px 0 80px;
+}
+
+.pillars-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+}
+
+.pillar-card {
+  padding: 30px;
+  border: 1px solid #333;
+  min-height: 280px;
+}
+
+.pillar-card span {
+  color: #888;
+  font-size: 13px;
+}
+
+.pillar-card h3 {
+  margin-top: 70px;
+  font-size: 25px;
+}
+
+.pillar-card p {
+  color: #aaa;
+  line-height: 1.6;
+}
+
+@media (max-width: 1000px) {
+  .pillars-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .core-pillars {
+    padding: 80px 25px;
+  }
+
+  .pillars-grid {
+    grid-template-columns: 1fr;
+  }
+}
