@@ -1,0 +1,40 @@
+services:
+  backend:
+    build:
+      context: ../backend
+      target: production
+    container_name: kaindra-backend
+    ports:
+      - "5000:5000"
+    env_file:
+      - ../.env
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  frontend:
+    build:
+      context: ../frontend
+      target: production
+    container_name: kaindra-frontend
+    
+    ports:
+      - "8080:8080"
+
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:8080"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+    depends_on:
+      backend:
+        condition: service_healthy
