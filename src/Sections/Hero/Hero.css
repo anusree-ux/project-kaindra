@@ -1,0 +1,206 @@
+.hero {
+  position: relative;
+  height: 680px;
+  overflow: hidden;
+  color: #fff;
+  background: #111;
+}
+
+/* =========================
+   SLIDES
+========================= */
+
+.hero-slides {
+  position: absolute;
+  inset: 0;
+}
+
+.hero-slide {
+  position: absolute;
+  inset: 0;
+
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+
+  opacity: 0;
+  transform: scale(1.03);
+
+  transition:
+  opacity 0.25s ease,
+  transform 1.2s ease;
+}
+
+.hero-slide.active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* =========================
+   DARK OVERLAY
+========================= */
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.70) 0%,
+      rgba(0, 0, 0, 0.40) 50%,
+      rgba(0, 0, 0, 0.25) 100%
+    );
+
+  z-index: 1;
+}
+
+/* =========================
+   CONTENT
+========================= */
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  padding-top: 40px;
+}
+
+.hero-label {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  margin-bottom: 20px;
+}
+
+.hero h1 {
+  max-width: 750px;
+
+  font-size: 64px;
+  line-height: 1.08;
+  font-weight: 600;
+
+  margin-bottom: 24px;
+}
+
+.hero-text {
+  max-width: 530px;
+
+  font-size: 17px;
+  line-height: 1.6;
+
+  color: #eee;
+
+  margin-bottom: 30px;
+}
+
+/* =========================
+   BUTTONS
+========================= */
+
+.hero-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.hero-primary,
+.hero-secondary {
+  padding: 13px 21px;
+
+  border-radius: 5px;
+
+  font-size: 14px;
+
+  transition: 0.2s ease;
+}
+
+.hero-primary {
+  background: #fff;
+  color: #111;
+}
+
+.hero-primary:hover {
+  background: #eee;
+}
+
+.hero-secondary {
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  color: #fff;
+}
+
+.hero-secondary:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* =========================
+   SLIDE INDICATORS
+========================= */
+
+.hero-indicators {
+  position: absolute;
+
+  z-index: 5;
+
+  bottom: 30px;
+  left: 50%;
+
+  transform: translateX(-50%);
+
+  display: flex;
+  gap: 7px;
+}
+
+.hero-indicators button {
+  width: 22px;
+  height: 3px;
+
+  padding: 0;
+
+  border: 0;
+
+  background: rgba(255, 255, 255, 0.45);
+
+  cursor: pointer;
+
+  transition: 0.25s ease;
+}
+
+.hero-indicators button.active {
+  width: 38px;
+  background: #fff;
+}
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 700px) {
+
+  .hero {
+    height: 600px;
+  }
+
+  .hero h1 {
+    font-size: 42px;
+  }
+
+  .hero-text {
+    font-size: 15px;
+  }
+
+  .hero-buttons {
+    flex-direction: column;
+    width: fit-content;
+  }
+
+  .hero-primary,
+  .hero-secondary {
+    width: fit-content;
+  }
+}
