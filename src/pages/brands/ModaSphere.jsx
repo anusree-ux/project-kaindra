@@ -1,44 +1,35 @@
-import Navbar from "../../components/Navbar/Navbar";
-import Footer from "../../components/Footer/Footer";
+import ModaNavbar from "./ModaSphere/ModaNavbar/ModaNavbar";
+import ModaHero from "./ModaSphere/ModaHero/ModaHero";
+import VisionMission from "./ModaSphere/VisionMission/VisionMission";
+import Ecosystem from "./ModaSphere/Ecosystem/Ecosystem";
+import CorePillars from "./ModaSphere/CorePillars/CorePillars";
+import ValueProposition from "./ModaSphere/ValueProposition/ValueProposition";
+import SubEcosystems from "./ModaSphere/SubEcosystems/SubEcosystems";
+import Stakeholders from "./ModaSphere/Stakeholders/Stakeholders";
+import RevenueStreams from "./ModaSphere/RevenueStreams/RevenueStreams";
+import TechnologyFoundation from "./ModaSphere/TechnologyFoundation/TechnologyFoundation";
+import GoToMarket from "./ModaSphere/GoToMarket/GoToMarket";
+import LongTermImpact from "./ModaSphere/LongTermImpact/LongTermImpact";
+import SuccessMetrics from "./ModaSphere/SuccessMetrics/SuccessMetrics";
 
-function ModaSphere() {
-  return <BrandPage name="ModaSphere" category="Fashion & Lifestyle" />;
-}
+import "./ModaSphere.css";
 
-function BrandPage({ name, category }) {
+export default function ModaSphere() {
   return (
-    <>
-      <Navbar />
-
-      <main>
-        <section className="page-section">
-          <div className="container">
-
-            <p className="section-label">{category}</p>
-
-            <h1 className="section-title">
-              {name}
-            </h1>
-
-            <p
-              style={{
-                maxWidth: "650px",
-                marginTop: "25px",
-                color: "#666",
-                lineHeight: "1.7",
-              }}
-            >
-              Discover {name}, a KAINDRA business focused on
-              creating meaningful products and experiences.
-            </p>
-
-          </div>
-        </section>
-      </main>
-
-      <Footer />
-    </>
+    <div className="modasphere-page">
+      <ModaNavbar />
+      <ModaHero />
+      <VisionMission />
+      <Ecosystem />
+      <CorePillars />
+      <ValueProposition />
+      <SubEcosystems />
+      <Stakeholders />
+      <RevenueStreams />
+      <TechnologyFoundation />
+      <GoToMarket />
+      <LongTermImpact />
+      <SuccessMetrics />
+    </div>
   );
 }
-
-export default ModaSphere;
