@@ -1,0 +1,14 @@
+.modasphere-page {
+  width: 100%;
+  overflow-x: hidden;
+  background: #ffffff;
+  color: #171717;
+}
+
+.modasphere-page section {
+  width: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
