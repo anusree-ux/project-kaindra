@@ -35,6 +35,20 @@ const riderProfileSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
+    regionsExplored: {
+      type: [String],
+      default: [],
+    },
+    routesContributed: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    rideGroupsJoined: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
   },
   {
     timestamps: true,

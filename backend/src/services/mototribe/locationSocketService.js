@@ -8,7 +8,12 @@ const LiveLocation = require("../../models/mototribe/LiveLocation");
 const lastUpdateMap = new Map();
 const RATE_LIMIT_MS = 3000; // 3 seconds
 
+// Store Socket.io instance for room broadcasting
+let ioInstance = null;
+
 const initLocationSocketService = (io) => {
+  ioInstance = io;
+
   // Socket Authentication Middleware
   io.use(async (socket, next) => {
     try {
@@ -160,6 +165,9 @@ const initLocationSocketService = (io) => {
   });
 };
 
+const getIo = () => ioInstance;
+
 module.exports = {
   initLocationSocketService,
+  getIo,
 };

@@ -5,6 +5,10 @@ const authRoutes = require("./routes/core/authRoutes");
 const rideRoutes = require("./routes/mototribe/rideRoutes");
 const placesRoutes = require("./routes/mototribe/placesRoutes");
 const directionsRoutes = require("./routes/mototribe/directionsRoutes");
+const sosRoutes = require("./routes/mototribe/sosRoutes");
+const weatherRoutes = require("./routes/mototribe/weatherRoutes");
+const passportRoutes = require("./routes/mototribe/passportRoutes");
+const journalRoutes = require("./routes/mototribe/journalRoutes");
 const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
@@ -36,6 +40,18 @@ app.use("/api/mototribe", placesRoutes);
 
 app.use("/api/v1/mototribe", directionsRoutes);
 app.use("/api/mototribe", directionsRoutes);
+
+app.use("/api/v1/mototribe", sosRoutes);
+app.use("/api/mototribe", sosRoutes);
+
+app.use("/api/v1/mototribe", weatherRoutes);
+app.use("/api/mototribe", weatherRoutes);
+
+app.use("/api/v1/mototribe", passportRoutes);
+app.use("/api/mototribe", passportRoutes);
+
+app.use("/api/v1/mototribe", journalRoutes);
+app.use("/api/mototribe", journalRoutes);
 
 // 404 Route Handler
 app.use((req, res) => {

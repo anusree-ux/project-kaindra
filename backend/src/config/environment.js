@@ -14,4 +14,10 @@ module.exports = {
     url: process.env.DATABASE_URL || "mongodb://localhost:27017/kaindra",
   },
   googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY || "",
+  openWeatherApiKey: process.env.OPENWEATHER_API_KEY || "",
+  cloudinary: {
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME || "",
+    apiKey: process.env.CLOUDINARY_API_KEY || "",
+    apiSecret: process.env.CLOUDINARY_API_SECRET || "",
+  },
 };
