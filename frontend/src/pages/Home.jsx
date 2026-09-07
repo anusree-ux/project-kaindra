@@ -1,13 +1,13 @@
 import Navbar from "../components/Navbar/Navbar";
 import Footer from "../components/Footer/Footer";
 
-import Hero from "../Sections/Hero/Hero";
-import Brands from "../Sections/Brands/Brands";
-import Market from "../Sections/Market/Market";
-import News from "../Sections/News/News";
-import Timeline from "../Sections/Timeline/Timeline";
-import CareersSection from "../Sections/Careers/Careers";
-import Gallery from "../Sections/Gallery/Gallery";
+import Hero from "../sections/Hero/Hero";
+import Brands from "../sections/Brands/Brands";
+import Market from "../sections/Market/Market";
+import News from "../sections/News/News";
+import Timeline from "../sections/Timeline/Timeline";
+import CareersSection from "../sections/Careers/Careers";
+import Gallery from "../sections/Gallery/Gallery";
 
 function Home() {
   return (
