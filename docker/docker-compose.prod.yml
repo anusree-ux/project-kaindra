@@ -1,0 +1,82 @@
+services:
+  mongodb:
+    image: mongo:8.0
+    container_name: kaindra-mongodb
+
+    env_file:
+      - ../.env.production
+    volumes:
+      - mongodb_data:/data/db
+
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  backend:
+    build:
+      context: ../backend
+      target: production
+    container_name: kaindra-backend
+
+    expose:
+      - "5000"
+
+    env_file:
+      - ../.env.production
+    
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:5000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  frontend:
+    build:
+      context: ../frontend
+      target: production
+    container_name: kaindra-frontend
+    
+    expose:
+      - "8080"
+    
+    depends_on:
+      backend:
+        condition: service_healthy
+
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:8080"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: kaindra-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+    restart: unless-stopped
+  
+volumes:
+  mongodb_data:
