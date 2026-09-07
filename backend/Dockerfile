@@ -14,7 +14,6 @@ USER node
 EXPOSE 5000
 
 CMD ["node", "server.js"]
-# CMD ["npm", "run", "dev"]
 
 # ---- Production stage ----
 FROM base AS production
@@ -30,4 +29,3 @@ USER nodeuser
 EXPOSE 5000
 
 CMD ["node", "server.js"]
-# CMD ["npm", "start"]
