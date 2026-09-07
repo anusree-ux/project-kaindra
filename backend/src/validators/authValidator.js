@@ -1,46 +1,54 @@
-const validateSignupInput = (data) => {
-  const errors = {};
-  const { name, email, password } = data || {};
+const { body, validationResult } = require("express-validator");
+const AppError = require("../utils/AppError");
 
-  if (!name || typeof name !== "string" || name.trim().length === 0) {
-    errors.name = "Name is required";
+const signupValidationRules = [
+  body("name")
+    .trim()
+    .notEmpty()
+    .withMessage("Name is required")
+    .isLength({ min: 2, max: 50 })
+    .withMessage("Name must be between 2 and 50 characters"),
+  body("email")
+    .trim()
+    .notEmpty()
+    .withMessage("Email is required")
+    .isEmail()
+    .withMessage("Please provide a valid email address")
+    .normalizeEmail(),
+  body("password")
+    .notEmpty()
+    .withMessage("Password is required")
+    .isLength({ min: 6 })
+    .withMessage("Password must be at least 6 characters long"),
+];
+
+const loginValidationRules = [
+  body("email")
+    .trim()
+    .notEmpty()
+    .withMessage("Email is required")
+    .isEmail()
+    .withMessage("Please provide a valid email address")
+    .normalizeEmail(),
+  body("password").notEmpty().withMessage("Password is required"),
+];
+
+const validate = (req, res, next) => {
+  const errors = validationResult(req);
+  if (errors.isEmpty()) {
+    return next();
   }
 
-  const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
-  if (!email || typeof email !== "string" || !emailRegex.test(email.trim())) {
-    errors.email = "Valid email address is required";
-  }
+  const extractedErrors = errors.array().map((err) => ({
+    field: err.path,
+    message: err.msg,
+  }));
 
-  if (!password || typeof password !== "string" || password.length < 6) {
-    errors.password = "Password must be at least 6 characters long";
-  }
-
-  return {
-    errors,
-    isValid: Object.keys(errors).length === 0,
-  };
-};
-
-const validateLoginInput = (data) => {
-  const errors = {};
-  const { email, password } = data || {};
-
-  const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
-  if (!email || typeof email !== "string" || !emailRegex.test(email.trim())) {
-    errors.email = "Valid email address is required";
-  }
-
-  if (!password || typeof password !== "string" || password.length === 0) {
-    errors.password = "Password is required";
-  }
-
-  return {
-    errors,
-    isValid: Object.keys(errors).length === 0,
-  };
+  return next(new AppError("Validation failed", 400, extractedErrors));
 };
 
 module.exports = {
-  validateSignupInput,
-  validateLoginInput,
+  signupValidationRules,
+  loginValidationRules,
+  validate,
 };

@@ -1,23 +1,44 @@
 const User = require("../../models/core/User");
-const { signToken } = require("../../utils/jwt");
 const {
-  validateSignupInput,
-  validateLoginInput,
-} = require("../../validators/authValidator");
+  signAccessToken,
+  signRefreshToken,
+  verifyRefreshToken,
+} = require("../../utils/jwt");
+const AppError = require("../../utils/AppError");
 
 /**
- * Helper to build standardized JSON auth response
+ * Cookie options for Refresh Token
  */
-const sendTokenResponse = (user, statusCode, res) => {
-  const token = signToken({ id: user._id, role: user.role });
+const getRefreshTokenCookieOptions = () => ({
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "strict",
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
+});
 
-  // Exclude password from output
+/**
+ * Helper to build and send auth response with access token & httpOnly refresh cookie
+ */
+const sendTokenResponse = async (user, statusCode, res) => {
+  const accessToken = signAccessToken({ id: user._id, role: user.role });
+  const refreshToken = signRefreshToken({ id: user._id, role: user.role });
+
+  // Save refresh token to user document
+  user.refreshTokens = user.refreshTokens || [];
+  user.refreshTokens.push(refreshToken);
+  await user.save({ validateBeforeSave: false });
+
+  // Send httpOnly cookie for refresh token
+  res.cookie("refreshToken", refreshToken, getRefreshTokenCookieOptions());
+
+  // Exclude password and refreshTokens from user object output
   const userObj = user.toObject ? user.toObject() : { ...user };
   delete userObj.password;
+  delete userObj.refreshTokens;
 
   res.status(statusCode).json({
     status: "success",
-    token,
+    accessToken,
     data: {
       user: userObj,
     },
@@ -29,81 +50,140 @@ const sendTokenResponse = (user, statusCode, res) => {
  * @route   POST /api/v1/auth/signup
  * @access  Public
  */
-const signup = async (req, res) => {
+const signup = async (req, res, next) => {
   try {
-    const { errors, isValid } = validateSignupInput(req.body);
-    if (!isValid) {
-      return res.status(400).json({
-        status: "fail",
-        message: "Validation failed",
-        errors,
-      });
-    }
-
     const { name, email, password, role } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({
-        status: "fail",
-        message: "An account with this email address already exists.",
-      });
+      return next(
+        new AppError("An account with this email address already exists.", 400)
+      );
     }
+
+    // Ensure role is valid (user, moderator, admin)
+    const assignedRole =
+      role && ["user", "moderator", "admin"].includes(role) ? role : "user";
 
     // Create user
     const newUser = await User.create({
       name,
       email,
       password,
-      role: role && ["user", "admin"].includes(role) ? role : "user",
+      role: assignedRole,
     });
 
-    sendTokenResponse(newUser, 201, res);
+    await sendTokenResponse(newUser, 201, res);
   } catch (error) {
-    res.status(500).json({
-      status: "error",
-      message: "Server error during registration.",
-      error: error.message,
-    });
+    next(error);
   }
 };
 
 /**
- * @desc    Authenticate user & get token
+ * @desc    Authenticate user & get tokens
  * @route   POST /api/v1/auth/login
  * @access  Public
  */
-const login = async (req, res) => {
+const login = async (req, res, next) => {
   try {
-    const { errors, isValid } = validateLoginInput(req.body);
-    if (!isValid) {
-      return res.status(400).json({
-        status: "fail",
-        message: "Validation failed",
-        errors,
-      });
-    }
-
     const { email, password } = req.body;
 
-    // Find user by email and select password field
-    const user = await User.findOne({ email }).select("+password");
+    // Find user by email and select password and refreshTokens fields
+    const user = await User.findOne({ email }).select("+password +refreshTokens");
 
     if (!user || !(await user.comparePassword(password))) {
-      return res.status(401).json({
-        status: "fail",
-        message: "Invalid email or password.",
-      });
+      return next(new AppError("Invalid email or password.", 401));
     }
 
-    sendTokenResponse(user, 200, res);
+    await sendTokenResponse(user, 200, res);
   } catch (error) {
-    res.status(500).json({
-      status: "error",
-      message: "Server error during login.",
-      error: error.message,
+    next(error);
+  }
+};
+
+/**
+ * @desc    Issue a new access token using a valid refresh token
+ * @route   POST /api/v1/auth/refresh
+ * @access  Public (requires valid refresh token in cookie or body)
+ */
+const refresh = async (req, res, next) => {
+  try {
+    const refreshToken =
+      req.cookies?.refreshToken || req.body?.refreshToken;
+
+    if (!refreshToken) {
+      return next(
+        new AppError("Refresh token missing. Please log in again.", 401)
+      );
+    }
+
+    // Verify token
+    let decoded;
+    try {
+      decoded = verifyRefreshToken(refreshToken);
+    } catch (err) {
+      return next(
+        new AppError("Invalid or expired refresh token. Please log in again.", 401)
+      );
+    }
+
+    // Check if user exists and includes the refresh token in stored tokens
+    const user = await User.findById(decoded.id).select("+refreshTokens");
+
+    if (!user || !user.refreshTokens.includes(refreshToken)) {
+      return next(
+        new AppError("Invalid refresh token or session revoked.", 401)
+      );
+    }
+
+    // Generate new short-lived access token (15m)
+    const newAccessToken = signAccessToken({ id: user._id, role: user.role });
+
+    res.status(200).json({
+      status: "success",
+      accessToken: newAccessToken,
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Logout user and invalidate refresh token
+ * @route   POST /api/v1/auth/logout
+ * @access  Private / Public
+ */
+const logout = async (req, res, next) => {
+  try {
+    const refreshToken =
+      req.cookies?.refreshToken || req.body?.refreshToken;
+
+    if (refreshToken) {
+      // Decode or find user to remove token from DB
+      try {
+        const decoded = verifyRefreshToken(refreshToken);
+        const user = await User.findById(decoded.id).select("+refreshTokens");
+        if (user) {
+          user.refreshTokens = user.refreshTokens.filter(
+            (token) => token !== refreshToken
+          );
+          await user.save({ validateBeforeSave: false });
+        }
+      } catch (err) {
+        // Token verification failed or expired - proceed to clear cookie anyway
+      }
+    }
+
+    // Clear httpOnly cookie
+    res.clearCookie("refreshToken", getRefreshTokenCookieOptions());
+
+    res.status(200).json({
+      status: "success",
+      message: "Logged out successfully",
+    });
+  } catch (error) {
+    next(error);
   }
 };
 
@@ -112,7 +192,7 @@ const login = async (req, res) => {
  * @route   GET /api/v1/auth/me
  * @access  Private
  */
-const getMe = async (req, res) => {
+const getMe = async (req, res, next) => {
   try {
     res.status(200).json({
       status: "success",
@@ -121,16 +201,14 @@ const getMe = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({
-      status: "error",
-      message: "Server error fetching user profile.",
-      error: error.message,
-    });
+    next(error);
   }
 };
 
 module.exports = {
   signup,
   login,
+  refresh,
+  logout,
   getMe,
 };

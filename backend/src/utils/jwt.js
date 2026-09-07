@@ -1,17 +1,32 @@
 const jwt = require("jsonwebtoken");
 const env = require("../config/environment");
 
-const signToken = (payload) => {
+const signAccessToken = (payload) => {
   return jwt.sign(payload, env.jwt.secret, {
     expiresIn: env.jwt.expiresIn,
   });
 };
 
-const verifyToken = (token) => {
+const signRefreshToken = (payload) => {
+  return jwt.sign(payload, env.jwt.refreshSecret, {
+    expiresIn: env.jwt.refreshExpiresIn,
+  });
+};
+
+const verifyAccessToken = (token) => {
   return jwt.verify(token, env.jwt.secret);
 };
 
+const verifyRefreshToken = (token) => {
+  return jwt.verify(token, env.jwt.refreshSecret);
+};
+
 module.exports = {
-  signToken,
-  verifyToken,
+  signAccessToken,
+  signRefreshToken,
+  verifyAccessToken,
+  verifyRefreshToken,
+  // Alias for backward compatibility
+  signToken: signAccessToken,
+  verifyToken: verifyAccessToken,
 };

@@ -1,5 +1,7 @@
-const { verifyToken } = require("../utils/jwt");
+const { verifyAccessToken } = require("../utils/jwt");
 const User = require("../models/core/User");
+const AppError = require("../utils/AppError");
+const authorize = require("./authorize");
 
 const protect = async (req, res, next) => {
   try {
@@ -13,49 +15,39 @@ const protect = async (req, res, next) => {
     }
 
     if (!token) {
-      return res.status(401).json({
-        status: "fail",
-        message: "You are not logged in. Please provide a valid access token.",
-      });
+      return next(
+        new AppError("You are not logged in. Please provide a valid access token.", 401)
+      );
     }
 
-    // Verify token
-    const decoded = verifyToken(token);
+    // Verify access token
+    let decoded;
+    try {
+      decoded = verifyAccessToken(token);
+    } catch (err) {
+      return next(
+        new AppError("Invalid or expired access token. Please log in again.", 401)
+      );
+    }
 
     // Check if user still exists
     const currentUser = await User.findById(decoded.id);
     if (!currentUser) {
-      return res.status(401).json({
-        status: "fail",
-        message: "The user belonging to this token no longer exists.",
-      });
+      return next(
+        new AppError("The user belonging to this token no longer exists.", 401)
+      );
     }
 
     // Grant access to protected route
     req.user = currentUser;
     next();
   } catch (error) {
-    return res.status(401).json({
-      status: "fail",
-      message: "Invalid or expired access token.",
-      error: error.message,
-    });
+    next(error);
   }
-};
-
-const restrictTo = (...roles) => {
-  return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
-      return res.status(403).json({
-        status: "fail",
-        message: "You do not have permission to perform this action.",
-      });
-    }
-    next();
-  };
 };
 
 module.exports = {
   protect,
-  restrictTo,
+  authorize,
+  restrictTo: authorize,
 };
