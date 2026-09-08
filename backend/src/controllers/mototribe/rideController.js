@@ -450,15 +450,7 @@ const completeRide = async (req, res, next) => {
         } catch (abortErr) {}
       }
 
-      if (
-        txnError.message &&
-        (txnError.message.includes("Transaction numbers are only allowed") ||
-          txnError.message.includes("replica set"))
-      ) {
-        result = await executeCompleteRideOps(ride);
-      } else {
-        throw txnError;
-      }
+      result = await executeCompleteRideOps(ride);
     }
 
     res.status(200).json({
