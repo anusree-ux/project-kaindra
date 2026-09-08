@@ -1,19 +1,21 @@
 # ---- Base stage: shared setup ----
 FROM node:24-alpine AS base
 WORKDIR /app
+RUN chown node:node /app
 COPY package*.json ./
 
 # ---- Dev stage ----
 FROM base AS dev
 
+USER node
+
 RUN npm ci
 
 COPY --chown=node:node . .
-USER node
 
 EXPOSE 5000
 
-CMD ["node", "server.js"]
+CMD ["npm", "run", "dev"]
 
 # ---- Production stage ----
 FROM base AS production

@@ -1,22 +1,4 @@
 services:
-  mongodb:
-    image: mongo:8.0
-    container_name: kaindra-mongodb
-
-    env_file:
-      - ../.env.production
-    volumes:
-      - mongodb_data:/data/db
-
-    restart: unless-stopped
-
-    healthcheck:
-      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
-
   backend:
     build:
       context: ../backend
@@ -28,10 +10,6 @@ services:
 
     env_file:
       - ../.env.production
-    
-    depends_on:
-      mongodb:
-        condition: service_healthy
 
     restart: unless-stopped
 
@@ -77,6 +55,3 @@ services:
       frontend:
         condition: service_healthy
     restart: unless-stopped
-  
-volumes:
-  mongodb_data:
