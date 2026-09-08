@@ -17,7 +17,7 @@ const upsertRiderProfile = async (req, res, next) => {
       vehicleNumber,
       vehicleType,
       bikeModel,
-      emergencyContactNumber,
+      emergencyContacts,
     } = req.body;
 
     const profileFields = {
@@ -25,7 +25,7 @@ const upsertRiderProfile = async (req, res, next) => {
       vehicleNumber,
       ...(vehicleType && { vehicleType }),
       ...(bikeModel && { bikeModel }),
-      ...(emergencyContactNumber && { emergencyContactNumber }),
+      ...(emergencyContacts && { emergencyContacts }),
     };
 
     const profile = await RiderProfile.findOneAndUpdate(

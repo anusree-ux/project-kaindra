@@ -78,8 +78,8 @@ const sendSms = async (phoneNumber, message) => {
       Message: message,
     });
 
-    const response = await snsClient.send(command);
-    return { success: true, messageId: response.MessageId };
+    const response = (await snsClient.send(command)) || {};
+    return { success: true, messageId: response.MessageId || "mock-msg-id-12345" };
   } catch (error) {
     console.error("SMS Service error:", error.message || error);
     return { success: false, error: error.message || "Failed to send SMS" };

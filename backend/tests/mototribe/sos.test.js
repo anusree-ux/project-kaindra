@@ -2,7 +2,7 @@ const request = require("supertest");
 const app = require("../../src/app");
 const SosAlert = require("../../src/models/mototribe/SosAlert");
 
-describe("MotoTribe SOS Emergency Alerts API", () => {
+describe("MotoTribe SOS Emergency Alerts API & Multiple Emergency Contacts", () => {
   let organizerToken;
   let organizerId;
   let participantToken;
@@ -21,7 +21,13 @@ describe("MotoTribe SOS Emergency Alerts API", () => {
     await request(app)
       .post("/api/mototribe/rider-profile")
       .set("Authorization", `Bearer ${organizerToken}`)
-      .send({ vehicleNumber: "KA03AA1111", emergencyContactNumber: "9876543210" });
+      .send({
+        vehicleNumber: "KA03AA1111",
+        emergencyContacts: [
+          { name: "Mom", phoneNumber: "9876543210", relationship: "Parent" },
+          { name: "Spouse", phoneNumber: "9123456789", relationship: "Spouse" },
+        ],
+      });
 
     const partRes = await request(app).post("/api/v1/auth/signup").send({
       name: "SOS Participant",
@@ -34,7 +40,12 @@ describe("MotoTribe SOS Emergency Alerts API", () => {
     await request(app)
       .post("/api/mototribe/rider-profile")
       .set("Authorization", `Bearer ${participantToken}`)
-      .send({ vehicleNumber: "KA03BB2222", emergencyContactNumber: "9123456789" });
+      .send({
+        vehicleNumber: "KA03BB2222",
+        emergencyContacts: [
+          { name: "Friend", phoneNumber: "9998887776", relationship: "Friend" },
+        ],
+      });
 
     // Create & start ride
     const rideRes = await request(app)
@@ -64,23 +75,45 @@ describe("MotoTribe SOS Emergency Alerts API", () => {
       .set("Authorization", `Bearer ${organizerToken}`);
   });
 
-  test("Triggering SOS on an ongoing ride as a confirmed participant creates an SosAlert", async () => {
+  test("Rejects rider profile with 4 emergency contacts (exceeding max 3 limit) with clean 400 validation error", async () => {
+    const res = await request(app)
+      .post("/api/mototribe/rider-profile")
+      .set("Authorization", `Bearer ${organizerToken}`)
+      .send({
+        vehicleNumber: "KA03AA1111",
+        emergencyContacts: [
+          { name: "C1", phoneNumber: "9000000001" },
+          { name: "C2", phoneNumber: "9000000002" },
+          { name: "C3", phoneNumber: "9000000003" },
+          { name: "C4", phoneNumber: "9000000004" },
+        ],
+      });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.message).toMatch(/Validation failed/i);
+    expect(res.body.errors[0].message).toMatch(/at most 3 contacts/i);
+  });
+
+  test("Triggering SOS on an ongoing ride records per-contact smsDeliveryStatus for all emergency contacts", async () => {
     const res = await request(app)
       .post(`/api/mototribe/rides/${ongoingRideId}/sos`)
-      .set("Authorization", `Bearer ${participantToken}`)
+      .set("Authorization", `Bearer ${organizerToken}`)
       .send({ latitude: 12.9716, longitude: 77.5946 });
 
     expect(res.statusCode).toEqual(201);
     expect(res.body.data.alert.status).toBe("active");
-    expect(res.body.data.alert.latitude).toBe(12.9716);
+    expect(res.body.data.alert.smsDeliveryStatus.length).toBe(2);
+    expect(res.body.data.alert.smsDeliveryStatus[0].contactName).toBe("Mom");
+    expect(res.body.data.alert.smsDeliveryStatus[1].contactName).toBe("Spouse");
 
     const alertInDb = await SosAlert.findOne({
       rideId: ongoingRideId,
-      userId: participantId,
+      userId: organizerId,
     });
 
     expect(alertInDb).not.toBeNull();
-    expect(alertInDb.status).toBe("active");
+    expect(alertInDb.smsDeliveryStatus.length).toBe(2);
+    expect(alertInDb.smsDeliveryStatus[0].success).toBe(true);
   });
 
   test("Triggering SOS again while one is already active returns the existing alert", async () => {

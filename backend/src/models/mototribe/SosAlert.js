@@ -1,5 +1,27 @@
 const mongoose = require("mongoose");
 
+const smsDeliveryStatusSchema = new mongoose.Schema(
+  {
+    contactName: {
+      type: String,
+      required: true,
+    },
+    phoneNumber: {
+      type: String,
+      required: true,
+    },
+    success: {
+      type: Boolean,
+      required: true,
+    },
+    error: {
+      type: String,
+      default: null,
+    },
+  },
+  { _id: false }
+);
+
 const sosAlertSchema = new mongoose.Schema(
   {
     rideId: {
@@ -33,13 +55,9 @@ const sosAlertSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
-    smsSentToContact: {
-      type: Boolean,
-      default: false,
-    },
-    smsError: {
-      type: String,
-      default: null,
+    smsDeliveryStatus: {
+      type: [smsDeliveryStatusSchema],
+      default: [],
     },
   },
   {

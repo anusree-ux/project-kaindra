@@ -95,35 +95,38 @@ const triggerSosAlert = async (req, res, next) => {
       longitude: Number(longitude),
       status: "active",
       triggeredAt: new Date(),
-      smsSentToContact: false,
-      smsError: null,
+      smsDeliveryStatus: [],
     });
 
-    // 6. Fetch RiderProfile & send Emergency Contact SMS
+    // 6. Fetch RiderProfile & send Emergency Contact SMS to each contact
     const riderProfile = await RiderProfile.findOne({ userId });
-    const emergencyContact = riderProfile?.emergencyContactNumber;
+    const emergencyContacts = riderProfile?.emergencyContacts || [];
 
     // Safe rider name fallback (never show "undefined")
     const riderName = req.user.name || req.user.email || "A rider";
 
-    if (emergencyContact) {
+    if (emergencyContacts.length > 0) {
       const googleMapsUrl = `https://maps.google.com/?q=${latitude},${longitude}`;
       const smsMessage = `EMERGENCY SOS! Rider ${riderName} triggered an SOS alert on ride "${ride.title}". Location: ${googleMapsUrl}`;
+      const deliveryStatuses = [];
 
-      const smsResult = await sendSms(emergencyContact, smsMessage);
+      for (const contact of emergencyContacts) {
+        if (!contact.phoneNumber) continue;
 
-      if (smsResult.success) {
-        newAlert.smsSentToContact = true;
-        newAlert.smsError = null;
-      } else {
-        newAlert.smsSentToContact = false;
-        newAlert.smsError = smsResult.error || "SMS delivery failed";
+        const smsResult = await sendSms(contact.phoneNumber, smsMessage);
+
+        deliveryStatuses.push({
+          contactName: contact.name || "Unknown",
+          phoneNumber: contact.phoneNumber,
+          success: Boolean(smsResult.success),
+          error: smsResult.success ? null : smsResult.error || "SMS delivery failed",
+        });
       }
+
+      newAlert.smsDeliveryStatus = deliveryStatuses;
       await newAlert.save();
     } else {
-      newAlert.smsSentToContact = false;
-      newAlert.smsError = "No emergency contact number found on rider profile";
-      await newAlert.save();
+      console.log(`[SOS Alert] Rider ${userId} has no emergency contacts saved.`);
     }
 
     // 7. Broadcast high-priority socket event to ride room (ride_<rideId>)
@@ -141,7 +144,7 @@ const triggerSosAlert = async (req, res, next) => {
         longitude: newAlert.longitude,
         status: newAlert.status,
         triggeredAt: newAlert.triggeredAt,
-        smsSentToContact: newAlert.smsSentToContact,
+        smsDeliveryStatus: newAlert.smsDeliveryStatus,
       });
     }
 

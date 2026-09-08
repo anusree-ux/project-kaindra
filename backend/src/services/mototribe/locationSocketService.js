@@ -3,10 +3,14 @@ const User = require("../../models/core/User");
 const Ride = require("../../models/mototribe/Ride");
 const RideParticipant = require("../../models/mototribe/RideParticipant");
 const LiveLocation = require("../../models/mototribe/LiveLocation");
+const ChatMessage = require("../../models/mototribe/ChatMessage");
 
-// In-memory rate limiting map: key = `${userId}_${rideId}`, value = timestamp (ms)
+// In-memory rate limiting maps
 const lastUpdateMap = new Map();
-const RATE_LIMIT_MS = 3000; // 3 seconds
+const RATE_LIMIT_MS = 3000; // 3 seconds for location updates
+
+const lastChatMessageMap = new Map();
+const CHAT_RATE_LIMIT_MS = 1000; // 1 second for chat messages
 
 // Store Socket.io instance for room broadcasting
 let ioInstance = null;
@@ -154,6 +158,74 @@ const initLocationSocketService = (io) => {
       } catch (error) {
         socket.emit("error", {
           message: "Server error updating live location",
+          error: error.message,
+        });
+      }
+    });
+
+    // 3. Client emits "chat_message" with { rideId, message }
+    socket.on("chat_message", async (data) => {
+      try {
+        const { rideId, message } = data || {};
+
+        if (!rideId) {
+          return socket.emit("error", { message: "rideId is required" });
+        }
+
+        const roomName = `ride_${rideId}`;
+
+        // Verify user has joined the room via join_ride
+        if (!socket.rooms.has(roomName)) {
+          return socket.emit("error", {
+            message: "You must join the ride room first before sending messages.",
+          });
+        }
+
+        if (!message || typeof message !== "string" || !message.trim()) {
+          return socket.emit("error", { message: "Message content cannot be empty." });
+        }
+
+        const trimmedMessage = message.trim();
+        if (trimmedMessage.length > 1000) {
+          return socket.emit("error", {
+            message: "Message cannot exceed 1000 characters.",
+          });
+        }
+
+        // Rate limiting: max 1 chat message per second per user per ride
+        const rateLimitKey = `chat_${socket.user._id}_${rideId}`;
+        const now = Date.now();
+        const lastTime = lastChatMessageMap.get(rateLimitKey) || 0;
+
+        if (now - lastTime < CHAT_RATE_LIMIT_MS) {
+          return socket.emit("rate_limit_exceeded", {
+            message: "Chat messages are rate-limited to 1 message per second.",
+          });
+        }
+
+        lastChatMessageMap.set(rateLimitKey, now);
+
+        // Save to ChatMessage collection
+        const chatDoc = await ChatMessage.create({
+          rideId,
+          userId: socket.user._id,
+          message: trimmedMessage,
+        });
+
+        const payload = {
+          id: chatDoc._id,
+          rideId,
+          userId: socket.user._id,
+          userName: socket.user.name,
+          message: chatDoc.message,
+          createdAt: chatDoc.createdAt,
+        };
+
+        // Broadcast to everyone in the room (including sender)
+        ioInstance.to(roomName).emit("chat_message_received", payload);
+      } catch (error) {
+        socket.emit("error", {
+          message: "Server error sending chat message",
           error: error.message,
         });
       }

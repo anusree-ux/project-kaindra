@@ -6,6 +6,18 @@ const riderProfileValidationRules = [
     .trim()
     .notEmpty()
     .withMessage("Vehicle number is required"),
+  body("emergencyContacts")
+    .optional()
+    .isArray({ max: 3 })
+    .withMessage("Emergency contacts must be an array of at most 3 contacts"),
+  body("emergencyContacts.*.name")
+    .trim()
+    .notEmpty()
+    .withMessage("Emergency contact name is required"),
+  body("emergencyContacts.*.phoneNumber")
+    .trim()
+    .notEmpty()
+    .withMessage("Emergency contact phone number is required"),
 ];
 
 const createRideValidationRules = [

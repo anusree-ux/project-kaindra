@@ -5,6 +5,7 @@ const env = require("./src/config/environment");
 const {
   initLocationSocketService,
 } = require("./src/services/mototribe/locationSocketService");
+const { initScheduler } = require("./src/scripts/scheduler");
 
 const PORT = env.port;
 
@@ -19,8 +20,9 @@ const io = new Server(server, {
   },
 });
 
-// Initialize MotoTribe Live Location Socket Service
+// Initialize MotoTribe Live Location Socket Service & Background Scheduler
 initLocationSocketService(io);
+initScheduler();
 
 server.listen(PORT, () => {
   console.log(
