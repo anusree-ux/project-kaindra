@@ -9,6 +9,7 @@ const CATEGORY_MAP = {
   hotel: "lodging",
   food: "restaurant",
   rest_stop: "cafe",
+  scenic_spot: "tourist_attraction",
 };
 
 // In-memory cache storage & TTL (5 minutes = 300,000 ms)

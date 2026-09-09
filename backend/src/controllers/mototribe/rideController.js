@@ -4,6 +4,7 @@ const Ride = require("../../models/mototribe/Ride");
 const RideParticipant = require("../../models/mototribe/RideParticipant");
 const LiveLocation = require("../../models/mototribe/LiveLocation");
 const AppError = require("../../utils/AppError");
+const { checkAndAwardBadges } = require("../../services/mototribe/achievementService");
 
 /**
  * @desc    Create or update logged-in user's rider profile
@@ -16,7 +17,7 @@ const upsertRiderProfile = async (req, res, next) => {
       vehicleNumber,
       vehicleType,
       bikeModel,
-      emergencyContactNumber,
+      emergencyContacts,
     } = req.body;
 
     const profileFields = {
@@ -24,7 +25,7 @@ const upsertRiderProfile = async (req, res, next) => {
       vehicleNumber,
       ...(vehicleType && { vehicleType }),
       ...(bikeModel && { bikeModel }),
-      ...(emergencyContactNumber && { emergencyContactNumber }),
+      ...(emergencyContacts && { emergencyContacts }),
     };
 
     const profile = await RiderProfile.findOneAndUpdate(
@@ -142,6 +143,13 @@ const createRide = async (req, res, next) => {
       userId: req.user._id,
       status: "confirmed",
     });
+
+    // Safely increment routesContributed and rideGroupsJoined for organizer (without upsert)
+    await RiderProfile.updateOne(
+      { userId: req.user._id },
+      { $inc: { routesContributed: 1, rideGroupsJoined: 1 } }
+    );
+    await checkAndAwardBadges(req.user._id);
 
     res.status(201).json({
       status: "success",
@@ -379,10 +387,17 @@ const executeCompleteRideOps = async (ride, sessionOpts = {}) => {
           totalRidesCompleted: 1,
           totalDistanceKm: ride.distanceKm,
         },
+        $addToSet: {
+          regionsExplored: ride.destination,
+        },
       },
       sessionOpts
     );
     updatedProfilesCount = updateResult.modifiedCount || updateResult.nModified || 0;
+
+    for (const uId of userIds) {
+      await checkAndAwardBadges(uId, sessionOpts.session);
+    }
   }
 
   return { confirmedCount: userIds.length, updatedProfilesCount };
@@ -435,15 +450,7 @@ const completeRide = async (req, res, next) => {
         } catch (abortErr) {}
       }
 
-      if (
-        txnError.message &&
-        (txnError.message.includes("Transaction numbers are only allowed") ||
-          txnError.message.includes("replica set"))
-      ) {
-        result = await executeCompleteRideOps(ride);
-      } else {
-        throw txnError;
-      }
+      result = await executeCompleteRideOps(ride);
     }
 
     res.status(200).json({
@@ -545,6 +552,13 @@ const confirmParticipant = async (req, res, next) => {
 
     participant.status = "confirmed";
     await participant.save();
+
+    // Safely increment rideGroupsJoined for confirmed participant (without upsert)
+    await RiderProfile.updateOne(
+      { userId: participant.userId },
+      { $inc: { rideGroupsJoined: 1 } }
+    );
+    await checkAndAwardBadges(participant.userId);
 
     res.status(200).json({
       status: "success",
