@@ -60,6 +60,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Run tests
+        run: npm test      
+
       - name: Build Docker image (dev target)
         run: docker build --target dev -t kaindra-backend:ci-test .
 
