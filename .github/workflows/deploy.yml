@@ -1,10 +1,61 @@
 name: Deploy
 
 on:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
   workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ap-south-1
+  ECR_REGISTRY: 868843318280.dkr.ecr.ap-south-1.amazonaws.com
 
 jobs:
   deploy:
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.head_branch == 'main'
+      )
     runs-on: ubuntu-latest
+
     steps:
-      - run: echo "Deployment not configured yet"
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::868843318280:role/KaindraGitHubActionsRole
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push backend image
+        run: |
+          docker build \
+            --target production \
+            -t $ECR_REGISTRY/kaindra-backend:${{ github.event.workflow_run.head_sha }} \
+            -t $ECR_REGISTRY/kaindra-backend:latest \
+            ./backend
+
+          docker push $ECR_REGISTRY/kaindra-backend:${{ github.event.workflow_run.head_sha }}
+          docker push $ECR_REGISTRY/kaindra-backend:latest
+
+      - name: Build and push frontend image
+        run: |
+          docker build \
+            --target production \
+            -t $ECR_REGISTRY/kaindra-frontend:${{ github.event.workflow_run.head_sha }} \
+            -t $ECR_REGISTRY/kaindra-frontend:latest \
+            ./frontend
+
+          docker push $ECR_REGISTRY/kaindra-frontend:${{ github.event.workflow_run.head_sha }}
+          docker push $ECR_REGISTRY/kaindra-frontend:latest
