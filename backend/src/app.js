@@ -29,6 +29,14 @@ app.get("/", (req, res) => {
   res.json({ status: "success", message: "Kaindra API is running" });
 });
 
+// Backend health check endpoint
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "ok",
+    service: "backend",
+  });
+});
+
 // API Routes
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/auth", authRoutes);
