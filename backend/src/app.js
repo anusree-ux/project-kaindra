@@ -1,4 +1,5 @@
 const express = require("express");
+const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const connectDB = require("./config/database");
 const authRoutes = require("./routes/core/authRoutes");
@@ -17,6 +18,14 @@ const app = express();
 
 // Connect to Database
 connectDB();
+
+// CORS Middleware (allow requests from frontend app)
+app.use(
+  cors({
+    origin: true,
+    credentials: true,
+  })
+);
 
 // Body parser
 app.use(express.json());
