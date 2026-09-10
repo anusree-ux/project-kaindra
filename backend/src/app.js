@@ -12,6 +12,8 @@ const passportRoutes = require("./routes/mototribe/passportRoutes");
 const journalRoutes = require("./routes/mototribe/journalRoutes");
 const routeMatchRoutes = require("./routes/mototribe/routeMatchRoutes");
 const chatRoutes = require("./routes/mototribe/chatRoutes");
+const fuelPriceRoutes = require("./routes/mototribe/fuelPriceRoutes");
+const agoraRoutes = require("./routes/mototribe/agoraRoutes");
 const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
@@ -69,6 +71,12 @@ app.use("/api/mototribe", journalRoutes);
 
 app.use("/api/v1/mototribe", chatRoutes);
 app.use("/api/mototribe", chatRoutes);
+
+app.use("/api/v1/mototribe", fuelPriceRoutes);
+app.use("/api/mototribe", fuelPriceRoutes);
+
+app.use("/api/v1/mototribe", agoraRoutes);
+app.use("/api/mototribe", agoraRoutes);
 
 // 404 Route Handler
 app.use((req, res) => {
