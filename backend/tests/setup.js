@@ -14,6 +14,15 @@ jest.mock("@aws-sdk/client-sns", () => {
   };
 });
 
+// Mock SendGrid Mail Client
+jest.mock("@sendgrid/mail", () => ({
+  setApiKey: jest.fn(),
+  send: jest.fn().mockResolvedValue([
+    { statusCode: 202, headers: { "x-message-id": "mock-msg-id" } },
+    {},
+  ]),
+}));
+
 // Mock Cloudinary SDK
 jest.mock("cloudinary", () => ({
   v2: {

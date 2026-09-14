@@ -34,10 +34,11 @@ const sendEmail = async (toEmail, subject, htmlBody) => {
       html: htmlBody,
     };
 
-    const [response] = await sgMail.send(msg);
+    const response = await sgMail.send(msg);
+    const firstResponse = Array.isArray(response) ? response[0] : response;
     return {
       success: true,
-      messageId: response?.headers?.["x-message-id"] || "sg-success",
+      messageId: firstResponse?.headers?.["x-message-id"] || "sg-success",
     };
   } catch (error) {
     console.error("Email Service error:", error.message || error);

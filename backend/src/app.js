@@ -14,6 +14,7 @@ const routeMatchRoutes = require("./routes/mototribe/routeMatchRoutes");
 const chatRoutes = require("./routes/mototribe/chatRoutes");
 const fuelPriceRoutes = require("./routes/mototribe/fuelPriceRoutes");
 const agoraRoutes = require("./routes/mototribe/agoraRoutes");
+const connectionRoutes = require("./routes/core/connectionRoutes");
 const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
@@ -51,6 +52,10 @@ app.get("/health", (req, res) => {
 // API Routes
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/auth", authRoutes);
+
+// Core Connection Routes
+app.use("/api/v1/core", connectionRoutes);
+app.use("/api/core", connectionRoutes);
 
 // MotoTribe Routes (supports both /api/mototribe and /api/v1/mototribe)
 app.use("/api/v1/mototribe", routeMatchRoutes);
