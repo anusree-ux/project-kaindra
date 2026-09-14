@@ -15,6 +15,10 @@ const signupValidationRules = [
     .isEmail()
     .withMessage("Please provide a valid email address")
     .normalizeEmail(),
+  body("phoneNumber")
+    .trim()
+    .notEmpty()
+    .withMessage("Phone number is required"),
   body("password")
     .notEmpty()
     .withMessage("Password is required")
@@ -31,6 +35,20 @@ const loginValidationRules = [
     .withMessage("Please provide a valid email address")
     .normalizeEmail(),
   body("password").notEmpty().withMessage("Password is required"),
+];
+
+const verifyOtpValidationRules = [
+  body("userId").trim().notEmpty().withMessage("User ID is required"),
+  body("otpCode")
+    .trim()
+    .notEmpty()
+    .withMessage("OTP code is required")
+    .isLength({ min: 6, max: 6 })
+    .withMessage("OTP code must be exactly 6 digits"),
+];
+
+const resendOtpValidationRules = [
+  body("userId").trim().notEmpty().withMessage("User ID is required"),
 ];
 
 const validate = (req, res, next) => {
@@ -50,5 +68,7 @@ const validate = (req, res, next) => {
 module.exports = {
   signupValidationRules,
   loginValidationRules,
+  verifyOtpValidationRules,
+  resendOtpValidationRules,
   validate,
 };

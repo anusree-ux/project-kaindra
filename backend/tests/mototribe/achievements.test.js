@@ -3,18 +3,16 @@ const app = require("../../src/app");
 const UserAchievement = require("../../src/models/mototribe/UserAchievement");
 const { checkAndAwardBadges } = require("../../src/services/mototribe/achievementService");
 
+const { createTestUser } = require("../helpers/testUser");
+
 describe("MotoTribe Passport Achievements API & Service", () => {
   let organizerToken;
   let organizerId;
 
   beforeEach(async () => {
-    const orgRes = await request(app).post("/api/v1/auth/signup").send({
-      name: "Achievement Rider",
-      email: "achievement.rider@example.com",
-      password: "password123",
-    });
-    organizerToken = orgRes.body.accessToken;
-    organizerId = orgRes.body.data.user._id;
+    const org = await createTestUser({ name: "Achievement Rider" });
+    organizerToken = org.token;
+    organizerId = org.userId;
 
     await request(app)
       .post("/api/mototribe/rider-profile")

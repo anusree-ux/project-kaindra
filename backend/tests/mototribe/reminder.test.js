@@ -4,23 +4,19 @@ const RideReminder = require("../../src/models/mototribe/RideReminder");
 const User = require("../../src/models/core/User");
 const { checkAndSendReminders } = require("../../src/services/mototribe/reminderService");
 
+const { createTestUser } = require("../helpers/testUser");
+
 describe("MotoTribe Email Ride Reminders & Scheduler Service", () => {
   let user1, user2;
   let ride24h, ride1h;
 
   beforeEach(async () => {
     // 1. Create users
-    user1 = await User.create({
-      name: "Reminder Rider 1",
-      email: "rider1.reminder@example.com",
-      password: "password123",
-    });
+    const u1 = await createTestUser({ name: "Reminder Rider 1" });
+    user1 = u1.user;
 
-    user2 = await User.create({
-      name: "Reminder Rider 2",
-      email: "rider2.reminder@example.com",
-      password: "password123",
-    });
+    const u2 = await createTestUser({ name: "Reminder Rider 2" });
+    user2 = u2.user;
 
     const now = Date.now();
 

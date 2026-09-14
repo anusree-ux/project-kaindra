@@ -4,6 +4,8 @@ const app = require("../../src/app");
 const Ride = require("../../src/models/mototribe/Ride");
 const RideParticipant = require("../../src/models/mototribe/RideParticipant");
 
+const { createTestUser } = require("../helpers/testUser");
+
 describe("MotoTribe Agora Group Voice/Video Calling Token API", () => {
   let organizerToken;
   let participantToken;
@@ -15,13 +17,9 @@ describe("MotoTribe Agora Group Voice/Video Calling Token API", () => {
     process.env.AGORA_APP_CERTIFICATE = "5cfd2daf35d24e1aab060f6513e444b9";
 
     // 1. Create Organizer User
-    const orgRes = await request(app).post("/api/v1/auth/signup").send({
-      name: "Ride Organizer",
-      email: "organizer.agora@example.com",
-      password: "Password123!",
-    });
-    organizerToken = orgRes.body.accessToken;
-    const organizerId = orgRes.body.data.user._id;
+    const org = await createTestUser({ name: "Ride Organizer" });
+    organizerToken = org.token;
+    const organizerId = org.userId;
 
     // 2. Create Ride
     ride = await Ride.create({
@@ -34,13 +32,9 @@ describe("MotoTribe Agora Group Voice/Video Calling Token API", () => {
     });
 
     // 3. Create Participant User and join ride
-    const partRes = await request(app).post("/api/v1/auth/signup").send({
-      name: "Confirmed Rider",
-      email: "participant.agora@example.com",
-      password: "Password123!",
-    });
-    participantToken = partRes.body.accessToken;
-    const participantId = partRes.body.data.user._id;
+    const part = await createTestUser({ name: "Confirmed Rider" });
+    participantToken = part.token;
+    const participantId = part.userId;
 
     await RideParticipant.create({
       rideId: ride._id,
@@ -49,12 +43,8 @@ describe("MotoTribe Agora Group Voice/Video Calling Token API", () => {
     });
 
     // 4. Create Non-member User
-    const nonRes = await request(app).post("/api/v1/auth/signup").send({
-      name: "Outsider Rider",
-      email: "outsider.agora@example.com",
-      password: "Password123!",
-    });
-    nonMemberToken = nonRes.body.accessToken;
+    const non = await createTestUser({ name: "Outsider Rider" });
+    nonMemberToken = non.token;
   });
 
   test("1 & 5: Authenticated ride member / organizer receives a valid Agora RTC token", async () => {

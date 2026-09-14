@@ -3,6 +3,8 @@ const app = require("../../src/app");
 const Ride = require("../../src/models/mototribe/Ride");
 const RideParticipant = require("../../src/models/mototribe/RideParticipant");
 
+const { createTestUser } = require("../helpers/testUser");
+
 describe("MotoTribe Live Riders & Connect API", () => {
   let token1, user1Id;
   let token2, user2Id;
@@ -10,29 +12,17 @@ describe("MotoTribe Live Riders & Connect API", () => {
 
   beforeEach(async () => {
     // Register 3 users
-    const res1 = await request(app).post("/api/v1/auth/signup").send({
-      name: "Rider One",
-      email: "rider1@example.com",
-      password: "password123",
-    });
-    token1 = res1.body.accessToken;
-    user1Id = res1.body.data.user._id;
+    const r1 = await createTestUser({ name: "Rider One" });
+    token1 = r1.token;
+    user1Id = r1.userId;
 
-    const res2 = await request(app).post("/api/v1/auth/signup").send({
-      name: "Rider Two",
-      email: "rider2@example.com",
-      password: "password123",
-    });
-    token2 = res2.body.accessToken;
-    user2Id = res2.body.data.user._id;
+    const r2 = await createTestUser({ name: "Rider Two" });
+    token2 = r2.token;
+    user2Id = r2.userId;
 
-    const res3 = await request(app).post("/api/v1/auth/signup").send({
-      name: "Rider Three",
-      email: "rider3@example.com",
-      password: "password123",
-    });
-    token3 = res3.body.accessToken;
-    user3Id = res3.body.data.user._id;
+    const r3 = await createTestUser({ name: "Rider Three" });
+    token3 = r3.token;
+    user3Id = r3.userId;
   });
 
   describe("GET /api/mototribe/rides/route-stats", () => {
