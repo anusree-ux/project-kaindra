@@ -82,7 +82,7 @@ const getRideFuelEstimateController = async (req, res, next) => {
     const rideId = req.params.id;
     const { state, mileage, fuelType } = req.query;
 
-    const ride = await Ride.findById(rideId);
+    const ride = await Ride.findById(rideId).populate("vehicleId");
     if (!ride) {
       return next(new AppError("Ride not found.", 404));
     }
@@ -105,9 +105,13 @@ const getRideFuelEstimateController = async (req, res, next) => {
     }
 
     const distanceKm = ride.distanceKm;
-    const vehicleMileageKmpl = mileage ? Number(mileage) : 40; // Default 40 km/L if omitted
+    // Pull mileageKmpl and fuelType from the ride's linked Vehicle unless overridden by query params
+    const vehicleMileageKmpl = mileage
+      ? Number(mileage)
+      : (ride.vehicleId ? ride.vehicleId.mileageKmpl : 40);
     const targetState = state || ride.origin || "Delhi";
-    const targetFuelType = fuelType || "petrol";
+    const targetFuelType = fuelType
+      || (ride.vehicleId ? ride.vehicleId.fuelType : "petrol");
 
     const estimate = await estimateFuelCost(
       distanceKm,

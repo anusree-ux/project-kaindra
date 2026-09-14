@@ -23,6 +23,7 @@ describe("MotoTribe Crowdsourced Fuel Price Tracking API", () => {
 
     ride = await Ride.create({
       organizerId,
+      vehicleId: org.vehicleId,
       title: "Western Ghats Tour",
       origin: "Mumbai",
       destination: "Goa",

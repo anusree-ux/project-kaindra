@@ -52,6 +52,7 @@ describe("MotoTribe Ride Group Chat & Socket Service", () => {
       .post("/api/mototribe/rides")
       .set("Authorization", `Bearer ${organizerToken}`)
       .send({
+        vehicleId: org.vehicleId,
         title: "Chat Test Highway Run",
         origin: "City C",
         destination: "City D",

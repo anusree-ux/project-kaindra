@@ -24,6 +24,7 @@ describe("MotoTribe Agora Group Voice/Video Calling Token API", () => {
     // 2. Create Ride
     ride = await Ride.create({
       organizerId,
+      vehicleId: org.vehicleId,
       title: "Himalayan Group Ride",
       origin: "Delhi",
       destination: "Manali",

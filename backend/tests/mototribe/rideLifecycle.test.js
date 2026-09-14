@@ -8,6 +8,7 @@ const { createTestUser } = require("../helpers/testUser");
 describe("MotoTribe Ride Lifecycle API", () => {
   let organizerToken;
   let organizerId;
+  let organizerVehicleId;
   let riderToken;
   let riderId;
 
@@ -16,6 +17,7 @@ describe("MotoTribe Ride Lifecycle API", () => {
     const org = await createTestUser({ name: "Organizer Rider" });
     organizerToken = org.token;
     organizerId = org.userId;
+    organizerVehicleId = org.vehicleId;
 
     // Create RiderProfile for organizer
     await request(app)
@@ -45,6 +47,7 @@ describe("MotoTribe Ride Lifecycle API", () => {
         destination: "Coorg",
         startDate: new Date(Date.now() + 86400000).toISOString(),
         distanceKm: 250,
+        vehicleId: organizerVehicleId,
       });
 
     expect(res.statusCode).toEqual(201);
@@ -64,6 +67,7 @@ describe("MotoTribe Ride Lifecycle API", () => {
         destination: "Udupi",
         startDate: new Date(Date.now() + 86400000).toISOString(),
         distanceKm: 60,
+        vehicleId: organizerVehicleId,
       });
 
     const rideId = rideRes.body.data.ride._id;
@@ -90,6 +94,7 @@ describe("MotoTribe Ride Lifecycle API", () => {
         destination: "Wayanad",
         startDate: new Date(Date.now() + 86400000).toISOString(),
         distanceKm: 120,
+        vehicleId: organizerVehicleId,
       });
     const rideId = rideRes.body.data.ride._id;
 
@@ -117,6 +122,7 @@ describe("MotoTribe Ride Lifecycle API", () => {
         destination: "Goa",
         startDate: new Date(Date.now() + 86400000).toISOString(),
         distanceKm: 560,
+        vehicleId: organizerVehicleId,
       });
     const rideId = rideRes.body.data.ride._id;
 
@@ -154,6 +160,7 @@ describe("MotoTribe Ride Lifecycle API", () => {
         destination: "City B",
         startDate: new Date(Date.now() + 86400000).toISOString(),
         distanceKm: 100,
+        vehicleId: organizerVehicleId,
       });
     const rideId = rideRes.body.data.ride._id;
 
@@ -175,6 +182,7 @@ describe("MotoTribe Ride Lifecycle API", () => {
         destination: "City B",
         startDate: new Date(Date.now() + 86400000).toISOString(),
         distanceKm: 100,
+        vehicleId: organizerVehicleId,
       });
     const rideId = rideRes.body.data.ride._id;
 

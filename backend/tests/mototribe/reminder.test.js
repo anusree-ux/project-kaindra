@@ -23,6 +23,7 @@ describe("MotoTribe Email Ride Reminders & Scheduler Service", () => {
     // 2. Create ride starting in 12 hours (falls into 24h window)
     ride24h = await Ride.create({
       organizerId: user1._id,
+      vehicleId: u1.vehicleId,
       title: "24h Coastal Ride",
       origin: "Bangalore",
       destination: "Mangalore",
@@ -44,6 +45,7 @@ describe("MotoTribe Email Ride Reminders & Scheduler Service", () => {
     // 3. Create ride starting in 30 minutes (falls into BOTH 24h and 1h windows)
     ride1h = await Ride.create({
       organizerId: user1._id,
+      vehicleId: u1.vehicleId,
       title: "Imminent Sprint",
       origin: "Bangalore",
       destination: "Nandi Hills",

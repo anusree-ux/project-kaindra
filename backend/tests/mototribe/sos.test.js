@@ -15,6 +15,7 @@ describe("MotoTribe SOS Emergency Alerts API & Multiple Emergency Contacts", () 
     const org = await createTestUser({ name: "SOS Organizer" });
     organizerToken = org.token;
     organizerId = org.userId;
+    const organizerVehicleId = org.vehicleId;
 
     await request(app)
       .post("/api/mototribe/rider-profile")
@@ -51,6 +52,7 @@ describe("MotoTribe SOS Emergency Alerts API & Multiple Emergency Contacts", () 
         destination: "Ooty",
         startDate: new Date(Date.now() + 86400000).toISOString(),
         distanceKm: 270,
+        vehicleId: organizerVehicleId,
       });
     ongoingRideId = rideRes.body.data.ride._id;
 

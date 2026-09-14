@@ -6,23 +6,26 @@ const RideParticipant = require("../../src/models/mototribe/RideParticipant");
 const { createTestUser } = require("../helpers/testUser");
 
 describe("MotoTribe Live Riders & Connect API", () => {
-  let token1, user1Id;
-  let token2, user2Id;
-  let token3, user3Id;
+  let token1, user1Id, vehicle1Id;
+  let token2, user2Id, vehicle2Id;
+  let token3, user3Id, vehicle3Id;
 
   beforeEach(async () => {
     // Register 3 users
     const r1 = await createTestUser({ name: "Rider One" });
     token1 = r1.token;
     user1Id = r1.userId;
+    vehicle1Id = r1.vehicleId;
 
     const r2 = await createTestUser({ name: "Rider Two" });
     token2 = r2.token;
     user2Id = r2.userId;
+    vehicle2Id = r2.vehicleId;
 
     const r3 = await createTestUser({ name: "Rider Three" });
     token3 = r3.token;
     user3Id = r3.userId;
+    vehicle3Id = r3.vehicleId;
   });
 
   describe("GET /api/mototribe/rides/route-stats", () => {
@@ -39,6 +42,7 @@ describe("MotoTribe Live Riders & Connect API", () => {
       // 1. Create an ongoing ride for Bangalore -> Goa (user1)
       const ride1 = await Ride.create({
         organizerId: user1Id,
+        vehicleId: vehicle1Id,
         title: "Ongoing Goa Run",
         origin: "Bangalore",
         destination: "Goa",
@@ -55,6 +59,7 @@ describe("MotoTribe Live Riders & Connect API", () => {
       // 2. Create a planning ride for Bangalore -> Goa with 1 participant (user2) -> looking for partners (<3)
       const ride2 = await Ride.create({
         organizerId: user2Id,
+        vehicleId: vehicle2Id,
         title: "Planning Goa Solo",
         origin: "Bangalore",
         destination: "Goa",
@@ -71,6 +76,7 @@ describe("MotoTribe Live Riders & Connect API", () => {
       // 3. Create a planning ride for Bangalore -> Goa with 3 confirmed participants (user1, user2, user3) -> NOT looking for partners (>=3)
       const ride3 = await Ride.create({
         organizerId: user3Id,
+        vehicleId: vehicle3Id,
         title: "Planning Goa Group",
         origin: "Bangalore",
         destination: "Goa",
@@ -110,6 +116,7 @@ describe("MotoTribe Live Riders & Connect API", () => {
       // Create ride for "Delhi " -> "Jaipur"
       await Ride.create({
         organizerId: user1Id,
+        vehicleId: vehicle1Id,
         title: "Delhi Jaipur Express",
         origin: "Delhi ",
         destination: "Jaipur",
@@ -121,6 +128,7 @@ describe("MotoTribe Live Riders & Connect API", () => {
       // Create ride for "New Delhi" -> "Jaipur"
       await Ride.create({
         organizerId: user2Id,
+        vehicleId: vehicle2Id,
         title: "New Delhi Jaipur Express",
         origin: "New Delhi",
         destination: "Jaipur",
@@ -152,6 +160,7 @@ describe("MotoTribe Live Riders & Connect API", () => {
       // Setup rides for Pune -> Mumbai
       const r1 = await Ride.create({
         organizerId: user1Id,
+        vehicleId: vehicle1Id,
         title: "Pune Expressway Riding",
         origin: "Pune",
         destination: "Mumbai",
@@ -163,6 +172,7 @@ describe("MotoTribe Live Riders & Connect API", () => {
 
       const r2 = await Ride.create({
         organizerId: user2Id,
+        vehicleId: vehicle2Id,
         title: "Solo Planning Pune",
         origin: "Pune",
         destination: "Mumbai",
@@ -174,6 +184,7 @@ describe("MotoTribe Live Riders & Connect API", () => {
 
       const r3 = await Ride.create({
         organizerId: user3Id,
+        vehicleId: vehicle3Id,
         title: "Full Group Planning",
         origin: "Pune",
         destination: "Mumbai",

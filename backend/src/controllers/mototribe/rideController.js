@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const RiderProfile = require("../../models/mototribe/RiderProfile");
+const Vehicle = require("../../models/mototribe/Vehicle");
 const Ride = require("../../models/mototribe/Ride");
 const RideParticipant = require("../../models/mototribe/RideParticipant");
 const LiveLocation = require("../../models/mototribe/LiveLocation");
@@ -7,24 +8,29 @@ const AppError = require("../../utils/AppError");
 const { checkAndAwardBadges } = require("../../services/mototribe/achievementService");
 
 /**
- * @desc    Create or update logged-in user's rider profile
+ * Format ride object for API responses, applying registration number masking for non-owners
+ */
+const formatRideForUser = (ride, requestingUserId) => {
+  if (!ride) return ride;
+  const rideObj = ride.toObject ? ride.toObject() : { ...ride };
+  if (rideObj.vehicleId && typeof rideObj.vehicleId === "object") {
+    const vehicleDoc = ride.vehicleId.toPublicJSON ? ride.vehicleId : new Vehicle(rideObj.vehicleId);
+    rideObj.vehicleId = vehicleDoc.toPublicJSON(requestingUserId);
+  }
+  return rideObj;
+};
+
+/**
+ * @desc    Create or update logged-in user's rider profile (emergency contacts)
  * @route   POST /api/mototribe/rider-profile
  * @access  Private
  */
 const upsertRiderProfile = async (req, res, next) => {
   try {
-    const {
-      vehicleNumber,
-      vehicleType,
-      bikeModel,
-      emergencyContacts,
-    } = req.body;
+    const { emergencyContacts } = req.body;
 
     const profileFields = {
       userId: req.user._id,
-      vehicleNumber,
-      ...(vehicleType && { vehicleType }),
-      ...(bikeModel && { bikeModel }),
       ...(emergencyContacts && { emergencyContacts }),
     };
 
@@ -116,6 +122,7 @@ const getMyRideHistory = async (req, res, next) => {
 const createRide = async (req, res, next) => {
   try {
     const {
+      vehicleId,
       title,
       origin,
       destination,
@@ -125,8 +132,22 @@ const createRide = async (req, res, next) => {
       budget,
     } = req.body;
 
+    if (!vehicleId) {
+      return next(new AppError("vehicleId is required to create a ride.", 400));
+    }
+
+    const vehicle = await Vehicle.findById(vehicleId);
+    if (!vehicle) {
+      return next(new AppError("Selected vehicle not found.", 404));
+    }
+
+    if (vehicle.userId.toString() !== req.user._id.toString()) {
+      return next(new AppError("The selected vehicle does not belong to you.", 403));
+    }
+
     const newRide = await Ride.create({
       organizerId: req.user._id,
+      vehicleId: vehicle._id,
       title,
       origin,
       destination,
@@ -173,13 +194,16 @@ const getUpcomingRides = async (req, res, next) => {
       status: { $in: ["planning", "ongoing"] },
     })
       .populate("organizerId", "name email")
+      .populate("vehicleId")
       .sort({ startDate: 1 });
+
+    const formattedRides = rides.map((r) => formatRideForUser(r, req.user._id));
 
     res.status(200).json({
       status: "success",
-      results: rides.length,
+      results: formattedRides.length,
       data: {
-        rides,
+        rides: formattedRides,
       },
     });
   } catch (error) {
@@ -194,10 +218,9 @@ const getUpcomingRides = async (req, res, next) => {
  */
 const getRideDetails = async (req, res, next) => {
   try {
-    const ride = await Ride.findById(req.params.id).populate(
-      "organizerId",
-      "name email"
-    );
+    const ride = await Ride.findById(req.params.id)
+      .populate("organizerId", "name email")
+      .populate("vehicleId");
 
     if (!ride) {
       return next(new AppError("Ride not found.", 404));
@@ -208,10 +231,12 @@ const getRideDetails = async (req, res, next) => {
       status: { $ne: "left" },
     });
 
+    const formattedRide = formatRideForUser(ride, req.user._id);
+
     res.status(200).json({
       status: "success",
       data: {
-        ride,
+        ride: formattedRide,
         participantCount,
       },
     });
