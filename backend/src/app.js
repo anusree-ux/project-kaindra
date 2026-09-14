@@ -3,6 +3,7 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const connectDB = require("./config/database");
 const authRoutes = require("./routes/core/authRoutes");
+const profileRoutes = require("./routes/modasphere/profileRoutes");
 const rideRoutes = require("./routes/mototribe/rideRoutes");
 const placesRoutes = require("./routes/mototribe/placesRoutes");
 const directionsRoutes = require("./routes/mototribe/directionsRoutes");
@@ -51,6 +52,9 @@ app.get("/health", (req, res) => {
 // API Routes
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/auth", authRoutes);
+
+// ModaSphere Routes
+app.use("/api/v1/modasphere/profile", profileRoutes);
 
 // MotoTribe Routes (supports both /api/mototribe and /api/v1/mototribe)
 app.use("/api/v1/mototribe", routeMatchRoutes);
