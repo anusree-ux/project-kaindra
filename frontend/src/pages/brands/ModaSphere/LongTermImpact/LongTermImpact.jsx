@@ -1,35 +1,37 @@
+import { Globe2 } from "lucide-react";
 import "./LongTermImpact.css";
 
 export default function LongTermImpact() {
   return (
-    <section className="long-term-impact" id="impact">
+    <section className="impact-section" id="impact">
       <div className="impact-container">
-        <p>10 — LONG-TERM IMPACT</p>
+        <div className="impact-heading">
+          <div className="impact-label">LONG-TERM IMPACT</div>
 
-        <h2>
-          Building a more
-          <br />
-          <span>connected fashion industry.</span>
-        </h2>
+          <h2>
+            Redefining the future
+            <br />
+            of fashion.
+          </h2>
 
-        <div className="impact-grid">
-          <div>
-            <strong>01</strong>
-            <h3>Opportunity</h3>
-            <p>Create more opportunities for fashion businesses and creators.</p>
+          <p>
+            Creating equal opportunities, encouraging innovation,
+            supporting sustainability, and connecting the global
+            fashion community through one universal platform.
+          </p>
+        </div>
+
+        <div className="impact-content">
+          <div className="impact-icon">
+            <Globe2 size={32} strokeWidth={1.5} />
           </div>
 
-          <div>
-            <strong>02</strong>
-            <h3>Innovation</h3>
-            <p>Encourage new ideas, products and collaborations.</p>
-          </div>
-
-          <div>
-            <strong>03</strong>
-            <h3>Growth</h3>
-            <p>Help participants reach customers and markets globally.</p>
-          </div>
+          <p className="impact-text">
+            ModaSphere will redefine the fashion industry by
+            creating equal opportunities, encouraging innovation,
+            supporting sustainability, and connecting the global
+            fashion community on one universal platform.
+          </p>
         </div>
       </div>
     </section>

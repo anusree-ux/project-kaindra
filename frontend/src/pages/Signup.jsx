@@ -28,7 +28,6 @@ function Signup() {
 
     try {
       const apiBase = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api/";
-      // Ensure url endpoint works with both /api/v1/auth/signup and /api/auth/signup
       const endpoint = apiBase.endsWith("/")
         ? `${apiBase}v1/auth/signup`
         : `${apiBase}/v1/auth/signup`;
@@ -165,7 +164,8 @@ function Signup() {
         </form>
 
         <p style={{ marginTop: "20px", fontSize: "14px" }}>
-          Already have an account? <Link to="/login">Login</Link>
+          Already have an account?{" "}
+          <Link to="/login">Login</Link>
         </p>
       </div>
     </main>

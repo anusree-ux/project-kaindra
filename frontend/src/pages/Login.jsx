@@ -131,7 +131,8 @@ function Login() {
         </form>
 
         <p style={{ marginTop: "20px", fontSize: "14px" }}>
-          Don&apos;t have an account? <Link to="/signup">Sign up</Link>
+          Don&apos;t have an account?{" "}
+          <Link to="/signup">Sign up</Link>
         </p>
       </div>
     </main>

@@ -1,74 +1,155 @@
 .vision-mission {
-  padding: 120px 50px;
-  background: #f7f7f7;
+  background: #f7f6f3;
+  padding: 100px 0;
 }
 
-.vm-container {
-  max-width: 1300px;
-  margin: auto;
+.vision-mission-inner {
+  width: min(1180px, calc(100% - 80px));
+  margin: 0 auto;
 }
 
-.vm-heading p {
+/* =========================================================
+   HEADING
+========================================================= */
+
+.vision-heading {
+  max-width: 850px;
+  margin: 0 auto 65px;
+  text-align: center;
+}
+
+.vision-heading span {
+  display: block;
+
   font-size: 12px;
-  letter-spacing: 3px;
-  margin-bottom: 25px;
+  letter-spacing: 4px;
+
+  color: #b28b4f;
+
+  margin-bottom: 20px;
 }
 
-.vm-heading h2 {
-  max-width: 750px;
-  font-size: clamp(40px, 5vw, 70px);
-  line-height: 1;
-  margin-bottom: 70px;
+.vision-heading h2 {
+  margin: 0;
+
+  font-size: clamp(44px, 5vw, 70px);
+  line-height: 1.03;
+
+  letter-spacing: -2.5px;
+
+  font-weight: 600;
 }
 
-.vm-grid {
+.vision-heading p {
+  max-width: 650px;
+
+  margin: 25px auto 0;
+
+  color: #686868;
+
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+/* =========================================================
+   CARDS
+========================================================= */
+
+.vision-cards {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 25px;
+
+  gap: 24px;
 }
 
-.vm-card {
-  padding: 55px;
-  background: white;
-  min-height: 350px;
+.vision-card {
+  min-height: 360px;
+
+  padding: 48px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
-.vm-card.dark {
-  background: #171717;
-  color: white;
+.vision-card span {
+  font-size: 11px;
+  letter-spacing: 4px;
+
+  margin-bottom: 28px;
 }
 
-.vm-card span {
-  font-size: 12px;
-  letter-spacing: 3px;
-}
+.vision-card h3 {
+  margin: 0;
 
-.vm-card h3 {
   font-size: 36px;
-  margin: 45px 0 20px;
+  line-height: 1.1;
+
+  letter-spacing: -1px;
 }
 
-.vm-card p {
+.vision-card p {
+  max-width: 500px;
+
+  margin-top: 25px;
+
   font-size: 16px;
   line-height: 1.7;
-  max-width: 500px;
+}
+
+/* Light */
+
+.vision-card-light {
+  background: #ffffff;
+  border: 1px solid #e2e0db;
+}
+
+.vision-card-light span {
+  color: #b28b4f;
+}
+
+.vision-card-light p {
   color: #666;
 }
 
-.vm-card.dark p {
-  color: #ccc;
+/* Dark */
+
+.vision-card-dark {
+  background: #171717;
+  color: #ffffff;
 }
 
-@media (max-width: 700px) {
+.vision-card-dark span {
+  color: #c5a263;
+}
+
+.vision-card-dark p {
+  color: #b7b7b7;
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 800px) {
   .vision-mission {
-    padding: 80px 25px;
+    padding: 70px 0;
   }
 
-  .vm-grid {
+  .vision-mission-inner {
+    width: calc(100% - 32px);
+  }
+
+  .vision-cards {
     grid-template-columns: 1fr;
   }
 
-  .vm-card {
-    padding: 35px;
+  .vision-card {
+    min-height: 300px;
+    padding: 32px;
+  }
+
+  .vision-card h3 {
+    font-size: 30px;
   }
 }

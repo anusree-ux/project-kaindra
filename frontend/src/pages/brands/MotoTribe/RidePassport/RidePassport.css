@@ -1,0 +1,638 @@
+.ride-passport {
+  position: relative;
+  padding: 120px 6%;
+  background: #080909;
+  color: #fff;
+  overflow: hidden;
+}
+
+.ride-passport::before {
+  content: "";
+  position: absolute;
+  width: 650px;
+  height: 650px;
+  right: -300px;
+  top: 80px;
+  border: 1px solid rgba(201, 155, 69, 0.07);
+  border-radius: 50%;
+}
+
+.passport-container {
+  position: relative;
+  max-width: 1400px;
+  margin: auto;
+  z-index: 1;
+}
+
+.passport-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 50px;
+  margin-bottom: 65px;
+}
+
+.passport-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #c99b45;
+  font-size: 11px;
+  letter-spacing: 2px;
+  margin-bottom: 20px;
+}
+
+.passport-eyebrow span {
+  width: 30px;
+  height: 1px;
+  background: #c99b45;
+}
+
+.passport-header h2 {
+  margin: 0;
+  font-size: clamp(44px, 6vw, 76px);
+  line-height: 0.95;
+  letter-spacing: -3px;
+  font-weight: 500;
+}
+
+.passport-header h2 span {
+  color: #c99b45;
+}
+
+.passport-intro {
+  max-width: 360px;
+  align-self: flex-end;
+}
+
+.passport-intro p {
+  margin: 0;
+  color: #777;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.passport-grid {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 20px;
+}
+
+.passport-card {
+  position: relative;
+  min-height: 440px;
+  padding: 28px;
+  border: 1px solid rgba(201, 155, 69, 0.35);
+  background:
+    radial-gradient(
+      circle at 50% 45%,
+      rgba(201, 155, 69, 0.12),
+      transparent 35%
+    ),
+    #0e1010;
+  overflow: hidden;
+}
+
+.passport-card::before {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  border: 1px solid rgba(201, 155, 69, 0.08);
+  pointer-events: none;
+}
+
+.passport-card-top {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  z-index: 2;
+}
+
+.passport-card-top span {
+  color: #c99b45;
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+
+.passport-card-top strong {
+  color: #555;
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+
+.passport-emblem {
+  display: flex;
+  justify-content: center;
+  margin-top: 55px;
+}
+
+.emblem-ring {
+  width: 145px;
+  height: 145px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #c99b45;
+  border-radius: 50%;
+  position: relative;
+}
+
+.emblem-ring::before,
+.emblem-ring::after {
+  content: "";
+  position: absolute;
+  border: 1px solid rgba(201, 155, 69, 0.2);
+  border-radius: 50%;
+}
+
+.emblem-ring::before {
+  inset: 13px;
+}
+
+.emblem-ring::after {
+  inset: 27px;
+}
+
+.emblem-ring span {
+  color: #c99b45;
+  font-size: 32px;
+  letter-spacing: 3px;
+  position: relative;
+  z-index: 2;
+}
+
+.rider-level {
+  text-align: center;
+  margin-top: 35px;
+}
+
+.rider-level span {
+  display: block;
+  color: #555;
+  font-size: 8px;
+  letter-spacing: 2px;
+}
+
+.rider-level strong {
+  display: block;
+  margin-top: 8px;
+  color: #ddd;
+  font-size: 18px;
+  letter-spacing: 2px;
+  font-weight: 500;
+}
+
+.rider-level small {
+  display: block;
+  margin-top: 5px;
+  color: #c99b45;
+  font-size: 8px;
+  letter-spacing: 1px;
+}
+
+.level-progress {
+  margin-top: 25px;
+}
+
+.level-progress > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  color: #555;
+  font-size: 8px;
+}
+
+.level-bar {
+  height: 2px;
+  margin-top: 8px;
+  background: #252727;
+}
+
+.level-bar span {
+  display: block;
+  width: 71%;
+  height: 100%;
+  background: #c99b45;
+}
+
+.passport-stamp {
+  position: absolute;
+  right: 28px;
+  bottom: 25px;
+  width: 65px;
+  height: 65px;
+  border: 1px solid rgba(201, 155, 69, 0.35);
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  transform: rotate(-12deg);
+}
+
+.passport-stamp span {
+  color: #c99b45;
+  font-size: 6px;
+  letter-spacing: 1px;
+}
+
+.passport-stamp strong {
+  color: #777;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.passport-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #0d0f0f;
+}
+
+.passport-stat {
+  min-height: 220px;
+  padding: 28px;
+  border-right: 1px solid rgba(255, 255, 255, 0.07);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.passport-stat:nth-child(2n) {
+  border-right: none;
+}
+
+.passport-stat:nth-child(n + 3) {
+  border-bottom: none;
+}
+
+.passport-stat span {
+  color: #555;
+  font-size: 8px;
+  letter-spacing: 1.5px;
+}
+
+.passport-stat strong {
+  display: block;
+  margin-top: 45px;
+  color: #c99b45;
+  font-size: 45px;
+  font-weight: 400;
+  letter-spacing: -2px;
+}
+
+.passport-stat small {
+  color: #555;
+  font-size: 8px;
+  letter-spacing: 1px;
+}
+
+.achievement-section {
+  margin-top: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #0d0f0f;
+}
+
+.achievement-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 25px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.achievement-heading span {
+  display: block;
+  color: #555;
+  font-size: 8px;
+  letter-spacing: 2px;
+}
+
+.achievement-heading strong {
+  display: block;
+  color: #ddd;
+  margin-top: 8px;
+  font-size: 14px;
+  letter-spacing: 1px;
+  font-weight: 500;
+}
+
+.achievement-heading small {
+  color: #444;
+  font-size: 8px;
+  letter-spacing: 1px;
+}
+
+.achievement-layout {
+  display: grid;
+  grid-template-columns: 1fr 0.85fr;
+}
+
+.achievement-list {
+  border-right: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.achievement-item {
+  width: 100%;
+  min-height: 80px;
+  display: grid;
+  grid-template-columns: 35px 40px 1fr 50px;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 25px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  color: #777;
+  text-align: left;
+  cursor: pointer;
+  transition: 0.25s ease;
+}
+
+.achievement-item:hover,
+.achievement-item.active {
+  background: rgba(201, 155, 69, 0.05);
+}
+
+.achievement-number {
+  color: #444;
+  font-size: 9px;
+}
+
+.achievement-badge {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #444;
+  color: #555;
+  border-radius: 50%;
+  font-size: 10px;
+}
+
+.achievement-badge.unlocked {
+  border-color: #c99b45;
+  color: #c99b45;
+}
+
+.achievement-info small {
+  display: block;
+  color: #555;
+  font-size: 7px;
+  letter-spacing: 1px;
+}
+
+.achievement-info strong {
+  display: block;
+  margin-top: 5px;
+  color: #aaa;
+  font-size: 10px;
+  letter-spacing: 1px;
+  font-weight: 500;
+}
+
+.achievement-progress {
+  color: #555;
+  font-size: 9px;
+  text-align: right;
+}
+
+.achievement-item.active .achievement-progress {
+  color: #c99b45;
+}
+
+.achievement-detail {
+  position: relative;
+  padding: 35px;
+  min-height: 400px;
+  overflow: hidden;
+}
+
+.achievement-detail::before {
+  content: "";
+  position: absolute;
+  width: 320px;
+  height: 320px;
+  right: -150px;
+  top: 30px;
+  border: 1px solid rgba(201, 155, 69, 0.12);
+  border-radius: 50%;
+}
+
+.detail-number {
+  position: absolute;
+  top: 25px;
+  right: 25px;
+  color: #333;
+  font-size: 10px;
+}
+
+.large-badge {
+  width: 75px;
+  height: 75px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #444;
+  border-radius: 50%;
+  color: #555;
+  font-size: 20px;
+  position: relative;
+  z-index: 2;
+}
+
+.large-badge.unlocked {
+  border-color: #c99b45;
+  color: #c99b45;
+}
+
+.detail-category {
+  display: block;
+  color: #c99b45;
+  font-size: 8px;
+  letter-spacing: 2px;
+  margin-top: 28px;
+}
+
+.achievement-detail h3 {
+  margin: 10px 0;
+  font-size: 27px;
+  font-weight: 500;
+  letter-spacing: -0.5px;
+}
+
+.achievement-detail > p {
+  max-width: 300px;
+  color: #666;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.achievement-progress-detail {
+  margin-top: 30px;
+}
+
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.progress-label span {
+  color: #555;
+  font-size: 8px;
+  letter-spacing: 1px;
+}
+
+.progress-label strong {
+  color: #aaa;
+  font-size: 8px;
+  letter-spacing: 1px;
+}
+
+.progress-track {
+  height: 2px;
+  margin-top: 10px;
+  background: #252727;
+}
+
+.progress-track span {
+  display: block;
+  height: 100%;
+  background: #c99b45;
+  transition: width 0.4s ease;
+}
+
+.achievement-status {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 25px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.achievement-status span {
+  color: #555;
+  font-size: 8px;
+  letter-spacing: 1px;
+}
+
+.achievement-status strong {
+  color: #c99b45;
+  font-size: 8px;
+  letter-spacing: 1px;
+}
+
+.passport-footer {
+  display: grid;
+  grid-template-columns: 180px 1fr 300px;
+  align-items: center;
+  gap: 30px;
+  margin-top: 20px;
+  padding: 25px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.passport-footer > div:first-child span {
+  display: block;
+  color: #555;
+  font-size: 8px;
+  letter-spacing: 1.5px;
+}
+
+.passport-footer > div:first-child strong {
+  display: block;
+  color: #c99b45;
+  font-size: 13px;
+  margin-top: 6px;
+  letter-spacing: 1px;
+}
+
+.rank-progress {
+  display: grid;
+  grid-template-columns: 70px 1fr 70px;
+  align-items: center;
+  gap: 10px;
+  color: #555;
+  font-size: 8px;
+}
+
+.rank-progress > div {
+  height: 2px;
+  background: #252727;
+}
+
+.rank-progress > div span {
+  display: block;
+  width: 71%;
+  height: 100%;
+  background: #c99b45;
+}
+
+.passport-footer p {
+  margin: 0;
+  color: #555;
+  font-size: 9px;
+  line-height: 1.6;
+}
+
+@media (max-width: 950px) {
+  .passport-header {
+    flex-direction: column;
+  }
+
+  .passport-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .achievement-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .achievement-list {
+    border-right: none;
+  }
+
+  .passport-footer {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .ride-passport {
+    padding: 80px 5%;
+  }
+
+  .passport-card {
+    min-height: 400px;
+  }
+
+  .passport-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .passport-stat {
+    min-height: 140px;
+    border-right: none;
+  }
+
+  .passport-stat:nth-child(3) {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  }
+
+  .achievement-heading {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .achievement-item {
+    grid-template-columns: 25px 35px 1fr;
+  }
+
+  .achievement-progress {
+    display: none;
+  }
+
+  .achievement-detail {
+    padding: 25px;
+  }
+
+  .rank-progress {
+    grid-template-columns: 55px 1fr 55px;
+  }
+}

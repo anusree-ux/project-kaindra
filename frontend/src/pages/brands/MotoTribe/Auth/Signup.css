@@ -1,0 +1,279 @@
+.moto-signup {
+  min-height: 100vh;
+  background: #070707;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 100px 20px 50px;
+  position: relative;
+  overflow: hidden;
+}
+
+.moto-signup-background {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.moto-glow {
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  filter: blur(130px);
+  opacity: 0.12;
+  background: #d6a84f;
+}
+
+.moto-glow-one {
+  top: -180px;
+  left: -120px;
+}
+
+.moto-glow-two {
+  bottom: -220px;
+  right: -100px;
+}
+
+.moto-signup-wrapper {
+  width: 100%;
+  max-width: 850px;
+  position: relative;
+  z-index: 2;
+}
+
+.moto-signup-brand {
+  text-align: center;
+  margin-bottom: 25px;
+  letter-spacing: 6px;
+}
+
+.moto-signup-brand span {
+  font-size: 28px;
+  font-weight: 300;
+}
+
+.moto-signup-brand strong {
+  color: #d6a84f;
+  font-size: 28px;
+  margin-left: 8px;
+}
+
+.moto-signup-card {
+  background: rgba(15, 15, 15, 0.96);
+  border: 1px solid #292929;
+  padding: 45px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+}
+
+.signup-heading {
+  margin-bottom: 30px;
+}
+
+.signup-heading > span {
+  color: #d6a84f;
+  font-size: 11px;
+  letter-spacing: 3px;
+}
+
+.signup-heading h1 {
+  font-size: clamp(30px, 5vw, 48px);
+  font-weight: 500;
+  margin: 12px 0;
+}
+
+.signup-heading p {
+  color: #8f8f8f;
+  line-height: 1.7;
+  max-width: 650px;
+}
+
+.signup-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.signup-field {
+  margin-bottom: 22px;
+}
+
+.signup-field label {
+  display: block;
+  color: #a7a7a7;
+  font-size: 10px;
+  letter-spacing: 2px;
+  margin-bottom: 9px;
+}
+
+.signup-field input {
+  width: 100%;
+  box-sizing: border-box;
+  background: #0a0a0a;
+  border: 1px solid #303030;
+  color: #ffffff;
+  padding: 15px;
+  outline: none;
+  font-size: 14px;
+  transition: 0.25s ease;
+}
+
+.signup-field input:focus {
+  border-color: #d6a84f;
+  box-shadow: 0 0 0 2px rgba(214, 168, 79, 0.08);
+}
+
+.signup-field input::placeholder {
+  color: #555;
+}
+
+.password-wrapper {
+  position: relative;
+}
+
+.password-wrapper input {
+  padding-right: 75px;
+}
+
+.password-wrapper button {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: #d6a84f;
+  font-size: 9px;
+  letter-spacing: 1px;
+  cursor: pointer;
+}
+
+.password-strength {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.password-strength span {
+  height: 3px;
+  flex: 1;
+  background: #282828;
+}
+
+.password-strength.weak span:first-child {
+  background: #9c6969;
+}
+
+.password-strength.medium span:nth-child(-n + 2) {
+  background: #b89554;
+}
+
+.password-strength.strong span {
+  background: #d6a84f;
+}
+
+.password-strength small {
+  color: #777;
+  margin-left: 8px;
+  font-size: 9px;
+}
+
+.signup-terms {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #888;
+  font-size: 12px;
+  margin: 8px 0 25px;
+  cursor: pointer;
+}
+
+.signup-terms input {
+  accent-color: #d6a84f;
+}
+
+.signup-submit {
+  width: 100%;
+  padding: 17px;
+  border: 1px solid #d6a84f;
+  background: #d6a84f;
+  color: #090909;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.signup-submit:hover {
+  background: transparent;
+  color: #d6a84f;
+}
+
+.signup-submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.signup-message {
+  padding: 13px 15px;
+  margin-bottom: 22px;
+  font-size: 12px;
+  border-left: 3px solid;
+}
+
+.signup-message.error {
+  color: #d99595;
+  background: rgba(120, 40, 40, 0.1);
+  border-color: #9c6969;
+}
+
+.signup-message.success {
+  color: #d6a84f;
+  background: rgba(214, 168, 79, 0.08);
+  border-color: #d6a84f;
+}
+
+.signup-login {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 25px;
+  color: #777;
+  font-size: 12px;
+}
+
+.signup-login a {
+  color: #d6a84f;
+  text-decoration: none;
+  letter-spacing: 1px;
+}
+
+.signup-note {
+  text-align: center;
+  margin-top: 25px;
+  color: #454545;
+  font-size: 8px;
+  letter-spacing: 2px;
+}
+
+@media (max-width: 700px) {
+  .moto-signup {
+    padding: 70px 15px 30px;
+  }
+
+  .moto-signup-card {
+    padding: 28px 20px;
+  }
+
+  .signup-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .signup-heading h1 {
+    font-size: 32px;
+  }
+}

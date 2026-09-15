@@ -1,0 +1,547 @@
+.ride-record {
+  position: relative;
+  padding: 150px 0;
+  background: #070809;
+  color: #fff;
+  overflow: hidden;
+}
+
+.ride-record::before {
+  content: "";
+  position: absolute;
+  width: 700px;
+  height: 700px;
+  right: -350px;
+  top: 100px;
+  background: radial-gradient(
+    circle,
+    rgba(212, 160, 62, 0.08),
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.ride-record-container {
+  position: relative;
+  width: min(1400px, 92%);
+  margin: auto;
+  z-index: 1;
+}
+
+/* HEADER */
+
+.record-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 60px;
+  margin-bottom: 70px;
+}
+
+.record-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 25px;
+  color: #d4a03e;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 3px;
+}
+
+.record-eyebrow span {
+  width: 35px;
+  height: 1px;
+  background: #d4a03e;
+}
+
+.record-header h2 {
+  margin: 0;
+  font-size: clamp(65px, 8vw, 110px);
+  line-height: 0.85;
+  letter-spacing: -4px;
+  font-weight: 800;
+}
+
+.record-header h2 span {
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.55);
+}
+
+.record-intro {
+  width: 390px;
+}
+
+.record-intro p {
+  margin: 0;
+  color: #858585;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+/* STATS */
+
+.record-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 25px;
+}
+
+.record-stat {
+  min-height: 150px;
+  padding: 30px;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.record-stat:last-child {
+  border-right: none;
+}
+
+.record-stat span {
+  display: block;
+  color: #555;
+  font-size: 7px;
+  letter-spacing: 2px;
+  margin-bottom: 25px;
+}
+
+.record-stat strong {
+  color: #d4a03e;
+  font-size: 38px;
+  font-weight: 400;
+}
+
+.record-stat small {
+  margin-left: 7px;
+  color: #666;
+  font-size: 7px;
+  letter-spacing: 1px;
+}
+
+/* MAIN */
+
+.record-main {
+  display: grid;
+  grid-template-columns: 0.85fr 1.15fr;
+  min-height: 530px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* LIST */
+
+.record-list {
+  background: #090b0c;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.record-list-title {
+  display: flex;
+  gap: 15px;
+  padding: 25px 30px;
+  color: #555;
+  font-size: 8px;
+  letter-spacing: 2px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.record-list-title span {
+  color: #d4a03e;
+}
+
+.record-item {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 35px 1fr auto 20px;
+  align-items: center;
+  gap: 15px;
+  padding: 25px 30px;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  background: transparent;
+  color: #fff;
+  text-align: left;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.record-item:hover {
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.record-item.active {
+  background: rgba(212, 160, 62, 0.08);
+  box-shadow: inset 2px 0 #d4a03e;
+}
+
+.record-item-number {
+  color: #444;
+  font-size: 8px;
+}
+
+.record-item.active .record-item-number {
+  color: #d4a03e;
+}
+
+.record-item-info span,
+.record-item-info small {
+  display: block;
+}
+
+.record-item-info span {
+  margin-bottom: 6px;
+  color: #555;
+  font-size: 7px;
+  letter-spacing: 1px;
+}
+
+.record-item-info strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+.record-item-info small {
+  color: #666;
+  font-size: 7px;
+}
+
+.record-item-distance {
+  color: #aaa;
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+
+.record-arrow {
+  color: #555;
+  font-size: 16px;
+}
+
+.record-item.active .record-arrow {
+  color: #d4a03e;
+}
+
+/* DETAIL */
+
+.record-detail {
+  padding: 40px;
+  background: #0a0d0e;
+}
+
+.detail-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.detail-top span {
+  color: #555;
+  font-size: 7px;
+  letter-spacing: 2px;
+}
+
+.detail-top strong {
+  color: #d4a03e;
+  font-size: 12px;
+}
+
+.route-visual {
+  display: flex;
+  align-items: center;
+  margin: 75px 0 55px;
+}
+
+.route-point {
+  display: flex;
+  flex-direction: column;
+}
+
+.route-point span {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-bottom: 12px;
+}
+
+.route-point.start span {
+  border: 2px solid #d4a03e;
+}
+
+.route-point.end {
+  text-align: right;
+}
+
+.route-point.end span {
+  margin-left: auto;
+  background: #d4a03e;
+  box-shadow: 0 0 15px rgba(212, 160, 62, 0.6);
+}
+
+.route-point small {
+  color: #555;
+  font-size: 6px;
+  letter-spacing: 2px;
+}
+
+.route-point strong {
+  margin-top: 5px;
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+
+.route-line {
+  position: relative;
+  flex: 1;
+  height: 1px;
+  margin: 0 20px;
+  background: repeating-linear-gradient(
+    to right,
+    #d4a03e 0,
+    #d4a03e 5px,
+    transparent 5px,
+    transparent 10px
+  );
+}
+
+.route-line span {
+  position: absolute;
+  left: 48%;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: #d4a03e;
+}
+
+.record-detail h3 {
+  margin: 0 0 30px;
+  font-size: 26px;
+  letter-spacing: 1px;
+}
+
+/* METRICS */
+
+.detail-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.detail-metrics div {
+  padding: 20px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.detail-metrics div:nth-child(odd) {
+  margin-right: 25px;
+}
+
+.detail-metrics span,
+.detail-metrics strong {
+  display: block;
+}
+
+.detail-metrics span {
+  margin-bottom: 8px;
+  color: #555;
+  font-size: 7px;
+  letter-spacing: 1.5px;
+}
+
+.detail-metrics strong {
+  color: #aaa;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+/* SCORE */
+
+.ride-score {
+  margin-top: 30px;
+}
+
+.ride-score > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ride-score span {
+  color: #555;
+  font-size: 7px;
+  letter-spacing: 1.5px;
+}
+
+.ride-score strong {
+  color: #d4a03e;
+  font-size: 13px;
+}
+
+.score-bar {
+  width: 100%;
+  height: 2px;
+  margin-top: 12px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.score-bar span {
+  display: block;
+  height: 100%;
+  background: #d4a03e;
+  transition: width 0.5s ease;
+}
+
+/* MILESTONE */
+
+.record-milestone {
+  display: grid;
+  grid-template-columns: 65px 1fr 330px;
+  align-items: center;
+  gap: 25px;
+  margin-top: 25px;
+  padding: 30px;
+  border: 1px solid rgba(212, 160, 62, 0.25);
+  background: rgba(212, 160, 62, 0.04);
+}
+
+.milestone-icon {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #d4a03e;
+  border-radius: 50%;
+  color: #d4a03e;
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+
+.milestone-content span,
+.milestone-content small {
+  display: block;
+}
+
+.milestone-content span {
+  margin-bottom: 7px;
+  color: #555;
+  font-size: 7px;
+  letter-spacing: 2px;
+}
+
+.milestone-content strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+}
+
+.milestone-content small {
+  color: #666;
+  font-size: 8px;
+  line-height: 1.5;
+}
+
+.milestone-progress > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  color: #666;
+  font-size: 7px;
+  letter-spacing: 1px;
+}
+
+.milestone-bar {
+  height: 3px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.milestone-bar span {
+  display: block;
+  width: 85.6%;
+  height: 100%;
+  background: #d4a03e;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1000px) {
+  .record-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .record-intro {
+    width: 100%;
+  }
+
+  .record-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .record-stat:nth-child(2) {
+    border-right: none;
+  }
+
+  .record-main {
+    grid-template-columns: 1fr;
+  }
+
+  .record-list {
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .record-milestone {
+    grid-template-columns: 60px 1fr;
+  }
+
+  .milestone-progress {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 650px) {
+  .ride-record {
+    padding: 100px 0;
+  }
+
+  .record-header h2 {
+    font-size: 58px;
+  }
+
+  .record-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .record-stat {
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .record-item {
+    grid-template-columns: 25px 1fr 20px;
+  }
+
+  .record-item-distance {
+    display: none;
+  }
+
+  .record-detail {
+    padding: 25px;
+  }
+
+  .route-visual {
+    margin: 55px 0 40px;
+  }
+
+  .record-milestone {
+    grid-template-columns: 1fr;
+  }
+
+  .milestone-progress {
+    grid-column: auto;
+  }
+}

@@ -1,31 +1,81 @@
+import { Diamond, Check } from "lucide-react";
 import "./ValueProposition.css";
 
 const values = [
-  "One connected platform",
-  "Faster discovery and collaboration",
-  "Reduced fragmentation",
-  "New revenue opportunities",
-  "Data-driven fashion decisions",
-  "Global market access"
+  "One Platform. Unlimited Possibilities.",
+  "End-to-End Fashion Ecosystem",
+  "Global Reach, Local Relevance",
+  "AI & Technology Driven",
+  "Empowering Creators & Businesses",
+  "Sustainable & Future-Ready",
+  "Data-Driven Decisions & Growth",
 ];
 
 export default function ValueProposition() {
   return (
-    <section className="value-proposition">
+    <section
+      className="value-section"
+      id="value-proposition"
+    >
       <div className="value-container">
-        <div>
-          <p>04 — VALUE PROPOSITION</p>
-          <h2>More connection.<br />More opportunity.</h2>
+
+        {/* Heading */}
+        <div className="value-heading">
+          <div className="value-label">
+            UNIQUE VALUE PROPOSITION
+          </div>
+
+          <h2>
+            Why ModaSphere
+            <br />
+            is different.
+          </h2>
+
+          <p>
+            A connected fashion ecosystem designed to create
+            opportunities, simplify collaboration, and accelerate
+            sustainable growth.
+          </p>
         </div>
 
-        <div className="value-list">
-          {values.map((value, index) => (
-            <div key={value}>
-              <span>0{index + 1}</span>
-              <h3>{value}</h3>
-              <b>+</b>
+        {/* Main Content */}
+        <div className="value-content">
+
+          {/* Left */}
+          <div className="value-intro">
+            <div className="value-icon">
+              <Diamond size={30} strokeWidth={1.5} />
             </div>
-          ))}
+
+            <h3>
+              Built for the
+              <br />
+              future of fashion.
+            </h3>
+
+            <p>
+              ModaSphere brings creators, businesses, technology,
+              consumers, and opportunities together through one
+              integrated platform.
+            </p>
+          </div>
+
+          {/* Right */}
+          <div className="value-list">
+            {values.map((value) => (
+              <div
+                className="value-item"
+                key={value}
+              >
+                <div className="value-check">
+                  <Check size={16} strokeWidth={2} />
+                </div>
+
+                <span>{value}</span>
+              </div>
+            ))}
+          </div>
+
         </div>
       </div>
     </section>

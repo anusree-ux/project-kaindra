@@ -1,30 +1,72 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import "./Navbar.css";
 
 function Navbar() {
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const closeMenu = () => {
+    setMenuOpen(false);
+  };
+
   return (
     <header className="navbar">
       <div className="navbar-inner">
 
-        <Link to="/" className="navbar-logo">
+        <Link
+          to="/"
+          className="navbar-logo"
+          onClick={closeMenu}
+        >
           KAINDRA
         </Link>
 
-        <nav className="navbar-links">
-          <Link to="/">Home</Link>
-          <Link to="/businesses">Businesses</Link>
-          <Link to="/communities">Communities</Link>
-          <Link to="/about">About</Link>
-          <Link to="/news">News</Link>
-          <Link to="/contact">Contact</Link>
+        <nav className={`navbar-links ${menuOpen ? "active" : ""}`}>
+          <Link to="/" onClick={closeMenu}>
+            Home
+          </Link>
+
+          <Link to="/businesses" onClick={closeMenu}>
+            Businesses
+          </Link>
+
+          <Link to="/communities" onClick={closeMenu}>
+            Communities
+          </Link>
+
+          <Link to="/about" onClick={closeMenu}>
+            About
+          </Link>
+
+          <Link to="/news" onClick={closeMenu}>
+            News
+          </Link>
+
+          <Link to="/contact" onClick={closeMenu}>
+            Contact
+          </Link>
+
+          <Link
+            to="/login"
+            className="mobile-login"
+            onClick={closeMenu}
+          >
+            Login
+          </Link>
         </nav>
 
         <Link to="/login" className="navbar-login">
           Login
         </Link>
 
-        <button className="navbar-menu">
-          ☰
+        <button
+          type="button"
+          className="navbar-menu"
+          onClick={() => setMenuOpen(!menuOpen)}
+          aria-label="Toggle navigation menu"
+          aria-expanded={menuOpen}
+        >
+          {menuOpen ? "✕" : "☰"}
         </button>
 
       </div>
