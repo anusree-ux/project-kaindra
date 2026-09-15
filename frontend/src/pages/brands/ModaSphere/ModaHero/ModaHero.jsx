@@ -2,12 +2,13 @@ import { Sparkles, ArrowDown } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import "./ModaHero.css";
 
-import hero1 from "../../../../assets/hero1.mp4";
-import hero2 from "../../../../assets/hero2.mp4";
-import hero3 from "../../../../assets/hero3.mp4";
-import hero4 from "../../../../assets/hero4.mp4";
-import hero5 from "../../../../assets/hero5.mp4";
-const videos = [hero1, hero2, hero3, hero4, hero5];
+const videos = [
+  "/videos/hero1.mp4",
+  "/videos/hero2.mp4",
+  "/videos/hero3.mp4",
+  "/videos/hero4.mp4",
+  "/videos/hero5.mp4",
+];
 
 export default function ModaHero() {
   const [currentVideo, setCurrentVideo] = useState(0);
