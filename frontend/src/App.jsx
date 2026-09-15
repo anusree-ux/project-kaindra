@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useEffect } from "react";
+import { AuthProvider } from "./context/AuthContext";
 
 import Navbar from "./components/Navbar/Navbar";
 
@@ -139,23 +140,24 @@ function NotFound() {
 function App() {
   return (
     <BrowserRouter>
+      <AuthProvider>
 
-      <ScrollToTop />
+        <ScrollToTop />
 
-      <Routes>
+        <Routes>
 
-        {/* =========================
-            KAINDRA PUBLIC WEBSITE
-        ========================= */}
+          {/* =========================
+              KAINDRA PUBLIC WEBSITE
+          ========================= */}
 
-        <Route
-          path="/"
-          element={
-            <PublicLayout>
-              <Home />
-            </PublicLayout>
-          }
-        />
+          <Route
+            path="/"
+            element={
+              <PublicLayout>
+                <Home />
+              </PublicLayout>
+            }
+          />
 
         <Route
           path="/about"
@@ -416,6 +418,7 @@ function App() {
 
       </Routes>
 
+      </AuthProvider>
     </BrowserRouter>
   );
 }

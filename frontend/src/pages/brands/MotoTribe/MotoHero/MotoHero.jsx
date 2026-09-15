@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import apiClient from "../../../../services/apiClient";
 import "./MotoHero.css";
 
 const slides = [
@@ -56,6 +57,48 @@ const slides = [
 
 function MotoHero() {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [activeRide, setActiveRide] = useState(null);
+  const [weatherData, setWeatherData] = useState(null);
+
+  const fetchActiveRide = useCallback(async () => {
+    try {
+      const res = await apiClient.get("/api/mototribe/rides");
+      const fetchedRides = res.data?.data?.rides || [];
+
+      const ongoing = fetchedRides.find((r) => r.status === "ongoing");
+      const planning = fetchedRides.find((r) => r.status === "planning");
+      const selected = ongoing || planning || null;
+
+      setActiveRide(selected);
+
+      if (selected?._id) {
+        try {
+          const wRes = await apiClient.get(`/api/mototribe/rides/${selected._id}/weather`);
+          setWeatherData(wRes.data?.data?.weather || null);
+        } catch {
+          setWeatherData(null);
+        }
+      } else {
+        setWeatherData(null);
+      }
+    } catch {
+      setActiveRide(null);
+      setWeatherData(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchActiveRide();
+
+    const handleRideCreated = () => {
+      fetchActiveRide();
+    };
+
+    window.addEventListener("mototribe:ride-created", handleRideCreated);
+    return () => {
+      window.removeEventListener("mototribe:ride-created", handleRideCreated);
+    };
+  }, [fetchActiveRide]);
 
   const current = slides[currentSlide];
 
@@ -281,7 +324,7 @@ function MotoHero() {
 
                 <div className="ai-status">
                   <span />
-                  LIVE
+                  {activeRide ? "LIVE" : "ONLINE"}
                 </div>
 
               </div>
@@ -300,7 +343,7 @@ function MotoHero() {
                   </small>
 
                   <strong>
-                    MOUNTAIN LOOP
+                    {activeRide ? (activeRide.title || "PLANNED RIDE").toUpperCase() : "NO UPCOMING RIDE"}
                   </strong>
                 </div>
 
@@ -316,11 +359,11 @@ function MotoHero() {
                   </span>
 
                   <strong>
-                    24°C
+                    {weatherData?.temp !== undefined ? `${Math.round(weatherData.temp)}°C` : "--°C"}
                   </strong>
 
                   <small>
-                    CLEAR
+                    {weatherData?.main ? weatherData.main.toUpperCase() : "LIVE"}
                   </small>
                 </div>
 
@@ -330,25 +373,25 @@ function MotoHero() {
                   </span>
 
                   <strong>
-                    LOW
+                    {activeRide ? "LOW" : "NORMAL"}
                   </strong>
 
                   <small>
-                    +12 MIN
+                    {activeRide ? "+12 MIN" : "NO DELAY"}
                   </small>
                 </div>
 
                 <div className="ai-data">
                   <span>
-                    FUEL
+                    DISTANCE / FUEL
                   </span>
 
                   <strong>
-                    82%
+                    {activeRide?.distanceKm ? `${activeRide.distanceKm} KM` : "--"}
                   </strong>
 
                   <small>
-                    GOOD
+                    {activeRide ? activeRide.status.toUpperCase() : "READY"}
                   </small>
                 </div>
 
@@ -373,9 +416,9 @@ function MotoHero() {
               <button
                 type="button"
                 className="ai-card-button"
-                onClick={scrollToJourney}
+                onClick={activeRide ? scrollToJourney : scrollToPlanner}
               >
-                VIEW JOURNEY INTELLIGENCE
+                {activeRide ? "VIEW JOURNEY INTELLIGENCE" : "PLAN A RIDE"}
 
                 <span>
                   →

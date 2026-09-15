@@ -17,6 +17,7 @@ const agoraRoutes = require("./routes/mototribe/agoraRoutes");
 const vehicleRoutes = require("./routes/mototribe/vehicleRoutes");
 const expenseRoutes = require("./routes/mototribe/expenseRoutes");
 const routeReportRoutes = require("./routes/mototribe/routeReportRoutes");
+const presenceRoutes = require("./routes/mototribe/presenceRoutes");
 const connectionRoutes = require("./routes/core/connectionRoutes");
 const errorHandler = require("./middleware/errorHandler");
 
@@ -102,6 +103,9 @@ app.use("/api/mototribe", expenseRoutes);
 
 app.use("/api/v1/mototribe", routeReportRoutes);
 app.use("/api/mototribe", routeReportRoutes);
+
+app.use("/api/v1/mototribe", presenceRoutes);
+app.use("/api/mototribe", presenceRoutes);
 
 // 404 Route Handler
 app.use((req, res) => {

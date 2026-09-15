@@ -1,55 +1,58 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
+import apiClient from "../../../../services/apiClient";
 import "./FuelPrice.css";
 
-const STORAGE_KEY = "mototribeFuelPrices";
-
-const defaultPrices = [
-  {
-    id: 1,
-    station: "IndianOil Highway Station",
-    location: "Bengaluru - Hyderabad Highway",
-    fuelType: "Petrol",
-    price: 103.45,
-    state: "Andhra Pradesh",
-    submittedBy: "Verified Rider",
-    time: "Today",
-  },
-  {
-    id: 2,
-    station: "HP Fuel Point",
-    location: "Kurnool",
-    fuelType: "Petrol",
-    price: 102.85,
-    state: "Andhra Pradesh",
-    submittedBy: "Rider Community",
-    time: "Today",
-  },
-  {
-    id: 3,
-    station: "Bharat Petroleum",
-    location: "Hyderabad",
-    fuelType: "Diesel",
-    price: 94.72,
-    state: "Telangana",
-    submittedBy: "Verified Rider",
-    time: "Yesterday",
-  },
+const INDIAN_STATES = [
+  "Andhra Pradesh",
+  "Arunachal Pradesh",
+  "Assam",
+  "Bihar",
+  "Chhattisgarh",
+  "Goa",
+  "Gujarat",
+  "Haryana",
+  "Himachal Pradesh",
+  "Jharkhand",
+  "Karnataka",
+  "Kerala",
+  "Madhya Pradesh",
+  "Maharashtra",
+  "Manipur",
+  "Meghalaya",
+  "Mizoram",
+  "Nagaland",
+  "Odisha",
+  "Punjab",
+  "Rajasthan",
+  "Sikkim",
+  "Tamil Nadu",
+  "Telangana",
+  "Tripura",
+  "Uttar Pradesh",
+  "Uttarakhand",
+  "West Bengal",
+  "Andaman and Nicobar Islands",
+  "Chandigarh",
+  "Dadra and Nagar Haveli and Daman and Diu",
+  "Delhi",
+  "Jammu and Kashmir",
+  "Ladakh",
+  "Lakshadweep",
+  "Puducherry",
 ];
 
-const getStoredPrices = () => {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? JSON.parse(stored) : defaultPrices;
-  } catch {
-    return defaultPrices;
-  }
-};
-
 function FuelPrice() {
-  const [prices, setPrices] = useState(getStoredPrices);
+  const [prices, setPrices] = useState([]);
+  const [loadingSubmissions, setLoadingSubmissions] = useState(true);
+  const [selectedStateStats, setSelectedStateStats] = useState({
+    state: "Karnataka",
+    petrol: { median: 105.0, count: 0, isFallback: true, note: "" },
+    diesel: { median: 95.0, count: 0, isFallback: true, note: "" },
+  });
+  const [loadingStats, setLoadingStats] = useState(false);
 
   const [form, setForm] = useState({
-    state: "Andhra Pradesh",
+    state: "Karnataka",
     city: "",
     station: "",
     fuelType: "Petrol",
@@ -59,6 +62,66 @@ function FuelPrice() {
   const [filter, setFilter] = useState("ALL");
   const [search, setSearch] = useState("");
   const [message, setMessage] = useState("");
+  const [isErrorMsg, setIsErrorMsg] = useState(false);
+
+  // 1. Fetch recent community fuel price submissions directly from DB
+  const fetchRecentSubmissions = useCallback(async () => {
+    setLoadingSubmissions(true);
+    try {
+      const res = await apiClient.get("/mototribe/fuel-prices/submissions");
+      const dbSubmissions = res.data.data?.submissions || [];
+
+      const formatted = dbSubmissions.map((sub) => ({
+        id: sub._id,
+        station: sub.station || "Fuel Station",
+        location: sub.location || sub.state,
+        state: sub.state,
+        fuelType: sub.fuelType === "petrol" ? "Petrol" : "Diesel",
+        price: sub.pricePerLiter,
+        submittedBy: sub.userId?.name || "Verified Rider",
+        time: new Date(sub.submittedAt || sub.createdAt).toLocaleDateString(),
+      }));
+
+      setPrices(formatted);
+    } catch (err) {
+      console.error("Failed to fetch fuel submissions:", err);
+      setPrices([]);
+    } finally {
+      setLoadingSubmissions(false);
+    }
+  }, []);
+
+  // 2. Fetch state fuel price 7-day median averages
+  const fetchStateFuelPrices = useCallback(async (stateName) => {
+    setLoadingStats(true);
+    try {
+      const [petrolRes, dieselRes] = await Promise.allSettled([
+        apiClient.get(`/mototribe/fuel-prices?state=${encodeURIComponent(stateName)}&fuelType=petrol`),
+        apiClient.get(`/mototribe/fuel-prices?state=${encodeURIComponent(stateName)}&fuelType=diesel`),
+      ]);
+
+      const petrolData = petrolRes.status === "fulfilled" ? petrolRes.value.data.data : null;
+      const dieselData = dieselRes.status === "fulfilled" ? dieselRes.value.data.data : null;
+
+      setSelectedStateStats({
+        state: stateName,
+        petrol: petrolData || { median: 105.0, count: 0, isFallback: true, note: "API Error" },
+        diesel: dieselData || { median: 95.0, count: 0, isFallback: true, note: "API Error" },
+      });
+    } catch {
+      // Keep fallbacks on network error
+    } finally {
+      setLoadingStats(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchRecentSubmissions();
+  }, [fetchRecentSubmissions]);
+
+  useEffect(() => {
+    fetchStateFuelPrices(form.state);
+  }, [form.state, fetchStateFuelPrices]);
 
   const filteredPrices = useMemo(() => {
     return prices.filter((item) => {
@@ -76,41 +139,6 @@ function FuelPrice() {
     });
   }, [prices, filter, search]);
 
-  const statistics = useMemo(() => {
-    const petrol = prices.filter(
-      (item) => item.fuelType === "Petrol"
-    );
-
-    const diesel = prices.filter(
-      (item) => item.fuelType === "Diesel"
-    );
-
-    const calculateStats = (items) => {
-      if (!items.length) {
-        return {
-          average: 0,
-          lowest: 0,
-          highest: 0,
-        };
-      }
-
-      const values = items.map((item) => Number(item.price));
-
-      return {
-        average:
-          values.reduce((sum, value) => sum + value, 0) /
-          values.length,
-        lowest: Math.min(...values),
-        highest: Math.max(...values),
-      };
-    };
-
-    return {
-      petrol: calculateStats(petrol),
-      diesel: calculateStats(diesel),
-    };
-  }, [prices]);
-
   const handleChange = (event) => {
     const { name, value } = event.target;
 
@@ -120,7 +148,7 @@ function FuelPrice() {
     }));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     if (
@@ -128,6 +156,7 @@ function FuelPrice() {
       !form.station.trim() ||
       !form.price
     ) {
+      setIsErrorMsg(true);
       setMessage("Please fill in all required fields.");
       return;
     }
@@ -135,52 +164,50 @@ function FuelPrice() {
     const numericPrice = Number(form.price);
 
     if (numericPrice <= 0) {
+      setIsErrorMsg(true);
       setMessage("Please enter a valid fuel price.");
       return;
     }
 
-    const newPrice = {
-      id: Date.now(),
-      station: form.station.trim(),
-      location: form.city.trim(),
-      fuelType: form.fuelType,
-      price: numericPrice,
-      state: form.state,
-      submittedBy: "You",
-      time: "Just now",
-    };
+    try {
+      setMessage("Submitting fuel price to backend...");
+      setIsErrorMsg(false);
 
-    const updatedPrices = [newPrice, ...prices];
+      const response = await apiClient.post("/mototribe/fuel-prices", {
+        state: form.state,
+        fuelType: form.fuelType.toLowerCase(),
+        pricePerLiter: numericPrice,
+        station: form.station.trim(),
+        location: form.city.trim(),
+      });
 
-    setPrices(updatedPrices);
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(updatedPrices)
-    );
+      const backendData = response.data;
+      const updatedMedian = backendData.data?.updatedMedian;
 
-    setForm({
-      state: "Andhra Pradesh",
-      city: "",
-      station: "",
-      fuelType: "Petrol",
-      price: "",
-    });
+      // Re-fetch backend state averages & live submissions
+      fetchStateFuelPrices(form.state);
+      fetchRecentSubmissions();
 
-    setMessage("Fuel price submitted successfully.");
+      setForm((prev) => ({
+        ...prev,
+        city: "",
+        station: "",
+        price: "",
+      }));
 
-    setTimeout(() => {
-      setMessage("");
-    }, 3000);
-  };
+      setIsErrorMsg(false);
+      setMessage(
+        `Fuel price recorded! Updated ${form.state} ${form.fuelType} 7-day median: ₹${updatedMedian || numericPrice}/L`
+      );
 
-  const resetPrices = () => {
-    setPrices(defaultPrices);
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(defaultPrices)
-    );
-
-    setMessage("Community fuel prices reset.");
+      setTimeout(() => {
+        setMessage("");
+      }, 5000);
+    } catch (err) {
+      setIsErrorMsg(true);
+      const backendError = err.response?.data?.message || err.message;
+      setMessage(`Submission rejected: ${backendError}`);
+    }
   };
 
   return (
@@ -200,13 +227,13 @@ function FuelPrice() {
 
             <p>
               Help fellow riders plan better journeys with
-              current fuel prices reported by the tribe.
+              7-day median fuel prices reported by the tribe across Indian states.
             </p>
           </div>
 
           <div className="fuel-live-indicator">
             <span className="fuel-live-dot"></span>
-            COMMUNITY UPDATED
+            DATABASE CONNECTED
           </div>
         </div>
 
@@ -215,57 +242,57 @@ function FuelPrice() {
 
           <div className="fuel-stat-card">
             <span className="fuel-stat-label">
-              PETROL AVERAGE
+              {form.state.toUpperCase()} PETROL MEDIAN
             </span>
 
             <strong>
-              ₹{statistics.petrol.average.toFixed(2)}
+              {loadingStats ? "..." : `₹${Number(selectedStateStats.petrol.median || 105).toFixed(2)}`}
             </strong>
 
             <small>
-              Lowest ₹{statistics.petrol.lowest.toFixed(2)}
+              {selectedStateStats.petrol.isFallback
+                ? "National default fallback"
+                : `${selectedStateStats.petrol.count} report(s) in last 7 days`}
             </small>
           </div>
 
           <div className="fuel-stat-card">
             <span className="fuel-stat-label">
-              PETROL RANGE
+              {form.state.toUpperCase()} DIESEL MEDIAN
             </span>
 
             <strong>
-              ₹{statistics.petrol.lowest.toFixed(2)}
-              {" - "}
-              ₹{statistics.petrol.highest.toFixed(2)}
+              {loadingStats ? "..." : `₹${Number(selectedStateStats.diesel.median || 95).toFixed(2)}`}
             </strong>
 
             <small>
-              Based on rider reports
+              {selectedStateStats.diesel.isFallback
+                ? "National default fallback"
+                : `${selectedStateStats.diesel.count} report(s) in last 7 days`}
             </small>
           </div>
 
           <div className="fuel-stat-card">
             <span className="fuel-stat-label">
-              DIESEL AVERAGE
+              SUBMISSION POLICY
             </span>
 
-            <strong>
-              ₹{statistics.diesel.average.toFixed(2)}
-            </strong>
+            <strong>20% MAX DEVIATION</strong>
 
             <small>
-              Lowest ₹{statistics.diesel.lowest.toFixed(2)}
+              Outliers automatically rejected
             </small>
           </div>
 
           <div className="fuel-stat-card">
             <span className="fuel-stat-label">
-              REPORTS
+              COMMUNITY REPORTS
             </span>
 
             <strong>{prices.length}</strong>
 
             <small>
-              Community submissions
+              Total backend database submissions
             </small>
           </div>
 
@@ -284,7 +311,7 @@ function FuelPrice() {
               </div>
 
               <p>
-                Share what you found on your ride.
+                Share verified fuel rates from your ride.
               </p>
             </div>
 
@@ -293,19 +320,18 @@ function FuelPrice() {
               <div className="fuel-form-row">
 
                 <div className="fuel-field">
-                  <label>STATE</label>
+                  <label>STATE (INDIAN STATE / UT) *</label>
 
                   <select
                     name="state"
                     value={form.state}
                     onChange={handleChange}
                   >
-                    <option>Andhra Pradesh</option>
-                    <option>Telangana</option>
-                    <option>Karnataka</option>
-                    <option>Tamil Nadu</option>
-                    <option>Maharashtra</option>
-                    <option>Kerala</option>
+                    {INDIAN_STATES.map((st) => (
+                      <option key={st} value={st}>
+                        {st}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -345,8 +371,8 @@ function FuelPrice() {
                     value={form.fuelType}
                     onChange={handleChange}
                   >
-                    <option>Petrol</option>
-                    <option>Diesel</option>
+                    <option value="Petrol">Petrol</option>
+                    <option value="Diesel">Diesel</option>
                   </select>
                 </div>
 
@@ -371,7 +397,7 @@ function FuelPrice() {
               </div>
 
               {message && (
-                <div className="fuel-message">
+                <div className={`fuel-message ${isErrorMsg ? "fuel-message-error" : ""}`} style={{ color: isErrorMsg ? "#ff4d4d" : "#00e676", marginBottom: "1rem" }}>
                   {message}
                 </div>
               )}
@@ -402,9 +428,8 @@ function FuelPrice() {
             </h3>
 
             <p>
-              Fuel prices can change across locations.
-              Rider reports help the community estimate
-              travel costs before starting a journey.
+              Fuel prices can change across state borders.
+              Rider reports provide 7-day median prices to accurately calculate trip fuel budgets.
             </p>
 
             <div className="fuel-info-list">
@@ -416,7 +441,7 @@ function FuelPrice() {
 
               <div>
                 <span>02</span>
-                <p>Estimate your fuel budget</p>
+                <p>Estimate trip fuel consumption & cost</p>
               </div>
 
               <div>
@@ -428,8 +453,7 @@ function FuelPrice() {
 
             <div className="fuel-disclaimer">
               <span>ⓘ</span>
-              Prices are community reports and may
-              change at any time.
+              Prices use 7-day median calculations with 20% outlier rejection to ensure accurate data.
             </div>
 
           </div>
@@ -450,13 +474,6 @@ function FuelPrice() {
                 RECENT FUEL PRICES
               </h3>
             </div>
-
-            <button
-              className="fuel-reset-btn"
-              onClick={resetPrices}
-            >
-              RESET DEMO DATA
-            </button>
 
           </div>
 
@@ -498,7 +515,11 @@ function FuelPrice() {
           {/* REPORT CARDS */}
           <div className="fuel-report-list">
 
-            {filteredPrices.length > 0 ? (
+            {loadingSubmissions ? (
+              <div className="fuel-empty" style={{ color: "#888" }}>
+                Loading live fuel price submissions from database...
+              </div>
+            ) : filteredPrices.length > 0 ? (
               filteredPrices.map((item) => (
                 <div
                   className="fuel-report-card"
@@ -539,7 +560,7 @@ function FuelPrice() {
               ))
             ) : (
               <div className="fuel-empty">
-                No fuel price reports found.
+                No community fuel price reports submitted yet. Be the first to report!
               </div>
             )}
 
@@ -552,4 +573,4 @@ function FuelPrice() {
   );
 }
 
-export default FuelPrice;
+export default FuelPrice;

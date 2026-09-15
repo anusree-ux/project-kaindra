@@ -1,88 +1,66 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import apiClient from "../../../../services/apiClient";
 import "./TrustedTribe.css";
 
 function TrustedTribe() {
   const [activeFilter, setActiveFilter] = useState("ALL");
   const [selectedRider, setSelectedRider] = useState(0);
   const [following, setFollowing] = useState([]);
+  const [riders, setRiders] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const riders = [
-    {
-      name: "ARJUN",
-      tag: "@arjun.rides",
-      level: "TRAIL SEEKER",
-      location: "BENGALURU",
-      status: "ONLINE",
-      rides: 86,
-      distance: "24.8K",
-      terrain: "MOUNTAIN",
-      experience: "7 YEARS",
-      rating: "4.9",
-      followers: "1.8K",
-      initials: "AR",
-      category: "TOP RIDER",
-    },
-    {
-      name: "MEERA",
-      tag: "@meera.moto",
-      level: "ROAD EXPLORER",
-      location: "HYDERABAD",
-      status: "RIDING",
-      rides: 64,
-      distance: "18.4K",
-      terrain: "HIGHWAY",
-      experience: "5 YEARS",
-      rating: "4.8",
-      followers: "1.2K",
-      initials: "ME",
-      category: "NEARBY",
-    },
-    {
-      name: "KARTHIK",
-      tag: "@karthik.trails",
-      level: "ADVENTURER",
-      location: "CHENNAI",
-      status: "ONLINE",
-      rides: 112,
-      distance: "31.7K",
-      terrain: "MIXED",
-      experience: "9 YEARS",
-      rating: "5.0",
-      followers: "2.4K",
-      initials: "KA",
-      category: "TOP RIDER",
-    },
-    {
-      name: "RIYA",
-      tag: "@riya.rides",
-      level: "CITY RIDER",
-      location: "MUMBAI",
-      status: "OFFLINE",
-      rides: 39,
-      distance: "9.6K",
-      terrain: "URBAN",
-      experience: "3 YEARS",
-      rating: "4.7",
-      followers: "842",
-      initials: "RI",
-      category: "NEARBY",
-    },
-    {
-      name: "VIKRAM",
-      tag: "@vikram.road",
-      level: "LONG HAUL",
-      location: "PUNE",
-      status: "ONLINE",
-      rides: 143,
-      distance: "42.1K",
-      terrain: "HIGHWAY",
-      experience: "11 YEARS",
-      rating: "4.9",
-      followers: "3.1K",
-      initials: "VI",
-      category: "TOP RIDER",
-    },
-  ];
+  // Fetch live riders from backend
+  const fetchRiders = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await apiClient.get(
+        "/api/mototribe/riders-nearby?lat=12.9716&lng=77.5946&radius=1000000&filter=all"
+      );
+      const rawList = res.data.data?.riders || [];
+      const formatted = rawList.map((r) => {
+        const riderName = r.name || "Rider";
+        const initials = riderName
+          .split(" ")
+          .map((n) => n[0])
+          .join("")
+          .substring(0, 2)
+          .toUpperCase();
+        const trustRating = (r.trustScore / 20).toFixed(1);
+
+        let expLabel = "Rookie";
+        if (r.totalRidesCompleted > 20) expLabel = "PRO";
+        else if (r.totalRidesCompleted > 10) expLabel = "ADVANCED";
+        else if (r.totalRidesCompleted > 3) expLabel = "INTERMEDIATE";
+
+        return {
+          id: r.userId,
+          name: riderName.toUpperCase(),
+          tag: `@${riderName.toLowerCase().replace(/\s+/g, "")}`,
+          level: expLabel.toUpperCase(),
+          location: r.distanceKm ? `${r.distanceKm} KM AWAY` : "NEARBY",
+          status: r.status ? r.status.toUpperCase() : "ONLINE",
+          rides: r.totalRidesCompleted || 0,
+          distance: r.totalDistanceKm ? (r.totalDistanceKm >= 1000 ? `${(r.totalDistanceKm / 1000).toFixed(1)}K` : `${r.totalDistanceKm}`) : "0",
+          terrain: r.preferredRideType ? r.preferredRideType.toUpperCase() : "TOURING",
+          experience: `${r.totalRidesCompleted || 1} JOURNEYS`,
+          rating: trustRating,
+          followers: `${r.trustScore || 100}`,
+          initials: initials,
+          category: r.distanceKm && r.distanceKm < 50 ? "NEARBY" : "TOP RIDER",
+        };
+      });
+      setRiders(formatted);
+    } catch (err) {
+      console.error("Error fetching TrustedTribe riders:", err);
+      setRiders([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchRiders();
+  }, [fetchRiders]);
 
   const filters = ["ALL", "NEARBY", "TOP RIDERS", "FOLLOWING"];
 
@@ -96,7 +74,7 @@ function TrustedTribe() {
     return true;
   });
 
-  const currentRider = riders[selectedRider];
+  const currentRider = riders[selectedRider] || riders[0] || null;
 
   const toggleFollow = (tag) => {
     setFollowing((previous) =>
@@ -151,7 +129,7 @@ function TrustedTribe() {
 
           <div className="tribe-count">
             <span>ACTIVE NETWORK</span>
-            <strong>2,481 RIDERS</strong>
+            <strong>{loading ? "..." : `${riders.length} ${riders.length === 1 ? "RIDER" : "RIDERS"}`}</strong>
           </div>
         </div>
 
@@ -162,7 +140,7 @@ function TrustedTribe() {
               <div className="empty-riders">
                 <span>NO RIDERS FOUND</span>
                 <p>
-                  Follow riders to build your trusted network.
+                  Join rides and explore nearby routes to connect with live riders in your network.
                 </p>
               </div>
             ) : (
@@ -225,109 +203,111 @@ function TrustedTribe() {
             )}
           </div>
 
-          <div className="rider-profile">
+          {currentRider && (
+            <div className="rider-profile">
 
-            <div className="profile-top">
-              <div className="profile-avatar">
-                {currentRider.initials}
+              <div className="profile-top">
+                <div className="profile-avatar">
+                  {currentRider.initials}
+                </div>
+
+                <div className="profile-identity">
+                  <span>TRUSTED RIDER PROFILE</span>
+                  <h3>{currentRider.name}</h3>
+                  <p>{currentRider.tag}</p>
+                </div>
+
+                <div
+                  className={`profile-status ${currentRider.status
+                    .toLowerCase()
+                    .replace(" ", "-")}`}
+                >
+                  <i></i>
+                  {currentRider.status}
+                </div>
               </div>
 
-              <div className="profile-identity">
-                <span>TRUSTED RIDER PROFILE</span>
-                <h3>{currentRider.name}</h3>
-                <p>{currentRider.tag}</p>
+              <div className="profile-location">
+                <span>CURRENT BASE</span>
+                <strong>{currentRider.location}</strong>
               </div>
 
-              <div
-                className={`profile-status ${currentRider.status
-                  .toLowerCase()
-                  .replace(" ", "-")}`}
-              >
-                <i></i>
-                {currentRider.status}
+              <div className="profile-stats">
+                <div>
+                  <span>RIDES</span>
+                  <strong>{currentRider.rides}</strong>
+                </div>
+
+                <div>
+                  <span>DISTANCE</span>
+                  <strong>{currentRider.distance}</strong>
+                  <small>KM</small>
+                </div>
+
+                <div>
+                  <span>RATING</span>
+                  <strong>{currentRider.rating}</strong>
+                </div>
+
+                <div>
+                  <span>FOLLOWERS</span>
+                  <strong>{currentRider.followers}</strong>
+                </div>
               </div>
+
+              <div className="profile-details">
+                <div>
+                  <span>RIDING STYLE</span>
+                  <strong>{currentRider.terrain}</strong>
+                </div>
+
+                <div>
+                  <span>EXPERIENCE</span>
+                  <strong>{currentRider.experience}</strong>
+                </div>
+
+                <div>
+                  <span>RIDER LEVEL</span>
+                  <strong>{currentRider.level}</strong>
+                </div>
+              </div>
+
+              <div className="profile-actions">
+                <button
+                  className={
+                    following.includes(currentRider.tag)
+                      ? "profile-follow following"
+                      : "profile-follow"
+                  }
+                  onClick={() => toggleFollow(currentRider.tag)}
+                >
+                  {following.includes(currentRider.tag)
+                    ? "FOLLOWING ✓"
+                    : "FOLLOW RIDER +"}
+                </button>
+
+                <button
+                  className="profile-invite"
+                  onClick={() =>
+                    alert(
+                      `Ride invite sent to ${currentRider.name}`
+                    )
+                  }
+                >
+                  INVITE TO RIDE
+                </button>
+              </div>
+
+              <div className="trust-note">
+                <span>TRUST SIGNAL</span>
+                <p>
+                  Rider activity, community ratings and ride history
+                  help you identify reliable members of the Tribe.
+                </p>
+              </div>
+
             </div>
-
-            <div className="profile-location">
-              <span>CURRENT BASE</span>
-              <strong>{currentRider.location}</strong>
-            </div>
-
-            <div className="profile-stats">
-              <div>
-                <span>RIDES</span>
-                <strong>{currentRider.rides}</strong>
-              </div>
-
-              <div>
-                <span>DISTANCE</span>
-                <strong>{currentRider.distance}</strong>
-                <small>KM</small>
-              </div>
-
-              <div>
-                <span>RATING</span>
-                <strong>{currentRider.rating}</strong>
-              </div>
-
-              <div>
-                <span>FOLLOWERS</span>
-                <strong>{currentRider.followers}</strong>
-              </div>
-            </div>
-
-            <div className="profile-details">
-              <div>
-                <span>RIDING STYLE</span>
-                <strong>{currentRider.terrain}</strong>
-              </div>
-
-              <div>
-                <span>EXPERIENCE</span>
-                <strong>{currentRider.experience}</strong>
-              </div>
-
-              <div>
-                <span>RIDER LEVEL</span>
-                <strong>{currentRider.level}</strong>
-              </div>
-            </div>
-
-            <div className="profile-actions">
-              <button
-                className={
-                  following.includes(currentRider.tag)
-                    ? "profile-follow following"
-                    : "profile-follow"
-                }
-                onClick={() => toggleFollow(currentRider.tag)}
-              >
-                {following.includes(currentRider.tag)
-                  ? "FOLLOWING ✓"
-                  : "FOLLOW RIDER +"}
-              </button>
-
-              <button
-                className="profile-invite"
-                onClick={() =>
-                  alert(
-                    `Ride invite sent to ${currentRider.name}`
-                  )
-                }
-              >
-                INVITE TO RIDE
-              </button>
-            </div>
-
-            <div className="trust-note">
-              <span>TRUST SIGNAL</span>
-              <p>
-                Rider activity, community ratings and ride history
-                help you identify reliable members of the Tribe.
-              </p>
-            </div>
-
-          </div>
+          )}
         </div>
 
         <div className="trusted-footer">

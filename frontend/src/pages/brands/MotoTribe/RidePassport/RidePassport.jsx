@@ -1,64 +1,70 @@
-import { useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import apiClient from "../../../../services/apiClient";
 import "./RidePassport.css";
 
 function RidePassport() {
   const [selectedAchievement, setSelectedAchievement] = useState(0);
+  const [passportData, setPassportData] = useState(null);
+  const [achievements, setAchievements] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const achievements = [
-    {
-      number: "01",
-      title: "FIRST JOURNEY",
-      category: "MILESTONE",
-      description:
-        "Complete your first recorded MotoTribe journey.",
-      progress: 100,
-      requirement: "1 / 1 RIDE",
-      unlocked: true,
-    },
-    {
-      number: "02",
-      title: "ROAD EXPLORER",
-      category: "DISTANCE",
-      description:
-        "Travel more than 1,000 kilometres across your journeys.",
-      progress: 100,
-      requirement: "1,000 / 1,000 KM",
-      unlocked: true,
-    },
-    {
-      number: "03",
-      title: "MOUNTAIN SEEKER",
-      category: "TERRAIN",
-      description:
-        "Complete five mountain or hill rides.",
-      progress: 80,
-      requirement: "4 / 5 RIDES",
-      unlocked: false,
-    },
-    {
-      number: "04",
-      title: "LONG HAUL",
-      category: "ENDURANCE",
-      description:
-        "Complete a single journey longer than 500 kilometres.",
-      progress: 62,
-      requirement: "310 / 500 KM",
-      unlocked: false,
-    },
-    {
-      number: "05",
-      title: "TRIBE LEADER",
-      category: "COMMUNITY",
-      description:
-        "Join or organise ten group riding experiences.",
-      progress: 40,
-      requirement: "4 / 10 RIDES",
-      unlocked: false,
-    },
-  ];
+  // 1. Fetch live passport data from backend
+  const fetchPassportData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await apiClient.get("/api/mototribe/rider-profile/me/passport");
+      const { profile, earnedBadges = [], unearnedBadges = [] } = res.data?.data || {};
 
-  const currentAchievement =
-    achievements[selectedAchievement];
+      setPassportData(profile || null);
+
+      // Map earned badges from backend
+      const combined = [];
+      let idx = 1;
+
+      earnedBadges.forEach((b) => {
+        combined.push({
+          number: String(idx++).padStart(2, "0"),
+          title: (b.name || b.key || "ACHIEVEMENT").toUpperCase(),
+          category: b.criteriaType ? b.criteriaType.toUpperCase() : "MILESTONE",
+          description: b.description || "Earned MotoTribe achievement badge.",
+          progress: 100,
+          requirement: "COMPLETED ✓",
+          unlocked: true,
+        });
+      });
+
+      setAchievements(combined);
+    } catch (err) {
+      console.error("Error fetching RidePassport data:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchPassportData();
+  }, [fetchPassportData]);
+
+  const currentAchievement = achievements[selectedAchievement] || achievements[0] || null;
+
+  const totalRides = passportData?.totalRidesCompleted || 0;
+  const totalDist = passportData?.totalDistanceKm || 0;
+  const totalDistFormatted = totalDist >= 1000 ? `${(totalDist / 1000).toFixed(1)}K` : `${totalDist}`;
+  const tribeRides = passportData?.rideGroupsJoined || 0;
+  const unlockedCount = achievements.filter((a) => a.unlocked).length;
+
+  let riderLevelTitle = "ROOKIE";
+  let riderLevelNum = "LEVEL 01";
+  if (totalRides >= 20 || totalDist >= 5000) {
+    riderLevelTitle = "PRO";
+    riderLevelNum = "LEVEL 10";
+  } else if (totalRides >= 10 || totalDist >= 2000) {
+    riderLevelTitle = "EXPLORER";
+    riderLevelNum = "LEVEL 07";
+  } else if (totalRides >= 3 || totalDist >= 500) {
+    riderLevelTitle = "ADVENTURER";
+    riderLevelNum = "LEVEL 04";
+  }
 
   return (
     <section id="ride-passport" className="ride-passport">
@@ -104,18 +110,18 @@ function RidePassport() {
 
             <div className="rider-level">
               <span>RIDER LEVEL</span>
-              <strong>EXPLORER</strong>
-              <small>LEVEL 07</small>
+              <strong>{riderLevelTitle}</strong>
+              <small>{riderLevelNum}</small>
             </div>
 
             <div className="level-progress">
               <div>
-                <span>2,840 XP</span>
-                <span>4,000 XP</span>
+                <span>{totalDist} KM</span>
+                <span>5,000 KM</span>
               </div>
 
               <div className="level-bar">
-                <span></span>
+                <span style={{ width: `${Math.min(100, (totalDist / 5000) * 100)}%` }}></span>
               </div>
             </div>
 
@@ -129,147 +135,151 @@ function RidePassport() {
 
             <div className="passport-stat">
               <span>TOTAL RIDES</span>
-              <strong>47</strong>
+              <strong>{totalRides}</strong>
               <small>JOURNEYS</small>
             </div>
 
             <div className="passport-stat">
               <span>TOTAL DISTANCE</span>
-              <strong>12.8K</strong>
+              <strong>{totalDistFormatted}</strong>
               <small>KILOMETRES</small>
             </div>
 
             <div className="passport-stat">
               <span>TRIBE RIDES</span>
-              <strong>18</strong>
+              <strong>{tribeRides}</strong>
               <small>GROUP RIDES</small>
             </div>
 
             <div className="passport-stat">
               <span>ACHIEVEMENTS</span>
-              <strong>06</strong>
+              <strong>{String(unlockedCount).padStart(2, "0")}</strong>
               <small>UNLOCKED</small>
             </div>
 
           </div>
         </div>
 
-        <div className="achievement-section">
+        {achievements.length > 0 ? (
+          <div className="achievement-section">
 
-          <div className="achievement-heading">
-            <div>
-              <span>RIDER PROGRESSION</span>
-              <strong>ACHIEVEMENTS</strong>
+            <div className="achievement-heading">
+              <div>
+                <span>RIDER PROGRESSION</span>
+                <strong>ACHIEVEMENTS</strong>
+              </div>
+
+              <small>
+                SELECT A MILESTONE TO EXPLORE
+              </small>
             </div>
 
-            <small>
-              SELECT A MILESTONE TO EXPLORE
-            </small>
-          </div>
+            <div className="achievement-layout">
 
-          <div className="achievement-layout">
+              <div className="achievement-list">
 
-            <div className="achievement-list">
-
-              {achievements.map((achievement, index) => (
-                <button
-                  key={achievement.title}
-                  className={
-                    selectedAchievement === index
-                      ? "achievement-item active"
-                      : "achievement-item"
-                  }
-                  onClick={() =>
-                    setSelectedAchievement(index)
-                  }
-                >
-                  <span className="achievement-number">
-                    {achievement.number}
-                  </span>
-
-                  <span
+                {achievements.map((achievement, index) => (
+                  <button
+                    key={achievement.title}
                     className={
-                      achievement.unlocked
-                        ? "achievement-badge unlocked"
-                        : "achievement-badge"
+                      selectedAchievement === index
+                        ? "achievement-item active"
+                        : "achievement-item"
+                    }
+                    onClick={() =>
+                      setSelectedAchievement(index)
                     }
                   >
-                    {achievement.unlocked ? "✓" : "○"}
-                  </span>
+                    <span className="achievement-number">
+                      {achievement.number}
+                    </span>
 
-                  <span className="achievement-info">
-                    <small>{achievement.category}</small>
-                    <strong>{achievement.title}</strong>
-                  </span>
+                    <span
+                      className={
+                        achievement.unlocked
+                          ? "achievement-badge unlocked"
+                          : "achievement-badge"
+                      }
+                    >
+                      {achievement.unlocked ? "✓" : "○"}
+                    </span>
 
-                  <span className="achievement-progress">
-                    {achievement.progress}%
-                  </span>
-                </button>
-              ))}
+                    <span className="achievement-info">
+                      <small>{achievement.category}</small>
+                      <strong>{achievement.title}</strong>
+                    </span>
 
-            </div>
+                    <span className="achievement-progress">
+                      {achievement.progress}%
+                    </span>
+                  </button>
+                ))}
 
-            <div className="achievement-detail">
-
-              <div className="detail-number">
-                {currentAchievement.number}
               </div>
 
-              <div
-                className={
-                  currentAchievement.unlocked
-                    ? "large-badge unlocked"
-                    : "large-badge"
-                }
-              >
-                {currentAchievement.unlocked ? "✓" : "MT"}
-              </div>
+              {currentAchievement && (
+                <div className="achievement-detail">
 
-              <span className="detail-category">
-                {currentAchievement.category}
-              </span>
+                  <div className="detail-number">
+                    {currentAchievement.number}
+                  </div>
 
-              <h3>{currentAchievement.title}</h3>
+                  <div
+                    className={
+                      currentAchievement.unlocked
+                        ? "large-badge unlocked"
+                        : "large-badge"
+                    }
+                  >
+                    {currentAchievement.unlocked ? "✓" : "MT"}
+                  </div>
 
-              <p>{currentAchievement.description}</p>
+                  <span className="detail-category">
+                    {currentAchievement.category}
+                  </span>
 
-              <div className="achievement-progress-detail">
+                  <h3>{currentAchievement.title}</h3>
 
-                <div className="progress-label">
-                  <span>PROGRESS</span>
-                  <strong>
-                    {currentAchievement.requirement}
-                  </strong>
+                  <p>{currentAchievement.description}</p>
+
+                  <div className="achievement-progress-detail">
+
+                    <div className="progress-label">
+                      <span>PROGRESS</span>
+                      <strong>
+                        {currentAchievement.requirement}
+                      </strong>
+                    </div>
+
+                    <div className="progress-track">
+                      <span
+                        style={{
+                          width: `${currentAchievement.progress}%`,
+                        }}
+                      ></span>
+                    </div>
+
+                  </div>
+
+                  <div className="achievement-status">
+                    <span>
+                      {currentAchievement.unlocked
+                        ? "ACHIEVEMENT UNLOCKED"
+                        : "ACHIEVEMENT IN PROGRESS"}
+                    </span>
+
+                    <strong>
+                      {currentAchievement.unlocked
+                        ? "✓ COMPLETE"
+                        : `${currentAchievement.progress}%`}
+                    </strong>
+                  </div>
+
                 </div>
-
-                <div className="progress-track">
-                  <span
-                    style={{
-                      width: `${currentAchievement.progress}%`,
-                    }}
-                  ></span>
-                </div>
-
-              </div>
-
-              <div className="achievement-status">
-                <span>
-                  {currentAchievement.unlocked
-                    ? "ACHIEVEMENT UNLOCKED"
-                    : "ACHIEVEMENT IN PROGRESS"}
-                </span>
-
-                <strong>
-                  {currentAchievement.unlocked
-                    ? "✓ COMPLETE"
-                    : `${currentAchievement.progress}%`}
-                </strong>
-              </div>
-
+              )}
             </div>
           </div>
-        </div>
+        ) : null}
 
         <div className="passport-footer">
 

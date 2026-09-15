@@ -1,133 +1,23 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
+import apiClient from "../../../../services/apiClient";
 import "./RiderConnect.css";
 
-const DEMO_RIDERS = [
-  {
-    id: "rider-001",
-    name: "Arjun Reddy",
-    riderId: "MT-ARJ-1024",
-    location: "Hyderabad",
-    experience: "Advanced",
-    rideTypes: ["Adventure", "Touring"],
-    motorcycle: "Royal Enfield Himalayan 450",
-    completedRides: 48,
-    distance: 18420,
-    longestRide: "1,240 KM",
-    rating: 4.9,
-    avatar: "AR",
-    online: true,
-    bio: "Long-distance adventure rider who enjoys discovering mountain roads and remote destinations.",
-  },
-  {
-    id: "rider-002",
-    name: "Vikram Singh",
-    riderId: "MT-VIK-2088",
-    location: "Bengaluru",
-    experience: "Pro",
-    rideTypes: ["Touring", "Long Distance"],
-    motorcycle: "BMW G 310 GS",
-    completedRides: 76,
-    distance: 32650,
-    longestRide: "1,850 KM",
-    rating: 4.8,
-    avatar: "VS",
-    online: true,
-    bio: "Touring enthusiast with extensive experience across South Indian highways and hill routes.",
-  },
-  {
-    id: "rider-003",
-    name: "Sneha Rao",
-    riderId: "MT-SNE-3142",
-    location: "Chennai",
-    experience: "Intermediate",
-    rideTypes: ["Touring", "Cruiser"],
-    motorcycle: "Honda H'ness CB350",
-    completedRides: 31,
-    distance: 9650,
-    longestRide: "780 KM",
-    rating: 4.7,
-    avatar: "SR",
-    online: false,
-    bio: "Weekend touring rider interested in scenic routes, food stops and relaxed group rides.",
-  },
-  {
-    id: "rider-004",
-    name: "Karthik Kumar",
-    riderId: "MT-KAR-4291",
-    location: "Kochi",
-    experience: "Advanced",
-    rideTypes: ["Adventure", "Long Distance"],
-    motorcycle: "KTM Adventure 390",
-    completedRides: 62,
-    distance: 24800,
-    longestRide: "1,520 KM",
-    rating: 4.9,
-    avatar: "KK",
-    online: true,
-    bio: "Adventure rider focused on challenging terrain, route discovery and rider safety.",
-  },
-  {
-    id: "rider-005",
-    name: "Meera Nair",
-    riderId: "MT-MEE-5017",
-    location: "Pune",
-    experience: "Beginner",
-    rideTypes: ["Cruiser", "Touring"],
-    motorcycle: "Yamaha FZ-X",
-    completedRides: 14,
-    distance: 3250,
-    longestRide: "420 KM",
-    rating: 4.6,
-    avatar: "MN",
-    online: true,
-    bio: "New-generation rider learning long-distance touring and looking for experienced riding groups.",
-  },
-  {
-    id: "rider-006",
-    name: "Rahul Varma",
-    riderId: "MT-RAH-6382",
-    location: "Visakhapatnam",
-    experience: "Advanced",
-    rideTypes: ["Adventure", "Touring"],
-    motorcycle: "Suzuki V-Strom 650",
-    completedRides: 54,
-    distance: 21780,
-    longestRide: "1,410 KM",
-    rating: 4.8,
-    avatar: "RV",
-    online: false,
-    bio: "Adventure and touring rider who enjoys coastal roads and multi-day motorcycle journeys.",
-  },
-];
-
 const STORAGE_KEYS = {
-  connections: "mototribeConnections",
-  requests: "mototribeConnectionRequests",
   following: "mototribeFollowing",
 };
 
 function RiderConnect() {
-  const [riders] = useState(DEMO_RIDERS);
+  const [riders, setRiders] = useState([]);
+  const [connections, setConnections] = useState([]);
+  const [incomingRequests, setIncomingRequests] = useState([]);
+  const [outgoingRequests, setOutgoingRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [activeTab, setActiveTab] = useState("discover");
   const [search, setSearch] = useState("");
   const [experienceFilter, setExperienceFilter] = useState("ALL");
   const [rideTypeFilter, setRideTypeFilter] = useState("ALL");
 
-  const [connections, setConnections] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEYS.connections) || "[]");
-    } catch {
-      return [];
-    }
-  });
-  const [requests, setRequests] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEYS.requests) || "[]");
-    } catch {
-      return [];
-    }
-  });
   const [following, setFollowing] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem(STORAGE_KEYS.following) || "[]");
@@ -137,24 +27,81 @@ function RiderConnect() {
   });
 
   const [selectedRider, setSelectedRider] = useState(null);
+  const [modalLoading, setModalLoading] = useState(false);
   const [notification, setNotification] = useState("");
 
-  useEffect(() => {
-    localStorage.setItem(
-      STORAGE_KEYS.connections,
-      JSON.stringify(connections)
-    );
-  }, [connections]);
+  // 1. Fetch live data from backend (riders nearby, connections, requests)
+  const fetchAllData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [ridersRes, connRes, incRes, outRes] = await Promise.allSettled([
+        apiClient.get("/api/mototribe/riders-nearby?lat=12.9716&lng=77.5946&radius=1000000&filter=all"),
+        apiClient.get("/api/core/connections"),
+        apiClient.get("/api/core/connections/requests/incoming"),
+        apiClient.get("/api/core/connections/requests/outgoing"),
+      ]);
+
+      if (ridersRes.status === "fulfilled") {
+        const rawList = ridersRes.value.data.data?.riders || [];
+        const formatted = rawList.map((r) => {
+          const riderName = r.name || "Rider";
+          const initials = riderName
+            .split(" ")
+            .map((n) => n[0])
+            .join("")
+            .substring(0, 2)
+            .toUpperCase();
+          const trustRating = (r.trustScore / 20).toFixed(1);
+
+          let expLabel = "Beginner";
+          if (r.totalRidesCompleted > 20) expLabel = "Pro";
+          else if (r.totalRidesCompleted > 10) expLabel = "Advanced";
+          else if (r.totalRidesCompleted > 3) expLabel = "Intermediate";
+
+          return {
+            id: r.userId,
+            name: riderName,
+            riderId: `MT-${String(r.userId).substring(0, 6).toUpperCase()}`,
+            location: r.distanceKm ? `${r.distanceKm} KM away` : "Nearby",
+            experience: expLabel,
+            rideTypes: [r.preferredRideType ? r.preferredRideType.toUpperCase() : "TOURING"],
+            motorcycle: r.primaryVehicleName || "Rider Bike",
+            completedRides: r.totalRidesCompleted || 0,
+            distance: r.totalDistanceKm || 0,
+            longestRide: r.currentJourney ? r.currentJourney.title : "N/A",
+            rating: trustRating,
+            avatar: initials,
+            online: r.status === "riding",
+            bio: r.currentJourney ? `Currently riding: ${r.currentJourney.title}` : "Verified MotoTribe rider",
+          };
+        });
+        setRiders(formatted);
+      }
+
+      if (connRes.status === "fulfilled") {
+        setConnections(connRes.value.data.data?.connections || []);
+      }
+
+      if (incRes.status === "fulfilled") {
+        setIncomingRequests(incRes.value.data.data?.requests || []);
+      }
+
+      if (outRes.status === "fulfilled") {
+        setOutgoingRequests(outRes.value.data.data?.requests || []);
+      }
+    } catch (err) {
+      console.error("Error fetching RiderConnect backend data:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.requests, JSON.stringify(requests));
-  }, [requests]);
+    fetchAllData();
+  }, [fetchAllData]);
 
   useEffect(() => {
-    localStorage.setItem(
-      STORAGE_KEYS.following,
-      JSON.stringify(following)
-    );
+    localStorage.setItem(STORAGE_KEYS.following, JSON.stringify(following));
   }, [following]);
 
   useEffect(() => {
@@ -194,69 +141,42 @@ function RiderConnect() {
     });
   }, [riders, search, experienceFilter, rideTypeFilter]);
 
-  const connectedRiders = riders.filter((rider) =>
-    connections.includes(rider.id)
-  );
-
   const followingRiders = riders.filter((rider) =>
     following.includes(rider.id)
   );
 
-  const requestRiders = riders.filter((rider) =>
-    requests.includes(rider.id)
-  );
-
-  const sendConnectionRequest = (riderId) => {
-    if (connections.includes(riderId)) {
-      setNotification("You are already connected with this rider.");
-      return;
+  const sendConnectionRequest = async (riderId) => {
+    try {
+      await apiClient.post("/api/core/connections/request", { toUserId: riderId });
+      setNotification("Connection request sent.");
+      fetchAllData();
+    } catch (err) {
+      setNotification(err.response?.data?.message || "Failed to send request.");
     }
+  };
 
-    if (requests.includes(riderId)) {
-      setNotification("Connection request already sent.");
-      return;
+  const acceptConnection = async (requestId) => {
+    try {
+      await apiClient.patch(`/api/core/connections/requests/${requestId}/respond`, {
+        status: "accepted",
+      });
+      setNotification("Rider added to your connections.");
+      fetchAllData();
+    } catch (err) {
+      setNotification(err.response?.data?.message || "Failed to accept connection.");
     }
-
-    setRequests((previous) => [...previous, riderId]);
-    setNotification("Connection request sent.");
   };
 
-  const cancelConnectionRequest = (riderId) => {
-    setRequests((previous) =>
-      previous.filter((id) => id !== riderId)
-    );
-
-    setNotification("Connection request cancelled.");
-  };
-
-  const acceptConnection = (riderId) => {
-    setRequests((previous) =>
-      previous.filter((id) => id !== riderId)
-    );
-
-    setConnections((previous) =>
-      previous.includes(riderId)
-        ? previous
-        : [...previous, riderId]
-    );
-
-    setNotification("Rider added to your connections.");
-  };
-
-  const rejectConnection = (riderId) => {
-    setRequests((previous) =>
-      previous.filter((id) => id !== riderId)
-    );
-
-    setNotification("Connection request rejected.");
-  };
-
-  const removeConnection = (riderId) => {
-    setConnections((previous) =>
-      previous.filter((id) => id !== riderId)
-    );
-
-    setNotification("Rider removed from your connections.");
+  const rejectConnection = async (requestId) => {
+    try {
+      await apiClient.patch(`/api/core/connections/requests/${requestId}/respond`, {
+        status: "ignored",
+      });
+      setNotification("Connection request rejected.");
+      fetchAllData();
+    } catch (err) {
+      setNotification(err.response?.data?.message || "Failed to reject connection.");
+    }
   };
 
   const toggleFollow = (riderId) => {
@@ -272,30 +192,48 @@ function RiderConnect() {
     }
   };
 
-  const openProfile = (rider) => {
+  const openProfile = async (rider) => {
     setSelectedRider(rider);
+    setModalLoading(true);
+    try {
+      const res = await apiClient.get(`/api/mototribe/riders/${rider.id}/profile-card`);
+      const card = res.data.data?.profileCard;
+      if (card) {
+        setSelectedRider({
+          ...rider,
+          name: card.name,
+          motorcycle: card.primaryVehicleName || rider.motorcycle,
+          completedRides: card.totalRidesCompleted || rider.completedRides,
+          distance: card.totalDistanceKm || rider.distance,
+          rating: (card.trustScore / 20).toFixed(1),
+          bio: card.currentJourney ? `Currently riding: ${card.currentJourney.title}` : rider.bio,
+        });
+      }
+    } catch {
+      // Keep basic info on error
+    } finally {
+      setModalLoading(false);
+    }
   };
 
   const closeProfile = () => {
     setSelectedRider(null);
   };
 
-  const messageRider = (rider) => {
-    setNotification(`Message channel opened for ${rider.name}.`);
-  };
-
-  const inviteRider = (rider) => {
-    setNotification(`${rider.name} has been invited to your ride.`);
-  };
-
   const getConnectionStatus = (riderId) => {
-    if (connections.includes(riderId)) {
-      return "connected";
-    }
+    const isConnected = connections.some(
+      (c) =>
+        c.fromUserId?._id === riderId ||
+        c.toUserId?._id === riderId ||
+        c.fromUserId === riderId ||
+        c.toUserId === riderId
+    );
+    if (isConnected) return "connected";
 
-    if (requests.includes(riderId)) {
-      return "pending";
-    }
+    const isPendingOutgoing = outgoingRequests.some(
+      (r) => (r.toUserId?._id || r.toUserId) === riderId
+    );
+    if (isPendingOutgoing) return "pending";
 
     return "none";
   };
@@ -350,7 +288,7 @@ function RiderConnect() {
 
           <div>
             <strong>
-              {rider.distance.toLocaleString()} KM
+              {Number(rider.distance).toLocaleString()} KM
             </strong>
             <span>DISTANCE</span>
           </div>
@@ -389,9 +327,7 @@ function RiderConnect() {
           {connectionStatus === "pending" && (
             <button
               className="pending-action"
-              onClick={() =>
-                cancelConnectionRequest(rider.id)
-              }
+              disabled
             >
               REQUESTED
             </button>
@@ -400,9 +336,9 @@ function RiderConnect() {
           {connectionStatus === "connected" && (
             <button
               className="connected-action"
-              onClick={() => messageRider(rider)}
+              onClick={() => setNotification(`Connected with ${rider.name}`)}
             >
-              MESSAGE
+              CONNECTED ✓
             </button>
           )}
         </div>
@@ -422,6 +358,23 @@ function RiderConnect() {
   return (
     <section id="rider-connect" className="rider-connect-section">
       <div className="rider-connect-container">
+        {notification && (
+          <div
+            style={{
+              padding: "10px 16px",
+              background: "rgba(0, 230, 118, 0.15)",
+              border: "1px solid #00e676",
+              color: "#00e676",
+              marginBottom: "15px",
+              borderRadius: "4px",
+              fontSize: "12px",
+              letterSpacing: "1px",
+            }}
+          >
+            {notification}
+          </div>
+        )}
+
         <div className="rider-connect-heading">
           <div>
             <span className="section-kicker">
@@ -451,7 +404,7 @@ function RiderConnect() {
             </div>
 
             <div>
-              <strong>{requests.length}</strong>
+              <strong>{incomingRequests.length}</strong>
               <span>PENDING</span>
             </div>
           </div>
@@ -478,7 +431,7 @@ function RiderConnect() {
             onClick={() => setActiveTab("requests")}
           >
             REQUESTS
-            <span>{requests.length}</span>
+            <span>{incomingRequests.length}</span>
           </button>
 
           <button
@@ -549,16 +502,22 @@ function RiderConnect() {
               RIDERS
             </div>
 
-            {filteredRiders.length > 0 ? (
+            {loading ? (
+              <div className="empty-state">
+                <div>⌛</div>
+                <h3>LOADING RIDERS FROM DATABASE</h3>
+                <p>Fetching rider profiles from MotoTribe network...</p>
+              </div>
+            ) : filteredRiders.length > 0 ? (
               <div className="rider-grid">
                 {filteredRiders.map(renderRiderCard)}
               </div>
             ) : (
               <div className="empty-state">
                 <div>⌕</div>
-                <h3>NO RIDERS FOUND</h3>
+                <h3>NO RIDERS FOUND IN DATABASE</h3>
                 <p>
-                  Try changing your search or filter criteria.
+                  No discoverable riders matching your query exist in the database.
                 </p>
 
                 <button
@@ -577,49 +536,34 @@ function RiderConnect() {
 
         {activeTab === "connections" && (
           <div className="tab-content">
-            {connectedRiders.length > 0 ? (
+            {connections.length > 0 ? (
               <div className="rider-grid">
-                {connectedRiders.map((rider) => (
-                  <div
-                    className="connection-card"
-                    key={rider.id}
-                  >
-                    <div className="mini-avatar">
-                      {rider.avatar}
+                {connections.map((conn) => {
+                  const friend = conn.fromUserId?._id === conn.toUserId?._id ? conn.toUserId : conn.fromUserId || {};
+                  return (
+                    <div
+                      className="connection-card"
+                      key={conn._id}
+                    >
+                      <div className="mini-avatar">
+                        {friend.name ? friend.name.substring(0, 2).toUpperCase() : "R"}
+                      </div>
+
+                      <div>
+                        <h3>{friend.name || "Connected Rider"}</h3>
+                        <p>{friend.email}</p>
+                      </div>
+
+                      <div className="connection-actions">
+                        <button
+                          onClick={() => setNotification(`Message sent to ${friend.name}`)}
+                        >
+                          MESSAGE
+                        </button>
+                      </div>
                     </div>
-
-                    <div>
-                      <h3>{rider.name}</h3>
-                      <p>
-                        {rider.experience} · {rider.location}
-                      </p>
-                      <span>{rider.motorcycle}</span>
-                    </div>
-
-                    <div className="connection-actions">
-                      <button
-                        onClick={() => messageRider(rider)}
-                      >
-                        MESSAGE
-                      </button>
-
-                      <button
-                        onClick={() => inviteRider(rider)}
-                      >
-                        INVITE
-                      </button>
-
-                      <button
-                        className="remove-button"
-                        onClick={() =>
-                          removeConnection(rider.id)
-                        }
-                      >
-                        REMOVE
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="empty-state">
@@ -642,49 +586,46 @@ function RiderConnect() {
 
         {activeTab === "requests" && (
           <div className="tab-content">
-            {requestRiders.length > 0 ? (
+            {incomingRequests.length > 0 ? (
               <div className="requests-list">
-                {requestRiders.map((rider) => (
-                  <div
-                    className="request-card"
-                    key={rider.id}
-                  >
-                    <div className="mini-avatar">
-                      {rider.avatar}
-                    </div>
+                {incomingRequests.map((req) => {
+                  const sender = req.fromUserId || {};
+                  return (
+                    <div
+                      className="request-card"
+                      key={req._id}
+                    >
+                      <div className="mini-avatar">
+                        {sender.name ? sender.name.substring(0, 2).toUpperCase() : "R"}
+                      </div>
 
-                    <div className="request-info">
-                      <h3>{rider.name}</h3>
-                      <p>
-                        {rider.experience} · {rider.location}
-                      </p>
-                      <span>
-                        {rider.completedRides} completed
-                        rides
-                      </span>
-                    </div>
+                      <div className="request-info">
+                        <h3>{sender.name || "Rider Request"}</h3>
+                        <p>{sender.email}</p>
+                      </div>
 
-                    <div className="request-actions">
-                      <button
-                        className="accept-button"
-                        onClick={() =>
-                          acceptConnection(rider.id)
-                        }
-                      >
-                        ACCEPT
-                      </button>
+                      <div className="request-actions">
+                        <button
+                          className="accept-button"
+                          onClick={() =>
+                            acceptConnection(req._id)
+                          }
+                        >
+                          ACCEPT
+                        </button>
 
-                      <button
-                        className="reject-button"
-                        onClick={() =>
-                          rejectConnection(rider.id)
-                        }
-                      >
-                        REJECT
-                      </button>
+                        <button
+                          className="reject-button"
+                          onClick={() =>
+                            rejectConnection(req._id)
+                          }
+                        >
+                          REJECT
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="empty-state">
@@ -778,7 +719,7 @@ function RiderConnect() {
 
               <div>
                 <span className="profile-label">
-                  VERIFIED RIDER
+                  {modalLoading ? "LOADING..." : "VERIFIED RIDER"}
                 </span>
 
                 <h2>{selectedRider.name}</h2>
@@ -799,9 +740,7 @@ function RiderConnect() {
                 }
               >
                 ●{" "}
-                {selectedRider.online
-                  ? "ONLINE"
-                  : "OFFLINE"}
+                {selectedRider.online ? "ONLINE NOW" : "OFFLINE"}
               </span>
 
               <span>
@@ -809,9 +748,6 @@ function RiderConnect() {
               </span>
             </div>
 
-            <p className="profile-description">
-              {selectedRider.bio}
-            </p>
 
             <div className="profile-details-grid">
               <div>

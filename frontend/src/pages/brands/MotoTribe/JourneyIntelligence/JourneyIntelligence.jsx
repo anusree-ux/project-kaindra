@@ -1,134 +1,155 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { useAuth } from "../../../../context/AuthContext";
+import apiClient from "../../../../services/apiClient";
 import "./JourneyIntelligence.css";
 
-const routes = [
-  {
-    id: 1,
-    name: "Mountain Loop",
-    distance: "186 KM",
-    duration: "4H 32M",
-    difficulty: "MODERATE",
-    road: "DRY",
-    traffic: "LOW",
-    fuel: "GOOD",
-    weather: "24°C",
-    elevation: "+1,240 M",
-  },
-  {
-    id: 2,
-    name: "Scenic Ridge",
-    distance: "214 KM",
-    duration: "5H 05M",
-    difficulty: "ADVENTURE",
-    road: "MIXED",
-    traffic: "LOW",
-    fuel: "GOOD",
-    weather: "22°C",
-    elevation: "+1,680 M",
-  },
-  {
-    id: 3,
-    name: "Valley Express",
-    distance: "162 KM",
-    duration: "3H 48M",
-    difficulty: "EASY",
-    road: "DRY",
-    traffic: "MEDIUM",
-    fuel: "CHECK",
-    weather: "26°C",
-    elevation: "+620 M",
-  },
-];
-
-const intelligenceData = [
-  {
-    id: "weather",
-    icon: "◒",
-    label: "WEATHER",
-    value: "24°C",
-    status: "CLEAR",
-    detail: "Clear skies expected",
-  },
-  {
-    id: "traffic",
-    icon: "≋",
-    label: "TRAFFIC",
-    value: "LOW",
-    status: "+12 MIN",
-    detail: "Light traffic on route",
-  },
-  {
-    id: "fuel",
-    icon: "⛽",
-    label: "FUEL",
-    value: "82%",
-    status: "GOOD",
-    detail: "Next fuel stop in 74 KM",
-  },
-  {
-    id: "road",
-    icon: "╱",
-    label: "ROAD",
-    value: "SAFE",
-    status: "DRY",
-    detail: "Road conditions look good",
-  },
-];
-
-const routeStops = [
-  {
-    type: "START",
-    title: "BENGALURU",
-    detail: "Your starting point",
-    icon: "●",
-  },
-  {
-    type: "FUEL",
-    title: "FUEL STOP",
-    detail: "74 KM • Recommended",
-    icon: "⛽",
-  },
-  {
-    type: "CAFE",
-    title: "RIDERS CAFE",
-    detail: "112 KM • 4.8 ★",
-    icon: "☕",
-  },
-  {
-    type: "SCENIC",
-    title: "MOUNTAIN VIEW",
-    detail: "148 KM • Rider reported",
-    icon: "◆",
-  },
-  {
-    type: "DESTINATION",
-    title: "MOUNTAIN LOOP",
-    detail: "186 KM • Destination",
-    icon: "◎",
-  },
-];
-
 function JourneyIntelligence() {
-  const [selectedRoute, setSelectedRoute] = useState(routes[0]);
-  const [selectedInfo, setSelectedInfo] = useState("weather");
+  const { isAuthenticated } = useAuth();
+  const [rides, setRides] = useState([]);
+  const [activeRide, setActiveRide] = useState(null);
+  const [weatherData, setWeatherData] = useState(null);
+  const [routeInfo, setRouteInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [routeStatus, setRouteStatus] = useState("loading"); // "loading" | "success" | "not_computed" | "error"
   const [showStops, setShowStops] = useState(true);
-  const [analyzing, setAnalyzing] = useState(false);
-  const [analysisComplete, setAnalysisComplete] = useState(true);
+  const [selectedInfo, setSelectedInfo] = useState("weather");
 
-  const handleRouteChange = (route) => {
-    setSelectedRoute(route);
-    setAnalyzing(true);
-    setAnalysisComplete(false);
+  // Fetch all user rides & select active ride deterministically
+  const fetchRides = useCallback(async () => {
+    if (!isAuthenticated) {
+      setLoading(false);
+      return;
+    }
 
-    setTimeout(() => {
-      setAnalyzing(false);
-      setAnalysisComplete(true);
-    }, 900);
-  };
+    try {
+      setLoading(true);
+      const res = await apiClient.get("/api/mototribe/rides");
+      const fetchedRides = res.data?.data?.rides || [];
+
+      // Sorting Priority:
+      // 1. "ongoing" rides sorted by startDate ASC (soonest active)
+      // 2. "planning" rides sorted by startDate ASC (soonest upcoming)
+      const ongoingRides = fetchedRides
+        .filter((r) => r.status === "ongoing")
+        .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+
+      const planningRides = fetchedRides
+        .filter((r) => r.status === "planning")
+        .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+
+      const selected = ongoingRides[0] || planningRides[0] || null;
+
+      setRides(fetchedRides);
+      setActiveRide(selected);
+    } catch {
+      setRides([]);
+      setActiveRide(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    fetchRides();
+
+    const handleRideCreated = () => {
+      fetchRides();
+    };
+
+    window.addEventListener("mototribe:ride-created", handleRideCreated);
+    return () => {
+      window.removeEventListener("mototribe:ride-created", handleRideCreated);
+    };
+  }, [fetchRides]);
+
+  // Fetch Weather & Route Info for selected active ride
+  useEffect(() => {
+    if (!activeRide?._id) return;
+
+    const fetchRideDetails = async () => {
+      // Fetch Weather
+      try {
+        const wRes = await apiClient.get(`/api/mototribe/rides/${activeRide._id}/weather`);
+        setWeatherData(wRes.data?.data?.weather || null);
+      } catch {
+        setWeatherData(null);
+      }
+
+      // Fetch Route Info
+      try {
+        setRouteStatus("loading");
+        const rRes = await apiClient.get(`/api/mototribe/rides/${activeRide._id}/route`);
+        setRouteInfo(rRes.data?.data?.routeInfo || null);
+        setRouteStatus("success");
+      } catch (err) {
+        if (err.response?.status === 404) {
+          setRouteStatus("not_computed");
+        } else {
+          setRouteStatus("error");
+        }
+        setRouteInfo(null);
+      }
+    };
+
+    fetchRideDetails();
+  }, [activeRide]);
+
+  // Format Origin / Destination strings
+  const originName = useMemo(() => {
+    if (!activeRide) return "";
+    return typeof activeRide.origin === "object" ? activeRide.origin.name : activeRide.origin;
+  }, [activeRide]);
+
+  const destName = useMemo(() => {
+    if (!activeRide) return "";
+    return typeof activeRide.destination === "object" ? activeRide.destination.name : activeRide.destination;
+  }, [activeRide]);
+
+  // Dynamic Intelligence Metrics
+  const intelligenceMetrics = useMemo(() => {
+    const tempDisplay = weatherData?.temp !== undefined ? `${Math.round(weatherData.temp)}°C` : "--";
+    const weatherDesc = weatherData?.description || "Live weather details";
+    const statusText = weatherData?.main || "NORMAL";
+
+    return [
+      {
+        id: "weather",
+        icon: "◒",
+        label: "WEATHER",
+        value: tempDisplay,
+        status: statusText.toUpperCase(),
+        detail: weatherDesc,
+      },
+      {
+        id: "route",
+        icon: "╱",
+        label: "ROUTE STATUS",
+        value: routeStatus === "success" ? "COMPUTED" : "NOT COMPUTED",
+        status: routeStatus === "success" ? "TRAFFIC AWARE" : "PENDING",
+        detail: routeStatus === "success" ? "Route directions available" : "Compute route in Ride Planner to view turn guidance",
+      },
+      {
+        id: "distance",
+        icon: "≋",
+        label: "DISTANCE",
+        value: activeRide ? `${activeRide.distanceKm || 0} KM` : "--",
+        status: activeRide?.durationDays ? `${activeRide.durationDays} DAY(S)` : "1 DAY",
+        detail: "Total planned journey distance",
+      },
+      {
+        id: "budget",
+        icon: "⛽",
+        label: "PLANNED BUDGET",
+        value: activeRide?.budget ? `₹${activeRide.budget}` : "--",
+        status: "ESTIMATED",
+        detail: "Estimated trip expense budget",
+      },
+    ];
+  }, [weatherData, activeRide, routeStatus]);
 
   const selectedData =
-    intelligenceData.find((item) => item.id === selectedInfo) ||
-    intelligenceData[0];
+    intelligenceMetrics.find((item) => item.id === selectedInfo) ||
+    intelligenceMetrics[0];
 
   return (
     <section id="journey-intelligence" className="journey-intelligence">
@@ -146,9 +167,8 @@ function JourneyIntelligence() {
             </h2>
 
             <p>
-              MotoTribe combines maps, rider experience, live conditions and
-              intelligent analysis to help you make better decisions before
-              every journey.
+              MotoTribe combines real route data, weather analysis, and rider
+              intelligence to help you make better decisions before every journey.
             </p>
           </div>
 
@@ -161,283 +181,203 @@ function JourneyIntelligence() {
           </div>
         </div>
 
-        <div className="journey-layout">
-          <div className="journey-map-card">
-            <div className="map-topbar">
-              <div>
-                <span>ACTIVE JOURNEY</span>
-                <strong>{selectedRoute.name}</strong>
-              </div>
+        {!isAuthenticated ? (
+          <div className="journey-empty-state">
+            <div className="empty-icon">🔒</div>
+            <h3>AUTHENTICATION REQUIRED</h3>
+            <p>Please log in to view your live journey intelligence and active routes.</p>
+          </div>
+        ) : loading ? (
+          <div className="journey-empty-state">
+            <div className="empty-spinner"></div>
+            <h3>LOADING JOURNEY INTELLIGENCE...</h3>
+            <p>Fetching active rides and live route data from backend.</p>
+          </div>
+        ) : !activeRide ? (
+          <div className="journey-empty-state">
+            <div className="empty-icon">🏍️</div>
+            <h3>NO ACTIVE OR UPCOMING RIDES</h3>
+            <p>You have no ongoing or upcoming planned rides. Create a ride in the Ride Planner to view active journey intelligence!</p>
+          </div>
+        ) : (
+          <>
+            <div className="journey-layout">
+              <div className="journey-map-card">
+                <div className="map-topbar">
+                  <div>
+                    <span className="status-badge">{activeRide.status.toUpperCase()} RIDE</span>
+                    <strong>{activeRide.title}</strong>
+                  </div>
 
-              <button
-                type="button"
-                className={`map-toggle ${showStops ? "active" : ""}`}
-                onClick={() => setShowStops(!showStops)}
-              >
-                <span />
-                ROUTE INTELLIGENCE
-              </button>
-            </div>
+                  <button
+                    type="button"
+                    className={`map-toggle ${showStops ? "active" : ""}`}
+                    onClick={() => setShowStops(!showStops)}
+                  >
+                    <span />
+                    ROUTE INTELLIGENCE
+                  </button>
+                </div>
 
-            <div className="journey-map">
-              <div className="map-grid" />
+                <div className="journey-map">
+                  <div className="map-grid" />
 
-              <div className="mountain mountain-one" />
-              <div className="mountain mountain-two" />
-              <div className="mountain mountain-three" />
+                  <div className="mountain mountain-one" />
+                  <div className="mountain mountain-two" />
 
-              <div className="route-glow route-glow-one" />
-              <div className="route-glow route-glow-two" />
-
-              <div className="route-path">
-                <span className="route-node start-node">
-                  <i>●</i>
-                  <small>START</small>
-                </span>
-
-                <span className="route-node fuel-node">
-                  <i>⛽</i>
-                  <small>FUEL</small>
-                </span>
-
-                <span className="route-node cafe-node">
-                  <i>☕</i>
-                  <small>CAFE</small>
-                </span>
-
-                <span className="route-node scenic-node">
-                  <i>◆</i>
-                  <small>SCENIC</small>
-                </span>
-
-                <span className="route-node destination-node">
-                  <i>◎</i>
-                  <small>DEST.</small>
-                </span>
-              </div>
-
-              {showStops && (
-                <div className="map-stop-list">
-                  {routeStops.map((stop) => (
-                    <div className="map-stop" key={stop.title}>
-                      <span className="map-stop-icon">{stop.icon}</span>
-                      <div>
-                        <small>{stop.type}</small>
-                        <strong>{stop.title}</strong>
-                        <p>{stop.detail}</p>
-                      </div>
+                  {routeStatus === "not_computed" ? (
+                    <div className="map-empty-overlay">
+                      <div className="overlay-icon">🗺️</div>
+                      <h4>NO ROUTE COMPUTED YET</h4>
+                      <p>Compute the route in Ride Planner to display turn-by-turn steps and live path.</p>
                     </div>
+                  ) : (
+                    <div className="route-path">
+                      <span className="route-node start-node">
+                        <i>●</i>
+                        <small>{originName.substring(0, 10).toUpperCase() || "START"}</small>
+                      </span>
+
+                      <span className="route-node destination-node">
+                        <i>◎</i>
+                        <small>{destName.substring(0, 10).toUpperCase() || "DEST"}</small>
+                      </span>
+                    </div>
+                  )}
+
+                  {showStops && routeInfo?.steps && (
+                    <div className="map-stop-list">
+                      {routeInfo.steps.slice(0, 4).map((step, idx) => (
+                        <div className="map-stop" key={idx}>
+                          <span className="map-stop-icon">📍</span>
+                          <div>
+                            <small>STEP {idx + 1}</small>
+                            <strong>{step.html_instructions?.replace(/<[^>]*>?/gm, "").substring(0, 30) || "Turn"}</strong>
+                            <p>{step.distance?.text || ""} • {step.duration?.text || ""}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="map-rider rider-one">
+                    <span>●</span>
+                    <small>RIDER</small>
+                  </div>
+                </div>
+
+                <div className="map-bottom">
+                  <div className="map-stat">
+                    <span>DISTANCE</span>
+                    <strong>{activeRide.distanceKm ? `${activeRide.distanceKm} KM` : "--"}</strong>
+                  </div>
+
+                  <div className="map-stat">
+                    <span>DURATION</span>
+                    <strong>{activeRide.durationDays ? `${activeRide.durationDays} DAYS` : "1 DAY"}</strong>
+                  </div>
+
+                  <div className="map-stat">
+                    <span>STATUS</span>
+                    <strong>{activeRide.status.toUpperCase()}</strong>
+                  </div>
+
+                  <div className="map-stat">
+                    <span>WEATHER</span>
+                    <strong>{weatherData?.temp !== undefined ? `${Math.round(weatherData.temp)}°C` : "--"}</strong>
+                  </div>
+                </div>
+              </div>
+
+              <aside className="journey-intelligence-panel">
+                <div className="panel-header">
+                  <div>
+                    <span>AI ANALYSIS</span>
+                    <h3>JOURNEY<br />INTELLIGENCE</h3>
+                  </div>
+
+                  <div className="panel-ai-mark">AI</div>
+                </div>
+
+                <div className="intelligence-grid">
+                  {intelligenceMetrics.map((item) => (
+                    <button
+                      type="button"
+                      key={item.id}
+                      className={`intelligence-item ${
+                        selectedInfo === item.id ? "active" : ""
+                      }`}
+                      onClick={() => setSelectedInfo(item.id)}
+                    >
+                      <div className="intelligence-icon">{item.icon}</div>
+
+                      <div>
+                        <span>{item.label}</span>
+                        <strong>{item.value}</strong>
+                        <small>{item.status}</small>
+                      </div>
+                    </button>
                   ))}
                 </div>
-              )}
 
-              <div className="map-rider rider-one">
-                <span>●</span>
-                <small>RIDER 01</small>
-              </div>
-
-              <div className="map-rider rider-two">
-                <span>●</span>
-                <small>RIDER 02</small>
-              </div>
-
-              <div className="map-warning">
-                <span>!</span>
-                <div>
-                  <strong>RIDER REPORT</strong>
-                  <small>Sharp turn ahead • 8 KM</small>
-                </div>
-              </div>
-
-              {analyzing && (
-                <div className="map-analysis">
-                  <div className="analysis-spinner" />
-                  ANALYZING ROUTE...
-                </div>
-              )}
-            </div>
-
-            <div className="map-bottom">
-              <div className="map-stat">
-                <span>DISTANCE</span>
-                <strong>{selectedRoute.distance}</strong>
-              </div>
-
-              <div className="map-stat">
-                <span>TIME</span>
-                <strong>{selectedRoute.duration}</strong>
-              </div>
-
-              <div className="map-stat">
-                <span>DIFFICULTY</span>
-                <strong>{selectedRoute.difficulty}</strong>
-              </div>
-
-              <div className="map-stat">
-                <span>ELEVATION</span>
-                <strong>{selectedRoute.elevation}</strong>
-              </div>
-            </div>
-          </div>
-
-          <aside className="journey-intelligence-panel">
-            <div className="panel-header">
-              <div>
-                <span>AI ANALYSIS</span>
-                <h3>JOURNEY<br />INTELLIGENCE</h3>
-              </div>
-
-              <div className="panel-ai-mark">AI</div>
-            </div>
-
-            <div className="intelligence-grid">
-              {intelligenceData.map((item) => (
-                <button
-                  type="button"
-                  key={item.id}
-                  className={`intelligence-item ${
-                    selectedInfo === item.id ? "active" : ""
-                  }`}
-                  onClick={() => setSelectedInfo(item.id)}
-                >
-                  <div className="intelligence-icon">{item.icon}</div>
-
-                  <div>
-                    <span>{item.label}</span>
-                    <strong>{item.value}</strong>
-                    <small>{item.status}</small>
+                <div className="selected-intelligence">
+                  <div className="selected-info-header">
+                    <span>{selectedData.label}</span>
+                    <span className="verified-tag">LIVE</span>
                   </div>
-                </button>
-              ))}
-            </div>
 
-            <div className="selected-intelligence">
-              <div className="selected-info-header">
-                <span>{selectedData.label}</span>
-                <span className="verified-tag">LIVE</span>
-              </div>
+                  <strong>{selectedData.value}</strong>
 
-              <strong>{selectedData.value}</strong>
-
-              <p>{selectedData.detail}</p>
-
-              <div className="confidence">
-                <div className="confidence-label">
-                  <span>CONFIDENCE</span>
-                  <strong>94%</strong>
+                  <p>{selectedData.detail}</p>
                 </div>
-
-                <div className="confidence-bar">
-                  <span />
-                </div>
-              </div>
+              </aside>
             </div>
 
-            <div className="ai-recommendation">
-              <div className="recommendation-icon">✦</div>
+            {/* Ride Selector Tabs if multiple rides exist */}
+            {rides.length > 1 && (
+              <div className="route-selector">
+                <div className="route-selector-heading">
+                  <div>
+                    <span>YOUR RIDES</span>
+                    <h3>SELECT A RIDE TO INSPECT</h3>
+                  </div>
 
-              <div>
-                <span>MOTO AI RECOMMENDS</span>
-                <p>
-                  Leave around <strong>07:30 AM</strong> to avoid heavier
-                  traffic and reach the mountain section before midday.
-                </p>
-              </div>
-            </div>
-
-            <div className="data-sources">
-              <span>DATA SOURCES</span>
-
-              <div>
-                <b>MAP</b>
-                <b>RIDER REPORTS</b>
-                <b>AI</b>
-                <b>WEATHER</b>
-              </div>
-            </div>
-          </aside>
-        </div>
-
-        <div className="route-selector">
-          <div className="route-selector-heading">
-            <div>
-              <span>COMPARE YOUR OPTIONS</span>
-              <h3>CHOOSE YOUR ROUTE.</h3>
-            </div>
-
-            <span className="route-count">
-              {routes.length} ROUTES ANALYZED
-            </span>
-          </div>
-
-          <div className="route-options">
-            {routes.map((route) => (
-              <button
-                type="button"
-                key={route.id}
-                className={`route-option ${
-                  selectedRoute.id === route.id ? "active" : ""
-                }`}
-                onClick={() => handleRouteChange(route)}
-              >
-                <div className="route-option-top">
-                  <span>ROUTE 0{route.id}</span>
-
-                  {selectedRoute.id === route.id && (
-                    <span className="selected-route">SELECTED</span>
-                  )}
-                </div>
-
-                <strong>{route.name}</strong>
-
-                <div className="route-option-stats">
-                  <span>{route.distance}</span>
-                  <span>{route.duration}</span>
-                  <span>{route.difficulty}</span>
-                </div>
-
-                <div className="route-option-condition">
-                  <span>
-                    <i /> {route.road}
-                  </span>
-
-                  <span>
-                    TRAFFIC <b>{route.traffic}</b>
-                  </span>
-
-                  <span>
-                    FUEL <b>{route.fuel}</b>
+                  <span className="route-count">
+                    {rides.length} RIDES AVAILABLE
                   </span>
                 </div>
-              </button>
-            ))}
-          </div>
-        </div>
 
-        <div className={`analysis-status ${analysisComplete ? "complete" : ""}`}>
-          <div className="analysis-status-left">
-            <span className="analysis-status-icon">✦</span>
+                <div className="route-options">
+                  {rides.map((ride) => (
+                    <button
+                      type="button"
+                      key={ride._id}
+                      className={`route-option ${
+                        activeRide._id === ride._id ? "active" : ""
+                      }`}
+                      onClick={() => setActiveRide(ride)}
+                    >
+                      <div className="route-option-top">
+                        <span>STATUS: {ride.status.toUpperCase()}</span>
 
-            <div>
-              <strong>
-                {analysisComplete
-                  ? "JOURNEY ANALYSIS COMPLETE"
-                  : "ANALYZING YOUR JOURNEY"}
-              </strong>
+                        {activeRide._id === ride._id && (
+                          <span className="selected-route">SELECTED</span>
+                        )}
+                      </div>
 
-              <small>
-                {analysisComplete
-                  ? "Route intelligence updated with available rider and map data."
-                  : "Checking route conditions, services and journey factors..."}
-              </small>
-            </div>
-          </div>
+                      <strong>{ride.title}</strong>
 
-          <div className="analysis-status-right">
-            <span>ROUTE SCORE</span>
-            <strong>{selectedRoute.id === 3 ? "87" : "94"}/100</strong>
-          </div>
-        </div>
+                      <div className="route-option-stats">
+                        <span>{ride.distanceKm ? `${ride.distanceKm} KM` : ""}</span>
+                        <span>{ride.durationDays ? `${ride.durationDays} Days` : ""}</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </section>
   );

@@ -1,168 +1,153 @@
-import { useMemo, useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import apiClient from "../../../../services/apiClient";
 import "./LiveRiders.css";
-
-const riders = [
-  {
-    id: 1,
-    name: "ARJUN",
-    initials: "AR",
-    experience: "ADVANCED",
-    motorcycle: "ROYAL ENFIELD HIMALAYAN",
-    distance: "2.4 KM",
-    location: "Bengaluru",
-    route: "Nandi Hills Loop",
-    rideType: "ADVENTURE",
-    status: "RIDING",
-    online: true,
-    trust: 96,
-    rides: 84,
-    distanceRidden: "18.6K",
-    regions: 12,
-    avatar:
-      "https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&w=500&q=80",
-  },
-  {
-    id: 2,
-    name: "MEERA",
-    initials: "ME",
-    experience: "EXPERIENCED",
-    motorcycle: "BMW G 310 GS",
-    distance: "5.8 KM",
-    location: "Bengaluru",
-    route: "Coastal Explorer",
-    rideType: "TOURING",
-    status: "RIDING",
-    online: true,
-    trust: 94,
-    rides: 61,
-    distanceRidden: "12.2K",
-    regions: 9,
-    avatar:
-      "https://images.unsplash.com/photo-1558980664-10ea3a1b4d7a?auto=format&fit=crop&w=500&q=80",
-  },
-  {
-    id: 3,
-    name: "KARTHIK",
-    initials: "KA",
-    experience: "ADVANCED",
-    motorcycle: "KTM 390 ADVENTURE",
-    distance: "8.1 KM",
-    location: "Bengaluru",
-    route: "Western Ghats",
-    rideType: "ADVENTURE",
-    status: "ONLINE",
-    online: true,
-    trust: 91,
-    rides: 73,
-    distanceRidden: "15.8K",
-    regions: 15,
-    avatar:
-      "https://images.unsplash.com/photo-1558980394-0c0c0f6e2f7a?auto=format&fit=crop&w=500&q=80",
-  },
-  {
-    id: 4,
-    name: "RIYA",
-    initials: "RI",
-    experience: "INTERMEDIATE",
-    motorcycle: "TRIUMPH SPEED 400",
-    distance: "11.5 KM",
-    location: "Bengaluru",
-    route: "City Escape",
-    rideType: "TOURING",
-    status: "ONLINE",
-    online: true,
-    trust: 88,
-    rides: 42,
-    distanceRidden: "8.4K",
-    regions: 7,
-    avatar:
-      "https://images.unsplash.com/photo-1558981033-0f0309284409?auto=format&fit=crop&w=500&q=80",
-  },
-  {
-    id: 5,
-    name: "VIKRAM",
-    initials: "VI",
-    experience: "EXPERT",
-    motorcycle: "KAWASAKI VERSYS 650",
-    distance: "18.3 KM",
-    location: "Bengaluru",
-    route: "Mysore Highway",
-    rideType: "LONG DISTANCE",
-    status: "RIDING",
-    online: true,
-    trust: 98,
-    rides: 126,
-    distanceRidden: "31.4K",
-    regions: 24,
-    avatar:
-      "https://images.unsplash.com/photo-1558981420-87aa9dad1c42?auto=format&fit=crop&w=500&q=80",
-  },
-  {
-    id: 6,
-    name: "ADITYA",
-    initials: "AD",
-    experience: "INTERMEDIATE",
-    motorcycle: "YAMAHA MT-15",
-    distance: "22.7 KM",
-    location: "Bengaluru",
-    route: "Outer Ring Route",
-    rideType: "COMMUTE",
-    status: "ONLINE",
-    online: true,
-    trust: 86,
-    rides: 37,
-    distanceRidden: "6.1K",
-    regions: 5,
-    avatar:
-      "https://images.unsplash.com/photo-1558981359-219d6364f9c8?auto=format&fit=crop&w=500&q=80",
-  },
-];
 
 const filters = ["ALL", "RIDING NOW", "NEARBY", "ADVENTURE", "TOURING"];
 
+const DEFAULT_AVATAR =
+  "https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&w=500&q=80";
+
 function LiveRiders() {
   const [activeFilter, setActiveFilter] = useState("ALL");
-  const [selectedRider, setSelectedRider] = useState(riders[0]);
+  const [riders, setRiders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [coords, setCoords] = useState({ lat: 12.9716, lng: 77.5946 }); // Default Bangalore coords
+  const [locationError, setLocationError] = useState("");
+  const [isOptedIn, setIsOptedIn] = useState(true);
+
+  const [selectedUserId, setSelectedUserId] = useState(null);
+  const [selectedProfileCard, setSelectedProfileCard] = useState(null);
+  const [cardLoading, setCardLoading] = useState(false);
+
   const [connected, setConnected] = useState([]);
   const [invited, setInvited] = useState(false);
 
-  const filteredRiders = useMemo(() => {
-    if (activeFilter === "ALL") {
-      return riders;
-    }
+  // 1. Acquire current user location & send periodic presence heartbeat
+  useEffect(() => {
+    let heartbeatInterval = null;
 
-    if (activeFilter === "RIDING NOW") {
-      return riders.filter((rider) => rider.status === "RIDING");
-    }
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const userLat = pos.coords.latitude;
+          const userLng = pos.coords.longitude;
+          setCoords({ lat: userLat, lng: userLng });
+          setLocationError("");
 
-    if (activeFilter === "NEARBY") {
-      return riders.filter((rider) => parseFloat(rider.distance) <= 10);
-    }
+          if (isOptedIn) {
+            // Heartbeat function
+            const sendHeartbeat = () => {
+              apiClient.post("/api/mototribe/presence", {
+                latitude: userLat,
+                longitude: userLng,
+                status: "riding",
+                visibility: "community",
+              }).catch(() => {});
+            };
 
-    if (activeFilter === "ADVENTURE") {
-      return riders.filter((rider) => rider.rideType === "ADVENTURE");
-    }
-
-    if (activeFilter === "TOURING") {
-      return riders.filter((rider) => rider.rideType === "TOURING");
-    }
-
-    return riders;
-  }, [activeFilter]);
-
-  const handleConnect = () => {
-    if (connected.includes(selectedRider.id)) {
-      setConnected((previous) =>
-        previous.filter((id) => id !== selectedRider.id)
+            sendHeartbeat();
+            heartbeatInterval = setInterval(sendHeartbeat, 30000); // Heartbeat every 30s
+          }
+        },
+        (err) => {
+          console.warn("Geolocation warning:", err.message);
+          setLocationError("Enable location access to find nearby riders.");
+          
+          // Fallback heartbeat with default coords if opted in
+          if (isOptedIn) {
+            const sendHeartbeat = () => {
+              apiClient.post("/api/mototribe/presence", {
+                latitude: 12.9716,
+                longitude: 77.5946,
+                status: "riding",
+                visibility: "community",
+              }).catch(() => {});
+            };
+            sendHeartbeat();
+            heartbeatInterval = setInterval(sendHeartbeat, 30000);
+          }
+        },
+        { timeout: 8000 }
       );
     } else {
-      setConnected((previous) => [...previous, selectedRider.id]);
+      setLocationError("Enable location access to find nearby riders.");
+    }
+
+    return () => {
+      if (heartbeatInterval) clearInterval(heartbeatInterval);
+      // Delete presence on unmount / offline
+      apiClient.delete("/api/mototribe/presence").catch(() => {});
+    };
+  }, [isOptedIn]);
+
+  // 2. Fetch nearby riders from backend based on coords & active filter
+  const fetchNearbyRiders = useCallback(async () => {
+    setLoading(true);
+    try {
+      let backendFilter = "all";
+      if (activeFilter === "RIDING NOW") backendFilter = "riding_now";
+      if (activeFilter === "ADVENTURE") backendFilter = "adventure";
+      if (activeFilter === "TOURING") backendFilter = "touring";
+
+      const res = await apiClient.get(
+        `/api/mototribe/riders-nearby?lat=${coords.lat}&lng=${coords.lng}&radius=100000&filter=${backendFilter}`
+      );
+
+      const fetchedRiders = res.data.data?.riders || [];
+      setRiders(fetchedRiders);
+
+      if (fetchedRiders.length > 0 && !selectedUserId) {
+        setSelectedUserId(fetchedRiders[0].userId);
+      }
+    } catch (err) {
+      console.error("Failed to fetch nearby riders:", err);
+      setRiders([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [coords.lat, coords.lng, activeFilter, selectedUserId]);
+
+  useEffect(() => {
+    fetchNearbyRiders();
+  }, [fetchNearbyRiders]);
+
+  // 3. Fetch full profile card details for selected rider
+  useEffect(() => {
+    if (!selectedUserId) return;
+    setCardLoading(true);
+    apiClient
+      .get(`/api/mototribe/riders/${selectedUserId}/profile-card`)
+      .then((res) => {
+        setSelectedProfileCard(res.data.data?.profileCard || null);
+      })
+      .catch(() => {
+        setSelectedProfileCard(null);
+      })
+      .finally(() => {
+        setCardLoading(false);
+      });
+  }, [selectedUserId]);
+
+  const toggleOptIn = () => {
+    if (isOptedIn) {
+      setIsOptedIn(false);
+      apiClient.delete("/api/mototribe/presence").catch(() => {});
+    } else {
+      setIsOptedIn(true);
+    }
+  };
+
+  const handleConnect = () => {
+    if (!selectedUserId) return;
+    if (connected.includes(selectedUserId)) {
+      setConnected((previous) => previous.filter((id) => id !== selectedUserId));
+    } else {
+      setConnected((previous) => [...previous, selectedUserId]);
     }
   };
 
   const handleInvite = () => {
     setInvited(true);
-
     setTimeout(() => {
       setInvited(false);
     }, 2200);
@@ -180,7 +165,7 @@ function LiveRiders() {
 
             <h2>
               NEVER RIDE
-              <span>ALONE.</span>
+              <span> ALONE.</span>
             </h2>
 
             <p>
@@ -191,15 +176,51 @@ function LiveRiders() {
 
           <div className="live-network-status">
             <div className="network-ring">
-              <span />
+              <span style={{ background: isOptedIn ? "#00e676" : "#ff4d4d" }} />
             </div>
 
             <div>
               <strong>LIVE RIDER NETWORK</strong>
-              <small>LOCATION SHARING CONTROLLED BY RIDERS</small>
+              <small>
+                {isOptedIn ? "YOU ARE BROADCASTING LIVE PRESENCE" : "YOU ARE OFFLINE"}
+              </small>
             </div>
+
+            <button
+              type="button"
+              onClick={toggleOptIn}
+              style={{
+                marginLeft: "15px",
+                padding: "6px 14px",
+                background: isOptedIn ? "rgba(255,77,77,0.2)" : "rgba(0,230,118,0.2)",
+                color: isOptedIn ? "#ff4d4d" : "#00e676",
+                border: `1px solid ${isOptedIn ? "#ff4d4d" : "#00e676"}`,
+                borderRadius: "4px",
+                fontSize: "10px",
+                fontWeight: "bold",
+                cursor: "pointer",
+              }}
+            >
+              {isOptedIn ? "GO OFFLINE" : "GO LIVE ON MAP"}
+            </button>
           </div>
         </div>
+
+        {locationError && (
+          <div
+            style={{
+              padding: "12px 18px",
+              background: "rgba(255, 193, 7, 0.1)",
+              border: "1px solid rgba(255, 193, 7, 0.3)",
+              color: "#ffc107",
+              marginBottom: "20px",
+              fontSize: "12px",
+              letterSpacing: "0.5px",
+            }}
+          >
+            ⚠️ {locationError}
+          </div>
+        )}
 
         <div className="live-riders-layout">
           <div className="rider-discovery">
@@ -210,7 +231,7 @@ function LiveRiders() {
               </div>
 
               <div className="rider-count">
-                <strong>{filteredRiders.length}</strong>
+                <strong>{riders.length}</strong>
                 <span>RIDERS</span>
               </div>
             </div>
@@ -229,58 +250,91 @@ function LiveRiders() {
             </div>
 
             <div className="rider-grid">
-              {filteredRiders.map((rider) => (
-                <button
-                  type="button"
-                  key={rider.id}
-                  className={`rider-card ${
-                    selectedRider.id === rider.id ? "selected" : ""
-                  }`}
-                  onClick={() => {
-                    setSelectedRider(rider);
-                    setInvited(false);
-                  }}
-                >
-                  <div className="rider-card-image">
-                    <img src={rider.avatar} alt={rider.name} />
+              {loading ? (
+                <div style={{ padding: "40px", color: "#888", textAlign: "center" }}>
+                  Searching live presence network for nearby riders...
+                </div>
+              ) : riders.length > 0 ? (
+                riders.map((rider) => {
+                  const riderName = rider.name || "Rider";
+                  const initials = riderName
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                    .substring(0, 2)
+                    .toUpperCase();
 
-                    <div className="rider-card-gradient" />
+                  const isSelected = selectedUserId === rider.userId;
 
-                    <div className="rider-online">
-                      <span className={rider.online ? "online" : ""} />
-                      {rider.status}
-                    </div>
+                  return (
+                    <button
+                      type="button"
+                      key={rider.userId}
+                      className={`rider-card ${isSelected ? "selected" : ""}`}
+                      onClick={() => {
+                        setSelectedUserId(rider.userId);
+                        setInvited(false);
+                      }}
+                    >
+                      <div className="rider-card-image">
+                        <img src={DEFAULT_AVATAR} alt={riderName} />
 
-                    <div className="rider-distance">
-                      {rider.distance}
-                    </div>
+                        <div className="rider-card-gradient" />
 
-                    <div className="rider-initials">
-                      {rider.initials}
-                    </div>
-                  </div>
+                        <div className="rider-online">
+                          <span className={rider.status === "riding" ? "online" : ""} />
+                          {rider.status === "riding" ? "RIDING" : "ONLINE"}
+                        </div>
 
-                  <div className="rider-card-body">
-                    <div className="rider-card-name">
-                      <div>
-                        <strong>{rider.name}</strong>
-                        <span>{rider.experience}</span>
+                        <div className="rider-distance">
+                          {rider.distanceKm ? `${rider.distanceKm} KM` : "NEARBY"}
+                        </div>
+
+                        <div className="rider-initials">{initials}</div>
                       </div>
 
-                      <b>{rider.trust}</b>
-                    </div>
+                      <div className="rider-card-body">
+                        <div className="rider-card-name">
+                          <div>
+                            <strong>{riderName.toUpperCase()}</strong>
+                            <span>{rider.preferredRideType ? rider.preferredRideType.toUpperCase() : "RIDER"}</span>
+                          </div>
 
-                    <div className="rider-bike">
-                      {rider.motorcycle}
-                    </div>
+                          <b>{rider.trustScore}</b>
+                        </div>
 
-                    <div className="rider-card-footer">
-                      <span>{rider.rideType}</span>
-                      <span>{rider.rides} RIDES</span>
-                    </div>
-                  </div>
-                </button>
-              ))}
+                        <div className="rider-bike">
+                          {rider.primaryVehicleName || "Rider Bike"}
+                        </div>
+
+                        <div className="rider-card-footer">
+                          <span>{rider.preferredRideType ? rider.preferredRideType.toUpperCase() : "GENERAL"}</span>
+                          <span>{rider.totalRidesCompleted} RIDES</span>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })
+              ) : (
+                <div
+                  style={{
+                    gridColumn: "1 / -1",
+                    padding: "50px 20px",
+                    background: "#0d0f0f",
+                    border: "1px dashed rgba(255, 255, 255, 0.15)",
+                    textAlign: "center",
+                    color: "#aaa",
+                  }}
+                >
+                  <div style={{ fontSize: "30px", marginBottom: "10px" }}>🏍️</div>
+                  <strong style={{ color: "#c99b45", display: "block", marginBottom: "5px" }}>
+                    NO RIDERS NEARBY YET
+                  </strong>
+                  <p style={{ margin: 0, fontSize: "12px", color: "#777" }}>
+                    Be the first to go live! Toggle location broadcasting above to let nearby tribe members discover you.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -290,94 +344,112 @@ function LiveRiders() {
 
               <div className="profile-location">
                 <span />
-                {selectedRider.distance}
+                {selectedProfileCard ? "VERIFIED RIDER" : "SELECT RIDER"}
               </div>
             </div>
 
-            <div className="profile-hero">
-              <img
-                src={selectedRider.avatar}
-                alt={selectedRider.name}
-              />
+            {cardLoading ? (
+              <div style={{ padding: "40px", color: "#888", textAlign: "center" }}>
+                Loading rider details...
+              </div>
+            ) : selectedProfileCard ? (
+              <>
+                <div className="profile-hero">
+                  <img
+                    src={DEFAULT_AVATAR}
+                    alt={selectedProfileCard.name}
+                  />
 
-              <div className="profile-hero-overlay" />
+                  <div className="profile-hero-overlay" />
 
-              <div className="profile-hero-content">
-                <div className="profile-status">
-                  <span />
-                  {selectedRider.status}
+                  <div className="profile-hero-content">
+                    <div className="profile-status">
+                      <span />
+                      {selectedProfileCard.status === "riding" ? "RIDING NOW" : "ONLINE"}
+                    </div>
+
+                    <h3>{selectedProfileCard.name?.toUpperCase()}</h3>
+
+                    <p>{selectedProfileCard.primaryVehicleName || "Rider Bike"}</p>
+                  </div>
                 </div>
 
-                <h3>{selectedRider.name}</h3>
+                <div className="profile-experience">
+                  <div>
+                    <span>RIDE TYPE</span>
+                    <strong>{selectedProfileCard.preferredRideType ? selectedProfileCard.preferredRideType.toUpperCase() : "GENERAL"}</strong>
+                  </div>
 
-                <p>{selectedRider.motorcycle}</p>
+                  <div className="trust-score">
+                    <span>TRUST SCORE</span>
+                    <strong>{selectedProfileCard.trustScore}</strong>
+                    <small>/100</small>
+                  </div>
+                </div>
+
+                <div className="profile-route">
+                  <div className="route-status-line">
+                    <span className="route-live-dot" />
+                    CURRENT JOURNEY
+                  </div>
+
+                  <strong>
+                    {selectedProfileCard.currentJourney
+                      ? selectedProfileCard.currentJourney.title
+                      : "No active journey"}
+                  </strong>
+
+                  <div className="route-location">
+                    <span>●</span>
+                    {selectedProfileCard.currentJourney
+                      ? `${selectedProfileCard.currentJourney.origin} -> ${selectedProfileCard.currentJourney.destination}`
+                      : "Local Ride Presence"}
+                  </div>
+                </div>
+
+                <div className="profile-stats">
+                  <div>
+                    <strong>{selectedProfileCard.totalRidesCompleted || 0}</strong>
+                    <span>RIDES</span>
+                  </div>
+
+                  <div>
+                    <strong>{selectedProfileCard.totalDistanceKm || 0}</strong>
+                    <span>KM RIDDEN</span>
+                  </div>
+
+                  <div>
+                    <strong>{selectedProfileCard.visibility?.toUpperCase() || "COMMUNITY"}</strong>
+                    <span>VISIBILITY</span>
+                  </div>
+                </div>
+
+                <div className="profile-actions">
+                  <button
+                    type="button"
+                    className="connect-button"
+                    onClick={handleConnect}
+                  >
+                    {connected.includes(selectedUserId)
+                      ? "CONNECTED ✓"
+                      : "CONNECT RIDER"}
+                    <span>→</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="invite-button"
+                    onClick={handleInvite}
+                  >
+                    {invited ? "INVITATION SENT ✓" : "INVITE TO RIDE"}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div style={{ padding: "40px", color: "#666", textAlign: "center", fontSize: "12px" }}>
+                Select a rider card from the grid to view their profile.
               </div>
-            </div>
-
-            <div className="profile-experience">
-              <div>
-                <span>EXPERIENCE</span>
-                <strong>{selectedRider.experience}</strong>
-              </div>
-
-              <div className="trust-score">
-                <span>TRUST SCORE</span>
-                <strong>{selectedRider.trust}</strong>
-                <small>/100</small>
-              </div>
-            </div>
-
-            <div className="profile-route">
-              <div className="route-status-line">
-                <span className="route-live-dot" />
-                CURRENT JOURNEY
-              </div>
-
-              <strong>{selectedRider.route}</strong>
-
-              <div className="route-location">
-                <span>●</span>
-                {selectedRider.location}
-              </div>
-            </div>
-
-            <div className="profile-stats">
-              <div>
-                <strong>{selectedRider.rides}</strong>
-                <span>RIDES</span>
-              </div>
-
-              <div>
-                <strong>{selectedRider.distanceRidden}</strong>
-                <span>KM RIDDEN</span>
-              </div>
-
-              <div>
-                <strong>{selectedRider.regions}</strong>
-                <span>REGIONS</span>
-              </div>
-            </div>
-
-            <div className="profile-actions">
-              <button
-                type="button"
-                className="connect-button"
-                onClick={handleConnect}
-              >
-                {connected.includes(selectedRider.id)
-                  ? "CONNECTED ✓"
-                  : "CONNECT RIDER"}
-                <span>→</span>
-              </button>
-
-              <button
-                type="button"
-                className="invite-button"
-                onClick={handleInvite}
-              >
-                {invited ? "INVITATION SENT ✓" : "INVITE TO RIDE"}
-              </button>
-            </div>
+            )}
 
             <div className="privacy-note">
               <span>◉</span>
@@ -423,4 +495,4 @@ function LiveRiders() {
   );
 }
 
-export default LiveRiders;
+export default LiveRiders;

@@ -1,150 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
+import apiClient from "../../../../services/apiClient";
 import "./UpcomingRides.css";
-
-const initialRides = [
-  {
-    id: 1,
-    name: "Manali Mountain Escape",
-    start: "Delhi",
-    destination: "Manali",
-    date: "2026-09-14",
-    time: "05:30",
-    type: "ADVENTURE",
-    difficulty: "ADVANCED",
-    organizer: "MotoTribe North",
-    organizerType: "OFFICIAL",
-    riders: 18,
-    maxRiders: 25,
-    requestRequired: false,
-    distance: "540 KM",
-    duration: "2 Days",
-    route: "Delhi → Chandigarh → Mandi → Manali",
-    description:
-      "A high-altitude motorcycle journey through mountain roads, valleys and scenic Himalayan routes.",
-    requirements: [
-      "Experienced highway riding",
-      "Motorcycle in good condition",
-      "Valid riding documents",
-      "Safety equipment recommended",
-    ],
-    safety:
-      "Weather and mountain-road conditions should be checked before departure.",
-    status: "UPCOMING",
-  },
-  {
-    id: 2,
-    name: "Coorg Morning Escape",
-    start: "Bengaluru",
-    destination: "Coorg",
-    date: "2026-09-20",
-    time: "06:00",
-    type: "TOURING",
-    difficulty: "INTERMEDIATE",
-    organizer: "Bengaluru Riders",
-    organizerType: "COMMUNITY",
-    riders: 26,
-    maxRiders: 35,
-    requestRequired: true,
-    distance: "270 KM",
-    duration: "1 Day",
-    route: "Bengaluru → Ramanagara → Mysuru → Coorg",
-    description:
-      "A relaxed community ride covering scenic highways and the green roads toward Coorg.",
-    requirements: [
-      "Intermediate riding experience",
-      "Helmet and riding gear",
-      "Full tank before departure",
-    ],
-    safety:
-      "Ride as a group and maintain safe distance on highway sections.",
-    status: "UPCOMING",
-  },
-  {
-    id: 3,
-    name: "Goa Coastal Run",
-    start: "Pune",
-    destination: "Goa",
-    date: "2026-10-02",
-    time: "04:30",
-    type: "TOURING",
-    difficulty: "INTERMEDIATE",
-    organizer: "Western Moto Tribe",
-    organizerType: "COMMUNITY",
-    riders: 31,
-    maxRiders: 40,
-    requestRequired: false,
-    distance: "590 KM",
-    duration: "2 Days",
-    route: "Pune → Kolhapur → Amboli → Goa",
-    description:
-      "A coastal touring experience combining highway riding, forest roads and Goa's coastal routes.",
-    requirements: [
-      "Long-distance riding capability",
-      "Motorcycle service before departure",
-      "Emergency contact information",
-    ],
-    safety:
-      "Carry rain protection and maintain caution on forest and wet-road sections.",
-    status: "UPCOMING",
-  },
-  {
-    id: 4,
-    name: "Himalayan Explorer",
-    start: "Chandigarh",
-    destination: "Spiti Valley",
-    date: "2026-10-10",
-    time: "05:00",
-    type: "ADVENTURE",
-    difficulty: "EXPERT",
-    organizer: "MotoTribe Expeditions",
-    organizerType: "OFFICIAL",
-    riders: 12,
-    maxRiders: 18,
-    requestRequired: true,
-    distance: "760 KM",
-    duration: "4 Days",
-    route: "Chandigarh → Shimla → Kaza → Spiti",
-    description:
-      "An expedition-style mountain ride designed for experienced adventure riders.",
-    requirements: [
-      "Advanced mountain riding experience",
-      "Adventure-ready motorcycle",
-      "Emergency equipment",
-      "Pre-ride motorcycle inspection",
-    ],
-    safety:
-      "High-altitude terrain requires preparation, appropriate equipment and route awareness.",
-    status: "UPCOMING",
-  },
-  {
-    id: 5,
-    name: "Night Cruiser Run",
-    start: "Hyderabad",
-    destination: "Vijayawada",
-    date: "2026-09-18",
-    time: "22:00",
-    type: "CRUISER",
-    difficulty: "INTERMEDIATE",
-    organizer: "Deccan Night Riders",
-    organizerType: "COMMUNITY",
-    riders: 14,
-    maxRiders: 20,
-    requestRequired: false,
-    distance: "275 KM",
-    duration: "1 Night",
-    route: "Hyderabad → Suryapet → Vijayawada",
-    description:
-      "A controlled night ride for riders who enjoy long highway cruising.",
-    requirements: [
-      "Night riding experience",
-      "Reflective riding gear",
-      "Motorcycle lights checked",
-    ],
-    safety:
-      "Maintain visibility and avoid fatigue during the night journey.",
-    status: "UPCOMING",
-  },
-];
 
 const filters = [
   "ALL",
@@ -156,16 +12,82 @@ const filters = [
 ];
 
 function UpcomingRides() {
-  const [rides, setRides] = useState(initialRides);
+  const [rides, setRides] = useState([]);
   const [activeFilter, setActiveFilter] = useState("ALL");
-  const [selectedRide, setSelectedRide] = useState(initialRides[0]);
+  const [selectedRide, setSelectedRide] = useState(null);
   const [joinedRides, setJoinedRides] = useState([]);
   const [requestedRides, setRequestedRides] = useState([]);
   const [now, setNow] = useState(new Date());
+  const [loading, setLoading] = useState(false);
+
+  // 1. Fetch live upcoming rides from MongoDB database
+  const fetchUpcomingRides = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await apiClient.get("/api/mototribe/rides");
+      const dbList = res.data.data?.rides || [];
+
+      const formatted = dbList.map((r) => {
+        const startDateObj = r.startDate ? new Date(r.startDate) : new Date();
+        const yyyy = startDateObj.getFullYear();
+        const mm = String(startDateObj.getMonth() + 1).padStart(2, "0");
+        const dd = String(startDateObj.getDate()).padStart(2, "0");
+        const timeStr = startDateObj.toTimeString().substring(0, 5);
+
+        return {
+          id: r._id,
+          name: r.title || `${r.origin} to ${r.destination}`,
+          start: r.origin || "Origin",
+          destination: r.destination || "Destination",
+          date: `${yyyy}-${mm}-${dd}`,
+          time: timeStr !== "00:00" ? timeStr : "06:00",
+          type: "ADVENTURE",
+          difficulty: r.distanceKm > 300 ? "ADVANCED" : "INTERMEDIATE",
+          organizer: r.organizerId?.name || "MotoTribe Rider",
+          organizerType: "COMMUNITY",
+          riders: 1,
+          maxRiders: 20,
+          requestRequired: false,
+          distance: `${r.distanceKm || 150} KM`,
+          duration: `${Math.ceil((r.distanceKm || 150) / 120)} Days`,
+          route: `${r.origin} → ${r.destination}`,
+          description: `Community ride organized by ${r.organizerId?.name || "verified rider"} from ${r.origin} to ${r.destination}.`,
+          requirements: [
+            "Helmet and full riding gear required",
+            "Motorcycle in good mechanical condition",
+            "Valid driving license and vehicle registration",
+          ],
+          safety: "Follow group riding etiquette and keep safe braking distances on highways.",
+          status: r.status === "ongoing" ? "LIVE" : "UPCOMING",
+        };
+      });
+
+      setRides(formatted);
+      setSelectedRide(formatted.length > 0 ? formatted[0] : null);
+    } catch (err) {
+      console.error("Error fetching live upcoming rides:", err);
+      setRides([]);
+      setSelectedRide(null);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchUpcomingRides();
+
+    const handleRideCreated = () => {
+      fetchUpcomingRides();
+    };
+
+    window.addEventListener("mototribe:ride-created", handleRideCreated);
+    return () => {
+      window.removeEventListener("mototribe:ride-created", handleRideCreated);
+    };
+  }, [fetchUpcomingRides]);
 
   /*
-   * Demo clock.
-   * In the production application this will come from the backend/event service.
+   * Clock timer for countdowns
    */
   useEffect(() => {
     const timer = setInterval(() => {
@@ -192,7 +114,8 @@ function UpcomingRides() {
   }, [activeFilter, rides]);
 
   const getRideDate = (ride) => {
-    return new Date(`${ride.date}T${ride.time}:00`);
+    if (!ride || !ride.date) return new Date();
+    return new Date(`${ride.date}T${ride.time || "06:00"}:00`);
   };
 
   const getCountdown = (ride) => {
@@ -232,10 +155,10 @@ function UpcomingRides() {
       return "STARTING";
     }
 
-    return ride.status;
+    return ride.status || "UPCOMING";
   };
 
-  const handleJoin = (ride) => {
+  const handleJoin = async (ride) => {
     const alreadyJoined = joinedRides.includes(ride.id);
 
     if (alreadyJoined) {
@@ -248,7 +171,7 @@ function UpcomingRides() {
           item.id === ride.id
             ? {
                 ...item,
-                riders: Math.max(0, item.riders - 1),
+                riders: Math.max(1, item.riders - 1),
               }
             : item
         )
@@ -258,7 +181,7 @@ function UpcomingRides() {
         current && current.id === ride.id
           ? {
               ...current,
-              riders: Math.max(0, current.riders - 1),
+              riders: Math.max(1, current.riders - 1),
             }
           : current
       );
@@ -266,31 +189,32 @@ function UpcomingRides() {
       return;
     }
 
-    if (ride.riders >= ride.maxRiders) {
-      return;
-    }
+    try {
+      await apiClient.post(`/api/mototribe/rides/${ride.id}/join`).catch(() => {});
+      setJoinedRides((current) => [...current, ride.id]);
 
-    setJoinedRides((current) => [...current, ride.id]);
+      setRides((current) =>
+        current.map((item) =>
+          item.id === ride.id
+            ? {
+                ...item,
+                riders: item.riders + 1,
+              }
+            : item
+        )
+      );
 
-    setRides((current) =>
-      current.map((item) =>
-        item.id === ride.id
+      setSelectedRide((current) =>
+        current && current.id === ride.id
           ? {
-              ...item,
-              riders: item.riders + 1,
+              ...current,
+              riders: current.riders + 1,
             }
-          : item
-      )
-    );
-
-    setSelectedRide((current) =>
-      current && current.id === ride.id
-        ? {
-            ...current,
-            riders: current.riders + 1,
-          }
-        : current
-    );
+          : current
+      );
+    } catch (err) {
+      console.error("Error joining ride:", err);
+    }
   };
 
   const handleRequest = (ride) => {
@@ -391,105 +315,138 @@ function UpcomingRides() {
               <span>SELECT A RIDE TO EXPLORE</span>
             </div>
 
-            {filteredRides.map((ride) => {
-              const countdown = getCountdown(ride);
-              const status = getCurrentStatus(ride);
-              const capacity = Math.round(
-                (ride.riders / ride.maxRiders) * 100
-              );
+            {loading ? (
+              <div
+                style={{
+                  padding: "40px",
+                  textAlign: "center",
+                  color: "rgba(255, 255, 255, 0.6)",
+                  fontSize: "13px",
+                  letterSpacing: "1px",
+                }}
+              >
+                LOADING UPCOMING RIDES FROM DATABASE...
+              </div>
+            ) : filteredRides.length > 0 ? (
+              filteredRides.map((ride) => {
+                const countdown = getCountdown(ride);
+                const status = getCurrentStatus(ride);
+                const capacity = Math.round(
+                  (ride.riders / ride.maxRiders) * 100
+                );
 
-              return (
-                <article
-                  key={ride.id}
-                  className={`ride-card ${
-                    selectedRide?.id === ride.id ? "selected" : ""
-                  }`}
-                  onClick={() => setSelectedRide(ride)}
-                >
-                  <div className="ride-card-top">
-                    <div className="ride-type">
-                      {ride.type}
-                    </div>
+                return (
+                  <article
+                    key={ride.id}
+                    className={`ride-card ${
+                      selectedRide?.id === ride.id ? "selected" : ""
+                    }`}
+                    onClick={() => setSelectedRide(ride)}
+                  >
+                    <div className="ride-card-top">
+                      <div className="ride-type">
+                        {ride.type}
+                      </div>
 
-                    <div
-                      className={`ride-status status-${status.toLowerCase()}`}
-                    >
-                      <span></span>
-                      {status}
-                    </div>
-                  </div>
-
-                  <div className="ride-card-main">
-                    <h3>{ride.name}</h3>
-
-                    <div className="ride-route-line">
-                      <span>{ride.start}</span>
-                      <i></i>
-                      <span>{ride.destination}</span>
-                    </div>
-                  </div>
-
-                  <div className="ride-card-meta">
-                    <div>
-                      <small>DATE</small>
-                      <strong>{formatDate(ride.date)}</strong>
-                    </div>
-
-                    <div>
-                      <small>START</small>
-                      <strong>{ride.time}</strong>
-                    </div>
-
-                    <div>
-                      <small>DISTANCE</small>
-                      <strong>{ride.distance}</strong>
-                    </div>
-
-                    <div>
-                      <small>RIDERS</small>
-                      <strong>
-                        {ride.riders}/{ride.maxRiders}
-                      </strong>
-                    </div>
-                  </div>
-
-                  <div className="capacity-wrapper">
-                    <div className="capacity-label">
-                      <span>RIDE CAPACITY</span>
-                      <span>{capacity}%</span>
-                    </div>
-
-                    <div className="capacity-track">
                       <div
-                        className="capacity-fill"
-                        style={{ width: `${capacity}%` }}
-                      ></div>
-                    </div>
-                  </div>
-
-                  <div className="ride-card-bottom">
-                    <div className="ride-organizer">
-                      <span>ORGANIZED BY</span>
-                      <strong>{ride.organizer}</strong>
+                        className={`ride-status status-${status.toLowerCase()}`}
+                      >
+                        <span></span>
+                        {status}
+                      </div>
                     </div>
 
-                    <div className="card-countdown">
-                      {status === "UPCOMING" && !countdown.expired ? (
-                        <>
-                          <span>STARTS IN</span>
-                          <strong>
-                            {countdown.days}D {countdown.hours}H{" "}
-                            {countdown.minutes}M
-                          </strong>
-                        </>
-                      ) : (
-                        <strong>{status}</strong>
-                      )}
+                    <div className="ride-card-main">
+                      <h3>{ride.name}</h3>
+
+                      <div className="ride-route-line">
+                        <span>{ride.start}</span>
+                        <i></i>
+                        <span>{ride.destination}</span>
+                      </div>
                     </div>
-                  </div>
-                </article>
-              );
-            })}
+
+                    <div className="ride-card-meta">
+                      <div>
+                        <small>DATE</small>
+                        <strong>{formatDate(ride.date)}</strong>
+                      </div>
+
+                      <div>
+                        <small>START</small>
+                        <strong>{ride.time}</strong>
+                      </div>
+
+                      <div>
+                        <small>DISTANCE</small>
+                        <strong>{ride.distance}</strong>
+                      </div>
+
+                      <div>
+                        <small>RIDERS</small>
+                        <strong>
+                          {ride.riders}/{ride.maxRiders}
+                        </strong>
+                      </div>
+                    </div>
+
+                    <div className="capacity-wrapper">
+                      <div className="capacity-label">
+                        <span>RIDE CAPACITY</span>
+                        <span>{capacity}%</span>
+                      </div>
+
+                      <div className="capacity-track">
+                        <div
+                          className="capacity-fill"
+                          style={{ width: `${capacity}%` }}
+                        ></div>
+                      </div>
+                    </div>
+
+                    <div className="ride-card-bottom">
+                      <div className="ride-organizer">
+                        <span>ORGANIZED BY</span>
+                        <strong>{ride.organizer}</strong>
+                      </div>
+
+                      <div className="card-countdown">
+                        {status === "UPCOMING" && !countdown.expired ? (
+                          <>
+                            <span>STARTS IN</span>
+                            <strong>
+                              {countdown.days}D {countdown.hours}H{" "}
+                              {countdown.minutes}M
+                            </strong>
+                          </>
+                        ) : (
+                          <strong>{status}</strong>
+                        )}
+                      </div>
+                    </div>
+                  </article>
+                );
+              })
+            ) : (
+              <div
+                style={{
+                  padding: "40px 20px",
+                  textAlign: "center",
+                  background: "rgba(255, 255, 255, 0.02)",
+                  border: "1px dashed rgba(255, 255, 255, 0.15)",
+                  borderRadius: "8px",
+                  color: "rgba(255, 255, 255, 0.7)",
+                }}
+              >
+                <div style={{ fontSize: "24px", marginBottom: "8px" }}>🏍</div>
+                <h3 style={{ fontSize: "14px", letterSpacing: "1px", color: "#fff", marginBottom: "6px" }}>
+                  NO UPCOMING RIDES IN DATABASE
+                </h3>
+                <p style={{ fontSize: "12px", color: "rgba(255, 255, 255, 0.5)", margin: 0 }}>
+                  Plan a ride using the AI Route Builder above to schedule your first journey!
+                </p>
+              </div>
+            )}
           </div>
 
           {selectedRide && (

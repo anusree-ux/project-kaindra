@@ -30,6 +30,14 @@ const rideJournalSchema = new mongoose.Schema(
       type: [photoSchema],
       default: [],
     },
+    visibility: {
+      type: String,
+      enum: {
+        values: ["private", "connections", "ride_group", "community"],
+        message: "Invalid visibility level",
+      },
+      default: "private",
+    },
   },
   {
     timestamps: true,

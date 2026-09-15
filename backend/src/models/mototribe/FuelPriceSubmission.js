@@ -13,6 +13,14 @@ const fuelPriceSubmissionSchema = new mongoose.Schema(
       trim: true,
       index: true,
     },
+    station: {
+      type: String,
+      trim: true,
+    },
+    location: {
+      type: String,
+      trim: true,
+    },
     fuelType: {
       type: String,
       enum: ["petrol", "diesel"],

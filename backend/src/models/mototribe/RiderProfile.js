@@ -32,6 +32,10 @@ const riderProfileSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
+    preferredRideType: {
+      type: String,
+      enum: ["adventure", "touring", "commute", "long_distance"],
+    },
     emergencyContacts: {
       type: [emergencyContactSchema],
       default: [],

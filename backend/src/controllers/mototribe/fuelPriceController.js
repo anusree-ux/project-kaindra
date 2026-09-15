@@ -4,6 +4,7 @@ const {
   getCurrentAverage,
   submitFuelPrice,
   estimateFuelCost,
+  getRecentSubmissions,
 } = require("../../services/mototribe/fuelPriceService");
 const AppError = require("../../utils/AppError");
 
@@ -14,13 +15,15 @@ const AppError = require("../../utils/AppError");
  */
 const postFuelPriceSubmission = async (req, res, next) => {
   try {
-    const { state, fuelType, pricePerLiter } = req.body;
+    const { state, fuelType, pricePerLiter, station, location } = req.body;
 
     const result = await submitFuelPrice(
       req.user._id,
       state,
       fuelType,
-      pricePerLiter
+      pricePerLiter,
+      station,
+      location
     );
 
     res.status(201).json({
@@ -66,6 +69,26 @@ const getFuelPriceAverageController = async (req, res, next) => {
     res.status(200).json({
       status: "success",
       data: responseData,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Get recent community fuel price submissions directly from DB
+ * @route   GET /api/mototribe/fuel-prices/submissions
+ * @access  Private (JWT Protected)
+ */
+const getRecentSubmissionsController = async (req, res, next) => {
+  try {
+    const submissions = await getRecentSubmissions();
+    res.status(200).json({
+      status: "success",
+      results: submissions.length,
+      data: {
+        submissions,
+      },
     });
   } catch (error) {
     next(error);
@@ -136,5 +159,6 @@ const getRideFuelEstimateController = async (req, res, next) => {
 module.exports = {
   postFuelPriceSubmission,
   getFuelPriceAverageController,
+  getRecentSubmissionsController,
   getRideFuelEstimateController,
 };
