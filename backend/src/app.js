@@ -5,6 +5,7 @@ const connectDB = require("./config/database");
 const authRoutes = require("./routes/core/authRoutes");
 const profileRoutes = require("./routes/modasphere/profileRoutes");
 const organizationRoutes = require("./routes/modasphere/organizationRoutes");
+const organizationMemberRoutes = require("./routes/modasphere/organizationMemberRoutes");
 const rideRoutes = require("./routes/mototribe/rideRoutes");
 const placesRoutes = require("./routes/mototribe/placesRoutes");
 const directionsRoutes = require("./routes/mototribe/directionsRoutes");
@@ -57,6 +58,10 @@ app.use("/api/auth", authRoutes);
 // ModaSphere Routes
 app.use("/api/v1/modasphere/profile", profileRoutes);
 app.use("/api/v1/modasphere/organization", organizationRoutes);
+app.use(
+  "/api/v1/modasphere/organization",
+  organizationMemberRoutes
+);
 
 // MotoTribe Routes (supports both /api/mototribe and /api/v1/mototribe)
 app.use("/api/v1/mototribe", routeMatchRoutes);

@@ -1,4 +1,5 @@
 const ModaOrganization = require("../../models/modasphere/ModaOrganization");
+const ModaOrganizationMember = require("../../models/modasphere/ModaOrganizationMember");
 
 // Create a new organization
 const createOrganization = async (req, res) => {
@@ -23,6 +24,13 @@ const createOrganization = async (req, res) => {
       website,
       logo,
       ownerId: req.user._id,
+    });
+
+    await ModaOrganizationMember.create({
+      organizationId: organization._id,
+      userId: req.user._id,
+      role: "owner",
+      status: "active",
     });
 
     res.status(201).json({
