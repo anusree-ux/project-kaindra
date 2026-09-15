@@ -1,4 +1,4 @@
-﻿import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useEffect } from "react";
 
 import Navbar from "./components/Navbar/Navbar";
@@ -35,6 +35,15 @@ import TechnologyFoundation from "./pages/brands/ModaSphere/TechnologyFoundation
 import GoToMarket from "./pages/brands/ModaSphere/GoToMarket/GoToMarket";
 import LongTermImpact from "./pages/brands/ModaSphere/LongTermImpact/LongTermImpact";
 import SuccessMetrics from "./pages/brands/ModaSphere/SuccessMetrics/SuccessMetrics";
+
+// MotoTribe sub-pages
+import MotoSignup from "./pages/brands/MotoTribe/Auth/Signup";
+import OTPVerification from "./pages/brands/MotoTribe/Auth/OTPVerification";
+import ProfileSetup from "./pages/brands/MotoTribe/ProfileSetup/ProfileSetup";
+import Vehicles from "./pages/brands/MotoTribe/Vehicles/Vehicles";
+import MotoLogin from "./pages/brands/MotoTribe/Auth/Login";
+import RideDetails from "./pages/brands/MotoTribe/RideDetails/RideDetails";
+import Expenses from "./pages/brands/MotoTribe/Expenses/Expenses";
 
 
 /* =========================
@@ -361,6 +370,34 @@ function App() {
         <Route
           path="/businesses/mototribe"
           element={<MotoTribe />}
+        />
+        <Route
+          path="/businesses/mototribe/signup"
+          element={<MotoSignup />}
+        />
+        <Route
+          path="/businesses/mototribe/verify-otp"
+          element={<OTPVerification />}
+        />
+        <Route
+          path="/businesses/mototribe/profile-setup"
+          element={<ProfileSetup />}
+        />
+        <Route
+          path="/businesses/mototribe/vehicles"
+          element={<Vehicles />}
+        />
+        <Route
+          path="/businesses/mototribe/login"
+          element={<MotoLogin />}
+        />
+        <Route
+          path="/businesses/mototribe/ride/:rideId"
+          element={<RideDetails />}
+        />
+        <Route
+          path="/businesses/mototribe/ride/:rideId/expenses"
+          element={<Expenses />}
         />
 
 

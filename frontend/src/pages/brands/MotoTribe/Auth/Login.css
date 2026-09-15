@@ -1,0 +1,296 @@
+.moto-login-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(
+      circle at 20% 20%,
+      rgba(214, 168, 79, 0.1),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 80% 80%,
+      rgba(214, 168, 79, 0.06),
+      transparent 30%
+    ),
+    #070707;
+
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.moto-login-background {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.login-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(110px);
+}
+
+.login-glow-one {
+  width: 350px;
+  height: 350px;
+  background: rgba(214, 168, 79, 0.07);
+  top: -120px;
+  left: -120px;
+}
+
+.login-glow-two {
+  width: 350px;
+  height: 350px;
+  background: rgba(214, 168, 79, 0.05);
+  bottom: -150px;
+  right: -120px;
+}
+
+.moto-login-card {
+  width: min(480px, 100%);
+  background: rgba(14, 14, 14, 0.95);
+  border: 1px solid rgba(214, 168, 79, 0.3);
+  padding: 48px 42px;
+  position: relative;
+  z-index: 2;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.65);
+}
+
+.moto-login-brand {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  letter-spacing: 5px;
+  margin-bottom: 22px;
+}
+
+.moto-login-brand span,
+.moto-login-brand strong {
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.moto-login-brand strong {
+  color: #d6a84f;
+}
+
+.moto-login-badge {
+  width: fit-content;
+  margin: 0 auto 20px;
+  padding: 7px 14px;
+  border: 1px solid rgba(214, 168, 79, 0.4);
+  color: #d6a84f;
+  font-size: 9px;
+  letter-spacing: 2px;
+}
+
+.moto-login-card h1 {
+  text-align: center;
+  margin: 0;
+  font-size: clamp(32px, 5vw, 43px);
+  letter-spacing: -1.5px;
+}
+
+.moto-login-description {
+  text-align: center;
+  color: #858585;
+  font-size: 13px;
+  line-height: 1.7;
+  margin: 14px auto 32px;
+  max-width: 390px;
+}
+
+.moto-login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.moto-login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.moto-login-field label {
+  color: #777;
+  font-size: 9px;
+  letter-spacing: 1.7px;
+}
+
+.moto-login-field input {
+  width: 100%;
+  box-sizing: border-box;
+  background: #090909;
+  border: 1px solid #303030;
+  color: #fff;
+  padding: 15px;
+  outline: none;
+  font-size: 13px;
+}
+
+.moto-login-field input:focus {
+  border-color: #d6a84f;
+}
+
+.login-password-wrapper {
+  position: relative;
+}
+
+.login-password-wrapper input {
+  padding-right: 70px;
+}
+
+.login-password-wrapper button {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 0;
+  background: transparent;
+  color: #777;
+  font-size: 9px;
+  letter-spacing: 1px;
+  cursor: pointer;
+}
+
+.login-password-wrapper button:hover {
+  color: #d6a84f;
+}
+
+.moto-login-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.remember-option {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #777;
+  font-size: 9px;
+  letter-spacing: 1px;
+  cursor: pointer;
+}
+
+.remember-option input {
+  accent-color: #d6a84f;
+}
+
+.forgot-password {
+  border: 0;
+  background: transparent;
+  color: #777;
+  font-size: 9px;
+  letter-spacing: 1px;
+  cursor: pointer;
+}
+
+.forgot-password:hover {
+  color: #d6a84f;
+}
+
+.moto-login-error {
+  padding: 13px;
+  color: #ff8989;
+  background: rgba(255, 60, 60, 0.06);
+  border: 1px solid rgba(255, 60, 60, 0.2);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.moto-login-button {
+  width: 100%;
+  border: 0;
+  background: #d6a84f;
+  color: #080808;
+  padding: 17px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: 0.25s ease;
+}
+
+.moto-login-button:hover:not(:disabled) {
+  background: #efc86e;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(214, 168, 79, 0.18);
+}
+
+.moto-login-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.moto-create-account {
+  border-top: 1px solid #222;
+  margin-top: 30px;
+  padding-top: 24px;
+  text-align: center;
+}
+
+.moto-create-account span {
+  display: block;
+  color: #555;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  margin-bottom: 9px;
+}
+
+.moto-create-account a {
+  color: #d6a84f;
+  text-decoration: none;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+}
+
+.moto-create-account a:hover {
+  text-decoration: underline;
+}
+
+.moto-login-home {
+  display: block;
+  margin: 25px auto 0;
+  border: 0;
+  background: transparent;
+  color: #666;
+  font-size: 10px;
+  letter-spacing: 1.3px;
+  cursor: pointer;
+}
+
+.moto-login-home:hover {
+  color: #d6a84f;
+}
+
+.moto-login-footer {
+  text-align: center;
+  border-top: 1px solid #202020;
+  margin-top: 28px;
+  padding-top: 20px;
+  color: #484848;
+  font-size: 8px;
+  letter-spacing: 1.4px;
+}
+
+@media (max-width: 500px) {
+  .moto-login-page {
+    padding: 20px 14px;
+  }
+
+  .moto-login-card {
+    padding: 35px 22px;
+  }
+
+  .moto-login-options {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

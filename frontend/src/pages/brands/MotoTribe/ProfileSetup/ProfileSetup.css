@@ -1,0 +1,372 @@
+.moto-profile-page {
+  min-height: 100vh;
+  background: #070707;
+  color: #fff;
+  padding: 80px 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.moto-profile-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+.profile-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+}
+
+.profile-glow-one {
+  width: 400px;
+  height: 400px;
+  background: rgba(214, 168, 79, 0.07);
+  top: -150px;
+  left: -120px;
+}
+
+.profile-glow-two {
+  width: 350px;
+  height: 350px;
+  background: rgba(214, 168, 79, 0.05);
+  right: -120px;
+  bottom: -120px;
+}
+
+.moto-profile-container {
+  width: min(900px, 100%);
+  margin: auto;
+  position: relative;
+  z-index: 2;
+}
+
+.moto-profile-header {
+  text-align: center;
+  margin-bottom: 45px;
+}
+
+.moto-profile-brand {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  letter-spacing: 5px;
+  margin-bottom: 22px;
+}
+
+.moto-profile-brand span,
+.moto-profile-brand strong {
+  font-size: 23px;
+  font-weight: 800;
+}
+
+.moto-profile-brand strong {
+  color: #d6a84f;
+}
+
+.moto-profile-step {
+  display: inline-block;
+  color: #d6a84f;
+  border: 1px solid rgba(214, 168, 79, 0.4);
+  padding: 7px 14px;
+  font-size: 9px;
+  letter-spacing: 2px;
+  margin-bottom: 20px;
+}
+
+.moto-profile-header h1 {
+  font-size: clamp(32px, 5vw, 48px);
+  margin: 0;
+  letter-spacing: -1.5px;
+}
+
+.moto-profile-header p {
+  color: #8b8b8b;
+  max-width: 500px;
+  margin: 15px auto;
+  line-height: 1.7;
+  font-size: 14px;
+}
+
+.profile-progress {
+  background: #0e0e0e;
+  border: 1px solid #242424;
+  padding: 20px;
+  margin-bottom: 25px;
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.progress-info span {
+  color: #777;
+  font-size: 9px;
+  letter-spacing: 2px;
+}
+
+.progress-info strong {
+  color: #d6a84f;
+  font-size: 13px;
+}
+
+.progress-track {
+  height: 4px;
+  background: #222;
+  overflow: hidden;
+}
+
+.progress-value {
+  height: 100%;
+  background: #d6a84f;
+  transition: width 0.3s ease;
+}
+
+.moto-profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.profile-section {
+  background: rgba(14, 14, 14, 0.94);
+  border: 1px solid #242424;
+  padding: 30px;
+}
+
+.section-heading {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  margin-bottom: 28px;
+}
+
+.section-heading > span {
+  color: #d6a84f;
+  font-size: 11px;
+  letter-spacing: 2px;
+}
+
+.section-heading h2 {
+  margin: 0 0 5px;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.section-heading p {
+  margin: 0;
+  color: #777;
+  font-size: 12px;
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.profile-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.profile-field.full {
+  grid-column: 1 / -1;
+}
+
+.profile-field label {
+  color: #777;
+  font-size: 9px;
+  letter-spacing: 1.8px;
+}
+
+.profile-field input,
+.profile-field select {
+  width: 100%;
+  box-sizing: border-box;
+  background: #090909;
+  color: #fff;
+  border: 1px solid #303030;
+  padding: 14px;
+  outline: none;
+  font-size: 13px;
+}
+
+.profile-field input:focus,
+.profile-field select:focus {
+  border-color: #d6a84f;
+}
+
+.profile-field select option {
+  background: #101010;
+}
+
+.option-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.profile-option {
+  background: #0a0a0a;
+  border: 1px solid #2a2a2a;
+  color: #999;
+  padding: 14px 10px;
+  cursor: pointer;
+  text-align: left;
+  font-size: 10px;
+  letter-spacing: 1px;
+  transition: 0.2s ease;
+}
+
+.profile-option span {
+  color: #666;
+  margin-right: 8px;
+}
+
+.profile-option:hover {
+  border-color: #777;
+}
+
+.profile-option.selected {
+  color: #d6a84f;
+  border-color: #d6a84f;
+  background: rgba(214, 168, 79, 0.06);
+}
+
+.profile-option.selected span {
+  color: #d6a84f;
+}
+
+.contacts-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.emergency-contact {
+  border: 1px solid #292929;
+  background: #0a0a0a;
+  padding: 20px;
+}
+
+.contact-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.contact-header span {
+  color: #d6a84f;
+  font-size: 9px;
+  letter-spacing: 2px;
+}
+
+.contact-header button {
+  border: 0;
+  background: transparent;
+  color: #777;
+  font-size: 9px;
+  cursor: pointer;
+  letter-spacing: 1px;
+}
+
+.contact-header button:hover {
+  color: #ff8585;
+}
+
+.add-contact {
+  border: 1px dashed #333;
+  background: transparent;
+  color: #888;
+  padding: 15px;
+  cursor: pointer;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+}
+
+.add-contact:hover {
+  border-color: #d6a84f;
+  color: #d6a84f;
+}
+
+.profile-message {
+  padding: 13px;
+  font-size: 12px;
+  text-align: center;
+}
+
+.profile-message.error {
+  background: rgba(255, 70, 70, 0.07);
+  border: 1px solid rgba(255, 70, 70, 0.2);
+  color: #ff8b8b;
+}
+
+.profile-message.success {
+  background: rgba(70, 200, 110, 0.07);
+  border: 1px solid rgba(70, 200, 110, 0.2);
+  color: #8ee0a7;
+}
+
+.save-profile-button {
+  border: 0;
+  background: #d6a84f;
+  color: #080808;
+  padding: 18px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.save-profile-button:hover:not(:disabled) {
+  background: #efc86e;
+  transform: translateY(-2px);
+}
+
+.save-profile-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.profile-footer {
+  text-align: center;
+  margin-top: 25px;
+  color: #4d4d4d;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+}
+
+@media (max-width: 650px) {
+  .moto-profile-page {
+    padding: 50px 15px;
+  }
+
+  .profile-section {
+    padding: 22px 18px;
+  }
+
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-field.full {
+    grid-column: auto;
+  }
+
+  .option-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 420px) {
+  .option-grid {
+    grid-template-columns: 1fr;
+  }
+}
