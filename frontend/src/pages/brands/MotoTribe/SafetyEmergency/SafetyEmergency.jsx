@@ -1,254 +1,536 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./SafetyEmergency.css";
 
+const defaultContacts = [
+  {
+    id: "contact-1",
+    name: "Emergency Contact",
+    relation: "PRIMARY CONTACT",
+    phone: "+91 98765 43210",
+  },
+  {
+    id: "contact-2",
+    name: "MotoTribe Support",
+    relation: "RIDER SUPPORT",
+    phone: "+91 1800 123 456",
+  },
+];
+
+const safetyChecks = [
+  "Helmet and protective riding gear secured",
+  "Motorcycle inspection completed",
+  "Emergency contacts accessible",
+  "Route shared with a trusted person",
+  "Fuel and essential supplies checked",
+];
+
 function SafetyEmergency() {
-  const [safetyItems, setSafetyItems] = useState([
-    { id: 1, label: "HELMET", checked: true },
-    { id: 2, label: "RIDING GEAR", checked: true },
-    { id: 3, label: "FUEL LEVEL", checked: false },
-    { id: 4, label: "BIKE CONDITION", checked: true },
-    { id: 5, label: "EMERGENCY CONTACT", checked: true },
-  ]);
-
   const [sosActive, setSosActive] = useState(false);
-  const [selectedContact, setSelectedContact] = useState(null);
 
-  const contacts = [
-    {
-      id: 1,
-      name: "ROAD ASSISTANCE",
-      detail: "24 / 7 RIDER SUPPORT",
-      action: "CALL",
-    },
-    {
-      id: 2,
-      name: "EMERGENCY SERVICES",
-      detail: "IMMEDIATE ASSISTANCE",
-      action: "CALL",
-    },
-    {
-      id: 3,
-      name: "TRUSTED RIDER",
-      detail: "YOUR EMERGENCY CONTACT",
-      action: "ALERT",
-    },
-  ];
+  const [locationShared, setLocationShared] = useState(() => {
+    return localStorage.getItem("mototribeLocationShared") === "true";
+  });
 
-  const toggleSafety = (id) => {
-    setSafetyItems((items) =>
-      items.map((item) =>
-        item.id === id
-          ? { ...item, checked: !item.checked }
-          : item
-      )
+  const [contacts, setContacts] = useState(() => {
+    try {
+      return JSON.parse(
+        localStorage.getItem("mototribeEmergencyContacts") ||
+          JSON.stringify(defaultContacts)
+      );
+    } catch {
+      return defaultContacts;
+    }
+  });
+
+  const [completedChecks, setCompletedChecks] = useState(() => {
+    try {
+      return JSON.parse(
+        localStorage.getItem("mototribeSafetyChecks") || "[]"
+      );
+    } catch {
+      return [];
+    }
+  });
+
+  const [selectedEmergency, setSelectedEmergency] =
+    useState(null);
+
+  useEffect(() => {
+    localStorage.setItem(
+      "mototribeLocationShared",
+      String(locationShared)
+    );
+  }, [locationShared]);
+
+  useEffect(() => {
+    localStorage.setItem(
+      "mototribeEmergencyContacts",
+      JSON.stringify(contacts)
+    );
+  }, [contacts]);
+
+  useEffect(() => {
+    localStorage.setItem(
+      "mototribeSafetyChecks",
+      JSON.stringify(completedChecks)
+    );
+  }, [completedChecks]);
+
+  const toggleSafetyCheck = (index) => {
+    setCompletedChecks((current) =>
+      current.includes(index)
+        ? current.filter((item) => item !== index)
+        : [...current, index]
     );
   };
 
-  const completedCount = safetyItems.filter(
-    (item) => item.checked
-  ).length;
-
-  const safetyPercentage = Math.round(
-    (completedCount / safetyItems.length) * 100
-  );
-
-  const handleSOS = () => {
+  const triggerSOS = () => {
     setSosActive(true);
-
-    setTimeout(() => {
-      setSosActive(false);
-    }, 4000);
+    setLocationShared(true);
   };
 
-  const handleContact = (contact) => {
-    setSelectedContact(contact);
-
-    setTimeout(() => {
-      setSelectedContact(null);
-    }, 2000);
+  const cancelSOS = () => {
+    setSosActive(false);
   };
+
+  const callContact = (contact) => {
+    window.location.href = `tel:${contact.phone.replace(
+      /\s/g,
+      ""
+    )}`;
+  };
+
+  const emergencyActions = [
+    {
+      id: "medical",
+      icon: "+",
+      title: "MEDICAL",
+      subtitle: "Emergency medical assistance",
+      number: "108",
+    },
+    {
+      id: "police",
+      icon: "!",
+      title: "POLICE",
+      subtitle: "Police emergency assistance",
+      number: "112",
+    },
+    {
+      id: "roadside",
+      icon: "⚙",
+      title: "ROADSIDE",
+      subtitle: "Motorcycle breakdown support",
+      number: "1800",
+    },
+  ];
 
   return (
     <section
+      className={`safety-emergency-section ${
+        sosActive ? "sos-mode" : ""
+      }`}
       id="safety-emergency"
-      className="safety-emergency"
     >
-      <div className="safety-container">
+      <div className="safety-emergency-container">
+
+        {/* HEADER */}
 
         <div className="safety-header">
+
           <div>
-            <div className="safety-eyebrow">
-              <span></span>
-              SAFETY / EMERGENCY
-            </div>
+            <span className="safety-eyebrow">
+              MOTOTRIBE / SAFETY & EMERGENCY
+            </span>
 
             <h2>
-              RIDE WITH
+              Ride safe.
               <br />
-              <span>CONFIDENCE.</span>
+              Stay connected.
             </h2>
-          </div>
 
-          <div className="safety-intro">
             <p>
-              Your safety comes first. Keep essential
-              checks, emergency support and trusted
-              contacts within reach.
+              Emergency tools and safety controls
+              designed to keep riders connected when
+              the unexpected happens.
             </p>
           </div>
-        </div>
 
-        <div className="safety-grid">
+          <div className="safety-system-status">
 
-          <div className="safety-check">
+            <span className="system-status-dot"></span>
 
-            <div className="check-header">
-              <div>
-                <span>PRE-RIDE PROTOCOL</span>
-                <strong>SAFETY CHECK</strong>
-              </div>
-
-              <div className="check-score">
-                {safetyPercentage}%
-              </div>
-            </div>
-
-            <div className="check-progress">
-              <span
-                style={{
-                  width: `${safetyPercentage}%`,
-                }}
-              ></span>
-            </div>
-
-            <div className="check-list">
-              {safetyItems.map((item) => (
-                <button
-                  key={item.id}
-                  className={
-                    item.checked
-                      ? "check-item checked"
-                      : "check-item"
-                  }
-                  onClick={() => toggleSafety(item.id)}
-                >
-                  <span className="check-number">
-                    0{item.id}
-                  </span>
-
-                  <span className="check-box">
-                    {item.checked ? "✓" : ""}
-                  </span>
-
-                  <strong>{item.label}</strong>
-
-                  <span className="check-status">
-                    {item.checked ? "READY" : "CHECK"}
-                  </span>
-                </button>
-              ))}
-            </div>
-
-            <div className="check-result">
-              <span>RIDE READINESS</span>
-
+            <div>
+              <small>SAFETY SYSTEM</small>
               <strong>
-                {safetyPercentage === 100
-                  ? "READY TO RIDE"
-                  : "COMPLETE YOUR CHECK"}
+                {sosActive
+                  ? "EMERGENCY ACTIVE"
+                  : "SYSTEM READY"}
               </strong>
             </div>
+
           </div>
 
-          <div className="sos-panel">
-
-            <div className="sos-label">
-              EMERGENCY RESPONSE
-            </div>
-
-            <div
-              className={
-                sosActive
-                  ? "sos-button active"
-                  : "sos-button"
-              }
-              onClick={handleSOS}
-            >
-              <div className="sos-ring ring-one"></div>
-              <div className="sos-ring ring-two"></div>
-
-              <div className="sos-center">
-                <span>SOS</span>
-                <small>
-                  {sosActive
-                    ? "ALERT ACTIVE"
-                    : "PRESS FOR HELP"}
-                </small>
-              </div>
-            </div>
-
-            <p>
-              {sosActive
-                ? "Emergency alert simulation activated. Help request is being prepared."
-                : "Use SOS when you need immediate emergency assistance."}
-            </p>
-
-            <div className="sos-status">
-              <span></span>
-              EMERGENCY SYSTEM READY
-            </div>
-          </div>
         </div>
 
-        <div className="contacts-section">
+        {/* SOS PANEL */}
 
-          <div className="contacts-heading">
-            <div>
-              <span>EMERGENCY NETWORK</span>
-              <strong>QUICK CONTACTS</strong>
-            </div>
+        <div className="sos-panel">
 
-            <small>AVAILABLE WHEN YOU NEED THEM</small>
+          <div className="sos-panel-copy">
+
+            <span className="sos-label">
+              EMERGENCY RESPONSE
+            </span>
+
+            <h3>
+              Need immediate
+              <br />
+              assistance?
+            </h3>
+
+            <p>
+              Activate SOS to alert your emergency
+              contacts and share your current ride
+              status.
+            </p>
+
+            {sosActive && (
+              <div className="sos-active-message">
+                <span className="pulse-dot"></span>
+
+                EMERGENCY ALERT ACTIVE
+              </div>
+            )}
+
           </div>
 
-          <div className="contact-grid">
+          <div className="sos-action-area">
+
+            <button
+              className={`sos-button ${
+                sosActive ? "active" : ""
+              }`}
+              onClick={
+                sosActive ? cancelSOS : triggerSOS
+              }
+            >
+              <span className="sos-button-ring"></span>
+
+              <strong>
+                {sosActive ? "CANCEL" : "SOS"}
+              </strong>
+
+              <small>
+                {sosActive
+                  ? "ALERT ACTIVE"
+                  : "PRESS TO ACTIVATE"}
+              </small>
+            </button>
+
+          </div>
+
+          <div className="sos-status-list">
+
+            <div>
+              <span>01</span>
+              <strong>CONTACT ALERT</strong>
+              <small>
+                {sosActive ? "ACTIVE" : "READY"}
+              </small>
+            </div>
+
+            <div>
+              <span>02</span>
+              <strong>LOCATION</strong>
+              <small>
+                {locationShared
+                  ? "SHARED"
+                  : "PRIVATE"}
+              </small>
+            </div>
+
+            <div>
+              <span>03</span>
+              <strong>RIDE STATUS</strong>
+              <small>MONITORED</small>
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* EMERGENCY SERVICES */}
+
+        <div className="emergency-services">
+
+          <div className="emergency-heading">
+            <span>QUICK RESPONSE</span>
+
+            <h3>
+              Emergency
+              <br />
+              services.
+            </h3>
+          </div>
+
+          <div className="emergency-grid">
+
+            {emergencyActions.map((action) => (
+              <button
+                key={action.id}
+                className="emergency-card"
+                onClick={() =>
+                  setSelectedEmergency(action)
+                }
+              >
+
+                <div className="emergency-card-top">
+
+                  <span className="emergency-icon">
+                    {action.icon}
+                  </span>
+
+                  <span className="emergency-arrow">
+                    →
+                  </span>
+
+                </div>
+
+                <strong>{action.title}</strong>
+
+                <p>{action.subtitle}</p>
+
+                <small>
+                  {action.number}
+                </small>
+
+              </button>
+            ))}
+
+          </div>
+
+        </div>
+
+        {/* SELECTED EMERGENCY */}
+
+        {selectedEmergency && (
+          <div className="emergency-confirmation">
+
+            <div>
+              <span>
+                SELECTED / {selectedEmergency.title}
+              </span>
+
+              <strong>
+                {selectedEmergency.subtitle}
+              </strong>
+
+              <p>
+                Emergency number:{" "}
+                {selectedEmergency.number}
+              </p>
+            </div>
+
+            <div className="confirmation-actions">
+
+              <a
+                href={`tel:${selectedEmergency.number}`}
+                className="call-emergency-button"
+              >
+                CALL NOW ↗
+              </a>
+
+              <button
+                onClick={() =>
+                  setSelectedEmergency(null)
+                }
+              >
+                CLOSE
+              </button>
+
+            </div>
+
+          </div>
+        )}
+
+        {/* SAFETY CHECKLIST */}
+
+        <div className="safety-check-section">
+
+          <div className="safety-check-heading">
+
+            <span>PRE-RIDE SAFETY</span>
+
+            <h3>
+              Five checks
+              <br />
+              before departure.
+            </h3>
+
+          </div>
+
+          <div className="safety-check-list">
+
+            {safetyChecks.map((check, index) => {
+              const completed =
+                completedChecks.includes(index);
+
+              return (
+                <button
+                  key={check}
+                  className={`safety-check ${
+                    completed ? "completed" : ""
+                  }`}
+                  onClick={() =>
+                    toggleSafetyCheck(index)
+                  }
+                >
+
+                  <span className="safety-check-number">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+
+                  <span className="safety-check-box">
+                    {completed ? "✓" : ""}
+                  </span>
+
+                  <span className="safety-check-text">
+                    {check}
+                  </span>
+
+                  <span className="safety-check-arrow">
+                    →
+                  </span>
+
+                </button>
+              );
+            })}
+
+          </div>
+
+        </div>
+
+        {/* LOCATION SHARING */}
+
+        <div className="location-sharing-panel">
+
+          <div className="location-sharing-icon">
+            ◉
+          </div>
+
+          <div className="location-sharing-copy">
+
+            <span>LOCATION CONTROL</span>
+
+            <h3>
+              Share your ride location
+            </h3>
+
+            <p>
+              Keep your trusted contacts informed
+              about your journey status.
+            </p>
+
+          </div>
+
+          <button
+            className={`location-toggle ${
+              locationShared ? "enabled" : ""
+            }`}
+            onClick={() =>
+              setLocationShared((current) => !current)
+            }
+          >
+
+            <span className="toggle-track">
+              <span className="toggle-thumb"></span>
+            </span>
+
+            <span>
+              {locationShared
+                ? "SHARING ACTIVE"
+                : "SHARING OFF"}
+            </span>
+
+          </button>
+
+        </div>
+
+        {/* EMERGENCY CONTACTS */}
+
+        <div className="emergency-contacts">
+
+          <div className="contacts-heading">
+
+            <span>TRUSTED CONTACTS</span>
+
+            <h3>
+              People to
+              <br />
+              reach first.
+            </h3>
+
+          </div>
+
+          <div className="contacts-list">
+
             {contacts.map((contact) => (
               <div
                 key={contact.id}
-                className={
-                  selectedContact?.id === contact.id
-                    ? "contact-card selected"
-                    : "contact-card"
-                }
+                className="emergency-contact"
               >
-                <div className="contact-number">
-                  0{contact.id}
+
+                <div className="contact-index">
+                  {contact.id.endsWith("1")
+                    ? "01"
+                    : "02"}
                 </div>
 
                 <div className="contact-info">
-                  <strong>{contact.name}</strong>
-                  <span>{contact.detail}</span>
+
+                  <span>
+                    {contact.relation}
+                  </span>
+
+                  <strong>
+                    {contact.name}
+                  </strong>
+
+                  <small>
+                    {contact.phone}
+                  </small>
+
                 </div>
 
                 <button
-                  onClick={() => handleContact(contact)}
+                  className="contact-call"
+                  onClick={() =>
+                    callContact(contact)
+                  }
                 >
-                  {selectedContact?.id === contact.id
-                    ? "REQUESTED ✓"
-                    : contact.action}
+                  CALL
                 </button>
+
               </div>
             ))}
+
           </div>
+
         </div>
 
-        <div className="safety-note">
-          <span>IMPORTANT</span>
+        {/* FOOTER */}
+
+        <div className="safety-footer">
+
+          <span>
+            MOTOTRIBE SAFETY NETWORK
+          </span>
+
           <p>
-            This is a frontend demonstration. Real emergency
-            calling, GPS location sharing and live roadside
-            assistance will require backend/API integration.
+            Emergency numbers shown are demo
+            interfaces for the frontend prototype.
           </p>
+
         </div>
 
       </div>

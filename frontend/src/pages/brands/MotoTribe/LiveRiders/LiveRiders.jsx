@@ -4,420 +4,310 @@ import "./LiveRiders.css";
 const riders = [
   {
     id: 1,
-    name: "ARJUN",
-    initials: "AR",
-    experience: "ADVANCED",
-    motorcycle: "ROYAL ENFIELD HIMALAYAN",
+    name: "Arjun",
+    location: "Delhi",
     distance: "2.4 KM",
-    location: "Bengaluru",
-    route: "Nandi Hills Loop",
-    rideType: "ADVENTURE",
-    status: "RIDING",
-    online: true,
-    trust: 96,
-    rides: 84,
-    distanceRidden: "18.6K",
-    regions: 12,
-    avatar:
-      "https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&w=500&q=80",
+    bike: "Royal Enfield Himalayan",
+    style: "ADVENTURE",
+    status: "ONLINE",
+    experience: "ADVANCED",
+    rides: 42,
   },
   {
     id: 2,
-    name: "MEERA",
-    initials: "ME",
-    experience: "EXPERIENCED",
-    motorcycle: "BMW G 310 GS",
+    name: "Rahul",
+    location: "Chandigarh",
     distance: "5.8 KM",
-    location: "Bengaluru",
-    route: "Coastal Explorer",
-    rideType: "TOURING",
-    status: "RIDING",
-    online: true,
-    trust: 94,
-    rides: 61,
-    distanceRidden: "12.2K",
-    regions: 9,
-    avatar:
-      "https://images.unsplash.com/photo-1558980664-10ea3a1b4d7a?auto=format&fit=crop&w=500&q=80",
+    bike: "KTM Adventure 390",
+    style: "ADVENTURE",
+    status: "ONLINE",
+    experience: "INTERMEDIATE",
+    rides: 27,
   },
   {
     id: 3,
-    name: "KARTHIK",
-    initials: "KA",
-    experience: "ADVANCED",
-    motorcycle: "KTM 390 ADVENTURE",
-    distance: "8.1 KM",
+    name: "Meera",
     location: "Bengaluru",
-    route: "Western Ghats",
-    rideType: "ADVENTURE",
-    status: "ONLINE",
-    online: true,
-    trust: 91,
-    rides: 73,
-    distanceRidden: "15.8K",
-    regions: 15,
-    avatar:
-      "https://images.unsplash.com/photo-1558980394-0c0c0f6e2f7a?auto=format&fit=crop&w=500&q=80",
+    distance: "8.2 KM",
+    bike: "Yamaha MT-15",
+    style: "TOURING",
+    status: "RIDING",
+    experience: "INTERMEDIATE",
+    rides: 31,
   },
   {
     id: 4,
-    name: "RIYA",
-    initials: "RI",
-    experience: "INTERMEDIATE",
-    motorcycle: "TRIUMPH SPEED 400",
+    name: "Vikram",
+    location: "Visakhapatnam",
     distance: "11.5 KM",
-    location: "Bengaluru",
-    route: "City Escape",
-    rideType: "TOURING",
+    bike: "Royal Enfield Classic 350",
+    style: "CRUISER",
     status: "ONLINE",
-    online: true,
-    trust: 88,
-    rides: 42,
-    distanceRidden: "8.4K",
-    regions: 7,
-    avatar:
-      "https://images.unsplash.com/photo-1558981033-0f0309284409?auto=format&fit=crop&w=500&q=80",
+    experience: "ADVANCED",
+    rides: 56,
   },
   {
     id: 5,
-    name: "VIKRAM",
-    initials: "VI",
-    experience: "EXPERT",
-    motorcycle: "KAWASAKI VERSYS 650",
-    distance: "18.3 KM",
-    location: "Bengaluru",
-    route: "Mysore Highway",
-    rideType: "LONG DISTANCE",
-    status: "RIDING",
-    online: true,
-    trust: 98,
-    rides: 126,
-    distanceRidden: "31.4K",
-    regions: 24,
-    avatar:
-      "https://images.unsplash.com/photo-1558981420-87aa9dad1c42?auto=format&fit=crop&w=500&q=80",
+    name: "Kiran",
+    location: "Hyderabad",
+    distance: "14.1 KM",
+    bike: "Bajaj Dominar 400",
+    style: "TOURING",
+    status: "ONLINE",
+    experience: "INTERMEDIATE",
+    rides: 19,
   },
   {
     id: 6,
-    name: "ADITYA",
-    initials: "AD",
-    experience: "INTERMEDIATE",
-    motorcycle: "YAMAHA MT-15",
-    distance: "22.7 KM",
-    location: "Bengaluru",
-    route: "Outer Ring Route",
-    rideType: "COMMUTE",
-    status: "ONLINE",
-    online: true,
-    trust: 86,
-    rides: 37,
-    distanceRidden: "6.1K",
-    regions: 5,
-    avatar:
-      "https://images.unsplash.com/photo-1558981359-219d6364f9c8?auto=format&fit=crop&w=500&q=80",
+    name: "Aditya",
+    location: "Mysuru",
+    distance: "18.7 KM",
+    bike: "KTM Duke 390",
+    style: "SPORT",
+    status: "RIDING",
+    experience: "ADVANCED",
+    rides: 38,
   },
 ];
 
-const filters = ["ALL", "RIDING NOW", "NEARBY", "ADVENTURE", "TOURING"];
-
 function LiveRiders() {
-  const [activeFilter, setActiveFilter] = useState("ALL");
-  const [selectedRider, setSelectedRider] = useState(riders[0]);
-  const [connected, setConnected] = useState([]);
-  const [invited, setInvited] = useState(false);
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("ALL");
+  const [connectedRiders, setConnectedRiders] = useState([]);
 
   const filteredRiders = useMemo(() => {
-    if (activeFilter === "ALL") {
-      return riders;
-    }
+    return riders.filter((rider) => {
+      const matchesSearch =
+        rider.name
+          .toLowerCase()
+          .includes(search.toLowerCase()) ||
+        rider.location
+          .toLowerCase()
+          .includes(search.toLowerCase()) ||
+        rider.bike
+          .toLowerCase()
+          .includes(search.toLowerCase());
 
-    if (activeFilter === "RIDING NOW") {
-      return riders.filter((rider) => rider.status === "RIDING");
-    }
+      const matchesFilter =
+        filter === "ALL" || rider.style === filter;
 
-    if (activeFilter === "NEARBY") {
-      return riders.filter((rider) => parseFloat(rider.distance) <= 10);
-    }
+      return matchesSearch && matchesFilter;
+    });
+  }, [search, filter]);
 
-    if (activeFilter === "ADVENTURE") {
-      return riders.filter((rider) => rider.rideType === "ADVENTURE");
-    }
-
-    if (activeFilter === "TOURING") {
-      return riders.filter((rider) => rider.rideType === "TOURING");
-    }
-
-    return riders;
-  }, [activeFilter]);
-
-  const handleConnect = () => {
-    if (connected.includes(selectedRider.id)) {
-      setConnected((previous) =>
-        previous.filter((id) => id !== selectedRider.id)
-      );
-    } else {
-      setConnected((previous) => [...previous, selectedRider.id]);
-    }
+  const toggleConnection = (riderId) => {
+    setConnectedRiders((current) =>
+      current.includes(riderId)
+        ? current.filter((id) => id !== riderId)
+        : [...current, riderId]
+    );
   };
 
-  const handleInvite = () => {
-    setInvited(true);
+  const onlineCount = riders.filter(
+    (rider) => rider.status === "ONLINE"
+  ).length;
 
-    setTimeout(() => {
-      setInvited(false);
-    }, 2200);
-  };
+  const ridingCount = riders.filter(
+    (rider) => rider.status === "RIDING"
+  ).length;
 
   return (
-    <section id="live-riders" className="live-riders">
+    <section className="live-riders-section" id="live-riders">
       <div className="live-riders-container">
-        <div className="live-riders-heading">
+
+        {/* HEADER */}
+
+        <div className="live-riders-header">
+
           <div>
             <span className="live-riders-eyebrow">
-              <span />
-              CONNECT • RIDER NETWORK
+              MOTOTRIBE / RIDER NETWORK
             </span>
 
-            <h2>
-              NEVER RIDE
-              <span>ALONE.</span>
-            </h2>
+            <h2>Riders in motion.</h2>
 
             <p>
-              Find riders around you, discover who is riding nearby and build
-              trusted connections around real riding experience.
+              Discover riders nearby, connect with your tribe
+              and find people who ride like you.
             </p>
           </div>
 
-          <div className="live-network-status">
-            <div className="network-ring">
-              <span />
+          <div className="live-riders-stats">
+
+            <div>
+              <strong>{onlineCount}</strong>
+              <span>ONLINE</span>
             </div>
 
             <div>
-              <strong>LIVE RIDER NETWORK</strong>
-              <small>LOCATION SHARING CONTROLLED BY RIDERS</small>
+              <strong>{ridingCount}</strong>
+              <span>RIDING NOW</span>
             </div>
+
+            <div>
+              <strong>{riders.length}</strong>
+              <span>NEARBY</span>
+            </div>
+
           </div>
+
         </div>
 
-        <div className="live-riders-layout">
-          <div className="rider-discovery">
-            <div className="rider-discovery-top">
-              <div>
-                <span>FIND YOUR TRIBE</span>
-                <h3>RIDERS NEARBY</h3>
-              </div>
+        {/* CONTROLS */}
 
-              <div className="rider-count">
-                <strong>{filteredRiders.length}</strong>
-                <span>RIDERS</span>
-              </div>
-            </div>
+        <div className="live-riders-controls">
 
-            <div className="rider-filters">
-              {filters.map((filter) => (
-                <button
-                  type="button"
-                  key={filter}
-                  className={activeFilter === filter ? "active" : ""}
-                  onClick={() => setActiveFilter(filter)}
-                >
-                  {filter}
-                </button>
-              ))}
-            </div>
+          <div className="rider-search">
+            <input
+              type="text"
+              placeholder="Search riders, cities or motorcycles..."
+              value={search}
+              onChange={(event) =>
+                setSearch(event.target.value)
+              }
+            />
+          </div>
 
-            <div className="rider-grid">
-              {filteredRiders.map((rider) => (
-                <button
-                  type="button"
+          <div className="rider-filters">
+
+            {[
+              "ALL",
+              "ADVENTURE",
+              "TOURING",
+              "CRUISER",
+              "SPORT",
+            ].map((item) => (
+              <button
+                key={item}
+                className={
+                  filter === item
+                    ? "active"
+                    : ""
+                }
+                onClick={() => setFilter(item)}
+              >
+                {item}
+              </button>
+            ))}
+
+          </div>
+
+        </div>
+
+        {/* RIDER GRID */}
+
+        <div className="live-riders-grid">
+
+          {filteredRiders.length > 0 ? (
+            filteredRiders.map((rider) => {
+
+              const isConnected =
+                connectedRiders.includes(rider.id);
+
+              return (
+                <article
+                  className="live-rider-profile"
                   key={rider.id}
-                  className={`rider-card ${
-                    selectedRider.id === rider.id ? "selected" : ""
-                  }`}
-                  onClick={() => {
-                    setSelectedRider(rider);
-                    setInvited(false);
-                  }}
                 >
-                  <div className="rider-card-image">
-                    <img src={rider.avatar} alt={rider.name} />
 
-                    <div className="rider-card-gradient" />
+                  <div className="rider-profile-top">
 
-                    <div className="rider-online">
-                      <span className={rider.online ? "online" : ""} />
+                    <div className="rider-profile-avatar">
+                      {rider.name
+                        .charAt(0)
+                        .toUpperCase()}
+                    </div>
+
+                    <div
+                      className={`rider-status rider-status-${rider.status.toLowerCase()}`}
+                    >
+                      <span></span>
                       {rider.status}
                     </div>
 
-                    <div className="rider-distance">
-                      {rider.distance}
-                    </div>
-
-                    <div className="rider-initials">
-                      {rider.initials}
-                    </div>
                   </div>
 
-                  <div className="rider-card-body">
-                    <div className="rider-card-name">
-                      <div>
-                        <strong>{rider.name}</strong>
-                        <span>{rider.experience}</span>
-                      </div>
+                  <div className="rider-profile-content">
 
-                      <b>{rider.trust}</b>
-                    </div>
+                    <span className="rider-style">
+                      {rider.style}
+                    </span>
+
+                    <h3>{rider.name}</h3>
+
+                    <p className="rider-location">
+                      {rider.location}
+                      <span>•</span>
+                      {rider.distance}
+                    </p>
 
                     <div className="rider-bike">
-                      {rider.motorcycle}
+                      <span>MOTORCYCLE</span>
+                      <strong>{rider.bike}</strong>
                     </div>
 
-                    <div className="rider-card-footer">
-                      <span>{rider.rideType}</span>
-                      <span>{rider.rides} RIDES</span>
+                    <div className="rider-profile-meta">
+
+                      <div>
+                        <span>EXPERIENCE</span>
+                        <strong>
+                          {rider.experience}
+                        </strong>
+                      </div>
+
+                      <div>
+                        <span>RIDES</span>
+                        <strong>
+                          {rider.rides}
+                        </strong>
+                      </div>
+
                     </div>
+
                   </div>
-                </button>
-              ))}
+
+                  <button
+                    className={`connect-rider-button ${
+                      isConnected ? "connected" : ""
+                    }`}
+                    onClick={() =>
+                      toggleConnection(rider.id)
+                    }
+                  >
+                    {isConnected
+                      ? "CONNECTED ✓"
+                      : "CONNECT RIDER"}
+                  </button>
+
+                </article>
+              );
+            })
+          ) : (
+            <div className="no-riders-found">
+              <span>NO RIDERS FOUND</span>
+              <h3>
+                Try another search or riding style.
+              </h3>
             </div>
-          </div>
+          )}
 
-          <aside className="rider-profile-panel">
-            <div className="profile-panel-top">
-              <span>RIDER PROFILE</span>
-
-              <div className="profile-location">
-                <span />
-                {selectedRider.distance}
-              </div>
-            </div>
-
-            <div className="profile-hero">
-              <img
-                src={selectedRider.avatar}
-                alt={selectedRider.name}
-              />
-
-              <div className="profile-hero-overlay" />
-
-              <div className="profile-hero-content">
-                <div className="profile-status">
-                  <span />
-                  {selectedRider.status}
-                </div>
-
-                <h3>{selectedRider.name}</h3>
-
-                <p>{selectedRider.motorcycle}</p>
-              </div>
-            </div>
-
-            <div className="profile-experience">
-              <div>
-                <span>EXPERIENCE</span>
-                <strong>{selectedRider.experience}</strong>
-              </div>
-
-              <div className="trust-score">
-                <span>TRUST SCORE</span>
-                <strong>{selectedRider.trust}</strong>
-                <small>/100</small>
-              </div>
-            </div>
-
-            <div className="profile-route">
-              <div className="route-status-line">
-                <span className="route-live-dot" />
-                CURRENT JOURNEY
-              </div>
-
-              <strong>{selectedRider.route}</strong>
-
-              <div className="route-location">
-                <span>●</span>
-                {selectedRider.location}
-              </div>
-            </div>
-
-            <div className="profile-stats">
-              <div>
-                <strong>{selectedRider.rides}</strong>
-                <span>RIDES</span>
-              </div>
-
-              <div>
-                <strong>{selectedRider.distanceRidden}</strong>
-                <span>KM RIDDEN</span>
-              </div>
-
-              <div>
-                <strong>{selectedRider.regions}</strong>
-                <span>REGIONS</span>
-              </div>
-            </div>
-
-            <div className="profile-actions">
-              <button
-                type="button"
-                className="connect-button"
-                onClick={handleConnect}
-              >
-                {connected.includes(selectedRider.id)
-                  ? "CONNECTED ✓"
-                  : "CONNECT RIDER"}
-                <span>→</span>
-              </button>
-
-              <button
-                type="button"
-                className="invite-button"
-                onClick={handleInvite}
-              >
-                {invited ? "INVITATION SENT ✓" : "INVITE TO RIDE"}
-              </button>
-            </div>
-
-            <div className="privacy-note">
-              <span>◉</span>
-
-              <p>
-                Exact rider location is protected. Riders control who can see
-                their live position.
-              </p>
-            </div>
-          </aside>
         </div>
 
-        <div className="connect-banner">
-          <div className="connect-banner-mark">M</div>
+        {/* FOOTER */}
 
-          <div>
-            <span>THE MOTOTRIBE PRINCIPLE</span>
-            <strong>
-              THE BEST PERSON TO GUIDE A RIDER IS SOMEONE WHO HAS ALREADY
-              TAKEN THE RIDE.
-            </strong>
-          </div>
+        <div className="live-riders-footer">
 
-          <button
-            type="button"
-            onClick={() => {
-              const section = document.getElementById("ride-planner");
+          <span>
+            MOTOTRIBE COMMUNITY NETWORK
+          </span>
 
-              if (section) {
-                section.scrollIntoView({
-                  behavior: "smooth",
-                  block: "start",
-                });
-              }
-            }}
-          >
-            PLAN WITH THE TRIBE
-            <span>↗</span>
-          </button>
+          <p>
+            Rider availability and location are
+            approximate and may change in real time.
+          </p>
+
         </div>
+
       </div>
     </section>
   );

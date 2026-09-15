@@ -1,34 +1,25 @@
 import MotoNavbar from "./MotoNavbar/MotoNavbar";
-
 import MotoHero from "./MotoHero/MotoHero";
 
 import JourneyIntelligence from "./JourneyIntelligence/JourneyIntelligence";
-
+import FuelPrice from "./FuelPrice/FuelPrice";
 import LiveRiders from "./LiveRiders/LiveRiders";
+import RiderConnect from "./RiderConnect/RiderConnect";
 
 import RidePlanner from "./RidePlanner/RidePlanner";
-
 import UpcomingRides from "./UpcomingRides/UpcomingRides";
-
 import LiveRide from "./LiveRide/LiveRide";
 
 import DigitalRideRecord from "./DigitalRideRecord/DigitalRideRecord";
+import CommunityGuide from "./CommunityGuide/CommunityGuide";
 
 import RideAssistant from "./RideAssistant/RideAssistant";
-
 import NearbyServices from "./NearbyServices/NearbyServices";
 
 import SafetyEmergency from "./SafetyEmergency/SafetyEmergency";
-
 import RidePassport from "./RidePassport/RidePassport";
-
 import TrustedTribe from "./TrustedTribe/TrustedTribe";
 
-import CommunityGuide from "./CommunityGuide/CommunityGuide";
-
-import RiderConnect from "./RiderConnect/RiderConnect";
-
-import FuelPrice from "./FuelPrice/FuelPrice";
 function MotoTribe() {
   return (
     <div className="moto-tribe-page">
@@ -38,47 +29,36 @@ function MotoTribe() {
         {/* HERO */}
         <MotoHero />
 
-        {/* AI JOURNEY INTELLIGENCE */}
+        {/* CONNECT */}
         <JourneyIntelligence />
-
-        {/* FIND / CONNECT WITH RIDERS */}
-        <LiveRiders />
-        
-        {/* COMMUNITY FUEL PRICE INTELLIGENCE */}
         <FuelPrice />
-
-        {/* RIDER CONNECT */}
+        <LiveRiders />
         <RiderConnect />
 
-        {/* PLAN A RIDE */}
+        {/* PLAN */}
         <RidePlanner />
 
-        {/* UPCOMING RIDES */}
+        {/* RIDE */}
         <UpcomingRides />
-
-        {/* LIVE RIDE DASHBOARD */}
         <LiveRide />
 
-        {/* DIGITAL RIDE RECORD + HISTORY */}
+        {/* RECORD */}
         <DigitalRideRecord />
 
+        {/* SHARE */}
         <CommunityGuide />
 
-        {/* AI RIDE ASSISTANT */}
+        {/* GUIDE */}
         <RideAssistant />
-
-        {/* NEARBY SERVICES */}
         <NearbyServices />
 
-    
-
-        {/* SAFETY & EMERGENCY */}
+        {/* SAFETY */}
         <SafetyEmergency />
 
-        {/* RIDER PASSPORT / ACHIEVEMENTS */}
+        {/* RIDER IDENTITY */}
         <RidePassport />
 
-        {/* TRUSTED TRIBE */}
+        {/* TRUST NETWORK */}
         <TrustedTribe />
       </main>
     </div>

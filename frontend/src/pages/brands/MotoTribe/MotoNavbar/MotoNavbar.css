@@ -1,166 +1,586 @@
+/* =========================================================
+   MOTOTRIBE NAVBAR
+   Responsive / Desktop / Tablet / Mobile
+   ========================================================= */
+
 .moto-navbar {
   position: fixed;
+
   top: 0;
   left: 0;
+
+  z-index: 9999;
+
   width: 100%;
+
   height: 76px;
-  z-index: 1000;
 
-  background: rgba(7, 8, 10, 0.88);
-  backdrop-filter: blur(16px);
+  background: rgba(8, 9, 8, 0.92);
 
-  border-bottom: 1px solid rgba(212, 160, 62, 0.18);
+  border-bottom: 1px solid
+    rgba(255, 255, 255, 0.07);
+
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 }
 
 .moto-navbar-inner {
-  width: min(1400px, 92%);
-  height: 100%;
-  margin: 0 auto;
+  position: relative;
 
   display: flex;
+
   align-items: center;
-  justify-content: space-between;
+
+  width: min(1450px, calc(100% - 50px));
+
+  height: 100%;
+
+  margin: auto;
 }
 
-.moto-brand {
-  border: none;
-  background: transparent;
-  cursor: pointer;
+/* =========================================================
+   BRAND
+   ========================================================= */
 
+.moto-brand {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+
+  align-items: baseline;
+
+  gap: 4px;
+
+  flex-shrink: 0;
 
   padding: 0;
+
+  border: 0;
+
+  background: transparent;
+
+  color: #aaa79f;
+
+  cursor: pointer;
+
+  font-family: inherit;
+
+  text-transform: uppercase;
 }
 
 .moto-brand-main {
-  color: #ffffff;
-  font-size: 22px;
+  color: #d4d0c7;
+
+  font-size: 18px;
+
   font-weight: 800;
-  letter-spacing: 5px;
-  line-height: 1;
+
+  letter-spacing: -0.05em;
 }
 
 .moto-brand-sub {
-  color: #d4a03e;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 6px;
-  margin-top: 5px;
+  color: #c9a45d;
+
+  font-size: 7px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.16em;
 }
+
+.moto-brand:hover .moto-brand-main {
+  color: #c9a45d;
+}
+
+/* =========================================================
+   NAVIGATION
+   ========================================================= */
 
 .moto-nav {
   display: flex;
+
   align-items: center;
-  gap: 34px;
+
+  justify-content: center;
+
+  gap: 4px;
+
+  margin: auto;
 }
 
 .moto-nav-link {
   position: relative;
 
-  border: none;
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  min-width: 85px;
+
+  height: 76px;
+
+  padding: 0 13px;
+
+  border: 0;
+
   background: transparent;
+
+  color: #555650;
+
   cursor: pointer;
 
-  color: #a8a8a8;
+  font-family: inherit;
 
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 2px;
+  font-size: 7px;
 
-  padding: 10px 0;
+  font-weight: 800;
+
+  letter-spacing: 0.1em;
 
   transition:
-    color 0.3s ease,
-    transform 0.3s ease;
+    color 0.25s ease,
+    background 0.25s ease;
+}
+
+.moto-nav-link::after {
+  position: absolute;
+
+  right: 13px;
+  bottom: 0;
+  left: 13px;
+
+  height: 1px;
+
+  background: #c9a45d;
+
+  content: "";
+
+  transform: scaleX(0);
+
+  transform-origin: center;
+
+  transition: transform 0.25s ease;
 }
 
 .moto-nav-link:hover {
-  color: #ffffff;
-  transform: translateY(-1px);
+  color: #aaa79f;
+
+  background: rgba(255, 255, 255, 0.025);
 }
 
 .moto-nav-link.active {
-  color: #d4a03e;
+  color: #c9a45d;
 }
 
 .moto-nav-link.active::after {
-  content: "";
-
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-
-  height: 2px;
-
-  background: #d4a03e;
+  transform: scaleX(1);
 }
+
+.moto-nav-number,
+.moto-nav-arrow {
+  display: none;
+}
+
+.moto-nav-text {
+  display: block;
+}
+
+.moto-nav-mobile-label {
+  display: none;
+}
+
+/* =========================================================
+   STATUS
+   ========================================================= */
+
+.moto-navbar-status {
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  flex-shrink: 0;
+
+  color: #454640;
+
+  font-size: 6px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.1em;
+}
+
+.moto-status-dot {
+  width: 5px;
+  height: 5px;
+
+  border-radius: 50%;
+
+  background: #c9a45d;
+
+  box-shadow:
+    0 0 8px rgba(201, 164, 93, 0.7);
+}
+
+/* =========================================================
+   MENU BUTTON
+   ========================================================= */
 
 .moto-menu {
   display: none;
 
-  width: 40px;
-  height: 40px;
+  position: relative;
 
-  border: 1px solid rgba(212, 160, 62, 0.3);
+  flex-direction: column;
+
+  align-items: flex-end;
+
+  justify-content: center;
+
+  gap: 5px;
+
+  width: 42px;
+  height: 42px;
+
+  padding: 8px;
+
+  border: 1px solid
+    rgba(255, 255, 255, 0.08);
+
   background: transparent;
 
   cursor: pointer;
-
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 5px;
 }
 
 .moto-menu span {
-  width: 18px;
+  display: block;
+
+  width: 19px;
   height: 1px;
-  background: #d4a03e;
+
+  background: #aaa79f;
+
+  transition:
+    transform 0.25s ease,
+    opacity 0.25s ease,
+    width 0.25s ease;
 }
 
-@media (max-width: 900px) {
-  .moto-menu {
-    display: flex;
+.moto-menu span:nth-child(2) {
+  width: 13px;
+}
+
+.moto-menu.open span:nth-child(1) {
+  transform:
+    translateY(6px)
+    rotate(45deg);
+}
+
+.moto-menu.open span:nth-child(2) {
+  opacity: 0;
+}
+
+.moto-menu.open span:nth-child(3) {
+  width: 19px;
+
+  transform:
+    translateY(-6px)
+    rotate(-45deg);
+}
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 1100px) {
+  .moto-navbar-inner {
+    width: min(
+      100% - 35px,
+      1000px
+    );
   }
 
-  .moto-nav {
-    position: absolute;
-
-    top: 76px;
-    left: 0;
-
-    width: 100%;
-
+  .moto-navbar-status {
     display: none;
-    flex-direction: column;
-    align-items: stretch;
-
-    padding: 15px 6% 25px;
-
-    background: rgba(7, 8, 10, 0.97);
-
-    border-bottom: 1px solid rgba(212, 160, 62, 0.18);
-  }
-
-  .moto-nav.open {
-    display: flex;
   }
 
   .moto-nav-link {
-    text-align: left;
-    padding: 15px 0;
+    min-width: 75px;
+
+    padding: 0 9px;
+
+    font-size: 6px;
   }
 }
 
-@media (max-width: 500px) {
+/* =========================================================
+   MOBILE NAVIGATION
+   ========================================================= */
+
+@media (max-width: 850px) {
+  .moto-navbar {
+    height: 68px;
+  }
+
+  .moto-navbar-inner {
+    width: calc(100% - 30px);
+  }
+
   .moto-brand-main {
-    font-size: 18px;
+    font-size: 17px;
   }
 
   .moto-brand-sub {
+    font-size: 6px;
+  }
+
+  .moto-menu {
+    display: flex;
+
+    margin-left: auto;
+  }
+
+  .moto-nav {
+    position: fixed;
+
+    top: 68px;
+    right: 0;
+    bottom: 0;
+    left: 0;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: stretch;
+
+    justify-content: flex-start;
+
+    gap: 0;
+
+    width: 100%;
+
+    height: calc(100vh - 68px);
+
+    margin: 0;
+
+    padding: 25px 20px 35px;
+
+    overflow-y: auto;
+
+    background:
+      radial-gradient(
+        circle at 85% 5%,
+        rgba(201, 164, 93, 0.07),
+        transparent 28%
+      ),
+      #090a09;
+
+    border-top: 1px solid
+      rgba(255, 255, 255, 0.06);
+
+    opacity: 0;
+
+    visibility: hidden;
+
+    transform: translateY(-10px);
+
+    transition:
+      opacity 0.25s ease,
+      visibility 0.25s ease,
+      transform 0.25s ease;
+  }
+
+  .moto-nav.open {
+    opacity: 1;
+
+    visibility: visible;
+
+    transform: translateY(0);
+  }
+
+  .moto-nav-mobile-label {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 6px;
+
+    padding: 5px 5px 20px;
+
+    border-bottom: 1px solid
+      rgba(255, 255, 255, 0.06);
+  }
+
+  .moto-nav-mobile-label span {
+    color: #c9a45d;
+
+    font-size: 8px;
+
+    font-weight: 800;
+
+    letter-spacing: 0.14em;
+  }
+
+  .moto-nav-mobile-label small {
+    color: #454640;
+
+    font-size: 6px;
+
+    font-weight: 800;
+
+    letter-spacing: 0.12em;
+  }
+
+  .moto-nav-link {
+    display: grid;
+
+    grid-template-columns: 40px 1fr 30px;
+
+    align-items: center;
+
+    justify-content: initial;
+
+    width: 100%;
+
+    min-width: 0;
+
+    height: 70px;
+
+    padding: 0 5px;
+
+    border-bottom: 1px solid
+      rgba(255, 255, 255, 0.055);
+
+    color: #666762;
+
+    text-align: left;
+  }
+
+  .moto-nav-link::after {
+    right: auto;
+
+    bottom: 0;
+
+    left: 0;
+
+    width: 2px;
+
+    height: 100%;
+
+    transform: scaleY(0);
+
+    transform-origin: bottom;
+  }
+
+  .moto-nav-link.active::after {
+    transform: scaleY(1);
+  }
+
+  .moto-nav-number {
+    display: block;
+
+    color: #3f403b;
+
+    font-size: 7px;
+
+    font-weight: 800;
+  }
+
+  .moto-nav-link.active
+  .moto-nav-number {
+    color: #c9a45d;
+  }
+
+  .moto-nav-text {
+    font-size: 9px;
+
+    letter-spacing: 0.12em;
+  }
+
+  .moto-nav-arrow {
+    display: block;
+
+    color: #41423d;
+
+    font-size: 14px;
+
+    text-align: right;
+
+    transition:
+      color 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  .moto-nav-link.active
+  .moto-nav-arrow {
+    color: #c9a45d;
+
+    transform: translateX(3px);
+  }
+
+  .moto-nav-link:hover {
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .moto-nav-link.active {
+    background: rgba(201, 164, 93, 0.025);
+  }
+}
+
+/* =========================================================
+   SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 480px) {
+  .moto-navbar-inner {
+    width: calc(100% - 24px);
+  }
+
+  .moto-navbar {
+    height: 64px;
+  }
+
+  .moto-nav {
+    top: 64px;
+
+    height: calc(100vh - 64px);
+
+    padding:
+      20px
+      15px
+      30px;
+  }
+
+  .moto-menu {
+    width: 40px;
+    height: 40px;
+  }
+
+  .moto-nav-link {
+    height: 64px;
+  }
+
+  .moto-nav-text {
     font-size: 8px;
   }
+}
+
+/* =========================================================
+   ACCESSIBILITY
+   ========================================================= */
+
+.moto-brand:focus-visible,
+.moto-nav-link:focus-visible,
+.moto-menu:focus-visible {
+  outline: 1px solid #c9a45d;
+
+  outline-offset: 3px;
+}
+
+/* Prevent page scrolling while mobile menu is open */
+
+body.moto-menu-open {
+  overflow: hidden;
 }

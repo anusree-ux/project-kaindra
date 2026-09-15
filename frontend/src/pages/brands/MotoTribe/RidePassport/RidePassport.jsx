@@ -1,294 +1,513 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "./RidePassport.css";
+import { motoRides } from "../../../../data/motoRides";
+
+const defaultPassport = {
+  riderName: "MOTOTRIBE RIDER",
+  riderId: "MT-2026-00421",
+  memberSince: "2026",
+  level: "EXPLORER",
+  rides: 12,
+  distance: 2840,
+  countries: 1,
+  communities: 4,
+};
+
+const milestones = [
+  {
+    id: "first-ride",
+    number: "01",
+    title: "FIRST RIDE",
+    description: "Completed your first recorded journey.",
+    requirement: "1 RIDE",
+  },
+  {
+    id: "distance-1000",
+    number: "02",
+    title: "1000 KM",
+    description: "Crossed the first 1,000 kilometre milestone.",
+    requirement: "1,000 KM",
+  },
+  {
+    id: "explorer",
+    number: "03",
+    title: "EXPLORER",
+    description: "Discover multiple routes and riding communities.",
+    requirement: "10 RIDES",
+  },
+  {
+    id: "long-haul",
+    number: "04",
+    title: "LONG HAUL",
+    description: "Complete a long-distance motorcycle journey.",
+    requirement: "500+ KM",
+  },
+];
 
 function RidePassport() {
-  const [selectedAchievement, setSelectedAchievement] = useState(0);
+  const [passport, setPassport] = useState(() => {
+    try {
+      return JSON.parse(
+        localStorage.getItem("mototribeRidePassport") ||
+          JSON.stringify(defaultPassport)
+      );
+    } catch {
+      return defaultPassport;
+    }
+  });
 
-  const achievements = [
-    {
-      number: "01",
-      title: "FIRST JOURNEY",
-      category: "MILESTONE",
-      description:
-        "Complete your first recorded MotoTribe journey.",
-      progress: 100,
-      requirement: "1 / 1 RIDE",
-      unlocked: true,
-    },
-    {
-      number: "02",
-      title: "ROAD EXPLORER",
-      category: "DISTANCE",
-      description:
-        "Travel more than 1,000 kilometres across your journeys.",
-      progress: 100,
-      requirement: "1,000 / 1,000 KM",
-      unlocked: true,
-    },
-    {
-      number: "03",
-      title: "MOUNTAIN SEEKER",
-      category: "TERRAIN",
-      description:
-        "Complete five mountain or hill rides.",
-      progress: 80,
-      requirement: "4 / 5 RIDES",
-      unlocked: false,
-    },
-    {
-      number: "04",
-      title: "LONG HAUL",
-      category: "ENDURANCE",
-      description:
-        "Complete a single journey longer than 500 kilometres.",
-      progress: 62,
-      requirement: "310 / 500 KM",
-      unlocked: false,
-    },
-    {
-      number: "05",
-      title: "TRIBE LEADER",
-      category: "COMMUNITY",
-      description:
-        "Join or organise ten group riding experiences.",
-      progress: 40,
-      requirement: "4 / 10 RIDES",
-      unlocked: false,
-    },
-  ];
+  const [activeMilestone, setActiveMilestone] =
+    useState("first-ride");
 
-  const currentAchievement =
-    achievements[selectedAchievement];
+  const [editingName, setEditingName] = useState(false);
+  const [nameInput, setNameInput] = useState(
+    passport.riderName
+  );
+
+  useEffect(() => {
+    localStorage.setItem(
+      "mototribeRidePassport",
+      JSON.stringify(passport)
+    );
+  }, [passport]);
+
+  const completedMilestones = useMemo(() => {
+    return {
+      "first-ride": passport.rides >= 1,
+      "distance-1000": passport.distance >= 1000,
+      explorer: passport.rides >= 10,
+      "long-haul":
+        motoRides.some((ride) => ride.distance >= 500) ||
+        passport.distance >= 500,
+    };
+  }, [passport]);
+
+  const updateName = () => {
+    const trimmedName = nameInput.trim();
+
+    if (!trimmedName) {
+      setNameInput(passport.riderName);
+      setEditingName(false);
+      return;
+    }
+
+    setPassport((current) => ({
+      ...current,
+      riderName: trimmedName.toUpperCase(),
+    }));
+
+    setEditingName(false);
+  };
+
+  const resetPassport = () => {
+    setPassport(defaultPassport);
+    setNameInput(defaultPassport.riderName);
+  };
+
+  const selectedMilestone = milestones.find(
+    (milestone) => milestone.id === activeMilestone
+  );
 
   return (
-    <section id="ride-passport" className="ride-passport">
-      <div className="passport-container">
+    <section
+      className="ride-passport-section"
+      id="ride-passport"
+    >
+      <div className="ride-passport-container">
+
+        {/* HEADER */}
 
         <div className="passport-header">
+
           <div>
-            <div className="passport-eyebrow">
-              <span></span>
-              RIDER IDENTITY / RIDE PASSPORT
-            </div>
+            <span className="passport-eyebrow">
+              MOTOTRIBE / RIDE PASSPORT
+            </span>
 
             <h2>
-              YOUR ROADS.
+              Every ride
               <br />
-              <span>YOUR STORY.</span>
+              leaves a mark.
             </h2>
-          </div>
 
-          <div className="passport-intro">
             <p>
-              Every journey adds to your rider identity.
-              Build your passport, unlock milestones and
-              become part of the Tribe.
+              Your digital riding identity. Track
+              journeys, milestones and the roads
+              you've explored.
             </p>
           </div>
-        </div>
 
-        <div className="passport-grid">
+          <div className="passport-id-block">
+            <span>PASSPORT ID</span>
 
-          <div className="passport-card">
-
-            <div className="passport-card-top">
-              <span>MOTOTRIBE</span>
-              <strong>RIDER / 001</strong>
-            </div>
-
-            <div className="passport-emblem">
-              <div className="emblem-ring">
-                <span>MT</span>
-              </div>
-            </div>
-
-            <div className="rider-level">
-              <span>RIDER LEVEL</span>
-              <strong>EXPLORER</strong>
-              <small>LEVEL 07</small>
-            </div>
-
-            <div className="level-progress">
-              <div>
-                <span>2,840 XP</span>
-                <span>4,000 XP</span>
-              </div>
-
-              <div className="level-bar">
-                <span></span>
-              </div>
-            </div>
-
-            <div className="passport-stamp">
-              <span>ACTIVE RIDER</span>
-              <strong>2026</strong>
-            </div>
-          </div>
-
-          <div className="passport-stats">
-
-            <div className="passport-stat">
-              <span>TOTAL RIDES</span>
-              <strong>47</strong>
-              <small>JOURNEYS</small>
-            </div>
-
-            <div className="passport-stat">
-              <span>TOTAL DISTANCE</span>
-              <strong>12.8K</strong>
-              <small>KILOMETRES</small>
-            </div>
-
-            <div className="passport-stat">
-              <span>TRIBE RIDES</span>
-              <strong>18</strong>
-              <small>GROUP RIDES</small>
-            </div>
-
-            <div className="passport-stat">
-              <span>ACHIEVEMENTS</span>
-              <strong>06</strong>
-              <small>UNLOCKED</small>
-            </div>
-
-          </div>
-        </div>
-
-        <div className="achievement-section">
-
-          <div className="achievement-heading">
-            <div>
-              <span>RIDER PROGRESSION</span>
-              <strong>ACHIEVEMENTS</strong>
-            </div>
+            <strong>
+              {passport.riderId}
+            </strong>
 
             <small>
-              SELECT A MILESTONE TO EXPLORE
+              MEMBER SINCE {passport.memberSince}
             </small>
           </div>
 
-          <div className="achievement-layout">
+        </div>
 
-            <div className="achievement-list">
+        {/* PASSPORT CARD */}
 
-              {achievements.map((achievement, index) => (
-                <button
-                  key={achievement.title}
-                  className={
-                    selectedAchievement === index
-                      ? "achievement-item active"
-                      : "achievement-item"
-                  }
-                  onClick={() =>
-                    setSelectedAchievement(index)
-                  }
-                >
-                  <span className="achievement-number">
-                    {achievement.number}
-                  </span>
+        <div className="passport-card">
 
-                  <span
-                    className={
-                      achievement.unlocked
-                        ? "achievement-badge unlocked"
-                        : "achievement-badge"
-                    }
-                  >
-                    {achievement.unlocked ? "✓" : "○"}
-                  </span>
+          <div className="passport-card-top">
 
-                  <span className="achievement-info">
-                    <small>{achievement.category}</small>
-                    <strong>{achievement.title}</strong>
-                  </span>
+            <div className="passport-brand">
+              <span>MT</span>
 
-                  <span className="achievement-progress">
-                    {achievement.progress}%
-                  </span>
-                </button>
-              ))}
-
+              <div>
+                <strong>MOTOTRIBE</strong>
+                <small>DIGITAL RIDE PASSPORT</small>
+              </div>
             </div>
 
-            <div className="achievement-detail">
+            <span className="passport-valid">
+              VERIFIED RIDER
+            </span>
 
-              <div className="detail-number">
-                {currentAchievement.number}
-              </div>
+          </div>
 
-              <div
-                className={
-                  currentAchievement.unlocked
-                    ? "large-badge unlocked"
-                    : "large-badge"
-                }
-              >
-                {currentAchievement.unlocked ? "✓" : "MT"}
-              </div>
+          <div className="passport-card-main">
 
-              <span className="detail-category">
-                {currentAchievement.category}
+            <div className="passport-rider-info">
+
+              <span className="rider-label">
+                RIDER
               </span>
 
-              <h3>{currentAchievement.title}</h3>
+              {editingName ? (
+                <div className="name-editor">
 
-              <p>{currentAchievement.description}</p>
+                  <input
+                    value={nameInput}
+                    onChange={(event) =>
+                      setNameInput(event.target.value)
+                    }
+                    autoFocus
+                  />
 
-              <div className="achievement-progress-detail">
+                  <button onClick={updateName}>
+                    SAVE
+                  </button>
 
-                <div className="progress-label">
-                  <span>PROGRESS</span>
-                  <strong>
-                    {currentAchievement.requirement}
-                  </strong>
                 </div>
+              ) : (
+                <div className="rider-name-row">
 
-                <div className="progress-track">
-                  <span
-                    style={{
-                      width: `${currentAchievement.progress}%`,
-                    }}
-                  ></span>
+                  <h3>
+                    {passport.riderName}
+                  </h3>
+
+                  <button
+                    onClick={() =>
+                      setEditingName(true)
+                    }
+                  >
+                    EDIT
+                  </button>
+
                 </div>
+              )}
 
-              </div>
-
-              <div className="achievement-status">
-                <span>
-                  {currentAchievement.unlocked
-                    ? "ACHIEVEMENT UNLOCKED"
-                    : "ACHIEVEMENT IN PROGRESS"}
-                </span>
-
-                <strong>
-                  {currentAchievement.unlocked
-                    ? "✓ COMPLETE"
-                    : `${currentAchievement.progress}%`}
-                </strong>
-              </div>
+              <span className="rider-level">
+                {passport.level}
+              </span>
 
             </div>
+
+            <div className="passport-emblem">
+              <span>MT</span>
+            </div>
+
           </div>
+
+          <div className="passport-card-bottom">
+
+            <div>
+              <span>RIDES</span>
+              <strong>{passport.rides}</strong>
+            </div>
+
+            <div>
+              <span>DISTANCE</span>
+              <strong>
+                {passport.distance.toLocaleString()} KM
+              </strong>
+            </div>
+
+            <div>
+              <span>COMMUNITIES</span>
+              <strong>{passport.communities}</strong>
+            </div>
+
+            <div>
+              <span>STATUS</span>
+              <strong>ACTIVE</strong>
+            </div>
+
+          </div>
+
         </div>
+
+        {/* STATS */}
+
+        <div className="passport-stat-section">
+
+          <div className="passport-stat-heading">
+
+            <span>RIDING PROFILE</span>
+
+            <h3>
+              Your journey
+              <br />
+              in numbers.
+            </h3>
+
+          </div>
+
+          <div className="passport-stat-grid">
+
+            <div className="passport-stat">
+              <span>01</span>
+              <strong>
+                {passport.rides}
+              </strong>
+              <small>
+                RECORDED RIDES
+              </small>
+            </div>
+
+            <div className="passport-stat">
+              <span>02</span>
+              <strong>
+                {passport.distance.toLocaleString()}
+              </strong>
+              <small>
+                TOTAL KM
+              </small>
+            </div>
+
+            <div className="passport-stat">
+              <span>03</span>
+              <strong>
+                {passport.communities}
+              </strong>
+              <small>
+                COMMUNITIES
+              </small>
+            </div>
+
+            <div className="passport-stat">
+              <span>04</span>
+              <strong>
+                {passport.countries}
+              </strong>
+              <small>
+                COUNTRIES
+              </small>
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* MILESTONES */}
+
+        <div className="passport-milestones">
+
+          <div className="milestone-heading">
+
+            <span>RIDE MILESTONES</span>
+
+            <h3>
+              Roads become
+              <br />
+              achievements.
+            </h3>
+
+          </div>
+
+          <div className="milestone-layout">
+
+            <div className="milestone-list">
+
+              {milestones.map((milestone) => {
+                const completed =
+                  completedMilestones[milestone.id];
+
+                return (
+                  <button
+                    key={milestone.id}
+                    className={`milestone-item ${
+                      activeMilestone === milestone.id
+                        ? "active"
+                        : ""
+                    } ${
+                      completed
+                        ? "completed"
+                        : ""
+                    }`}
+                    onClick={() =>
+                      setActiveMilestone(milestone.id)
+                    }
+                  >
+
+                    <span className="milestone-number">
+                      {milestone.number}
+                    </span>
+
+                    <span className="milestone-status">
+                      {completed ? "✓" : "—"}
+                    </span>
+
+                    <span className="milestone-title">
+                      {milestone.title}
+                    </span>
+
+                    <span className="milestone-arrow">
+                      →
+                    </span>
+
+                  </button>
+                );
+              })}
+
+            </div>
+
+            <div className="milestone-detail">
+
+              <span className="milestone-detail-label">
+                MILESTONE /{" "}
+                {selectedMilestone?.number}
+              </span>
+
+              <div className="milestone-detail-icon">
+                {completedMilestones[
+                  activeMilestone
+                ]
+                  ? "✓"
+                  : selectedMilestone?.number}
+              </div>
+
+              <span className="milestone-detail-title">
+                {selectedMilestone?.title}
+              </span>
+
+              <p>
+                {selectedMilestone?.description}
+              </p>
+
+              <small>
+                TARGET /{" "}
+                {selectedMilestone?.requirement}
+              </small>
+
+              <strong>
+                {completedMilestones[
+                  activeMilestone
+                ]
+                  ? "MILESTONE COMPLETED"
+                  : "MILESTONE IN PROGRESS"}
+              </strong>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* RECENT JOURNEYS */}
+
+        <div className="passport-journeys">
+
+          <div className="journeys-heading">
+
+            <span>RECENT JOURNEYS</span>
+
+            <h3>
+              Roads already
+              <br />
+              explored.
+            </h3>
+
+          </div>
+
+          <div className="passport-journey-list">
+
+            {motoRides.slice(0, 3).map((ride, index) => (
+              <div
+                className="passport-journey"
+                key={ride.id}
+              >
+
+                <span className="journey-number">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+
+                <div className="journey-info">
+
+                  <span>
+                    {ride.type}
+                  </span>
+
+                  <strong>
+                    {ride.name}
+                  </strong>
+
+                  <small>
+                    {ride.start} →{" "}
+                    {ride.destination}
+                  </small>
+
+                </div>
+
+                <div className="journey-distance">
+                  <strong>
+                    {ride.distanceLabel}
+                  </strong>
+
+                  <span>
+                    {ride.duration}
+                  </span>
+                </div>
+
+              </div>
+            ))}
+
+          </div>
+
+        </div>
+
+        {/* RESET */}
+
+        <div className="passport-controls">
+
+          <p>
+            Passport information is stored locally
+            on this device for the prototype.
+          </p>
+
+          <button onClick={resetPassport}>
+            RESET PASSPORT DATA
+          </button>
+
+        </div>
+
+        {/* FOOTER */}
 
         <div className="passport-footer">
 
-          <div>
-            <span>NEXT RANK</span>
-            <strong>ADVENTURER</strong>
-          </div>
-
-          <div className="rank-progress">
-            <span>2,840 XP</span>
-            <div>
-              <span></span>
-            </div>
-            <span>4,000 XP</span>
-          </div>
+          <span>
+            MOTOTRIBE DIGITAL IDENTITY
+          </span>
 
           <p>
-            Keep riding to unlock new experiences,
-            achievements and Tribe privileges.
+            Ride. Record. Remember.
           </p>
 
         </div>

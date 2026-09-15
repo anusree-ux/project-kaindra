@@ -1,672 +1,544 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "./RidePlanner.css";
 
-const routeOptions = [
-  {
-    id: 1,
-    name: "Mountain Explorer",
-    distance: "186 KM",
-    duration: "4H 32M",
-    difficulty: "MODERATE",
-    fuel: "₹620",
-    score: 94,
-    terrain: "MOUNTAIN",
-    description: "Balanced route with scenic mountain roads and reliable stops.",
-  },
-  {
-    id: 2,
-    name: "Scenic Adventure",
-    distance: "214 KM",
-    duration: "5H 05M",
-    difficulty: "ADVENTURE",
-    fuel: "₹710",
-    score: 91,
-    terrain: "MIXED",
-    description: "Longer route with viewpoints, curves and fewer highways.",
-  },
-  {
-    id: 3,
-    name: "Fast Highway",
-    distance: "162 KM",
-    duration: "3H 48M",
-    difficulty: "EASY",
-    fuel: "₹540",
-    score: 87,
-    terrain: "HIGHWAY",
-    description: "Fastest option with more highway riding and fewer stops.",
-  },
-];
+const defaultPlan = {
+  start: "",
+  destination: "",
+  date: "",
+  time: "06:00",
+  style: "ADVENTURE",
+  difficulty: "INTERMEDIATE",
+  distance: "",
+};
 
-const riderOptions = [
-  {
-    id: 1,
-    name: "ARJUN",
-    bike: "HIMALAYAN",
-    experience: "ADVANCED",
-  },
-  {
-    id: 2,
-    name: "MEERA",
-    bike: "BMW G 310 GS",
-    experience: "EXPERIENCED",
-  },
-  {
-    id: 3,
-    name: "KARTHIK",
-    bike: "KTM 390",
-    experience: "ADVANCED",
-  },
-  {
-    id: 4,
-    name: "RIYA",
-    bike: "SPEED 400",
-    experience: "INTERMEDIATE",
-  },
-];
-
-const motorcycles = [
-  "ROYAL ENFIELD HIMALAYAN",
-  "KTM 390 ADVENTURE",
-  "BMW G 310 GS",
-  "TRIUMPH TIGER",
-  "YAMAHA MT-15",
-];
+const locationDistances = {
+  "Delhi-Leh": 1020,
+  "Visakhapatnam-Kakinada": 310,
+  "Bengaluru-Coorg": 270,
+  "Hyderabad-Vijayawada": 275,
+};
 
 function RidePlanner() {
-  const [start, setStart] = useState("");
-  const [destination, setDestination] = useState("");
-  const [rideDate, setRideDate] = useState("");
-  const [rideType, setRideType] = useState("ADVENTURE");
-  const [motorcycle, setMotorcycle] = useState(motorcycles[0]);
-  const [riders, setRiders] = useState(1);
-  const [budget, setBudget] = useState("5000");
-  const [mileage, setMileage] = useState("28");
-  const [distancePreference, setDistancePreference] = useState("BALANCED");
-  const [accommodation, setAccommodation] = useState(false);
-  const [foodStops, setFoodStops] = useState(true);
-  const [selectedRoute, setSelectedRoute] = useState(routeOptions[0]);
-  const [selectedRiders, setSelectedRiders] = useState([]);
-  const [stops, setStops] = useState([]);
-  const [newStop, setNewStop] = useState("");
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [planned, setPlanned] = useState(false);
+  const [plan, setPlan] = useState(() => {
+    try {
+      return JSON.parse(
+        localStorage.getItem("mototribeRidePlan") ||
+          JSON.stringify(defaultPlan)
+      );
+    } catch {
+      return defaultPlan;
+    }
+  });
 
-  const estimatedFuel = useMemo(() => {
-    const distance = parseInt(selectedRoute.distance, 10);
-    const mileageValue = Number(mileage) || 1;
+  const [generatedPlan, setGeneratedPlan] = useState(null);
+  const [saved, setSaved] = useState(false);
 
-    return Math.ceil(distance / mileageValue);
-  }, [selectedRoute, mileage]);
+  useEffect(() => {
+    localStorage.setItem(
+      "mototribeRidePlan",
+      JSON.stringify(plan)
+    );
+  }, [plan]);
 
-  const estimatedFuelCost = estimatedFuel * 105;
+  const updateField = (field, value) => {
+    setPlan((current) => ({
+      ...current,
+      [field]: value,
+    }));
 
-  const addStop = () => {
-    const cleanStop = newStop.trim();
+    setSaved(false);
+  };
 
-    if (!cleanStop) {
+  const calculatedDistance = useMemo(() => {
+    const key = `${plan.start}-${plan.destination}`;
+
+    if (locationDistances[key]) {
+      return locationDistances[key];
+    }
+
+    return Number(plan.distance) || 0;
+  }, [plan]);
+
+  const fuelEstimate = useMemo(() => {
+    if (!calculatedDistance) return 0;
+
+    const mileage =
+      plan.style === "ADVENTURE"
+        ? 28
+        : plan.style === "TOURING"
+        ? 35
+        : plan.style === "CRUISER"
+        ? 32
+        : 38;
+
+    return Math.ceil(
+      calculatedDistance / mileage
+    );
+  }, [calculatedDistance, plan.style]);
+
+  const ridingHours = useMemo(() => {
+    if (!calculatedDistance) return 0;
+
+    const speed =
+      plan.difficulty === "ADVANCED"
+        ? 55
+        : plan.difficulty === "INTERMEDIATE"
+        ? 50
+        : 45;
+
+    return Math.ceil(
+      calculatedDistance / speed
+    );
+  }, [calculatedDistance, plan.difficulty]);
+
+  const restStops = useMemo(() => {
+    if (!calculatedDistance) return 0;
+
+    return Math.max(
+      1,
+      Math.ceil(calculatedDistance / 180)
+    );
+  }, [calculatedDistance]);
+
+  const fuelStops = useMemo(() => {
+    if (!calculatedDistance) return 0;
+
+    return Math.max(
+      1,
+      Math.ceil(calculatedDistance / 300)
+    );
+  }, [calculatedDistance]);
+
+  const estimatedBudget = useMemo(() => {
+    if (!calculatedDistance) return 0;
+
+    const fuelCost = fuelEstimate * 105;
+
+    const foodCost =
+      Math.max(1, Math.ceil(ridingHours / 4)) *
+      450;
+
+    const accommodation =
+      ridingHours > 10 ? 1200 : 0;
+
+    return fuelCost + foodCost + accommodation;
+  }, [calculatedDistance, fuelEstimate, ridingHours]);
+
+  const generatePlan = () => {
+    if (!plan.start || !plan.destination) {
+      alert(
+        "Please enter both start location and destination."
+      );
       return;
     }
 
-    setStops((previous) => [...previous, cleanStop]);
-    setNewStop("");
-  };
-
-  const removeStop = (index) => {
-    setStops((previous) =>
-      previous.filter((_, stopIndex) => stopIndex !== index)
-    );
-  };
-
-  const toggleRider = (riderId) => {
-    setSelectedRiders((previous) =>
-      previous.includes(riderId)
-        ? previous.filter((id) => id !== riderId)
-        : [...previous, riderId]
-    );
-  };
-
-  const analyzeRoute = (route) => {
-    setSelectedRoute(route);
-    setPlanned(false);
-    setIsAnalyzing(true);
-
-    setTimeout(() => {
-      setIsAnalyzing(false);
-    }, 900);
-  };
-
-  const createRide = () => {
-    if (!start.trim() || !destination.trim()) {
-      alert("Please enter your start location and destination.");
+    if (!calculatedDistance) {
+      alert(
+        "Please enter an estimated distance."
+      );
       return;
     }
 
-    setPlanned(true);
+    setGeneratedPlan({
+      ...plan,
+      distance: calculatedDistance,
+      fuel: fuelEstimate,
+      ridingHours,
+      restStops,
+      fuelStops,
+      budget: estimatedBudget,
+    });
 
-    setTimeout(() => {
-      document
-        .getElementById("upcoming-rides")
-        ?.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
-    }, 700);
+    setSaved(false);
   };
 
-  const resetPlanner = () => {
-    setStart("");
-    setDestination("");
-    setRideDate("");
-    setRideType("ADVENTURE");
-    setMotorcycle(motorcycles[0]);
-    setRiders(1);
-    setBudget("5000");
-    setMileage("28");
-    setDistancePreference("BALANCED");
-    setAccommodation(false);
-    setFoodStops(true);
-    setSelectedRoute(routeOptions[0]);
-    setSelectedRiders([]);
-    setStops([]);
-    setNewStop("");
-    setPlanned(false);
+  const savePlan = () => {
+    if (!generatedPlan) {
+      alert(
+        "Generate your ride plan before saving."
+      );
+      return;
+    }
+
+    localStorage.setItem(
+      "mototribeSavedRidePlan",
+      JSON.stringify(generatedPlan)
+    );
+
+    setSaved(true);
+  };
+
+  const resetPlan = () => {
+    setPlan(defaultPlan);
+    setGeneratedPlan(null);
+    setSaved(false);
+
+    localStorage.removeItem(
+      "mototribeRidePlan"
+    );
   };
 
   return (
-    <section id="ride-planner" className="ride-planner">
-      <div className="planner-container">
-        <div className="planner-heading">
+    <section
+      className="ride-planner-section"
+      id="ride-planner"
+    >
+      <div className="ride-planner-container">
+
+        {/* HEADER */}
+
+        <div className="ride-planner-header">
+
           <div>
-            <span className="planner-eyebrow">
-              <span />
-              PLAN • AI ROUTE BUILDER
+            <span className="ride-planner-eyebrow">
+              MOTOTRIBE / JOURNEY PLANNER
             </span>
 
             <h2>
-              PLAN THE RIDE.
-              <span>THEN RIDE IT.</span>
+              Plan the ride.
             </h2>
 
             <p>
-              Build your journey around the things that matter to you.
-              MotoTribe combines your preferences, route intelligence and
-              rider experience into one ride plan.
+              Build your route, estimate the journey
+              and prepare before you hit the road.
             </p>
           </div>
 
-          <div className="planner-cycle">
-            <span>01</span>
-            <div>
-              <strong>PLAN YOUR JOURNEY</strong>
-              <small>AI + MAP + TRIBE INTELLIGENCE</small>
-            </div>
+          <div className="planner-header-label">
+            ROUTE
+            <strong>PLANNING SYSTEM</strong>
           </div>
+
         </div>
 
-        <div className="planner-layout">
-          <div className="planner-form">
-            <div className="planner-form-header">
+        {/* PLANNER */}
+
+        <div className="ride-planner-workspace">
+
+          {/* INPUT PANEL */}
+
+          <div className="ride-planner-form">
+
+            <div className="planner-form-heading">
+              <span>01</span>
               <div>
-                <span>JOURNEY DETAILS</span>
-                <h3>WHERE ARE YOU RIDING?</h3>
+                <strong>ROUTE DETAILS</strong>
+                <p>
+                  Define your starting point and destination.
+                </p>
               </div>
-
-              <button type="button" onClick={resetPlanner}>
-                RESET
-              </button>
             </div>
 
-            <div className="location-fields">
-              <label className="planner-field">
-                <span>START LOCATION</span>
+            <div className="planner-fields">
 
-                <div className="input-with-icon">
-                  <i>●</i>
-
-                  <input
-                    value={start}
-                    onChange={(event) => setStart(event.target.value)}
-                    placeholder="Enter starting point"
-                  />
-                </div>
-              </label>
-
-              <div className="route-connector">
-                <span />
-                <span />
-                <span />
-              </div>
-
-              <label className="planner-field">
-                <span>DESTINATION</span>
-
-                <div className="input-with-icon">
-                  <i>◎</i>
-
-                  <input
-                    value={destination}
-                    onChange={(event) =>
-                      setDestination(event.target.value)
-                    }
-                    placeholder="Where do you want to ride?"
-                  />
-                </div>
-              </label>
-            </div>
-
-            <div className="stops-section">
-              <div className="stops-header">
-                <span>OPTIONAL STOPS</span>
-                <small>{stops.length} ADDED</small>
-              </div>
-
-              <div className="add-stop">
+              <label>
+                START LOCATION
                 <input
-                  value={newStop}
-                  onChange={(event) => setNewStop(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter") {
-                      addStop();
-                    }
-                  }}
-                  placeholder="Add a fuel stop, cafe, viewpoint..."
+                  type="text"
+                  placeholder="Example: Delhi"
+                  value={plan.start}
+                  onChange={(event) =>
+                    updateField(
+                      "start",
+                      event.target.value
+                    )
+                  }
                 />
+              </label>
 
-                <button type="button" onClick={addStop}>
-                  + ADD STOP
-                </button>
-              </div>
+              <label>
+                DESTINATION
+                <input
+                  type="text"
+                  placeholder="Example: Leh"
+                  value={plan.destination}
+                  onChange={(event) =>
+                    updateField(
+                      "destination",
+                      event.target.value
+                    )
+                  }
+                />
+              </label>
 
-              {stops.length > 0 && (
-                <div className="stop-list">
-                  {stops.map((stop, index) => (
-                    <div className="stop-item" key={`${stop}-${index}`}>
-                      <span>{String(index + 1).padStart(2, "0")}</span>
-                      <strong>{stop}</strong>
-
-                      <button
-                        type="button"
-                        onClick={() => removeStop(index)}
-                        aria-label={`Remove ${stop}`}
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="planner-fields-grid">
-              <label className="planner-field">
-                <span>RIDE DATE</span>
-
+              <label>
+                RIDE DATE
                 <input
                   type="date"
-                  value={rideDate}
-                  onChange={(event) => setRideDate(event.target.value)}
+                  value={plan.date}
+                  onChange={(event) =>
+                    updateField(
+                      "date",
+                      event.target.value
+                    )
+                  }
                 />
               </label>
 
-              <label className="planner-field">
-                <span>MOTORCYCLE</span>
+              <label>
+                DEPARTURE TIME
+                <input
+                  type="time"
+                  value={plan.time}
+                  onChange={(event) =>
+                    updateField(
+                      "time",
+                      event.target.value
+                    )
+                  }
+                />
+              </label>
 
+            </div>
+
+            <div className="planner-form-heading second">
+              <span>02</span>
+              <div>
+                <strong>RIDE PROFILE</strong>
+                <p>
+                  Choose the type of journey you want.
+                </p>
+              </div>
+            </div>
+
+            <div className="planner-fields">
+
+              <label>
+                RIDING STYLE
                 <select
-                  value={motorcycle}
-                  onChange={(event) => setMotorcycle(event.target.value)}
+                  value={plan.style}
+                  onChange={(event) =>
+                    updateField(
+                      "style",
+                      event.target.value
+                    )
+                  }
                 >
-                  {motorcycles.map((bike) => (
-                    <option key={bike} value={bike}>
-                      {bike}
-                    </option>
-                  ))}
+                  <option value="ADVENTURE">
+                    ADVENTURE
+                  </option>
+
+                  <option value="TOURING">
+                    TOURING
+                  </option>
+
+                  <option value="CRUISER">
+                    CRUISER
+                  </option>
+
+                  <option value="SPORT">
+                    SPORT
+                  </option>
                 </select>
               </label>
 
-              <label className="planner-field">
-                <span>RIDERS</span>
-
-                <div className="number-control">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setRiders((previous) => Math.max(1, previous - 1))
-                    }
-                  >
-                    −
-                  </button>
-
-                  <strong>{riders}</strong>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setRiders((previous) => Math.min(20, previous + 1))
-                    }
-                  >
-                    +
-                  </button>
-                </div>
-              </label>
-
-              <label className="planner-field">
-                <span>BUDGET</span>
-
-                <div className="input-prefix">
-                  <span>₹</span>
-
-                  <input
-                    type="number"
-                    min="0"
-                    value={budget}
-                    onChange={(event) => setBudget(event.target.value)}
-                  />
-                </div>
-              </label>
-            </div>
-
-            <div className="preference-section">
-              <div className="preference-block">
-                <span>RIDE TYPE</span>
-
-                <div className="preference-buttons">
-                  {["ADVENTURE", "TOURING", "COMMUTE", "LONG DISTANCE"].map(
-                    (type) => (
-                      <button
-                        type="button"
-                        key={type}
-                        className={rideType === type ? "active" : ""}
-                        onClick={() => setRideType(type)}
-                      >
-                        {type}
-                      </button>
+              <label>
+                DIFFICULTY
+                <select
+                  value={plan.difficulty}
+                  onChange={(event) =>
+                    updateField(
+                      "difficulty",
+                      event.target.value
                     )
-                  )}
-                </div>
-              </div>
-
-              <div className="preference-block">
-                <span>DISTANCE PREFERENCE</span>
-
-                <div className="preference-buttons">
-                  {["SHORT", "BALANCED", "LONG"].map((option) => (
-                    <button
-                      type="button"
-                      key={option}
-                      className={
-                        distancePreference === option ? "active" : ""
-                      }
-                      onClick={() => setDistancePreference(option)}
-                    >
-                      {option}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="travel-preferences">
-              <div className="travel-preference">
-                <div>
-                  <strong>ACCOMMODATION</strong>
-                  <small>Include stays in route planning</small>
-                </div>
-
-                <button
-                  type="button"
-                  className={`switch ${accommodation ? "active" : ""}`}
-                  onClick={() => setAccommodation(!accommodation)}
-                  aria-label="Toggle accommodation"
+                  }
                 >
-                  <span />
-                </button>
-              </div>
+                  <option value="EASY">
+                    EASY
+                  </option>
 
-              <div className="travel-preference">
-                <div>
-                  <strong>FOOD STOPS</strong>
-                  <small>Find rider-recommended places</small>
-                </div>
+                  <option value="INTERMEDIATE">
+                    INTERMEDIATE
+                  </option>
 
-                <button
-                  type="button"
-                  className={`switch ${foodStops ? "active" : ""}`}
-                  onClick={() => setFoodStops(!foodStops)}
-                  aria-label="Toggle food stops"
-                >
-                  <span />
-                </button>
-              </div>
-
-              <label className="mileage-input">
-                <span>BIKE MILEAGE</span>
-
-                <div>
-                  <input
-                    type="number"
-                    min="1"
-                    value={mileage}
-                    onChange={(event) => setMileage(event.target.value)}
-                  />
-
-                  <small>KM/L</small>
-                </div>
+                  <option value="ADVANCED">
+                    ADVANCED
+                  </option>
+                </select>
               </label>
+
+              <label>
+                DISTANCE
+                <input
+                  type="number"
+                  min="1"
+                  placeholder="KM"
+                  value={plan.distance}
+                  onChange={(event) =>
+                    updateField(
+                      "distance",
+                      event.target.value
+                    )
+                  }
+                />
+              </label>
+
             </div>
 
-            <div className="invite-riders">
-              <div className="invite-riders-heading">
-                <div>
-                  <span>CONNECT BEFORE YOU RIDE</span>
-                  <strong>INVITE RIDERS</strong>
-                </div>
+            <div className="planner-form-actions">
 
-                <small>{selectedRiders.length} SELECTED</small>
-              </div>
+              <button
+                className="planner-generate"
+                onClick={generatePlan}
+              >
+                GENERATE RIDE PLAN
+              </button>
 
-              <div className="invite-rider-list">
-                {riderOptions.map((rider) => (
-                  <button
-                    type="button"
-                    key={rider.id}
-                    className={`invite-rider ${
-                      selectedRiders.includes(rider.id) ? "selected" : ""
-                    }`}
-                    onClick={() => toggleRider(rider.id)}
-                  >
-                    <span className="invite-avatar">
-                      {rider.name.slice(0, 2)}
-                    </span>
+              <button
+                className="planner-reset"
+                onClick={resetPlan}
+              >
+                RESET
+              </button>
 
-                    <div>
-                      <strong>{rider.name}</strong>
-                      <small>
-                        {rider.bike} • {rider.experience}
-                      </small>
-                    </div>
-
-                    <i>
-                      {selectedRiders.includes(rider.id) ? "✓" : "+"}
-                    </i>
-                  </button>
-                ))}
-              </div>
             </div>
+
           </div>
 
-          <aside className="route-analysis">
-            <div className="analysis-heading">
-              <div>
-                <span>MOTO AI</span>
-                <h3>ROUTE<br />ANALYSIS</h3>
-              </div>
+          {/* RESULT PANEL */}
 
-              <div className="ai-symbol">✦</div>
-            </div>
+          <div className="ride-planner-result">
 
-            <div className="analysis-route-preview">
-              <div className="preview-grid" />
+            {!generatedPlan ? (
+              <div className="planner-empty">
 
-              <div className="preview-road preview-road-one" />
-              <div className="preview-road preview-road-two" />
+                <span>READY TO PLAN</span>
 
-              <div className="preview-point preview-start">
-                <span />
-                START
-              </div>
-
-              <div className="preview-point preview-stop">
-                <span />
-                STOPS
-              </div>
-
-              <div className="preview-point preview-end">
-                <span />
-                DESTINATION
-              </div>
-
-              {isAnalyzing && (
-                <div className="route-analyzing">
-                  <div />
-                  ANALYZING
+                <div className="planner-empty-mark">
+                  +
                 </div>
-              )}
 
-              <div className="preview-route-label">
-                <span>RECOMMENDED</span>
-                <strong>{selectedRoute.name}</strong>
+                <h3>
+                  Your journey
+                  starts here.
+                </h3>
+
+                <p>
+                  Enter your route details and
+                  generate a ride plan.
+                </p>
+
               </div>
-            </div>
+            ) : (
+              <div className="planner-result-content">
 
-            <div className="selected-route-summary">
-              <div>
-                <span>ROUTE SCORE</span>
-                <strong>{selectedRoute.score}<small>/100</small></strong>
-              </div>
+                <div className="result-top">
 
-              <div>
-                <span>DISTANCE</span>
-                <strong>{selectedRoute.distance}</strong>
-              </div>
-
-              <div>
-                <span>TIME</span>
-                <strong>{selectedRoute.duration}</strong>
-              </div>
-            </div>
-
-            <div className="route-characteristics">
-              <div>
-                <span>DIFFICULTY</span>
-                <strong>{selectedRoute.difficulty}</strong>
-              </div>
-
-              <div>
-                <span>TERRAIN</span>
-                <strong>{selectedRoute.terrain}</strong>
-              </div>
-
-              <div>
-                <span>FUEL EST.</span>
-                <strong>₹{estimatedFuelCost}</strong>
-              </div>
-            </div>
-
-            <div className="ai-plan-note">
-              <div>✦</div>
-
-              <p>
-                <strong>AI INSIGHT</strong>
-                <br />
-                {selectedRoute.description} Based on your {rideType.toLowerCase()}{" "}
-                preference and {distancePreference.toLowerCase()} distance
-                setting.
-              </p>
-            </div>
-
-            <div className="route-options-title">
-              <span>AVAILABLE ROUTES</span>
-              <small>{routeOptions.length} OPTIONS</small>
-            </div>
-
-            <div className="route-options">
-              {routeOptions.map((route) => (
-                <button
-                  type="button"
-                  key={route.id}
-                  className={`route-choice ${
-                    selectedRoute.id === route.id ? "active" : ""
-                  }`}
-                  onClick={() => analyzeRoute(route)}
-                >
                   <div>
-                    <span>0{route.id}</span>
-                    <strong>{route.name}</strong>
+                    <span>GENERATED ROUTE</span>
+
+                    <h3>
+                      {generatedPlan.start}
+                      <b>→</b>
+                      {generatedPlan.destination}
+                    </h3>
                   </div>
 
-                  <div className="route-choice-time">
-                    <strong>{route.duration}</strong>
-                    <small>{route.distance}</small>
+                  <span className="result-style">
+                    {generatedPlan.style}
+                  </span>
+
+                </div>
+
+                <div className="result-route-line">
+                  <span></span>
+                  <div></div>
+                  <span></span>
+                </div>
+
+                <div className="planner-result-stats">
+
+                  <div>
+                    <span>DISTANCE</span>
+                    <strong>
+                      {generatedPlan.distance}
+                      <small> KM</small>
+                    </strong>
                   </div>
+
+                  <div>
+                    <span>RIDING TIME</span>
+                    <strong>
+                      {generatedPlan.ridingHours}
+                      <small> HRS</small>
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span>FUEL</span>
+                    <strong>
+                      {generatedPlan.fuel}
+                      <small> L</small>
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span>BUDGET</span>
+                    <strong>
+                      ₹
+                      {generatedPlan.budget.toLocaleString(
+                        "en-IN"
+                      )}
+                    </strong>
+                  </div>
+
+                </div>
+
+                <div className="planner-stops">
+
+                  <div>
+                    <span>FUEL STOPS</span>
+                    <strong>
+                      {generatedPlan.fuelStops}
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span>REST STOPS</span>
+                    <strong>
+                      {generatedPlan.restStops}
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span>DEPARTURE</span>
+                    <strong>
+                      {generatedPlan.time}
+                    </strong>
+                  </div>
+
+                </div>
+
+                <div className="planner-notice">
+
+                  <span>RIDE NOTE</span>
+
+                  <p>
+                    Plan regular breaks, check weather
+                    conditions and inspect your motorcycle
+                    before departure.
+                  </p>
+
+                </div>
+
+                <button
+                  className={`planner-save ${
+                    saved ? "saved" : ""
+                  }`}
+                  onClick={savePlan}
+                >
+                  {saved
+                    ? "PLAN SAVED ✓"
+                    : "SAVE RIDE PLAN"}
                 </button>
-              ))}
-            </div>
 
-            <div className="fuel-summary">
-              <div>
-                <span>ESTIMATED FUEL</span>
-                <strong>{estimatedFuel} L</strong>
               </div>
+            )}
 
-              <div>
-                <span>MILEAGE</span>
-                <strong>{mileage} KM/L</strong>
-              </div>
-            </div>
+          </div>
 
-            <button
-              type="button"
-              className="create-ride-button"
-              onClick={createRide}
-            >
-              {planned ? "RIDE CREATED ✓" : "CREATE RIDE PLAN"}
-              <span>→</span>
-            </button>
-
-            <small className="demo-note">
-              Demo planning data • Real maps, weather and fuel data will be
-              connected through APIs.
-            </small>
-          </aside>
         </div>
 
-        <div className="planner-flow">
-          <div className="flow-item active">
-            <span>01</span>
-            <strong>PLAN</strong>
-          </div>
-
-          <div className="flow-line" />
-
-          <div className="flow-item">
-            <span>02</span>
-            <strong>CONNECT</strong>
-          </div>
-
-          <div className="flow-line" />
-
-          <div className="flow-item">
-            <span>03</span>
-            <strong>RIDE</strong>
-          </div>
-
-          <div className="flow-line" />
-
-          <div className="flow-item">
-            <span>04</span>
-            <strong>RECORD</strong>
-          </div>
-        </div>
       </div>
     </section>
   );

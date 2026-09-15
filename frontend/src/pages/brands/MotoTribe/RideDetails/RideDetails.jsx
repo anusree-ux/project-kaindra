@@ -1,134 +1,144 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import "./RideDetails.css";
 
-const demoRides = [
-  {
-    id: "ride-001",
-    title: "Araku Valley Adventure",
-    route: "Visakhapatnam → Araku Valley",
-    date: "20 Sep 2026",
-    type: "ADVENTURE",
-    difficulty: "INTERMEDIATE",
-    distance: 340,
-    duration: "2 Days",
-    budget: 4500,
-    status: "UPCOMING",
-    organizer: "Arjun",
-    capacity: 12,
-    description:
-      "A scenic motorcycle journey through mountain roads, viewpoints and forest routes.",
-    stops: [
-      "Lambasingi",
-      "Borra Caves",
-      "Araku Valley",
-    ],
-    requirements: [
-      "Valid driving license",
-      "Registered motorcycle",
-      "Helmet and riding gear",
-      "Basic emergency kit",
-    ],
-    participants: [
-      {
-        id: "r1",
-        name: "Arjun",
-        role: "ORGANIZER",
-        confirmed: true,
-      },
-      {
-        id: "r2",
-        name: "Rahul",
-        role: "RIDER",
-        confirmed: true,
-      },
-      {
-        id: "r3",
-        name: "Sneha",
-        role: "RIDER",
-        confirmed: true,
-      },
-    ],
-  },
-  {
-    id: "ride-002",
-    title: "Coastal Sunrise Ride",
-    route: "Kakinada → Yanam",
-    date: "27 Sep 2026",
-    type: "TOURING",
-    difficulty: "BEGINNER",
-    distance: 180,
-    duration: "1 Day",
-    budget: 2200,
-    status: "UPCOMING",
-    organizer: "Vikram",
-    capacity: 10,
-    description:
-      "A relaxed coastal ride focused on sunrise views, local food and community riding.",
-    stops: [
-      "Kakinada Beach",
-      "Yanam",
-      "Coringa",
-    ],
-    requirements: [
-      "Valid driving license",
-      "Helmet",
-      "Registered motorcycle",
-    ],
-    participants: [
-      {
-        id: "r4",
-        name: "Vikram",
-        role: "ORGANIZER",
-        confirmed: true,
-      },
-      {
-        id: "r5",
-        name: "Kiran",
-        role: "RIDER",
-        confirmed: true,
-      },
-    ],
-  },
-];
+import {
+  getMotoRideById,
+  getMotoRideStatus,
+  getMotoRideCountdown,
+} from "../../../../data/motoRides";
+
+import "./RideDetails.css";
 
 function RideDetails() {
   const { rideId } = useParams();
   const navigate = useNavigate();
 
   const [ride, setRide] = useState(null);
+  const [notFound, setNotFound] = useState(false);
+
+  const [now, setNow] = useState(() => new Date());
+
+  const [joinStatus, setJoinStatus] =
+    useState("NOT_JOINED");
+
   const [participants, setParticipants] = useState([]);
-  const [joinStatus, setJoinStatus] = useState("NOT_JOINED");
-  const [requests, setRequests] = useState([]);
-  const [message, setMessage] = useState("");
+  const [joinRequests, setJoinRequests] = useState([]);
+
+  // --------------------------------------------------
+  // UPDATE CLOCK
+  // --------------------------------------------------
 
   useEffect(() => {
-    const selectedRide = demoRides.find((item) => item.id === rideId);
+    const timer = setInterval(() => {
+      setNow(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  // --------------------------------------------------
+  // LOAD RIDE
+  // --------------------------------------------------
+
+  useEffect(() => {
+    const selectedRide = getMotoRideById(rideId);
 
     if (!selectedRide) {
+      setNotFound(true);
+      setRide(null);
       return;
     }
 
     setRide(selectedRide);
+    setNotFound(false);
+
+    // ----------------------------------------------
+    // LOAD PARTICIPANTS
+    // ----------------------------------------------
 
     const savedParticipants = localStorage.getItem(
       `mototribeParticipants_${rideId}`
     );
 
+    if (savedParticipants) {
+      try {
+        setParticipants(
+          JSON.parse(savedParticipants)
+        );
+      } catch {
+        setParticipants(
+          selectedRide.participants || []
+        );
+      }
+    } else {
+      setParticipants(
+        selectedRide.participants || []
+      );
+    }
+
+    // ----------------------------------------------
+    // LOAD REQUESTS
+    // ----------------------------------------------
+
     const savedRequests = localStorage.getItem(
       `mototribeRequests_${rideId}`
     );
 
-    if (savedParticipants) {
-      setParticipants(JSON.parse(savedParticipants));
+    if (savedRequests) {
+      try {
+        setJoinRequests(
+          JSON.parse(savedRequests)
+        );
+      } catch {
+        setJoinRequests([]);
+      }
     } else {
-      setParticipants(selectedRide.participants);
+      setJoinRequests([]);
     }
 
-    if (savedRequests) {
-      setRequests(JSON.parse(savedRequests));
+    // ----------------------------------------------
+    // LOAD GLOBAL JOIN / REQUEST STATE
+    // ----------------------------------------------
+
+    const savedJoinedRides = localStorage.getItem(
+      "mototribeJoinedRides"
+    );
+
+    const savedRequestedRides = localStorage.getItem(
+      "mototribeRequestedRides"
+    );
+
+    let joinedIds = [];
+    let requestedIds = [];
+
+    try {
+      joinedIds = savedJoinedRides
+        ? JSON.parse(savedJoinedRides)
+        : [];
+    } catch {
+      joinedIds = [];
+    }
+
+    try {
+      requestedIds = savedRequestedRides
+        ? JSON.parse(savedRequestedRides)
+        : [];
+    } catch {
+      requestedIds = [];
+    }
+
+    if (joinedIds.includes(rideId)) {
+      setJoinStatus("JOINED");
+    } else if (requestedIds.includes(rideId)) {
+      setJoinStatus("REQUESTED");
+    } else {
+      setJoinStatus("NOT_JOINED");
     }
   }, [rideId]);
+
+  // --------------------------------------------------
+  // SAVE PARTICIPANTS
+  // --------------------------------------------------
 
   const saveParticipants = (updatedParticipants) => {
     setParticipants(updatedParticipants);
@@ -139,8 +149,12 @@ function RideDetails() {
     );
   };
 
+  // --------------------------------------------------
+  // SAVE REQUESTS
+  // --------------------------------------------------
+
   const saveRequests = (updatedRequests) => {
-    setRequests(updatedRequests);
+    setJoinRequests(updatedRequests);
 
     localStorage.setItem(
       `mototribeRequests_${rideId}`,
@@ -148,506 +162,1162 @@ function RideDetails() {
     );
   };
 
+  // --------------------------------------------------
+  // JOIN RIDE
+  // --------------------------------------------------
+
   const handleJoinRide = () => {
     if (!ride) return;
 
-    if (participants.length >= ride.capacity) {
-      setMessage("This ride is currently full.");
+    if (joinStatus === "JOINED") {
       return;
     }
 
-    const currentRider = {
-      id: "current-user",
-      name: "You",
-      role: "RIDER",
-      confirmed: true,
-    };
-
-    const alreadyJoined = participants.some(
-      (participant) => participant.id === "current-user"
+    const existingParticipant = participants.some(
+      (participant) =>
+        participant.id === "current-user"
     );
 
-    if (alreadyJoined) {
-      setJoinStatus("JOINED");
-      setMessage("You are already part of this ride.");
-      return;
+    let updatedParticipants = participants;
+
+    if (!existingParticipant) {
+      const currentUser = {
+        id: "current-user",
+        name: "You",
+        role: "RIDER",
+        confirmed: true,
+      };
+
+      updatedParticipants = [
+        ...participants,
+        currentUser,
+      ];
+
+      saveParticipants(updatedParticipants);
     }
 
-    const updatedParticipants = [
-      ...participants,
-      currentRider,
-    ];
+    // ----------------------------------------------
+    // GLOBAL JOIN STATE
+    // ----------------------------------------------
 
-    saveParticipants(updatedParticipants);
+    let joinedIds = [];
 
-    setJoinStatus("JOINED");
-    setMessage("You successfully joined the ride.");
-  };
-
-  const handleRequestJoin = () => {
-    const alreadyRequested = requests.some(
-      (request) => request.id === "current-user"
-    );
-
-    if (alreadyRequested) {
-      setJoinStatus("REQUESTED");
-      setMessage("Your join request is already pending.");
-      return;
+    try {
+      joinedIds = JSON.parse(
+        localStorage.getItem(
+          "mototribeJoinedRides"
+        ) || "[]"
+      );
+    } catch {
+      joinedIds = [];
     }
 
-    const request = {
-      id: "current-user",
-      name: "You",
-      requestedAt: new Date().toLocaleString(),
-    };
-
-    const updatedRequests = [...requests, request];
-
-    saveRequests(updatedRequests);
-
-    setJoinStatus("REQUESTED");
-    setMessage("Join request sent to the organizer.");
-  };
-
-  const handleLeaveRide = () => {
-    const updatedParticipants = participants.filter(
-      (participant) => participant.id !== "current-user"
-    );
-
-    saveParticipants(updatedParticipants);
-
-    setJoinStatus("NOT_JOINED");
-    setMessage("You left this ride.");
-  };
-
-  const handleConfirmRequest = (request) => {
-    if (participants.length >= ride.capacity) {
-      setMessage("Ride capacity is full.");
-      return;
+    if (!joinedIds.includes(rideId)) {
+      joinedIds.push(rideId);
     }
-
-    const newParticipant = {
-      id: request.id,
-      name: request.name,
-      role: "RIDER",
-      confirmed: true,
-    };
-
-    saveParticipants([...participants, newParticipant]);
-
-    const updatedRequests = requests.filter(
-      (item) => item.id !== request.id
-    );
-
-    saveRequests(updatedRequests);
-
-    setMessage(`${request.name} has been added to the ride.`);
-  };
-
-  const updateRideStatus = (status) => {
-    const updatedRide = {
-      ...ride,
-      status,
-    };
-
-    setRide(updatedRide);
 
     localStorage.setItem(
-      `mototribeRide_${rideId}`,
-      JSON.stringify(updatedRide)
+      "mototribeJoinedRides",
+      JSON.stringify(joinedIds)
     );
 
-    setMessage(`Ride status changed to ${status}.`);
+    // ----------------------------------------------
+    // REMOVE REQUEST STATE
+    // ----------------------------------------------
+
+    let requestedIds = [];
+
+    try {
+      requestedIds = JSON.parse(
+        localStorage.getItem(
+          "mototribeRequestedRides"
+        ) || "[]"
+      );
+    } catch {
+      requestedIds = [];
+    }
+
+    requestedIds = requestedIds.filter(
+      (id) => id !== rideId
+    );
+
+    localStorage.setItem(
+      "mototribeRequestedRides",
+      JSON.stringify(requestedIds)
+    );
+
+    setJoinStatus("JOINED");
   };
 
-  if (!ride) {
+  // --------------------------------------------------
+  // REQUEST TO JOIN
+  // --------------------------------------------------
+
+  const handleRequestJoin = () => {
+    if (!ride) return;
+
+    if (
+      joinStatus === "JOINED" ||
+      joinStatus === "REQUESTED"
+    ) {
+      return;
+    }
+
+    const existingRequest = joinRequests.some(
+      (request) =>
+        request.id === "current-user-request"
+    );
+
+    let updatedRequests = joinRequests;
+
+    if (!existingRequest) {
+      const currentRequest = {
+        id: "current-user-request",
+        name: "You",
+        status: "PENDING",
+      };
+
+      updatedRequests = [
+        ...joinRequests,
+        currentRequest,
+      ];
+
+      saveRequests(updatedRequests);
+    }
+
+    // ----------------------------------------------
+    // GLOBAL REQUEST STATE
+    // ----------------------------------------------
+
+    let requestedIds = [];
+
+    try {
+      requestedIds = JSON.parse(
+        localStorage.getItem(
+          "mototribeRequestedRides"
+        ) || "[]"
+      );
+    } catch {
+      requestedIds = [];
+    }
+
+    if (!requestedIds.includes(rideId)) {
+      requestedIds.push(rideId);
+    }
+
+    localStorage.setItem(
+      "mototribeRequestedRides",
+      JSON.stringify(requestedIds)
+    );
+
+    setJoinStatus("REQUESTED");
+  };
+
+  // --------------------------------------------------
+  // LEAVE RIDE
+  // --------------------------------------------------
+
+  const handleLeaveRide = () => {
+    if (!ride) return;
+
+    const updatedParticipants =
+      participants.filter(
+        (participant) =>
+          participant.id !== "current-user"
+      );
+
+    saveParticipants(updatedParticipants);
+
+    // ----------------------------------------------
+    // REMOVE FROM GLOBAL JOINED RIDES
+    // ----------------------------------------------
+
+    let joinedIds = [];
+
+    try {
+      joinedIds = JSON.parse(
+        localStorage.getItem(
+          "mototribeJoinedRides"
+        ) || "[]"
+      );
+    } catch {
+      joinedIds = [];
+    }
+
+    joinedIds = joinedIds.filter(
+      (id) => id !== rideId
+    );
+
+    localStorage.setItem(
+      "mototribeJoinedRides",
+      JSON.stringify(joinedIds)
+    );
+
+    setJoinStatus("NOT_JOINED");
+  };
+
+  // --------------------------------------------------
+  // CONFIRM REQUEST
+  // --------------------------------------------------
+
+  const handleConfirmRequest = (requestId) => {
+    const request = joinRequests.find(
+      (item) => item.id === requestId
+    );
+
+    if (!request) return;
+
+    const updatedRequests =
+      joinRequests.map((item) =>
+        item.id === requestId
+          ? {
+              ...item,
+              status: "APPROVED",
+            }
+          : item
+      );
+
+    saveRequests(updatedRequests);
+  };
+
+  // --------------------------------------------------
+  // BACK
+  // --------------------------------------------------
+
+  const handleBack = () => {
+    navigate("/businesses/mototribe");
+  };
+
+  // --------------------------------------------------
+  // OPEN EXPENSES
+  // --------------------------------------------------
+
+  const handleOpenExpenses = () => {
+    navigate(
+      `/businesses/mototribe/ride/${rideId}/expenses`
+    );
+  };
+
+  // --------------------------------------------------
+  // NOT FOUND
+  // --------------------------------------------------
+
+  if (notFound) {
     return (
       <section className="ride-details-page">
-        <div className="ride-not-found">
-          <h2>Ride Not Found</h2>
-          <button onClick={() => navigate("/businesses/mototribe")}>
+
+        <div className="ride-details-not-found">
+
+          <span>404 / RIDE NOT FOUND</span>
+
+          <h1>
+            THIS RIDE DOES NOT EXIST
+          </h1>
+
+          <p>
+            The requested MotoTribe ride could not
+            be found.
+          </p>
+
+          <button
+            type="button"
+            onClick={handleBack}
+          >
             BACK TO MOTOTRIBE
           </button>
+
         </div>
+
       </section>
     );
   }
 
-  const isOrganizer = ride.organizer === "You";
+  if (!ride) {
+    return (
+      <section className="ride-details-page">
 
-  const progress =
-    (participants.length / ride.capacity) * 100;
+        <div className="ride-details-loading">
+          LOADING RIDE...
+        </div>
+
+      </section>
+    );
+  }
+
+  // --------------------------------------------------
+  // RIDE STATUS
+  // --------------------------------------------------
+
+  const rideStatus = getMotoRideStatus(
+    ride,
+    now
+  );
+
+  const countdown = getMotoRideCountdown(
+    ride,
+    now
+  );
+
+  // --------------------------------------------------
+  // PARTICIPANT COUNT
+  // --------------------------------------------------
+
+  const participantCount =
+    participants.length;
+
+  const capacityPercentage =
+    ride.maxRiders > 0
+      ? Math.min(
+          (participantCount /
+            ride.maxRiders) *
+            100,
+          100
+        )
+      : 0;
+
+  // --------------------------------------------------
+  // FORMAT DATE
+  // --------------------------------------------------
+
+  const formattedDate = new Date(
+    `${ride.date}T00:00:00`
+  ).toLocaleDateString("en-IN", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
 
   return (
     <section className="ride-details-page">
+
+      {/* ========================================== */}
+      {/* HEADER */}
+      {/* ========================================== */}
+
       <div className="ride-details-container">
 
         <button
-          className="ride-back-btn"
-          onClick={() => navigate(-1)}
+          type="button"
+          className="ride-details-back"
+          onClick={handleBack}
         >
-          ← BACK
+          ← BACK TO RIDES
         </button>
 
-        <div className="ride-details-hero">
+        {/* ======================================== */}
+        {/* HERO */}
+        {/* ======================================== */}
 
-          <div>
-            <span className="ride-type">
-              {ride.type}
-            </span>
+        <header className="ride-details-hero">
 
-            <h1>{ride.title}</h1>
+          <div className="ride-details-hero-content">
 
-            <p className="ride-route">
-              {ride.route}
-            </p>
+            <div className="ride-details-tags">
 
-            <p className="ride-description">
+              <span>
+                {ride.type}
+              </span>
+
+              <span>
+                {ride.difficulty}
+              </span>
+
+              <span
+                className={`ride-details-status status-${rideStatus.toLowerCase()}`}
+              >
+                {rideStatus}
+              </span>
+
+            </div>
+
+            <h1>{ride.name}</h1>
+
+            <p className="ride-details-description">
               {ride.description}
             </p>
+
+            <div className="ride-details-organizer">
+
+              <span>
+                ORGANIZED BY
+              </span>
+
+              <strong>
+                {ride.organizer}
+              </strong>
+
+              <small>
+                {ride.organizerType}
+              </small>
+
+            </div>
+
           </div>
 
-          <div className="ride-status-card">
-            <span>RIDE STATUS</span>
-            <strong>{ride.status}</strong>
-          </div>
+        </header>
 
-        </div>
+        {/* ======================================== */}
+        {/* COUNTDOWN */}
+        {/* ======================================== */}
 
-        <div className="ride-info-grid">
-
-          <div className="ride-info-box">
-            <span>DATE</span>
-            <strong>{ride.date}</strong>
-          </div>
-
-          <div className="ride-info-box">
-            <span>DISTANCE</span>
-            <strong>{ride.distance} KM</strong>
-          </div>
-
-          <div className="ride-info-box">
-            <span>DURATION</span>
-            <strong>{ride.duration}</strong>
-          </div>
-
-          <div className="ride-info-box">
-            <span>BUDGET</span>
-            <strong>₹{ride.budget}</strong>
-          </div>
-
-          <div className="ride-info-box">
-            <span>DIFFICULTY</span>
-            <strong>{ride.difficulty}</strong>
-          </div>
-
-          <div className="ride-info-box">
-            <span>ORGANIZER</span>
-            <strong>{ride.organizer}</strong>
-          </div>
-
-        </div>
-
-        <div className="ride-action-panel">
+        <div className="ride-details-countdown-section">
 
           <div>
-            <span className="panel-label">
-              YOUR PARTICIPATION
+
+            <span>
+              DEPARTURE
             </span>
 
-            <h3>
-              {joinStatus === "JOINED"
-                ? "YOU ARE JOINED"
-                : joinStatus === "REQUESTED"
-                ? "REQUEST PENDING"
-                : "JOIN THIS RIDE"}
-            </h3>
+            <strong>
+              {formattedDate}
+            </strong>
 
-            {message && (
-              <p className="ride-message">
-                {message}
-              </p>
-            )}
+            <small>
+              {ride.time}
+            </small>
+
           </div>
 
-          <div className="ride-actions">
+          <div className="ride-details-countdown">
 
-            {joinStatus === "NOT_JOINED" && (
+            {rideStatus === "LIVE" ? (
+              <div className="ride-live-indicator">
+                ● LIVE NOW
+              </div>
+            ) : rideStatus ===
+              "COMPLETED" ? (
+              <div className="ride-completed-indicator">
+                RIDE COMPLETED
+              </div>
+            ) : countdown.expired ? (
+              <div>
+                STARTING
+              </div>
+            ) : (
               <>
+                <div>
+                  <strong>
+                    {String(
+                      countdown.days
+                    ).padStart(2, "0")}
+                  </strong>
+                  <span>DAYS</span>
+                </div>
+
+                <div>
+                  <strong>
+                    {String(
+                      countdown.hours
+                    ).padStart(2, "0")}
+                  </strong>
+                  <span>HRS</span>
+                </div>
+
+                <div>
+                  <strong>
+                    {String(
+                      countdown.minutes
+                    ).padStart(2, "0")}
+                  </strong>
+                  <span>MIN</span>
+                </div>
+
+                <div>
+                  <strong>
+                    {String(
+                      countdown.seconds
+                    ).padStart(2, "0")}
+                  </strong>
+                  <span>SEC</span>
+                </div>
+              </>
+            )}
+
+          </div>
+
+        </div>
+
+        {/* ======================================== */}
+        {/* RIDE INFORMATION */}
+        {/* ======================================== */}
+
+        <div className="ride-details-grid">
+
+          <div className="ride-details-main">
+
+            {/* ------------------------------------ */}
+            {/* ROUTE */}
+            {/* ------------------------------------ */}
+
+            <section className="ride-info-card">
+
+              <div className="ride-info-card-heading">
+                <span>01</span>
+                <h2>JOURNEY ROUTE</h2>
+              </div>
+
+              <div className="ride-route-main">
+
+                <div className="ride-route-location">
+
+                  <span className="ride-route-marker">
+                    A
+                  </span>
+
+                  <div>
+                    <small>
+                      START
+                    </small>
+
+                    <strong>
+                      {ride.start}
+                    </strong>
+                  </div>
+
+                </div>
+
+                <div className="ride-route-arrow">
+                  ↓
+                </div>
+
+                <div className="ride-route-location">
+
+                  <span className="ride-route-marker">
+                    B
+                  </span>
+
+                  <div>
+                    <small>
+                      DESTINATION
+                    </small>
+
+                    <strong>
+                      {ride.destination}
+                    </strong>
+                  </div>
+
+                </div>
+
+              </div>
+
+              <div className="ride-route-full">
+
+                <span>
+                  FULL ROUTE
+                </span>
+
+                <p>
+                  {ride.route}
+                </p>
+
+              </div>
+
+              <div className="ride-route-stops">
+
+                <span>
+                  PLANNED STOPS
+                </span>
+
+                <div>
+
+                  {ride.stops.map(
+                    (stop, index) => (
+                      <span key={stop}>
+                        <b>
+                          {String(
+                            index + 1
+                          ).padStart(
+                            2,
+                            "0"
+                          )}
+                        </b>
+                        {stop}
+                      </span>
+                    )
+                  )}
+
+                </div>
+
+              </div>
+
+            </section>
+
+            {/* ------------------------------------ */}
+            {/* JOURNEY INTELLIGENCE */}
+            {/* ------------------------------------ */}
+
+            <section className="ride-info-card">
+
+              <div className="ride-info-card-heading">
+                <span>02</span>
+                <h2>
+                  JOURNEY INTELLIGENCE
+                </h2>
+              </div>
+
+              <div className="journey-intelligence-grid">
+
+                <div>
+                  <strong>
+                    {
+                      ride
+                        .journeyIntelligence
+                        .fuelStops
+                    }
+                  </strong>
+
+                  <span>
+                    FUEL STOPS
+                  </span>
+                </div>
+
+                <div>
+                  <strong>
+                    {
+                      ride
+                        .journeyIntelligence
+                        .restStops
+                    }
+                  </strong>
+
+                  <span>
+                    REST STOPS
+                  </span>
+                </div>
+
+                <div>
+                  <strong>
+                    {
+                      ride
+                        .journeyIntelligence
+                        .serviceStops
+                    }
+                  </strong>
+
+                  <span>
+                    SERVICE STOPS
+                  </span>
+                </div>
+
+                <div>
+                  <strong>
+                    {
+                      ride
+                        .journeyIntelligence
+                        .accommodationStops
+                    }
+                  </strong>
+
+                  <span>
+                    ACCOMMODATION
+                  </span>
+                </div>
+
+                <div>
+                  <strong>
+                    {
+                      ride
+                        .journeyIntelligence
+                        .scenicStops
+                    }
+                  </strong>
+
+                  <span>
+                    SCENIC STOPS
+                  </span>
+                </div>
+
+              </div>
+
+            </section>
+
+            {/* ------------------------------------ */}
+            {/* REQUIREMENTS */}
+            {/* ------------------------------------ */}
+
+            <section className="ride-info-card">
+
+              <div className="ride-info-card-heading">
+                <span>03</span>
+                <h2>
+                  RIDE REQUIREMENTS
+                </h2>
+              </div>
+
+              <ul className="ride-requirements-list">
+
+                {ride.requirements.map(
+                  (requirement) => (
+                    <li key={requirement}>
+                      <span>✓</span>
+                      {requirement}
+                    </li>
+                  )
+                )}
+
+              </ul>
+
+            </section>
+
+            {/* ------------------------------------ */}
+            {/* VEHICLE */}
+            {/* ------------------------------------ */}
+
+            <section className="ride-info-card">
+
+              <div className="ride-info-card-heading">
+                <span>04</span>
+                <h2>
+                  VEHICLE INFORMATION
+                </h2>
+              </div>
+
+              <div className="vehicle-details">
+
+                <div>
+                  <span>
+                    MOTORCYCLE
+                  </span>
+
+                  <strong>
+                    {ride.vehicle.name}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>
+                    FUEL TYPE
+                  </span>
+
+                  <strong>
+                    {ride.vehicle.fuelType}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>
+                    EXPECTED MILEAGE
+                  </span>
+
+                  <strong>
+                    {ride.vehicle.mileage} KM/L
+                  </strong>
+                </div>
+
+              </div>
+
+            </section>
+
+            {/* ------------------------------------ */}
+            {/* SAFETY */}
+            {/* ------------------------------------ */}
+
+            <section className="ride-info-card safety-card">
+
+              <div className="ride-info-card-heading">
+                <span>05</span>
+                <h2>
+                  SAFETY INFORMATION
+                </h2>
+              </div>
+
+              <p>
+                {ride.safety}
+              </p>
+
+            </section>
+
+            {/* ------------------------------------ */}
+            {/* PARTICIPANTS */}
+            {/* ------------------------------------ */}
+
+            <section className="ride-info-card">
+
+              <div className="ride-info-card-heading">
+
+                <span>06</span>
+
+                <h2>
+                  RIDERS
+                </h2>
+
+                <strong className="rider-count-label">
+                  {participantCount} /{" "}
+                  {ride.maxRiders}
+                </strong>
+
+              </div>
+
+              <div className="riders-capacity">
+
+                <div className="capacity-bar">
+
+                  <div
+                    className="capacity-fill"
+                    style={{
+                      width: `${capacityPercentage}%`,
+                    }}
+                  />
+
+                </div>
+
+              </div>
+
+              <div className="riders-list">
+
+                {participants.map(
+                  (participant) => (
+                    <div
+                      key={participant.id}
+                      className="rider-item"
+                    >
+
+                      <div className="rider-avatar">
+                        {participant.name
+                          .charAt(0)
+                          .toUpperCase()}
+                      </div>
+
+                      <div>
+                        <strong>
+                          {participant.name}
+                        </strong>
+
+                        <span>
+                          {participant.role}
+                        </span>
+                      </div>
+
+                      {participant.confirmed && (
+                        <span className="rider-confirmed">
+                          ✓
+                        </span>
+                      )}
+
+                    </div>
+                  )
+                )}
+
+              </div>
+
+            </section>
+
+            {/* ------------------------------------ */}
+            {/* JOIN REQUESTS */}
+            {/* ------------------------------------ */}
+
+            {joinRequests.length > 0 && (
+              <section className="ride-info-card">
+
+                <div className="ride-info-card-heading">
+
+                  <span>07</span>
+
+                  <h2>
+                    JOIN REQUESTS
+                  </h2>
+
+                </div>
+
+                <div className="join-requests-list">
+
+                  {joinRequests.map(
+                    (request) => (
+                      <div
+                        key={request.id}
+                        className="join-request-item"
+                      >
+
+                        <div>
+
+                          <strong>
+                            {request.name}
+                          </strong>
+
+                          <span>
+                            {request.status}
+                          </span>
+
+                        </div>
+
+                        {request.status ===
+                          "PENDING" && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleConfirmRequest(
+                                request.id
+                              )
+                            }
+                          >
+                            APPROVE
+                          </button>
+                        )}
+
+                      </div>
+                    )
+                  )}
+
+                </div>
+
+              </section>
+            )}
+
+          </div>
+
+          {/* ======================================== */}
+          {/* SIDEBAR */}
+          {/* ======================================== */}
+
+          <aside className="ride-details-sidebar">
+
+            {/* ------------------------------------ */}
+            {/* QUICK STATS */}
+            {/* ------------------------------------ */}
+
+            <div className="ride-sidebar-card">
+
+              <span className="sidebar-label">
+                RIDE OVERVIEW
+              </span>
+
+              <div className="sidebar-stats">
+
+                <div>
+                  <span>
+                    DISTANCE
+                  </span>
+
+                  <strong>
+                    {ride.distanceLabel}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>
+                    DURATION
+                  </span>
+
+                  <strong>
+                    {ride.duration}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>
+                    EST. BUDGET
+                  </span>
+
+                  <strong>
+                    ₹
+                    {ride.budget.toLocaleString(
+                      "en-IN"
+                    )}
+                  </strong>
+                </div>
+
+              </div>
+
+            </div>
+
+            {/* ------------------------------------ */}
+            {/* JOIN ACTION */}
+            {/* ------------------------------------ */}
+
+            <div className="ride-sidebar-card ride-action-card">
+
+              <span className="sidebar-label">
+                YOUR RIDE STATUS
+              </span>
+
+              {joinStatus === "JOINED" && (
+                <div className="current-ride-status joined">
+                  <strong>
+                    ✓ YOU ARE JOINED
+                  </strong>
+
+                  <p>
+                    You are confirmed as a rider
+                    for this journey.
+                  </p>
+                </div>
+              )}
+
+              {joinStatus === "REQUESTED" && (
+                <div className="current-ride-status requested">
+                  <strong>
+                    ◷ REQUEST PENDING
+                  </strong>
+
+                  <p>
+                    Your request has been submitted
+                    and is waiting for approval.
+                  </p>
+                </div>
+              )}
+
+              {joinStatus === "NOT_JOINED" && (
+                <div className="current-ride-status">
+                  <strong>
+                    NOT JOINED
+                  </strong>
+
+                  <p>
+                    Join this journey to become part
+                    of the riding group.
+                  </p>
+                </div>
+              )}
+
+              {/* -------------------------------- */}
+              {/* ACTION BUTTONS */}
+              {/* -------------------------------- */}
+
+              {joinStatus === "JOINED" ? (
+                <>
+                  <button
+                    type="button"
+                    className="ride-primary-action"
+                    onClick={() =>
+                      navigate(
+                        `/businesses/mototribe/ride/${rideId}`
+                      )
+                    }
+                  >
+                    RIDE DASHBOARD
+                  </button>
+
+                  <button
+                    type="button"
+                    className="ride-secondary-action"
+                    onClick={
+                      handleOpenExpenses
+                    }
+                  >
+                    MANAGE EXPENSES
+                  </button>
+
+                  <button
+                    type="button"
+                    className="ride-danger-action"
+                    onClick={handleLeaveRide}
+                  >
+                    LEAVE RIDE
+                  </button>
+                </>
+              ) : joinStatus ===
+                "REQUESTED" ? (
                 <button
-                  className="primary-ride-btn"
+                  type="button"
+                  className="ride-primary-action disabled"
+                  disabled
+                >
+                  REQUEST PENDING
+                </button>
+              ) : ride.requestRequired ? (
+                <button
+                  type="button"
+                  className="ride-primary-action"
+                  onClick={
+                    handleRequestJoin
+                  }
+                >
+                  REQUEST TO JOIN
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="ride-primary-action"
                   onClick={handleJoinRide}
                 >
                   JOIN RIDE
                 </button>
+              )}
+
+            </div>
+
+            {/* ------------------------------------ */}
+            {/* LIVE RIDE */}
+            {/* ------------------------------------ */}
+
+            {rideStatus === "LIVE" && (
+              <div className="ride-sidebar-card live-ride-card">
+
+                <span className="sidebar-label">
+                  LIVE JOURNEY
+                </span>
+
+                <h3>
+                  THIS RIDE IS LIVE
+                </h3>
+
+                <p>
+                  Follow the live journey and stay
+                  connected with your riding group.
+                </p>
 
                 <button
-                  className="secondary-ride-btn"
-                  onClick={handleRequestJoin}
+                  type="button"
+                  onClick={() =>
+                    navigate(
+                      `/businesses/mototribe/ride/${rideId}`
+                    )
+                  }
                 >
-                  REQUEST TO JOIN
+                  ENTER LIVE RIDE
                 </button>
-              </>
+
+              </div>
             )}
 
-            {joinStatus === "JOINED" && (
-              <button
-                className="secondary-ride-btn"
-                onClick={handleLeaveRide}
-              >
-                LEAVE RIDE
-              </button>
-            )}
+            {/* ------------------------------------ */}
+            {/* SOURCE */}
+            {/* ------------------------------------ */}
 
-            {joinStatus === "REQUESTED" && (
-              <button
-                className="secondary-ride-btn"
-                disabled
-              >
-                REQUEST PENDING
-              </button>
-            )}
+            <div className="ride-sidebar-source">
 
-          </div>
-        </div>
+              <span>
+                DATA SOURCE
+              </span>
 
-        <div className="ride-content-grid">
-
-          <div className="ride-main-column">
-
-            <div className="ride-section">
-              <div className="section-heading">
-                <span>01</span>
-                <h2>ROUTE & STOPS</h2>
-              </div>
-
-              <div className="route-line">
-                <div className="route-point start">
-                  <span></span>
-                  <div>
-                    <small>START</small>
-                    <strong>
-                      {ride.route.split(" → ")[0]}
-                    </strong>
-                  </div>
-                </div>
-
-                {ride.stops.map((stop, index) => (
-                  <div
-                    className="route-point"
-                    key={stop}
-                  >
-                    <span></span>
-
-                    <div>
-                      <small>STOP {index + 1}</small>
-                      <strong>{stop}</strong>
-                    </div>
-                  </div>
-                ))}
-
-                <div className="route-point destination">
-                  <span></span>
-
-                  <div>
-                    <small>DESTINATION</small>
-                    <strong>
-                      {ride.route.split(" → ")[1]}
-                    </strong>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="ride-section">
-
-              <div className="section-heading">
-                <span>02</span>
-                <h2>RIDE REQUIREMENTS</h2>
-              </div>
-
-              <div className="requirements-list">
-                {ride.requirements.map((requirement) => (
-                  <div
-                    className="requirement"
-                    key={requirement}
-                  >
-                    <span>✓</span>
-                    {requirement}
-                  </div>
-                ))}
-              </div>
+              <strong>
+                {ride.source}
+              </strong>
 
             </div>
-
-          </div>
-
-          <aside className="ride-side-column">
-
-            <div className="ride-section participants-section">
-
-              <div className="section-heading">
-                <span>03</span>
-                <h2>RIDERS</h2>
-              </div>
-
-              <div className="capacity-info">
-                <div>
-                  <strong>
-                    {participants.length}
-                  </strong>
-                  <span>
-                    / {ride.capacity} RIDERS
-                  </span>
-                </div>
-
-                <span>
-                  {Math.round(progress)}%
-                </span>
-              </div>
-
-              <div className="capacity-bar">
-                <div
-                  style={{
-                    width: `${Math.min(progress, 100)}%`,
-                  }}
-                ></div>
-              </div>
-
-              <div className="participants-list">
-
-                {participants.map((participant) => (
-                  <div
-                    className="participant"
-                    key={participant.id}
-                  >
-                    <div className="participant-avatar">
-                      {participant.name
-                        .charAt(0)
-                        .toUpperCase()}
-                    </div>
-
-                    <div>
-                      <strong>
-                        {participant.name}
-                      </strong>
-
-                      <span>
-                        {participant.role}
-                      </span>
-                    </div>
-
-                    {participant.confirmed && (
-                      <span className="confirmed">
-                        ✓
-                      </span>
-                    )}
-                  </div>
-                ))}
-
-              </div>
-
-            </div>
-
-            {isOrganizer && requests.length > 0 && (
-              <div className="ride-section">
-
-                <div className="section-heading">
-                  <span>04</span>
-                  <h2>JOIN REQUESTS</h2>
-                </div>
-
-                {requests.map((request) => (
-                  <div
-                    className="join-request"
-                    key={request.id}
-                  >
-                    <div>
-                      <strong>{request.name}</strong>
-                      <small>{request.requestedAt}</small>
-                    </div>
-
-                    <button
-                      onClick={() =>
-                        handleConfirmRequest(request)
-                      }
-                    >
-                      CONFIRM
-                    </button>
-                  </div>
-                ))}
-
-              </div>
-            )}
 
           </aside>
 
         </div>
 
-        <div className="organizer-panel">
+        {/* ======================================== */}
+        {/* FOOTER */}
+        {/* ======================================== */}
+
+        <footer className="ride-details-footer">
 
           <div>
-            <span>ORGANIZER CONTROLS</span>
-            <h2>RIDE LIFECYCLE</h2>
+            <span>
+              MOTOTRIBE
+            </span>
+
+            <strong>
+              RIDE BEYOND THE ORDINARY.
+            </strong>
           </div>
 
-          <div className="lifecycle-buttons">
+          <button
+            type="button"
+            onClick={handleBack}
+          >
+            BACK TO UPCOMING RIDES ↑
+          </button>
 
-            <button
-              className={ride.status === "UPCOMING" ? "selected" : ""}
-              onClick={() =>
-                updateRideStatus("UPCOMING")
-              }
-            >
-              UPCOMING
-            </button>
-
-            <button
-              className={ride.status === "STARTING" ? "selected" : ""}
-              onClick={() =>
-                updateRideStatus("STARTING")
-              }
-            >
-              STARTING
-            </button>
-
-            <button
-              className={ride.status === "LIVE" ? "selected" : ""}
-              onClick={() =>
-                updateRideStatus("LIVE")
-              }
-            >
-              START RIDE
-            </button>
-
-            <button
-              className={ride.status === "COMPLETED" ? "selected" : ""}
-              onClick={() =>
-                updateRideStatus("COMPLETED")
-              }
-            >
-              COMPLETE
-            </button>
-
-            <button
-              className={ride.status === "CANCELLED" ? "selected danger" : "danger"}
-              onClick={() =>
-                updateRideStatus("CANCELLED")
-              }
-            >
-              CANCEL
-            </button>
-
-          </div>
-
-          <p>
-            Demo organizer controls — backend authorization
-            will be connected later.
-          </p>
-
-        </div>
+        </footer>
 
       </div>
+
     </section>
   );
 }

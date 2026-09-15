@@ -1,267 +1,399 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./RideAssistant.css";
 
+const assistantOptions = [
+  {
+    id: "route",
+    number: "01",
+    title: "ROUTE ASSIST",
+    shortTitle: "Route",
+    icon: "↗",
+    description:
+      "Get quick guidance for planning and managing your riding route.",
+    tips: [
+      "Check the route before starting your ride.",
+      "Identify fuel and rest stops in advance.",
+      "Keep an alternate route available for unexpected road conditions.",
+      "Share your planned route with a trusted contact.",
+    ],
+  },
+  {
+    id: "fuel",
+    number: "02",
+    title: "FUEL CHECK",
+    shortTitle: "Fuel",
+    icon: "◉",
+    description:
+      "Keep your motorcycle ready by planning fuel stops before the journey.",
+    tips: [
+      "Refuel before entering long remote sections.",
+      "Do not rely on the last available fuel station.",
+      "Monitor your motorcycle's average mileage.",
+      "Keep enough fuel reserve for unexpected detours.",
+    ],
+  },
+  {
+    id: "service",
+    number: "03",
+    title: "SERVICE HELP",
+    shortTitle: "Service",
+    icon: "⚙",
+    description:
+      "Prepare for common motorcycle service requirements during a ride.",
+    tips: [
+      "Check tyre pressure before departure.",
+      "Inspect chain condition and lubrication.",
+      "Check engine oil and coolant levels.",
+      "Know the nearest service points on long routes.",
+    ],
+  },
+  {
+    id: "safety",
+    number: "04",
+    title: "SAFETY CHECK",
+    shortTitle: "Safety",
+    icon: "✦",
+    description:
+      "Run through a simple safety checklist before getting on the road.",
+    tips: [
+      "Wear a certified helmet and protective gear.",
+      "Carry your driving and vehicle documents.",
+      "Keep emergency contacts accessible.",
+      "Avoid riding when excessively tired.",
+    ],
+  },
+];
+
 function RideAssistant() {
-  const [messages, setMessages] = useState([
-    {
-      type: "assistant",
-      text: "Welcome back, rider. Where are we heading today?",
-    },
-  ]);
+  const [activeOption, setActiveOption] = useState("route");
 
-  const [input, setInput] = useState("");
-  const [isThinking, setIsThinking] = useState(false);
+  const [completedChecks, setCompletedChecks] = useState(() => {
+    try {
+      return JSON.parse(
+        localStorage.getItem("mototribeAssistantChecks") || "[]"
+      );
+    } catch {
+      return [];
+    }
+  });
 
-  const quickActions = [
-    "PLAN A RIDE",
-    "CHECK WEATHER",
-    "FIND SERVICES",
-    "SAFETY CHECK",
-  ];
+  const [assistantMode, setAssistantMode] = useState("READY");
 
-  const responses = {
-    "PLAN A RIDE":
-      "I can help you plan a ride. Try destinations like Nandi Hills, Coorg or Sakleshpur.",
-    "CHECK WEATHER":
-      "Current demo conditions are ideal for riding: clear skies, moderate temperature and low rain probability.",
-    "FIND SERVICES":
-      "Nearby demo services include fuel stations, motorcycle service centres, cafés and emergency support.",
-    "SAFETY CHECK":
-      "Safety check complete. Helmet, riding gear, fuel level and emergency contacts should be verified before departure.",
+  useEffect(() => {
+    localStorage.setItem(
+      "mototribeAssistantChecks",
+      JSON.stringify(completedChecks)
+    );
+  }, [completedChecks]);
+
+  const selectedOption = assistantOptions.find(
+    (option) => option.id === activeOption
+  );
+
+  const toggleCheck = (index) => {
+    const checkId = `${activeOption}-${index}`;
+
+    setCompletedChecks((current) =>
+      current.includes(checkId)
+        ? current.filter((item) => item !== checkId)
+        : [...current, checkId]
+    );
   };
 
-  const sendMessage = (message = input) => {
-    const cleanMessage = message.trim();
+  const getCheckId = (index) => `${activeOption}-${index}`;
 
-    if (!cleanMessage || isThinking) return;
+  const completedForCurrent =
+    selectedOption?.tips.filter((_, index) =>
+      completedChecks.includes(getCheckId(index))
+    ).length || 0;
 
-    setMessages((prev) => [
-      ...prev,
-      {
-        type: "user",
-        text: cleanMessage,
-      },
-    ]);
-
-    setInput("");
-    setIsThinking(true);
-
-    setTimeout(() => {
-      const normalized = cleanMessage.toUpperCase();
-
-      let response =
-        "I'm ready to help. You can ask me to plan a ride, check weather, find services or run a safety check.";
-
-      if (responses[normalized]) {
-        response = responses[normalized];
-      } else if (normalized.includes("WEATHER")) {
-        response =
-          "Demo forecast: clear conditions with a comfortable riding window. Always verify live weather before departure.";
-      } else if (
-        normalized.includes("RIDE") ||
-        normalized.includes("ROUTE")
-      ) {
-        response =
-          "For a scenic ride, I recommend the Western Ghats route. You can open RIDE PLANNER to configure your journey.";
-      } else if (
-        normalized.includes("SERVICE") ||
-        normalized.includes("FUEL")
-      ) {
-        response =
-          "I can help locate fuel stations, service centres and rider-friendly stops along your route.";
-      } else if (
-        normalized.includes("SAFE") ||
-        normalized.includes("EMERGENCY")
-      ) {
-        response =
-          "For emergencies, move to a safe location first and contact local emergency services. MotoTribe can keep your emergency contacts accessible.";
-      }
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          type: "assistant",
-          text: response,
-        },
-      ]);
-
-      setIsThinking(false);
-    }, 900);
-  };
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    sendMessage();
+  const resetChecks = () => {
+    setCompletedChecks((current) =>
+      current.filter(
+        (item) => !item.startsWith(`${activeOption}-`)
+      )
+    );
   };
 
   return (
-    <section id="ride-assistant" className="ride-assistant">
-      <div className="assistant-container">
+    <section
+      className="ride-assistant-section"
+      id="ride-assistant"
+    >
+      <div className="ride-assistant-container">
 
-        <div className="assistant-header">
-          <div>
-            <div className="assistant-eyebrow">
-              <span></span>
-              MOTO AI / RIDE ASSISTANT
-            </div>
+        {/* HEADER */}
+
+        <div className="ride-assistant-header">
+
+          <div className="assistant-heading">
+
+            <span className="assistant-eyebrow">
+              MOTOTRIBE / RIDE ASSISTANT
+            </span>
 
             <h2>
-              YOUR RIDE.
+              Your ride.
               <br />
-              <span>INTELLIGENTLY GUIDED.</span>
+              Your co-pilot.
             </h2>
+
+            <p>
+              Practical guidance for every stage of
+              your journey — from preparation to the
+              road ahead.
+            </p>
+
           </div>
 
-          <div className="assistant-intro">
-            <p>
-              From route planning to safety and roadside support,
-              your intelligent riding companion is always ready.
-            </p>
+          <div className="assistant-status">
+
+            <span className="assistant-status-label">
+              ASSISTANT STATUS
+            </span>
+
+            <button
+              className={`assistant-status-button ${assistantMode.toLowerCase()}`}
+              onClick={() =>
+                setAssistantMode(
+                  assistantMode === "READY"
+                    ? "ACTIVE"
+                    : "READY"
+                )
+              }
+            >
+              <span className="status-dot"></span>
+              {assistantMode}
+            </button>
+
           </div>
+
         </div>
 
-        <div className="assistant-grid">
+        {/* ASSISTANT NAV */}
 
-          <div className="assistant-chat">
+        <div className="assistant-navigation">
 
-            <div className="chat-topbar">
-              <div className="assistant-status">
-                <span className="status-dot"></span>
-                MOTO AI ONLINE
-              </div>
-
-              <div className="assistant-version">
-                ASSISTANT / 01
-              </div>
-            </div>
-
-            <div className="chat-messages">
-              {messages.map((message, index) => (
-                <div
-                  key={index}
-                  className={`chat-message ${message.type}`}
-                >
-                  <div className="message-label">
-                    {message.type === "assistant"
-                      ? "MOTO AI"
-                      : "YOU"}
-                  </div>
-
-                  <div className="message-bubble">
-                    {message.text}
-                  </div>
-                </div>
-              ))}
-
-              {isThinking && (
-                <div className="chat-message assistant">
-                  <div className="message-label">MOTO AI</div>
-
-                  <div className="message-bubble thinking">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <form
-              className="assistant-input-area"
-              onSubmit={handleSubmit}
+          {assistantOptions.map((option) => (
+            <button
+              key={option.id}
+              className={`assistant-nav-item ${
+                activeOption === option.id
+                  ? "active"
+                  : ""
+              }`}
+              onClick={() =>
+                setActiveOption(option.id)
+              }
             >
-              <input
-                type="text"
-                value={input}
-                onChange={(event) =>
-                  setInput(event.target.value)
-                }
-                placeholder="ASK YOUR RIDE ASSISTANT..."
-              />
 
-              <button type="submit">
-                SEND
-                <span>→</span>
-              </button>
-            </form>
-          </div>
+              <span className="assistant-nav-number">
+                {option.number}
+              </span>
 
-          <div className="assistant-tools">
+              <span className="assistant-nav-icon">
+                {option.icon}
+              </span>
 
-            <div className="tools-heading">
-              <span>QUICK ACTIONS</span>
-              <small>SELECT AN OPTION</small>
+              <span className="assistant-nav-title">
+                {option.shortTitle}
+              </span>
+
+              <span className="assistant-nav-arrow">
+                →
+              </span>
+
+            </button>
+          ))}
+
+        </div>
+
+        {/* MAIN ASSISTANT PANEL */}
+
+        <div className="assistant-main-panel">
+
+          {/* LEFT */}
+
+          <div className="assistant-panel-intro">
+
+            <span className="assistant-panel-label">
+              ACTIVE ASSISTANCE / {selectedOption?.number}
+            </span>
+
+            <div className="assistant-large-icon">
+              {selectedOption?.icon}
             </div>
 
-            <div className="quick-actions">
-              {quickActions.map((action) => (
-                <button
-                  key={action}
-                  onClick={() => sendMessage(action)}
-                >
-                  <span className="action-number">
-                    0{quickActions.indexOf(action) + 1}
-                  </span>
+            <h3>
+              {selectedOption?.title}
+            </h3>
 
-                  <span>{action}</span>
+            <p>
+              {selectedOption?.description}
+            </p>
 
-                  <strong>↗</strong>
-                </button>
-              ))}
-            </div>
+            <div className="assistant-progress">
 
-            <div className="assistant-card">
-
-              <div className="card-icon">AI</div>
-
-              <div className="card-content">
-                <span>JOURNEY AWARENESS</span>
+              <div className="assistant-progress-header">
+                <span>
+                  CHECKLIST PROGRESS
+                </span>
 
                 <strong>
-                  SMART
-                  <br />
-                  ASSISTANCE
+                  {completedForCurrent}/
+                  {selectedOption?.tips.length}
                 </strong>
-
-                <p>
-                  Context-aware guidance for every stage
-                  of your journey.
-                </p>
               </div>
 
-              <div className="card-orbit"></div>
+              <div className="assistant-progress-bar">
+                <span
+                  style={{
+                    width: `${
+                      selectedOption?.tips.length
+                        ? (completedForCurrent /
+                            selectedOption.tips.length) *
+                          100
+                        : 0
+                    }%`,
+                  }}
+                ></span>
+              </div>
+
             </div>
+
+            <button
+              className="assistant-reset"
+              onClick={resetChecks}
+            >
+              RESET CHECKLIST
+            </button>
+
           </div>
+
+          {/* RIGHT CHECKLIST */}
+
+          <div className="assistant-checklist">
+
+            <div className="checklist-heading">
+              <span>RECOMMENDED ACTIONS</span>
+              <span>
+                {selectedOption?.tips.length
+                  .toString()
+                  .padStart(2, "0")}
+              </span>
+            </div>
+
+            {selectedOption?.tips.map(
+              (tip, index) => {
+                const checkId = getCheckId(index);
+                const isComplete =
+                  completedChecks.includes(checkId);
+
+                return (
+                  <button
+                    key={tip}
+                    className={`assistant-check-item ${
+                      isComplete ? "completed" : ""
+                    }`}
+                    onClick={() =>
+                      toggleCheck(index)
+                    }
+                  >
+
+                    <span className="check-number">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+
+                    <span className="check-box">
+                      {isComplete ? "✓" : ""}
+                    </span>
+
+                    <span className="check-text">
+                      {tip}
+                    </span>
+
+                    <span className="check-arrow">
+                      →
+                    </span>
+
+                  </button>
+                );
+              }
+            )}
+
+          </div>
+
         </div>
 
-        <div className="assistant-features">
+        {/* QUICK ASSISTANCE */}
 
-          <div className="assistant-feature">
-            <span>01</span>
-            <strong>ROUTE INTELLIGENCE</strong>
-            <p>
-              Discover routes based on distance,
-              terrain and riding style.
-            </p>
+        <div className="quick-assistance">
+
+          <div className="quick-assistance-heading">
+
+            <span>QUICK ASSISTANCE</span>
+
+            <h3>
+              Before you
+              <br />
+              ride.
+            </h3>
+
           </div>
 
-          <div className="assistant-feature">
-            <span>02</span>
-            <strong>LIVE AWARENESS</strong>
-            <p>
-              Stay informed about weather,
-              road conditions and nearby services.
-            </p>
+          <div className="quick-assistance-grid">
+
+            <div className="quick-card">
+              <span>01</span>
+              <strong>DOCUMENTS</strong>
+              <p>
+                Keep your license, registration and
+                insurance documents accessible.
+              </p>
+            </div>
+
+            <div className="quick-card">
+              <span>02</span>
+              <strong>GEAR</strong>
+              <p>
+                Helmet, gloves, riding jacket and
+                protective equipment should be ready.
+              </p>
+            </div>
+
+            <div className="quick-card">
+              <span>03</span>
+              <strong>MOTORCYCLE</strong>
+              <p>
+                Inspect tyres, brakes, lights, chain
+                and essential fluid levels.
+              </p>
+            </div>
+
+            <div className="quick-card">
+              <span>04</span>
+              <strong>CONTACT</strong>
+              <p>
+                Let someone you trust know your
+                planned route and expected arrival.
+              </p>
+            </div>
+
           </div>
 
-          <div className="assistant-feature">
-            <span>03</span>
-            <strong>SAFETY SUPPORT</strong>
-            <p>
-              Keep essential safety information
-              accessible throughout your ride.
-            </p>
-          </div>
+        </div>
+
+        {/* FOOTER */}
+
+        <div className="assistant-footer">
+
+          <span>
+            MOTOTRIBE RIDE ASSISTANT
+          </span>
+
+          <p>
+            Ride prepared. Ride aware. Ride together.
+          </p>
 
         </div>
 

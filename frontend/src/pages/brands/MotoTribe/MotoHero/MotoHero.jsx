@@ -1,557 +1,301 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./MotoHero.css";
 
-const slides = [
+const heroSlides = [
   {
     image:
-      "https://images.unsplash.com/photo-1700117397822-48c81f877ada?auto=format&fit=crop&w=2200&q=85",
-    eyebrow: "RIDE • EXPLORE • CONNECT",
-    title: "MORE THAN RIDES.",
-    highlight: "IT'S A TRIBE.",
-    description:
-      "Connect with riders, discover real journeys and experience smarter adventures built around the road.",
-    location: "LADAKH • INDIA",
+      "https://images.pexels.com/photos/37454960/pexels-photo-37454960.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    route: "HIMALAYAN EXPEDITION",
+    location: "Himalayas",
   },
   {
     image:
-      "https://images.unsplash.com/photo-1784480674917-69ccda6fa937?auto=format&fit=crop&w=2200&q=85",
-    eyebrow: "RIDE • DISCOVER • EXPERIENCE",
-    title: "THE ROAD",
-    highlight: "IS YOURS.",
-    description:
-      "Discover winding roads, mountain routes and real rider experiences from across the Tribe.",
-    location: "BANDIPUR • INDIA",
+      "https://images.pexels.com/photos/34765191/pexels-photo-34765191.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    route: "LADAKH ADVENTURE",
+    location: "Leh, India",
   },
   {
     image:
-      "https://images.unsplash.com/photo-1684997827975-21b5a6e434e9?auto=format&fit=crop&w=2200&q=85",
-    eyebrow: "PLAN • RIDE • REMEMBER",
-    title: "YOUR JOURNEY.",
-    highlight: "YOUR STORY.",
-    description:
-      "Plan intelligent routes, ride with confidence and record every moment of your adventure.",
-    location: "SCENIC ROUTES",
+      "https://images.pexels.com/photos/15804646/pexels-photo-15804646.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    route: "MOUNTAIN TRAIL",
+    location: "India",
   },
   {
     image:
-      "https://images.unsplash.com/photo-1736450700606-a68bf142451f?auto=format&fit=crop&w=2200&q=85",
-    eyebrow: "ONE TRIBE • MANY JOURNEYS",
-    title: "RIDE TOGETHER.",
-    highlight: "GO FURTHER.",
-    description:
-      "Find riders, build trusted connections and turn every road into a shared experience.",
-    location: "ADVENTURE NETWORK",
+      "https://images.pexels.com/photos/7715332/pexels-photo-7715332.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    route: "FOREST ESCAPE",
+    location: "Mountain Roads",
   },
   {
     image:
-      "https://images.unsplash.com/photo-1587506974713-573949146846?auto=format&fit=crop&w=2200&q=85",
-    eyebrow: "MOTORCYCLE • ADVENTURE • FREEDOM",
-    title: "CHOOSE THE ROAD.",
-    highlight: "LIVE THE RIDE.",
-    description:
-      "From mountain passes to open highways, MotoTribe helps you make every kilometre count.",
-    location: "MOUNTAIN RIDE",
+      "https://images.pexels.com/photos/10249087/pexels-photo-10249087.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    route: "SUNSET RIDE",
+    location: "Mountain Highway",
+  },
+  {
+    image:
+      "https://images.pexels.com/photos/5983284/pexels-photo-5983284.jpeg?auto=compress&cs=tinysrgb&w=2000",
+    route: "ADRENALINE RIDE",
+    location: "Off-Road Trails",
   },
 ];
 
 function MotoHero() {
-  const [currentSlide, setCurrentSlide] = useState(0);
+  const navigate = useNavigate();
 
-  const current = slides[currentSlide];
-
-  // =====================================================
-  // AUTOMATIC SLIDESHOW
-  // Changes every 5 seconds
-  // =====================================================
+  const [activeSlide, setActiveSlide] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
+    if (isPaused) return;
+
     const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length);
+      setActiveSlide((current) => (current + 1) % heroSlides.length);
     }, 5000);
 
     return () => clearInterval(timer);
-  }, []);
-
-  // =====================================================
-  // NEXT SLIDE
-  // =====================================================
+  }, [isPaused]);
 
   const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % slides.length);
+    setActiveSlide((current) => (current + 1) % heroSlides.length);
   };
-
-  // =====================================================
-  // PREVIOUS SLIDE
-  // =====================================================
 
   const previousSlide = () => {
-    setCurrentSlide(
-      (prev) => (prev - 1 + slides.length) % slides.length
+    setActiveSlide(
+      (current) =>
+        (current - 1 + heroSlides.length) % heroSlides.length
     );
   };
 
-  // =====================================================
-  // SCROLL TO JOURNEY INTELLIGENCE
-  // =====================================================
-
-  const scrollToJourney = () => {
-    const section = document.getElementById(
-      "journey-intelligence"
-    );
+  const exploreRides = () => {
+    const section = document.getElementById("upcoming-rides");
 
     if (section) {
-      section.scrollIntoView({
+      window.scrollTo({
+        top: section.getBoundingClientRect().top + window.scrollY - 76,
         behavior: "smooth",
-        block: "start",
       });
     }
   };
 
-  // =====================================================
-  // SCROLL TO RIDE PLANNER
-  // =====================================================
-
-  const scrollToPlanner = () => {
+  const planRide = () => {
     const section = document.getElementById("ride-planner");
 
     if (section) {
-      section.scrollIntoView({
+      window.scrollTo({
+        top: section.getBoundingClientRect().top + window.scrollY - 76,
         behavior: "smooth",
-        block: "start",
       });
     }
   };
 
-  // =====================================================
-  // SCROLL TO LIVE RIDERS
-  // =====================================================
-
-  const scrollToLiveRiders = () => {
-    const section = document.getElementById("live-riders");
-
-    if (section) {
-      section.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    }
-  };
+  const currentSlide = heroSlides[activeSlide];
 
   return (
-    <section className="moto-hero-wrapper">
+    <section
+      className="moto-hero"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
+      {/* BACKGROUND IMAGES */}
+      <div className="moto-hero-images">
+        {heroSlides.map((slide, index) => (
+          <div
+            key={slide.id}
+            className={`moto-hero-image ${
+              activeSlide === index ? "active" : ""
+            }`}
+            style={{
+              backgroundImage: `url(${slide.image})`,
+            }}
+          />
+        ))}
+      </div>
 
-      {/* =================================================
-          HERO
-      ================================================= */}
+      <div className="moto-hero-overlay"></div>
+      <div className="moto-hero-left-overlay"></div>
+      <div className="moto-hero-bottom-overlay"></div>
+      <div className="moto-hero-grid"></div>
 
-      <div className="moto-hero">
+      {/* MAIN CONTENT */}
+      <div className="moto-hero-container">
 
-        {/* =================================================
-            BACKGROUND SLIDES
-        ================================================= */}
+        <div className="moto-hero-content">
 
-        <div className="moto-hero-background">
-          {slides.map((slide, index) => (
-            <div
-              key={slide.image}
-              className={`moto-hero-slide ${
-                index === currentSlide ? "active" : ""
-              }`}
-              style={{
-                backgroundImage: `url("${slide.image}")`,
-              }}
-            />
+          <div className="moto-hero-eyebrow">
+            <span className="eyebrow-line"></span>
+            <span>MOTOTRIBE NETWORK</span>
+            <span className="eyebrow-dot"></span>
+            <span>EST. 2026</span>
+          </div>
+
+          <h1 className="moto-hero-title">
+            <span>RIDE</span>
+            <span>BEYOND</span>
+            <span className="outline-text">THE</span>
+            <span className="outline-text">ORDINARY.</span>
+          </h1>
+
+          <p className="moto-hero-description">
+            A connected motorcycle community built for
+            riders who explore farther, ride smarter and
+            experience every journey together.
+          </p>
+
+          <div className="moto-hero-buttons">
+            <button
+              type="button"
+              className="hero-primary-btn"
+              onClick={exploreRides}
+            >
+              <span>EXPLORE RIDES</span>
+              <span>→</span>
+            </button>
+
+            <button
+              type="button"
+              className="hero-secondary-btn"
+              onClick={planRide}
+            >
+              <span>PLAN A RIDE</span>
+              <span>+</span>
+            </button>
+          </div>
+
+          <div className="moto-hero-stats">
+            <div className="hero-stat">
+              <strong>04</strong>
+              <span>ACTIVE ROUTES</span>
+            </div>
+
+            <div className="stat-divider"></div>
+
+            <div className="hero-stat">
+              <strong>70+</strong>
+              <span>RIDERS</span>
+            </div>
+
+            <div className="stat-divider"></div>
+
+            <div className="hero-stat">
+              <strong>24/7</strong>
+              <span>NETWORK</span>
+            </div>
+          </div>
+
+        </div>
+
+        {/* RIGHT SIDE */}
+        <div className="moto-hero-right">
+
+          <div className="slide-info" key={currentSlide.id}>
+            <div className="slide-number">
+              {String(currentSlide.id).padStart(2, "0")}
+            </div>
+
+            <div className="slide-line"></div>
+
+            <div className="slide-label">
+              {currentSlide.label}
+            </div>
+
+            <div className="slide-route">
+              {currentSlide.route}
+            </div>
+
+            <div className="slide-location">
+              {currentSlide.location}
+            </div>
+          </div>
+
+          <div className="tribe-circle">
+            <div className="circle circle-one"></div>
+            <div className="circle circle-two"></div>
+            <div className="circle circle-three"></div>
+
+            <div className="circle-logo">
+              <span>MOTO</span>
+              <strong>TRIBE</strong>
+            </div>
+          </div>
+
+          <div className="hero-arrows">
+            <button
+              type="button"
+              className="hero-arrow"
+              onClick={previousSlide}
+            >
+              ←
+            </button>
+
+            <button
+              type="button"
+              className="hero-arrow"
+              onClick={nextSlide}
+            >
+              →
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      {/* BOTTOM BAR */}
+      <div className="moto-hero-bottom">
+
+        <div className="slide-indicators">
+          {heroSlides.map((slide, index) => (
+            <button
+              type="button"
+              key={slide.id}
+              className={
+                activeSlide === index
+                  ? "indicator active"
+                  : "indicator"
+              }
+              onClick={() => setActiveSlide(index)}
+              aria-label={`Slide ${index + 1}`}
+            >
+              <span></span>
+            </button>
           ))}
         </div>
 
-        {/* =================================================
-            DARK OVERLAY
-        ================================================= */}
-
-        <div className="moto-hero-overlay" />
-
-        {/* =================================================
-            VIGNETTE
-        ================================================= */}
-
-        <div className="moto-hero-vignette" />
-
-        {/* =================================================
-            HERO CONTENT
-        ================================================= */}
-
-        <div className="moto-hero-container">
-
-          <div className="moto-hero-content">
-
-            {/* =================================================
-                LEFT CONTENT
-            ================================================= */}
-
-            <div className="moto-hero-copy">
-
-              {/* EYEBROW */}
-
-              <div className="moto-hero-eyebrow">
-                <span className="eyebrow-line" />
-                {current.eyebrow}
-              </div>
-
-              {/* TITLE */}
-
-              <h1 className="moto-hero-title">
-                {current.title}
-
-                <span>
-                  {current.highlight}
-                </span>
-              </h1>
-
-              {/* DESCRIPTION */}
-
-              <p className="moto-hero-description">
-                {current.description}
-              </p>
-
-              {/* LOCATION */}
-
-              <div className="moto-hero-location">
-                <span className="location-dot">
-                  ●
-                </span>
-
-                {current.location}
-              </div>
-
-              {/* =================================================
-                  ACTION BUTTONS
-              ================================================= */}
-
-              <div className="moto-hero-actions">
-
-                <button
-                  type="button"
-                  className="moto-btn moto-btn-primary"
-                  onClick={scrollToPlanner}
-                >
-                  PLAN YOUR RIDE
-
-                  <span>
-                    ↗
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  className="moto-btn moto-btn-secondary"
-                  onClick={scrollToLiveRiders}
-                >
-                  EXPLORE THE TRIBE
-
-                  <span>
-                    →
-                  </span>
-                </button>
-
-              </div>
-
-            </div>
-
-            {/* =================================================
-                MOTO AI CARD
-            ================================================= */}
-
-            <div className="moto-ai-card">
-
-              {/* AI HEADER */}
-
-              <div className="moto-ai-header">
-
-                <div>
-                  <span className="ai-label">
-                    MOTO AI
-                  </span>
-
-                  <h3>
-                    JOURNEY
-                    <br />
-                    INTELLIGENCE
-                  </h3>
-                </div>
-
-                <div className="ai-status">
-                  <span />
-                  LIVE
-                </div>
-
-              </div>
-
-              {/* AI ROUTE */}
-
-              <div className="ai-route">
-
-                <div className="route-icon">
-                  ↗
-                </div>
-
-                <div>
-                  <small>
-                    NEXT JOURNEY
-                  </small>
-
-                  <strong>
-                    MOUNTAIN LOOP
-                  </strong>
-                </div>
-
-              </div>
-
-              {/* AI DATA */}
-
-              <div className="ai-data-grid">
-
-                <div className="ai-data">
-                  <span>
-                    WEATHER
-                  </span>
-
-                  <strong>
-                    24°C
-                  </strong>
-
-                  <small>
-                    CLEAR
-                  </small>
-                </div>
-
-                <div className="ai-data">
-                  <span>
-                    TRAFFIC
-                  </span>
-
-                  <strong>
-                    LOW
-                  </strong>
-
-                  <small>
-                    +12 MIN
-                  </small>
-                </div>
-
-                <div className="ai-data">
-                  <span>
-                    FUEL
-                  </span>
-
-                  <strong>
-                    82%
-                  </strong>
-
-                  <small>
-                    GOOD
-                  </small>
-                </div>
-
-                <div className="ai-data">
-                  <span>
-                    ROAD
-                  </span>
-
-                  <strong>
-                    SAFE
-                  </strong>
-
-                  <small>
-                    DRY
-                  </small>
-                </div>
-
-              </div>
-
-              {/* AI BUTTON */}
-
-              <button
-                type="button"
-                className="ai-card-button"
-                onClick={scrollToJourney}
-              >
-                VIEW JOURNEY INTELLIGENCE
-
-                <span>
-                  →
-                </span>
-              </button>
-
-            </div>
-
-          </div>
-
+        <div className="current-route">
+          <small>CURRENT ROUTE</small>
+          <strong>{currentSlide.route}</strong>
         </div>
 
-        {/* =================================================
-            SLIDER CONTROLS
-        ================================================= */}
-
-        <div className="moto-slider-controls">
-
-          {/* PREVIOUS */}
-
-          <button
-            type="button"
-            className="slider-arrow"
-            onClick={previousSlide}
-            aria-label="Previous slide"
-          >
-            ←
-          </button>
-
-          {/* DOTS */}
-
-          <div className="moto-slider-dots">
-
-            {slides.map((slide, index) => (
-              <button
-                type="button"
-                key={slide.image}
-                className={`slider-dot ${
-                  index === currentSlide
-                    ? "active"
-                    : ""
-                }`}
-                onClick={() =>
-                  setCurrentSlide(index)
-                }
-                aria-label={`Go to slide ${
-                  index + 1
-                }`}
-              />
-            ))}
-
-          </div>
-
-          {/* NEXT */}
-
-          <button
-            type="button"
-            className="slider-arrow"
-            onClick={nextSlide}
-            aria-label="Next slide"
-          >
-            →
-          </button>
-
+        <div className="scroll-text">
+          <span></span>
+          SCROLL TO EXPLORE
+          <b>↓</b>
         </div>
-
-        {/* =================================================
-            SCROLL TO EXPLORE
-        ================================================= */}
 
         <button
           type="button"
-          className="moto-scroll-indicator"
-          onClick={scrollToJourney}
+          className="rider-login"
+          onClick={() =>
+            navigate("/businesses/mototribe/login")
+          }
         >
-          <span>
-            SCROLL TO EXPLORE
-          </span>
-
-          <span className="scroll-arrow">
-            ↓
-          </span>
+          RIDER LOGIN
+          <span>↗</span>
         </button>
 
-        {/* =================================================
-            SLIDE PROGRESS
-        ================================================= */}
-
-        <div className="moto-hero-progress">
-          <div
-            className="moto-hero-progress-bar"
-            key={currentSlide}
-          />
-        </div>
-
       </div>
 
-      {/* =====================================================
-          IMPACT STATISTICS
-
-          IMPORTANT:
-          These statistics are OUTSIDE the image.
-      ===================================================== */}
-
-      <div className="moto-impact-strip">
-
-        {/* RIDERS */}
-
-        <div className="moto-impact-item">
-          <strong>
-            250K+
-          </strong>
-
-          <span>
-            RIDERS
-          </span>
-        </div>
-
-        {/* COMMUNITIES */}
-
-        <div className="moto-impact-item">
-          <strong>
-            10K+
-          </strong>
-
-          <span>
-            COMMUNITIES
-          </span>
-        </div>
-
-        {/* ROUTES */}
-
-        <div className="moto-impact-item">
-          <strong>
-            50K+
-          </strong>
-
-          <span>
-            ROUTES SHARED
-          </span>
-        </div>
-
-        {/* RIDES */}
-
-        <div className="moto-impact-item">
-          <strong>
-            1M+
-          </strong>
-
-          <span>
-            RIDES RECORDED
-          </span>
-        </div>
-
-        {/* EXPERIENCE */}
-
-        <div className="moto-impact-experience">
-
-          <div className="experience-icon">
-            ✦
-          </div>
-
-          <div>
-            <strong>
-              REAL EXPERIENCE
-            </strong>
-
-            <span>
-              SMARTER RIDES
-            </span>
-          </div>
-
-        </div>
-
+      <div className="hero-progress">
+        <div
+          key={activeSlide}
+          className={
+            isPaused
+              ? "progress-fill paused"
+              : "progress-fill"
+          }
+        ></div>
       </div>
-
     </section>
   );
 }
