@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import Navbar from "../components/Navbar/Navbar";
 import Footer from "../components/Footer/Footer";
 
 const businesses = [
@@ -11,8 +10,6 @@ const businesses = [
 function Businesses() {
   return (
     <>
-      <Navbar />
-
       <main className="page-section">
         <div className="container">
 

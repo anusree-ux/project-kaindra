@@ -1,51 +1,242 @@
-.revenue-streams {
-  padding: 120px 50px;
-  background: #171717;
-  color: white;
+.revenue-section {
+  width: 100%;
+  padding: 75px 0;
+  background: #f7f6f3;
+  color: #151515;
+  scroll-margin-top: 90px;
 }
 
 .revenue-container {
-  max-width: 1300px;
-  margin: auto;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 100px;
+  width: min(1180px, calc(100% - 48px));
+  margin: 0 auto;
 }
 
-.revenue-heading p {
-  color: #aaa;
-  font-size: 12px;
-  letter-spacing: 3px;
+/* Heading */
+
+.revenue-heading {
+  max-width: 800px;
+  margin: 0 auto 35px;
+  text-align: center;
+}
+
+.revenue-label {
+  margin-bottom: 13px;
+  color: #bd8b46;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
 }
 
 .revenue-heading h2 {
-  font-size: clamp(45px, 5vw, 70px);
-  line-height: 1;
-}
-
-.revenue-list div {
-  display: grid;
-  grid-template-columns: 50px 1fr;
-  padding: 25px 0;
-  border-bottom: 1px solid #333;
-}
-
-.revenue-list span {
-  color: #777;
-}
-
-.revenue-list h3 {
   margin: 0;
-  font-size: 22px;
+  color: #151515;
+  font-size: clamp(40px, 5vw, 58px);
+  line-height: 1.08;
+  font-weight: 600;
+  letter-spacing: -2px;
 }
 
-@media (max-width: 800px) {
-  .revenue-streams {
-    padding: 80px 25px;
+.revenue-heading p {
+  max-width: 650px;
+  margin: 17px auto 0;
+  color: #626262;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+/* Main icon */
+
+.revenue-icon {
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 32px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #bd8b46;
+  border-radius: 50%;
+
+  color: #bd8b46;
+  background: #ffffff;
+}
+
+/* Revenue grid */
+
+.revenue-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+
+  border-top: 1px solid #dedbd5;
+  border-left: 1px solid #dedbd5;
+
+  background: #ffffff;
+}
+
+.revenue-card {
+  min-height: 180px;
+  padding: 28px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  background: #ffffff;
+
+  border-right: 1px solid #dedbd5;
+  border-bottom: 1px solid #dedbd5;
+
+  transition:
+    background 0.25s ease,
+    transform 0.25s ease;
+}
+
+.revenue-card:hover {
+  background: #faf9f6;
+}
+
+/* Card icon */
+
+.revenue-card-icon {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 18px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #bd8b46;
+  border-radius: 50%;
+
+  color: #bd8b46;
+  background: #ffffff;
+
+  transition:
+    background 0.25s ease,
+    color 0.25s ease;
+}
+
+.revenue-card:hover .revenue-card-icon {
+  background: #151515;
+  color: #bd8b46;
+}
+
+/* Card title */
+
+.revenue-card h3 {
+  margin: 0;
+
+  color: #151515;
+
+  font-size: 17px;
+  line-height: 1.35;
+  font-weight: 600;
+}
+
+/* Tablet */
+
+@media (max-width: 1000px) {
+  .revenue-section {
+    padding: 65px 0;
   }
 
   .revenue-container {
+    width: min(800px, calc(100% - 40px));
+  }
+
+  .revenue-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .revenue-card {
+    min-height: 165px;
+    padding: 25px;
+  }
+}
+
+/* Mobile */
+
+@media (max-width: 600px) {
+  .revenue-section {
+    padding: 60px 0;
+    scroll-margin-top: 75px;
+  }
+
+  .revenue-container {
+    width: calc(100% - 32px);
+  }
+
+  .revenue-heading {
+    margin-bottom: 30px;
+  }
+
+  .revenue-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+  }
+
+  .revenue-heading h2 {
+    font-size: 38px;
+    letter-spacing: -1.3px;
+  }
+
+  .revenue-heading p {
+    font-size: 14px;
+  }
+
+  .revenue-icon {
+    width: 52px;
+    height: 52px;
+    margin-bottom: 28px;
+  }
+
+  .revenue-grid {
     grid-template-columns: 1fr;
-    gap: 50px;
+  }
+
+  .revenue-card {
+    min-height: 100px;
+    padding: 22px;
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .revenue-card-icon {
+    width: 42px;
+    height: 42px;
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
+
+  .revenue-card h3 {
+    font-size: 15px;
+  }
+}
+
+/* Small mobile */
+
+@media (max-width: 400px) {
+  .revenue-section {
+    padding: 50px 0;
+  }
+
+  .revenue-heading h2 {
+    font-size: 34px;
+  }
+
+  .revenue-heading p {
+    font-size: 13px;
+  }
+
+  .revenue-card {
+    padding: 18px;
+  }
+
+  .revenue-card h3 {
+    font-size: 14px;
   }
 }

@@ -1,69 +1,343 @@
+/* =========================
+   MODASPHERE NAVBAR
+========================= */
+
 .moda-navbar {
   position: sticky;
   top: 0;
   z-index: 1000;
-  background: rgba(255, 255, 255, 0.96);
-  border-bottom: 1px solid #eeeeee;
-}
 
-.moda-nav-container {
-  max-width: 1400px;
-  margin: auto;
-  padding: 18px 50px;
+  width: 100%;
+  min-height: 82px;
+
+  background: rgba(255, 255, 255, 0.97);
+  border-bottom: 1px solid #dedbd5;
+
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 30px;
+
+  padding: 0 28px;
+
+  box-sizing: border-box;
 }
 
-.moda-logo {
+
+/* =========================
+   BRAND
+========================= */
+
+.moda-brand {
+  flex-shrink: 0;
+
   display: flex;
-  flex-direction: column;
-  line-height: 0.9;
-  letter-spacing: 2px;
+  align-items: center;
+
+  gap: 14px;
+
+  text-decoration: none;
+  color: #151515;
 }
 
-.moda-logo span {
-  font-size: 14px;
+.moda-brand-mark {
+  width: 52px;
+  height: 52px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #bd8b46;
+
+  color: #bd8b46;
+
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 29px;
+  font-weight: 400;
+
+  box-sizing: border-box;
+}
+
+.moda-brand-name {
+  color: #151515;
+
+  font-family: Georgia, "Times New Roman", serif;
+
+  font-size: 24px;
   font-weight: 500;
+
+  letter-spacing: 3.5px;
+  line-height: 1;
+
+  white-space: nowrap;
 }
 
-.moda-logo strong {
-  font-size: 22px;
-  font-weight: 800;
+.moda-brand-tagline {
+  margin-top: 6px;
+
+  color: #777777;
+
+  font-size: 7px;
+  font-weight: 500;
+
+  letter-spacing: 2px;
+
+  white-space: nowrap;
 }
+
+
+/* =========================
+   NAV LINKS
+========================= */
 
 .moda-nav-links {
+  flex: 1;
+
   display: flex;
-  gap: 30px;
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 16px;
+
+  margin-left: 30px;
+
+  white-space: nowrap;
 }
 
 .moda-nav-links a {
-  color: #333;
+  position: relative;
+
+  color: #222222;
+
   text-decoration: none;
-  font-size: 14px;
-  transition: 0.3s;
+
+  font-family: Arial, sans-serif;
+
+  font-size: 9px;
+  font-weight: 500;
+
+  letter-spacing: 1.3px;
+
+  transition: color 0.25s ease;
 }
 
 .moda-nav-links a:hover {
-  color: #000;
+  color: #bd8b46;
 }
 
-.moda-nav-button {
-  border: 1px solid #111;
-  background: #111;
-  color: #fff;
-  padding: 11px 24px;
-  border-radius: 30px;
+
+/* =========================
+   HOVER LINE
+========================= */
+
+.moda-nav-links a::after {
+  content: "";
+
+  position: absolute;
+
+  left: 0;
+  bottom: -7px;
+
+  width: 0;
+  height: 1px;
+
+  background: #bd8b46;
+
+  transition: width 0.25s ease;
+}
+
+.moda-nav-links a:hover::after {
+  width: 100%;
+}
+
+
+/* =========================
+   MENU BUTTON
+========================= */
+
+.moda-menu {
+  display: none;
+
+  border: 1px solid #dedbd5;
+
+  background: transparent;
+
+  color: #222222;
+
+  padding: 7px;
+
   cursor: pointer;
 }
 
-@media (max-width: 900px) {
+
+/* =========================
+   LAPTOP
+========================= */
+
+@media (max-width: 1400px) {
+
+  .moda-navbar {
+    padding: 0 20px;
+  }
+
+  .moda-nav-links {
+    gap: 12px;
+    margin-left: 20px;
+  }
+
+  .moda-nav-links a {
+    font-size: 8px;
+    letter-spacing: 1px;
+  }
+
+  .moda-brand-name {
+    font-size: 21px;
+    letter-spacing: 3px;
+  }
+}
+
+
+/* =========================
+   SMALL LAPTOP
+========================= */
+
+@media (max-width: 1200px) {
+
+  .moda-navbar {
+    min-height: 76px;
+    padding: 0 16px;
+  }
+
+  .moda-brand-mark {
+    width: 46px;
+    height: 46px;
+    font-size: 26px;
+  }
+
+  .moda-brand-name {
+    font-size: 19px;
+    letter-spacing: 2.5px;
+  }
+
+  .moda-brand-tagline {
+    font-size: 6px;
+  }
+
+  .moda-nav-links {
+    gap: 9px;
+    margin-left: 15px;
+  }
+
+  .moda-nav-links a {
+    font-size: 7px;
+    letter-spacing: 0.8px;
+  }
+}
+
+
+/* =========================
+   TABLET
+========================= */
+
+@media (max-width: 1000px) {
+
+  .moda-navbar {
+    min-height: 72px;
+
+    justify-content: space-between;
+  }
+
   .moda-nav-links {
     display: none;
   }
 
-  .moda-nav-container {
-    padding: 16px 25px;
+  .moda-menu {
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
+}
+
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 600px) {
+
+  .moda-navbar {
+    padding: 0 14px;
+  }
+
+  .moda-brand {
+    gap: 10px;
+  }
+
+  .moda-brand-mark {
+    width: 42px;
+    height: 42px;
+    font-size: 24px;
+  }
+
+  .moda-brand-name {
+    font-size: 17px;
+    letter-spacing: 2px;
+  }
+
+  .moda-brand-tagline {
+    font-size: 5.5px;
+    letter-spacing: 1.3px;
+  }
+}
+
+
+/* =========================
+   SMALL MOBILE
+========================= */
+
+@media (max-width: 400px) {
+
+  .moda-brand-mark {
+    width: 38px;
+    height: 38px;
+    font-size: 22px;
+  }
+
+  .moda-brand-name {
+    font-size: 15px;
+    letter-spacing: 1.5px;
+  }
+
+  .moda-brand-tagline {
+    display: none;
+  }
+}
+.moda-home-link {
+  color: inherit;
+  text-decoration: none;
+}
+.moda-home-button {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.moda-home-button:hover {
+  opacity: 0.7;
+}
+.moda-home-button {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.moda-home-button:hover {
+  opacity: 0.7;
 }

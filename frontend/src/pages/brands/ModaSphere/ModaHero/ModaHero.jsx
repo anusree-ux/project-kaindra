@@ -1,59 +1,111 @@
-import { useEffect, useState } from "react";
+import { Sparkles, ArrowDown } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import "./ModaHero.css";
 
-const videos = [
-  "/videos/riding1.mp4",
-  "/videos/riding2.mp4",
-  "/videos/riding3.mp4",
-  "/videos/riding4.mp4",
-];
+import hero1 from "../../../../assets/hero1.mp4";
+import hero2 from "../../../../assets/hero2.mp4";
+import hero3 from "../../../../assets/hero3.mp4";
+import hero4 from "../../../../assets/hero4.mp4";
+import hero5 from "../../../../assets/hero5.mp4";
+const videos = [hero1, hero2, hero3, hero4, hero5];
 
 export default function ModaHero() {
   const [currentVideo, setCurrentVideo] = useState(0);
+  const videoRef = useRef(null);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentVideo((prev) => (prev + 1) % videos.length);
-    }, 6000);
+    if (videoRef.current) {
+      videoRef.current.load();
+      videoRef.current.play().catch(() => {});
+    }
+  }, [currentVideo]);
 
-    return () => clearInterval(interval);
-  }, []);
+  const handleVideoEnd = () => {
+    setCurrentVideo((prev) => (prev + 1) % videos.length);
+  };
 
   return (
-    <section className="moda-hero">
+    <section className="moda-hero" id="top">
 
+      {/* Background Video */}
       <video
-        key={videos[currentVideo]}
+        ref={videoRef}
         className="moda-hero-video"
         autoPlay
         muted
         playsInline
+        onEnded={handleVideoEnd}
       >
         <source src={videos[currentVideo]} type="video/mp4" />
       </video>
 
+      {/* Video Overlay */}
       <div className="moda-hero-overlay"></div>
 
-      <div className="moda-hero-content">
-        <p className="moda-label">THE FUTURE OF FASHION</p>
+      <div className="moda-hero-container">
 
-        <h1>
-          One Connected
-          <br />
-          <span>Fashion Ecosystem.</span>
-        </h1>
-
-        <p className="moda-hero-description">
-          ModaSphere connects designers, manufacturers, brands, retailers,
-          influencers and consumers through one intelligent fashion ecosystem.
-        </p>
-
-        <div className="moda-hero-actions">
-          <a href="#vision">Explore ModaSphere</a>
-          <a href="#ecosystem">Discover Ecosystem ↓</a>
+        <div className="moda-hero-top">
+          <span>MODASPHERE</span>
+          <span>KAINDRA STRATEGY</span>
         </div>
-      </div>
 
+        <div className="moda-hero-main">
+
+          <div className="moda-hero-content">
+
+            <h1>
+              The Universal
+              <br />
+              <span>Fashion Ecosystem.</span>
+            </h1>
+
+            <p>
+              Uniting fashion, technology, creators and consumers
+              in one connected global platform.
+            </p>
+
+            <div className="moda-hero-line">
+              <div className="hero-sparkle">
+                <Sparkles size={17} strokeWidth={1.5} />
+              </div>
+
+              <span>STYLE. CONNECT. EMPOWER.</span>
+            </div>
+
+          </div>
+
+          <div className="moda-hero-visual">
+
+            <div className="hero-orbit orbit-one"></div>
+            <div className="hero-orbit orbit-two"></div>
+
+            <div className="hero-center">
+              <span>M</span>
+            </div>
+
+            <div className="hero-dot hero-dot-one"></div>
+            <div className="hero-dot hero-dot-two"></div>
+            <div className="hero-dot hero-dot-three"></div>
+
+          </div>
+
+        </div>
+
+        <div className="moda-hero-bottom">
+
+          <span>FASHION</span>
+          <span>TECHNOLOGY</span>
+          <span>CREATORS</span>
+          <span>COMMUNITY</span>
+
+          <a href="#vision" className="hero-scroll">
+            <span>EXPLORE</span>
+            <ArrowDown size={15} strokeWidth={1.5} />
+          </a>
+
+        </div>
+
+      </div>
     </section>
   );
 }

@@ -1,51 +1,305 @@
-.value-proposition {
-  padding: 120px 50px;
-  background: #f3f3f3;
+/* =========================================================
+   VALUE PROPOSITION
+========================================================= */
+
+.value-section {
+  width: 100%;
+  padding: 75px 0;
+  background: #171717;
+  color: #ffffff;
+  scroll-margin-top: 90px;
 }
 
 .value-container {
-  max-width: 1300px;
-  margin: auto;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 100px;
+  width: min(1180px, calc(100% - 48px));
+  margin: 0 auto;
 }
 
-.value-container p {
-  font-size: 12px;
-  letter-spacing: 3px;
+
+/* =========================================================
+   HEADING
+========================================================= */
+
+.value-heading {
+  max-width: 760px;
+  margin: 0 auto 50px;
+  text-align: center;
 }
 
-.value-container h2 {
-  font-size: clamp(45px, 5vw, 70px);
-  line-height: 1;
+.value-label {
+  margin-bottom: 13px;
+
+  color: #bd8b46;
+
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
 }
 
-.value-list > div {
-  display: grid;
-  grid-template-columns: 40px 1fr 20px;
-  align-items: center;
-  border-bottom: 1px solid #ccc;
-  padding: 20px 0;
-}
-
-.value-list span {
-  color: #999;
-  font-size: 12px;
-}
-
-.value-list h3 {
+.value-heading h2 {
   margin: 0;
-  font-size: 20px;
+
+  color: #ffffff;
+
+  font-size: clamp(40px, 5vw, 58px);
+  line-height: 1.08;
+  font-weight: 600;
+  letter-spacing: -2px;
 }
 
-@media (max-width: 800px) {
-  .value-container {
-    grid-template-columns: 1fr;
-    gap: 50px;
+.value-heading p {
+  max-width: 650px;
+
+  margin: 17px auto 0;
+
+  color: #b7b7b7;
+
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+
+/* =========================================================
+   MAIN CONTENT
+========================================================= */
+
+.value-content {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+
+  gap: 70px;
+
+  align-items: center;
+}
+
+
+/* =========================================================
+   LEFT CONTENT
+========================================================= */
+
+.value-intro {
+  padding: 35px;
+
+  border: 1px solid #3b3b3b;
+  background: #1c1c1c;
+}
+
+.value-icon {
+  width: 56px;
+  height: 56px;
+
+  margin-bottom: 25px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #bd8b46;
+  border-radius: 50%;
+
+  color: #bd8b46;
+}
+
+.value-intro h3 {
+  margin: 0 0 14px;
+
+  color: #ffffff;
+
+  font-size: 27px;
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+}
+
+.value-intro p {
+  max-width: 430px;
+
+  margin: 0;
+
+  color: #a6a6a6;
+
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+
+/* =========================================================
+   VALUE LIST
+========================================================= */
+
+.value-list {
+  border-top: 1px solid #3d3d3d;
+}
+
+.value-item {
+  min-height: 68px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 16px;
+
+  padding: 15px 5px;
+
+  border-bottom: 1px solid #3d3d3d;
+
+  transition:
+    background 0.25s ease,
+    padding-left 0.25s ease;
+}
+
+.value-item:hover {
+  background: #1c1c1c;
+  padding-left: 12px;
+}
+
+.value-check {
+  width: 32px;
+  height: 32px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #bd8b46;
+  border-radius: 50%;
+
+  color: #bd8b46;
+}
+
+.value-item span {
+  color: #e4e4e4;
+
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 850px) {
+
+  .value-section {
+    padding: 65px 0;
   }
 
-  .value-proposition {
-    padding: 80px 25px;
+  .value-container {
+    width: min(700px, calc(100% - 40px));
+  }
+
+  .value-content {
+    grid-template-columns: 1fr;
+
+    gap: 35px;
+  }
+
+  .value-intro {
+    padding: 30px;
+  }
+
+  .value-intro p {
+    max-width: 600px;
+  }
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+
+  .value-section {
+    padding: 60px 0 55px;
+    scroll-margin-top: 75px;
+  }
+
+  .value-container {
+    width: calc(100% - 32px);
+  }
+
+  .value-heading {
+    margin-bottom: 35px;
+  }
+
+  .value-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+  }
+
+  .value-heading h2 {
+    font-size: 38px;
+    letter-spacing: -1.3px;
+  }
+
+  .value-heading p {
+    font-size: 14px;
+  }
+
+  .value-intro {
+    padding: 26px;
+  }
+
+  .value-icon {
+    width: 50px;
+    height: 50px;
+
+    margin-bottom: 20px;
+  }
+
+  .value-intro h3 {
+    font-size: 24px;
+  }
+
+  .value-intro p {
+    font-size: 14px;
+  }
+
+  .value-item {
+    min-height: 62px;
+    gap: 12px;
+    padding: 13px 2px;
+  }
+
+  .value-check {
+    width: 29px;
+    height: 29px;
+  }
+
+  .value-item span {
+    font-size: 13px;
+  }
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 400px) {
+
+  .value-heading h2 {
+    font-size: 34px;
+  }
+
+  .value-heading p {
+    font-size: 13px;
+  }
+
+  .value-intro {
+    padding: 23px;
+  }
+
+  .value-intro h3 {
+    font-size: 22px;
+  }
+
+  .value-item span {
+    font-size: 12px;
   }
 }
