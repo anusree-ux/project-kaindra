@@ -1,0 +1,273 @@
+.moto-otp-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(184, 134, 11, 0.12), transparent 30%),
+    radial-gradient(circle at 80% 80%, rgba(255, 170, 40, 0.08), transparent 30%),
+    #070707;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.moto-otp-background {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.moto-otp-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+}
+
+.glow-one {
+  width: 300px;
+  height: 300px;
+  background: rgba(210, 150, 40, 0.08);
+  top: -100px;
+  left: -100px;
+}
+
+.glow-two {
+  width: 350px;
+  height: 350px;
+  background: rgba(255, 180, 50, 0.06);
+  right: -150px;
+  bottom: -150px;
+}
+
+.moto-otp-card {
+  width: min(520px, 100%);
+  padding: 48px 42px;
+  background: rgba(15, 15, 15, 0.94);
+  border: 1px solid rgba(207, 155, 55, 0.3);
+  box-shadow:
+    0 25px 80px rgba(0, 0, 0, 0.65),
+    inset 0 0 50px rgba(255, 180, 50, 0.025);
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+
+.moto-otp-brand {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: 8px;
+  letter-spacing: 5px;
+  margin-bottom: 25px;
+}
+
+.moto-otp-brand span {
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.moto-otp-brand strong {
+  color: #d6a84f;
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.moto-otp-badge {
+  display: inline-block;
+  padding: 7px 14px;
+  border: 1px solid rgba(214, 168, 79, 0.45);
+  color: #d6a84f;
+  font-size: 10px;
+  letter-spacing: 2px;
+  margin-bottom: 22px;
+}
+
+.moto-otp-card h1 {
+  margin: 0;
+  font-size: clamp(30px, 5vw, 42px);
+  font-weight: 600;
+  letter-spacing: -1px;
+}
+
+.moto-otp-description {
+  color: #969696;
+  font-size: 14px;
+  line-height: 1.7;
+  max-width: 390px;
+  margin: 15px auto 25px;
+}
+
+.moto-demo-otp {
+  background: rgba(214, 168, 79, 0.06);
+  border: 1px dashed rgba(214, 168, 79, 0.35);
+  padding: 15px;
+  margin-bottom: 25px;
+}
+
+.moto-demo-otp span {
+  display: block;
+  color: #a9a9a9;
+  font-size: 9px;
+  letter-spacing: 2px;
+  margin-bottom: 5px;
+}
+
+.moto-demo-otp strong {
+  display: block;
+  color: #d6a84f;
+  font-size: 27px;
+  letter-spacing: 8px;
+  margin-left: 8px;
+}
+
+.moto-demo-otp small {
+  display: block;
+  color: #666;
+  font-size: 10px;
+  margin-top: 7px;
+}
+
+.moto-otp-inputs {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 25px 0 15px;
+}
+
+.moto-otp-inputs input {
+  width: 52px;
+  height: 62px;
+  background: #0b0b0b;
+  border: 1px solid #333;
+  color: #ffffff;
+  text-align: center;
+  font-size: 25px;
+  font-weight: 600;
+  outline: none;
+  transition: 0.2s ease;
+}
+
+.moto-otp-inputs input:focus {
+  border-color: #d6a84f;
+  box-shadow: 0 0 18px rgba(214, 168, 79, 0.16);
+}
+
+.moto-otp-timer {
+  color: #777;
+  font-size: 12px;
+  margin-bottom: 20px;
+}
+
+.moto-otp-timer strong {
+  color: #d6a84f;
+}
+
+.moto-otp-message {
+  padding: 12px;
+  margin-bottom: 16px;
+  font-size: 12px;
+}
+
+.moto-otp-message.error {
+  color: #ff8585;
+  background: rgba(255, 70, 70, 0.07);
+  border: 1px solid rgba(255, 70, 70, 0.2);
+}
+
+.moto-otp-message.success {
+  color: #8de2a8;
+  background: rgba(60, 200, 110, 0.07);
+  border: 1px solid rgba(60, 200, 110, 0.2);
+}
+
+.moto-verify-button {
+  width: 100%;
+  border: 0;
+  padding: 16px;
+  background: #d6a84f;
+  color: #090909;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: 0.25s ease;
+}
+
+.moto-verify-button:hover:not(:disabled) {
+  background: #f0c86e;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(214, 168, 79, 0.18);
+}
+
+.moto-verify-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.moto-resend {
+  margin-top: 22px;
+  color: #777;
+  font-size: 12px;
+}
+
+.moto-resend strong {
+  color: #d6a84f;
+}
+
+.moto-resend button,
+.moto-back-signup {
+  border: 0;
+  background: transparent;
+  color: #d6a84f;
+  cursor: pointer;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+}
+
+.moto-resend button:hover,
+.moto-back-signup:hover {
+  text-decoration: underline;
+}
+
+.moto-back-signup {
+  margin-top: 24px;
+  color: #777;
+}
+
+.moto-otp-footer {
+  margin-top: 32px;
+  padding-top: 20px;
+  border-top: 1px solid #202020;
+  color: #555;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+}
+
+@media (max-width: 520px) {
+  .moto-otp-card {
+    padding: 35px 20px;
+  }
+
+  .moto-otp-inputs {
+    gap: 6px;
+  }
+
+  .moto-otp-inputs input {
+    width: 43px;
+    height: 54px;
+    font-size: 21px;
+  }
+}
+
+@media (max-width: 350px) {
+  .moto-otp-inputs {
+    gap: 4px;
+  }
+
+  .moto-otp-inputs input {
+    width: 39px;
+    height: 50px;
+  }
+}

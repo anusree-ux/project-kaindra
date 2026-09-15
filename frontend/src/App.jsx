@@ -12,7 +12,13 @@ import Signup from "./pages/Signup";
 
 import ModaSphere from "./pages/brands/ModaSphere";
 import MotoTribe from "./pages/brands/MotoTribe";
-
+import MotoSignup from "./pages/brands/MotoTribe/Auth/Signup";
+import OTPVerification from "./pages/brands/MotoTribe/Auth/OTPVerification";
+import ProfileSetup from "./pages/brands/MotoTribe/ProfileSetup/ProfileSetup";
+import Vehicles from "./pages/brands/MotoTribe/Vehicles/Vehicles";
+import MotoLogin from "./pages/brands/MotoTribe/Auth/Login";
+import RideDetails from "./pages/brands/MotoTribe/RideDetails/RideDetails";
+import Expenses from "./pages/brands/MotoTribe/Expenses/Expenses";
 
 function App() {
   return (
@@ -37,7 +43,13 @@ function App() {
         {/* Brand Pages */}
         <Route path="/businesses/modasphere" element={<ModaSphere />} />
         <Route path="/businesses/mototribe" element={<MotoTribe />} />
-        
+        <Route path="/businesses/mototribe/signup" element={<MotoSignup />} />
+        <Route path="/businesses/mototribe/verify-otp" element={<OTPVerification />} />
+        <Route path="/businesses/mototribe/profile-setup" element={<ProfileSetup />} />
+        <Route path="/businesses/mototribe/vehicles" element={<Vehicles />} />
+        <Route path="/businesses/mototribe/login" element={<MotoLogin />} />
+        <Route path="/businesses/mototribe/ride/:rideId" element={<RideDetails />} />
+        <Route path="/businesses/mototribe/ride/:rideId/expenses" element={<Expenses />} />
 
       </Routes>
     </BrowserRouter>

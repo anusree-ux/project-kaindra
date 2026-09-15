@@ -1,0 +1,465 @@
+.ride-details-page {
+  min-height: 100vh;
+  padding: 120px 6% 80px;
+  background: #07090d;
+  color: #f5f5f5;
+}
+
+.ride-details-container {
+  max-width: 1250px;
+  margin: auto;
+}
+
+.ride-back-btn {
+  border: 0;
+  background: transparent;
+  color: #aaa;
+  cursor: pointer;
+  letter-spacing: 2px;
+  margin-bottom: 30px;
+}
+
+.ride-back-btn:hover {
+  color: #fff;
+}
+
+.ride-details-hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 40px;
+  padding: 45px;
+  border: 1px solid #252932;
+  background: linear-gradient(135deg, #10131a, #080a0e);
+}
+
+.ride-type {
+  color: #d99a42;
+  font-size: 12px;
+  letter-spacing: 3px;
+}
+
+.ride-details-hero h1 {
+  font-size: clamp(38px, 6vw, 72px);
+  margin: 15px 0;
+  line-height: 1;
+}
+
+.ride-route {
+  color: #d99a42;
+  font-size: 18px;
+  letter-spacing: 1px;
+}
+
+.ride-description {
+  max-width: 700px;
+  color: #999;
+  line-height: 1.8;
+}
+
+.ride-status-card {
+  min-width: 180px;
+  height: 130px;
+  border: 1px solid #333;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.ride-status-card span {
+  color: #777;
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+
+.ride-status-card strong {
+  margin-top: 10px;
+  color: #d99a42;
+  letter-spacing: 2px;
+}
+
+.ride-info-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  margin: 20px 0;
+  border: 1px solid #252932;
+}
+
+.ride-info-box {
+  padding: 25px 18px;
+  border-right: 1px solid #252932;
+}
+
+.ride-info-box:last-child {
+  border-right: 0;
+}
+
+.ride-info-box span {
+  display: block;
+  color: #666;
+  font-size: 10px;
+  letter-spacing: 2px;
+  margin-bottom: 10px;
+}
+
+.ride-info-box strong {
+  font-size: 14px;
+}
+
+.ride-action-panel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 30px;
+  padding: 28px;
+  margin-bottom: 20px;
+  border: 1px solid #252932;
+  background: #0d1016;
+}
+
+.panel-label {
+  color: #777;
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+
+.ride-action-panel h3 {
+  margin: 8px 0 0;
+}
+
+.ride-message {
+  color: #d99a42;
+  margin: 8px 0 0;
+  font-size: 13px;
+}
+
+.ride-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.primary-ride-btn,
+.secondary-ride-btn {
+  padding: 14px 24px;
+  cursor: pointer;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  transition: 0.25s;
+}
+
+.primary-ride-btn {
+  border: 1px solid #d99a42;
+  background: #d99a42;
+  color: #08090b;
+}
+
+.primary-ride-btn:hover {
+  background: #f0b35d;
+}
+
+.secondary-ride-btn {
+  border: 1px solid #444;
+  background: transparent;
+  color: #ddd;
+}
+
+.secondary-ride-btn:hover {
+  border-color: #d99a42;
+  color: #d99a42;
+}
+
+.secondary-ride-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ride-content-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 0.8fr;
+  gap: 20px;
+}
+
+.ride-section {
+  border: 1px solid #252932;
+  background: #0c0f14;
+  padding: 30px;
+  margin-bottom: 20px;
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.section-heading span {
+  color: #d99a42;
+  font-size: 11px;
+}
+
+.section-heading h2 {
+  margin: 0;
+  font-size: 18px;
+  letter-spacing: 2px;
+}
+
+.route-line {
+  border-left: 1px solid #333;
+  margin-left: 7px;
+}
+
+.route-point {
+  position: relative;
+  display: flex;
+  gap: 20px;
+  padding: 0 0 28px 28px;
+}
+
+.route-point:last-child {
+  padding-bottom: 0;
+}
+
+.route-point > span {
+  position: absolute;
+  left: -5px;
+  top: 3px;
+  width: 9px;
+  height: 9px;
+  border: 1px solid #d99a42;
+  background: #0c0f14;
+  border-radius: 50%;
+}
+
+.route-point small {
+  display: block;
+  color: #666;
+  font-size: 9px;
+  letter-spacing: 2px;
+  margin-bottom: 6px;
+}
+
+.route-point strong {
+  font-size: 14px;
+}
+
+.requirements-list {
+  display: grid;
+  gap: 12px;
+}
+
+.requirement {
+  display: flex;
+  gap: 12px;
+  padding: 14px;
+  background: #11141a;
+  color: #bbb;
+}
+
+.requirement span {
+  color: #d99a42;
+}
+
+.capacity-info {
+  display: flex;
+  justify-content: space-between;
+  color: #777;
+  font-size: 12px;
+}
+
+.capacity-info strong {
+  color: #fff;
+  font-size: 24px;
+}
+
+.capacity-bar {
+  height: 4px;
+  background: #242832;
+  margin: 15px 0 25px;
+}
+
+.capacity-bar div {
+  height: 100%;
+  background: #d99a42;
+  transition: width 0.3s ease;
+}
+
+.participants-list {
+  display: grid;
+  gap: 12px;
+}
+
+.participant {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #11141a;
+}
+
+.participant-avatar {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  background: #1c2028;
+  color: #d99a42;
+  border-radius: 50%;
+}
+
+.participant div:nth-child(2) {
+  flex: 1;
+}
+
+.participant strong {
+  display: block;
+  font-size: 13px;
+}
+
+.participant span {
+  color: #666;
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+
+.confirmed {
+  color: #d99a42 !important;
+  font-size: 15px !important;
+}
+
+.join-request {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  padding: 12px;
+  margin-bottom: 10px;
+  background: #11141a;
+}
+
+.join-request strong,
+.join-request small {
+  display: block;
+}
+
+.join-request small {
+  color: #666;
+  margin-top: 5px;
+}
+
+.join-request button {
+  border: 1px solid #d99a42;
+  background: transparent;
+  color: #d99a42;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 9px;
+}
+
+.organizer-panel {
+  border: 1px solid #252932;
+  padding: 30px;
+  background: #0c0f14;
+}
+
+.organizer-panel > div:first-child span {
+  color: #777;
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+
+.organizer-panel h2 {
+  margin: 8px 0 25px;
+  letter-spacing: 2px;
+}
+
+.lifecycle-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.lifecycle-buttons button {
+  padding: 12px 18px;
+  background: transparent;
+  color: #aaa;
+  border: 1px solid #333;
+  cursor: pointer;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+.lifecycle-buttons button:hover,
+.lifecycle-buttons button.selected {
+  border-color: #d99a42;
+  color: #d99a42;
+}
+
+.lifecycle-buttons button.danger:hover,
+.lifecycle-buttons button.danger.selected {
+  border-color: #b64d4d;
+  color: #b64d4d;
+}
+
+.organizer-panel p {
+  color: #555;
+  font-size: 11px;
+  margin-top: 20px;
+}
+
+.ride-not-found {
+  text-align: center;
+  padding: 100px 20px;
+}
+
+.ride-not-found button {
+  margin-top: 20px;
+  padding: 14px 25px;
+  background: transparent;
+  border: 1px solid #d99a42;
+  color: #d99a42;
+  cursor: pointer;
+}
+
+@media (max-width: 1000px) {
+  .ride-info-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .ride-info-box:nth-child(3) {
+    border-right: 0;
+  }
+
+  .ride-content-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .ride-details-page {
+    padding: 100px 20px 50px;
+  }
+
+  .ride-details-hero {
+    flex-direction: column;
+    padding: 25px;
+  }
+
+  .ride-info-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .ride-info-box {
+    border-bottom: 1px solid #252932;
+  }
+
+  .ride-action-panel {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ride-details-hero h1 {
+    font-size: 42px;
+  }
+}
