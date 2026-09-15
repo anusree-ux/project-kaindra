@@ -1,62 +1,164 @@
-.long-term-impact {
-  padding: 140px 50px;
-  background: #171717;
-  color: white;
+.impact-section {
+  width: 100%;
+  padding: 75px 0;
+  background: #f7f6f3;
+  color: #151515;
+  scroll-margin-top: 90px;
 }
 
 .impact-container {
-  max-width: 1300px;
-  margin: auto;
+  width: min(1180px, calc(100% - 48px));
+  margin: 0 auto;
 }
 
-.impact-container > p {
-  color: #999;
-  font-size: 12px;
-  letter-spacing: 3px;
+.impact-heading {
+  max-width: 780px;
+  margin: 0 auto 45px;
+  text-align: center;
 }
 
-.impact-container > h2 {
-  font-size: clamp(50px, 7vw, 95px);
-  line-height: 0.95;
-  margin: 30px 0 100px;
+.impact-label {
+  margin-bottom: 14px;
+  color: #bd8b46;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
 }
 
-.impact-container > h2 span {
-  color: #888;
-  font-weight: 300;
+.impact-heading h2 {
+  margin: 0;
+  color: #151515;
+  font-size: clamp(40px, 5vw, 58px);
+  line-height: 1.08;
+  font-weight: 600;
+  letter-spacing: -2px;
 }
 
-.impact-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 30px;
-}
-
-.impact-grid > div {
-  border-top: 1px solid #444;
-  padding-top: 25px;
-}
-
-.impact-grid strong {
-  color: #888;
-}
-
-.impact-grid h3 {
-  font-size: 28px;
-  margin-top: 50px;
-}
-
-.impact-grid p {
-  color: #aaa;
+.impact-heading p {
+  max-width: 680px;
+  margin: 18px auto 0;
+  color: #626262;
+  font-size: 15px;
   line-height: 1.7;
 }
 
-@media (max-width: 800px) {
-  .long-term-impact {
-    padding: 90px 25px;
+.impact-content {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 42px 55px;
+  display: flex;
+  align-items: center;
+  gap: 35px;
+  background: #ffffff;
+  border: 1px solid #dedbd5;
+}
+
+.impact-icon {
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #bd8b46;
+  border-radius: 50%;
+  color: #bd8b46;
+}
+
+.impact-text {
+  margin: 0;
+  color: #555555;
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+/* =========================
+   TABLET
+========================= */
+
+@media (max-width: 750px) {
+  .impact-section {
+    padding: 65px 0;
   }
 
-  .impact-grid {
-    grid-template-columns: 1fr;
+  .impact-container {
+    width: min(700px, calc(100% - 40px));
+  }
+
+  .impact-heading {
+    margin-bottom: 35px;
+  }
+
+  .impact-content {
+    padding: 35px;
+    gap: 25px;
+  }
+}
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 600px) {
+  .impact-section {
+    padding: 60px 0 55px;
+    scroll-margin-top: 75px;
+  }
+
+  .impact-container {
+    width: calc(100% - 32px);
+  }
+
+  .impact-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+  }
+
+  .impact-heading h2 {
+    font-size: 38px;
+    letter-spacing: -1.3px;
+  }
+
+  .impact-heading p {
+    font-size: 14px;
+  }
+
+  .impact-content {
+    padding: 30px 25px;
+    flex-direction: column;
+    text-align: center;
+    gap: 22px;
+  }
+
+  .impact-icon {
+    width: 54px;
+    height: 54px;
+  }
+
+  .impact-text {
+    font-size: 14px;
+  }
+}
+
+/* =========================
+   SMALL MOBILE
+========================= */
+
+@media (max-width: 400px) {
+  .impact-heading h2 {
+    font-size: 34px;
+  }
+
+  .impact-heading p {
+    font-size: 13px;
+  }
+
+  .impact-content {
+    padding: 26px 20px;
+  }
+
+  .impact-text {
+    font-size: 13px;
   }
 }

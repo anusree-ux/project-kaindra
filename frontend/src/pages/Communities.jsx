@@ -1,11 +1,8 @@
-import Navbar from "../components/Navbar/Navbar";
 import Footer from "../components/Footer/Footer";
 
 function Communities() {
   return (
     <>
-      <Navbar />
-
       <main className="page-section">
         <div className="container">
 

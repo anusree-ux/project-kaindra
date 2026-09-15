@@ -1,49 +1,107 @@
+import {
+  Cpu,
+  Brain,
+  BarChart3,
+  ShieldCheck,
+  Cloud,
+  Glasses,
+  Radio,
+  Layers,
+} from "lucide-react";
+
 import "./TechnologyFoundation.css";
 
 const technologies = [
   {
-    title: "AI & Intelligence",
-    text: "Smart recommendations, discovery and business insights."
+    title: "AI & Machine Learning",
+    icon: Brain,
   },
   {
-    title: "Digital Marketplace",
-    text: "A connected environment for fashion products and services."
+    title: "Big Data & Analytics",
+    icon: BarChart3,
   },
   {
-    title: "Data Platform",
-    text: "Structured data powering better decisions across the ecosystem."
+    title: "Blockchain",
+    description: "Transparency & Authenticity",
+    icon: ShieldCheck,
   },
   {
-    title: "Mobile Experiences",
-    text: "Accessible digital experiences for every participant."
+    title: "Cloud Infrastructure",
+    icon: Cloud,
   },
   {
-    title: "Secure Infrastructure",
-    text: "Reliable technology designed to scale globally."
+    title: "AR/VR",
+    description: "Virtual Try-on & Experiences",
+    icon: Glasses,
   },
   {
-    title: "Analytics",
-    text: "Measure trends, performance and ecosystem growth."
-  }
+    title: "IoT",
+    description: "Smart Manufacturing & Inventory",
+    icon: Radio,
+  },
+  {
+    title: "API-First Architecture",
+    description: "Scalable & Connected Systems",
+    icon: Layers,
+  },
 ];
 
 export default function TechnologyFoundation() {
   return (
-    <section className="technology-foundation" id="technology">
-      <div className="tech-container">
-        <p>08 — TECHNOLOGY FOUNDATION</p>
+    <section
+      className="technology-section"
+      id="technology"
+    >
+      <div className="technology-container">
 
-        <h2>Technology powering<br />fashion's future.</h2>
+        <div className="technology-heading">
+          <div className="technology-label">
+            TECHNOLOGY FOUNDATION
+          </div>
 
-        <div className="tech-grid">
-          {technologies.map((tech, index) => (
-            <div className="tech-card" key={tech.title}>
-              <span>0{index + 1}</span>
-              <h3>{tech.title}</h3>
-              <p>{tech.text}</p>
-            </div>
-          ))}
+          <h2>
+            Technology powering
+            <br />
+            the future of fashion.
+          </h2>
+
+          <p>
+            A scalable technology foundation connecting intelligent
+            systems, immersive experiences, secure infrastructure,
+            and data-driven fashion solutions.
+          </p>
         </div>
+
+        <div className="technology-icon">
+          <Cpu size={30} strokeWidth={1.5} />
+        </div>
+
+        <div className="technology-grid">
+          {technologies.map((technology) => {
+            const Icon = technology.icon;
+
+            return (
+              <article
+                className="technology-card"
+                key={technology.title}
+              >
+                <div className="technology-card-icon">
+                  <Icon
+                    size={24}
+                    strokeWidth={1.5}
+                  />
+                </div>
+
+                <h3>{technology.title}</h3>
+
+                {technology.description && (
+                  <p>{technology.description}</p>
+                )}
+              </article>
+            );
+          })}
+        </div>
+
       </div>
     </section>
   );

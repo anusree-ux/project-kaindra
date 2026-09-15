@@ -1,56 +1,273 @@
-.stakeholders {
-  padding: 120px 50px;
-  background: #f7f7f7;
+/* =========================================================
+   STAKEHOLDERS
+========================================================= */
+
+.stakeholders-section {
+  width: 100%;
+  padding: 75px 0;
+  background: #ffffff;
+  color: #151515;
+  scroll-margin-top: 90px;
 }
 
-.stake-container {
-  max-width: 1300px;
-  margin: auto;
+.stakeholders-container {
+  width: min(1180px, calc(100% - 48px));
+  margin: 0 auto;
 }
 
-.stake-container > p {
-  font-size: 12px;
-  letter-spacing: 3px;
+
+/* =========================================================
+   HEADING
+========================================================= */
+
+.stakeholders-heading {
+  max-width: 800px;
+  margin: 0 auto 35px;
+  text-align: center;
 }
 
-.stake-container > h2 {
-  font-size: clamp(45px, 5vw, 70px);
-  line-height: 1;
-  margin: 25px 0 70px;
+.stakeholders-label {
+  margin-bottom: 13px;
+
+  color: #bd8b46;
+
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
 }
 
-.stake-grid {
+.stakeholders-heading h2 {
+  margin: 0;
+
+  color: #151515;
+
+  font-size: clamp(40px, 5vw, 58px);
+  line-height: 1.08;
+  font-weight: 600;
+  letter-spacing: -2px;
+}
+
+.stakeholders-heading p {
+  max-width: 650px;
+
+  margin: 17px auto 0;
+
+  color: #626262;
+
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+
+/* =========================================================
+   ICON
+========================================================= */
+
+.stakeholders-icon {
+  width: 58px;
+  height: 58px;
+
+  margin: 0 auto 32px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #bd8b46;
+  border-radius: 50%;
+
+  color: #bd8b46;
+  background: #ffffff;
+}
+
+
+/* =========================================================
+   GRID
+========================================================= */
+
+.stakeholders-grid {
   display: grid;
+
   grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+
+  border-top: 1px solid #dedbd5;
+  border-left: 1px solid #dedbd5;
+
+  background: #ffffff;
 }
 
-.stake-grid article {
-  background: white;
-  padding: 35px;
-  min-height: 250px;
+
+/* =========================================================
+   CARD
+========================================================= */
+
+.stakeholder-card {
+  min-height: 115px;
+
+  padding: 25px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 15px;
+
+  border-right: 1px solid #dedbd5;
+  border-bottom: 1px solid #dedbd5;
+
+  background: #ffffff;
+
+  transition:
+    background 0.25s ease,
+    transform 0.25s ease;
 }
 
-.stake-icon {
-  font-size: 30px;
+.stakeholder-card:hover {
+  background: #faf9f6;
 }
 
-.stake-grid h3 {
-  margin-top: 40px;
-  font-size: 25px;
+
+/* =========================================================
+   CHECK
+========================================================= */
+
+.stakeholder-check {
+  width: 38px;
+  height: 38px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #bd8b46;
+  border-radius: 50%;
+
+  color: #bd8b46;
 }
 
-.stake-grid p {
-  color: #777;
-  line-height: 1.6;
+
+/* =========================================================
+   TEXT
+========================================================= */
+
+.stakeholder-card span {
+  color: #252525;
+
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
 }
 
-@media (max-width: 800px) {
-  .stakeholders {
-    padding: 80px 25px;
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 900px) {
+
+  .stakeholders-section {
+    padding: 65px 0;
   }
 
-  .stake-grid {
+  .stakeholders-container {
+    width: min(700px, calc(100% - 40px));
+  }
+
+  .stakeholders-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .stakeholder-card {
+    min-height: 105px;
+    padding: 22px;
+  }
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+
+  .stakeholders-section {
+    padding: 60px 0;
+    scroll-margin-top: 75px;
+  }
+
+  .stakeholders-container {
+    width: calc(100% - 32px);
+  }
+
+  .stakeholders-heading {
+    margin-bottom: 30px;
+  }
+
+  .stakeholders-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+  }
+
+  .stakeholders-heading h2 {
+    font-size: 38px;
+    letter-spacing: -1.3px;
+  }
+
+  .stakeholders-heading p {
+    font-size: 14px;
+  }
+
+  .stakeholders-icon {
+    width: 52px;
+    height: 52px;
+    margin-bottom: 28px;
+  }
+
+  .stakeholders-grid {
     grid-template-columns: 1fr;
+  }
+
+  .stakeholder-card {
+    min-height: 85px;
+    padding: 20px;
+  }
+
+  .stakeholder-check {
+    width: 34px;
+    height: 34px;
+  }
+
+  .stakeholder-card span {
+    font-size: 13px;
+  }
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 400px) {
+
+  .stakeholders-section {
+    padding: 50px 0;
+  }
+
+  .stakeholders-heading h2 {
+    font-size: 34px;
+  }
+
+  .stakeholders-heading p {
+    font-size: 13px;
+  }
+
+  .stakeholder-card {
+    padding: 18px;
+  }
+
+  .stakeholder-card span {
+    font-size: 12px;
   }
 }
