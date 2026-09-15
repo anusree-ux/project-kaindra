@@ -6,14 +6,12 @@ function RidePassport() {
   const [selectedAchievement, setSelectedAchievement] = useState(0);
   const [passportData, setPassportData] = useState(null);
   const [achievements, setAchievements] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   // 1. Fetch live passport data from backend
   const fetchPassportData = useCallback(async () => {
-    setLoading(true);
     try {
       const res = await apiClient.get("/api/mototribe/rider-profile/me/passport");
-      const { profile, earnedBadges = [], unearnedBadges = [] } = res.data?.data || {};
+      const { profile, earnedBadges = [] } = res.data?.data || {};
 
       setPassportData(profile || null);
 
@@ -36,8 +34,6 @@ function RidePassport() {
       setAchievements(combined);
     } catch (err) {
       console.error("Error fetching RidePassport data:", err);
-    } finally {
-      setLoading(false);
     }
   }, []);
 

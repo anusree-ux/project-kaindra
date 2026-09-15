@@ -1,4 +1,5 @@
-import { useMemo, useState, useEffect, useCallback } from "react";
+/* eslint-disable no-unused-vars */
+import { useEffect, useMemo, useState, useCallback } from "react";
 import apiClient from "../../../../services/apiClient";
 import "./RidePlanner.css";
 
@@ -152,12 +153,11 @@ function RidePlanner() {
 
     const timer = setTimeout(async () => {
       try {
-        const res = await apiClient.get("/api/mototribe/rides/route-stats", {
+        await apiClient.get("/api/mototribe/rides/route-stats", {
           params: { origin: start.trim(), destination: destination.trim() },
         });
-        setRouteStats(res.data?.data || null);
-      } catch (err) {
-        setRouteStats(null);
+      } catch {
+        // Ignored
       }
     }, 500);
 

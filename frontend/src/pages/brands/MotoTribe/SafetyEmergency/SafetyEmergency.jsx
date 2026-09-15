@@ -11,10 +11,8 @@ function SafetyEmergency() {
     { id: 5, label: "EMERGENCY CONTACT", checked: true },
   ]);
 
-  const [rides, setRides] = useState([]);
   const [activeRide, setActiveRide] = useState(null);
   const [sosAlerts, setSosAlerts] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   // 2-step SOS modal state
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -25,11 +23,9 @@ function SafetyEmergency() {
 
   // Fetch active ride & SOS history
   const fetchRideAndSosData = useCallback(async () => {
-    setLoading(true);
     try {
       const response = await apiClient.get("/mototribe/rides");
       const fetchedRides = response.data.data?.rides || [];
-      setRides(fetchedRides);
 
       if (fetchedRides.length > 0) {
         // Priority 1: Ongoing rides sorted by startDate ASC
@@ -52,8 +48,6 @@ function SafetyEmergency() {
       }
     } catch {
       // Backend request error
-    } finally {
-      setLoading(false);
     }
   }, []);
 

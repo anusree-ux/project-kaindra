@@ -203,6 +203,11 @@ export function AuthProvider({ children }) {
       pendingOtpData,
       openAuthModal,
       closeAuthModal,
+      login,
+      signup,
+      verifyOtp,
+      resendOtp,
+      logout,
     ]
   );
 

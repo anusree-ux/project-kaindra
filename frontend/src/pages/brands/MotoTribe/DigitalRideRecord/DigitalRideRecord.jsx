@@ -8,11 +8,9 @@ function DigitalRideRecord() {
   const [filter, setFilter] = useState("ALL");
   const [guideMessage, setGuideMessage] = useState("");
   const [passportStats, setPassportStats] = useState(null);
-  const [loading, setLoading] = useState(true);
 
   // 1. Fetch live passport, completed ride history & journals from database
   const fetchDigitalRecordData = useCallback(async () => {
-    setLoading(true);
     try {
       const [passportRes, historyRes, journalRes] = await Promise.allSettled([
         apiClient.get("/api/mototribe/rider-profile/me/passport"),
@@ -75,8 +73,6 @@ function DigitalRideRecord() {
       }
     } catch (err) {
       console.error("Error fetching DigitalRideRecord backend data:", err);
-    } finally {
-      setLoading(false);
     }
   }, []);
 
@@ -252,7 +248,7 @@ function DigitalRideRecord() {
             <h3 style={{ fontSize: "15px", letterSpacing: "1px", color: "#fff", marginBottom: "6px" }}>
               NO COMPLETED RIDE RECORDS IN DATABASE
             </h3>
-            <p style={{ fontSize: "12px", color: "rgba(255, 255, 255, 0.5)", margin: 0, maxWidth: "500px", margin: "0 auto" }}>
+            <p style={{ fontSize: "12px", color: "rgba(255, 255, 255, 0.5)", maxWidth: "500px", margin: "0 auto" }}>
               Complete a ride from your upcoming rides network to automatically record your digital ride history, expenses, and passport badges!
             </p>
           </div>

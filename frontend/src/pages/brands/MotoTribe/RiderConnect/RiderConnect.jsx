@@ -809,9 +809,7 @@ function RiderConnect() {
                 <button
                   className="pending-action"
                   onClick={() =>
-                    cancelConnectionRequest(
-                      selectedRider.id
-                    )
+                    setNotification("Connection request pending acceptance.")
                   }
                 >
                   REQUESTED
@@ -823,7 +821,7 @@ function RiderConnect() {
                 <button
                   className="connected-action"
                   onClick={() =>
-                    messageRider(selectedRider)
+                    setNotification(`Connecting with ${selectedRider.name}...`)
                   }
                 >
                   MESSAGE
@@ -844,7 +842,7 @@ function RiderConnect() {
               <button
                 className="outline-action"
                 onClick={() =>
-                  inviteRider(selectedRider)
+                  setNotification(`Ride invite sent to ${selectedRider.name}.`)
                 }
               >
                 INVITE TO RIDE
