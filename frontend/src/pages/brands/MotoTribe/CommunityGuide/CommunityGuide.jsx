@@ -1,116 +1,93 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import "./CommunityGuide.css";
 
-const defaultGuides = [
+const guideCategories = [
   {
-    id: 1,
-    ride: "Araku Valley Escape",
-    route: "Visakhapatnam → Araku Valley",
-    author: "Verified Rider",
-    difficulty: "MODERATE",
-    roadCondition: "GOOD",
-    warning: "Watch for sharp mountain bends after sunset.",
-    fuel: "Fuel available before entering the ghat section.",
-    food: "Several local food stops near Araku.",
-    stay: "Multiple budget stays available near destination.",
-    scenic: "Excellent valley viewpoints.",
-    tip: "Start early to avoid traffic and enjoy cooler roads.",
-    privacy: "COMMUNITY",
-    published: true,
-    date: "2026-08-29",
+    id: "group-rides",
+    number: "01",
+    title: "GROUP RIDES",
+    description:
+      "Understand how to ride safely and confidently as part of a group.",
+    items: [
+      "Maintain a safe riding distance.",
+      "Follow the lead rider and route instructions.",
+      "Do not overtake aggressively within the group.",
+      "Signal hazards clearly to riders behind you.",
+    ],
+  },
+  {
+    id: "ride-etiquette",
+    number: "02",
+    title: "RIDE ETIQUETTE",
+    description:
+      "Simple riding practices that keep the community respectful.",
+    items: [
+      "Respect other riders and road users.",
+      "Avoid unnecessary noise in residential areas.",
+      "Keep shared riding spaces clean.",
+      "Support new riders instead of pressuring them.",
+    ],
+  },
+  {
+    id: "community-safety",
+    number: "03",
+    title: "COMMUNITY SAFETY",
+    description:
+      "Build safer riding groups through preparation and awareness.",
+    items: [
+      "Carry emergency contact information.",
+      "Check your motorcycle before every long ride.",
+      "Share your planned route with trusted contacts.",
+      "Take regular breaks during long-distance journeys.",
+    ],
+  },
+  {
+    id: "road-knowledge",
+    number: "04",
+    title: "ROAD KNOWLEDGE",
+    description:
+      "Useful community knowledge for better journey preparation.",
+    items: [
+      "Check weather and road conditions before departure.",
+      "Know the fuel stations along your route.",
+      "Identify service points before remote sections.",
+      "Keep basic emergency equipment accessible.",
+    ],
   },
 ];
 
-const emptyGuide = {
-  ride: "",
-  route: "",
-  difficulty: "MODERATE",
-  roadCondition: "GOOD",
-  warning: "",
-  fuel: "",
-  food: "",
-  stay: "",
-  scenic: "",
-  tip: "",
-  privacy: "COMMUNITY",
-};
-
 function CommunityGuide() {
-  const [guides, setGuides] = useState(() => {
-    const saved = localStorage.getItem("mototribeCommunityGuides");
+  const [activeCategory, setActiveCategory] =
+    useState("group-rides");
 
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return defaultGuides;
-      }
+  const [savedGuides, setSavedGuides] = useState(() => {
+    try {
+      return JSON.parse(
+        localStorage.getItem("mototribeSavedGuides") ||
+          "[]"
+      );
+    } catch {
+      return [];
     }
-
-    return defaultGuides;
   });
-
-  const [form, setForm] = useState(emptyGuide);
-  const [selectedGuide, setSelectedGuide] = useState(
-    defaultGuides[0]
-  );
-  const [activeTab, setActiveTab] = useState("CREATE");
-  const [published, setPublished] = useState(false);
-  const [filter, setFilter] = useState("ALL");
 
   useEffect(() => {
     localStorage.setItem(
-      "mototribeCommunityGuides",
-      JSON.stringify(guides)
+      "mototribeSavedGuides",
+      JSON.stringify(savedGuides)
     );
-  }, [guides]);
+  }, [savedGuides]);
 
-  const filteredGuides = useMemo(() => {
-    if (filter === "ALL") {
-      return guides;
-    }
+  const activeGuide = guideCategories.find(
+    (category) => category.id === activeCategory
+  );
 
-    return guides.filter(
-      (guide) => guide.difficulty === filter
+  const toggleSave = (id) => {
+    setSavedGuides((current) =>
+      current.includes(id)
+        ? current.filter((item) => item !== id)
+        : [...current, id]
     );
-  }, [guides, filter]);
-
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-
-    setForm((current) => ({
-      ...current,
-      [name]: value,
-    }));
-  };
-
-  const handlePublish = (event) => {
-    event.preventDefault();
-
-    if (!form.ride || !form.route) {
-      alert("Please enter the ride name and route.");
-      return;
-    }
-
-    const newGuide = {
-      id: Date.now(),
-      ...form,
-      author: "Verified Rider",
-      published: true,
-      date: new Date().toISOString().split("T")[0],
-    };
-
-    setGuides((current) => [newGuide, ...current]);
-    setSelectedGuide(newGuide);
-    setPublished(true);
-    setActiveTab("EXPLORE");
-
-    setForm(emptyGuide);
-  };
-
-  const handleReset = () => {
-    setForm(emptyGuide);
-    setPublished(false);
   };
 
   return (
@@ -121,459 +98,217 @@ function CommunityGuide() {
       <div className="community-guide-container">
 
         {/* HEADER */}
-        <div className="guide-heading">
+
+        <div className="community-guide-header">
 
           <div>
-            <span className="guide-eyebrow">
-              SHARE → GUIDE
+            <span className="community-guide-eyebrow">
+              MOTOTRIBE / COMMUNITY GUIDE
             </span>
 
             <h2>
-              Your experience
+              Ride
               <br />
-              <strong>guides the next rider.</strong>
+              together.
             </h2>
 
             <p>
-              Turn completed rides into useful community
-              intelligence. Share what you actually experienced,
-              not just what the map predicts.
+              A shared knowledge space for riders who
+              believe that better journeys begin with
+              better communities.
             </p>
           </div>
 
-          <div className="trust-layer">
-            <span className="trust-icon">✓</span>
+          <div className="community-guide-mark">
+            <span>COMMUNITY</span>
+            <strong>KNOWLEDGE / 01</strong>
+          </div>
 
-            <div>
-              <strong>RIDER COMPLETED</strong>
-              <small>
-                Experience-based information
-              </small>
+        </div>
+
+        {/* MAIN GUIDE */}
+
+        <div className="community-guide-layout">
+
+          {/* CATEGORY LIST */}
+
+          <div className="guide-category-list">
+
+            <div className="guide-list-heading">
+              <span>EXPLORE GUIDE</span>
+              <span>04 CATEGORIES</span>
             </div>
-          </div>
 
-        </div>
+            {guideCategories.map((category) => (
+              <button
+                key={category.id}
+                className={`guide-category ${
+                  activeCategory === category.id
+                    ? "active"
+                    : ""
+                }`}
+                onClick={() =>
+                  setActiveCategory(category.id)
+                }
+              >
 
-        {/* TABS */}
-        <div className="guide-tabs">
+                <span className="guide-category-number">
+                  {category.number}
+                </span>
 
-          <button
-            className={activeTab === "CREATE" ? "active" : ""}
-            onClick={() => setActiveTab("CREATE")}
-          >
-            CREATE GUIDE
-          </button>
+                <span className="guide-category-content">
+                  <strong>{category.title}</strong>
+                  <small>
+                    {category.description}
+                  </small>
+                </span>
 
-          <button
-            className={activeTab === "EXPLORE" ? "active" : ""}
-            onClick={() => setActiveTab("EXPLORE")}
-          >
-            COMMUNITY GUIDES
-          </button>
+                <span className="guide-category-arrow">
+                  →
+                </span>
 
-        </div>
-
-        {activeTab === "CREATE" && (
-          <div className="guide-builder">
-
-            {/* FORM */}
-            <form
-              className="guide-form"
-              onSubmit={handlePublish}
-            >
-
-              <div className="form-section-title">
-                <span>01</span>
-                RIDE INFORMATION
-              </div>
-
-              <div className="input-grid">
-
-                <label>
-                  RIDE NAME
-                  <input
-                    name="ride"
-                    value={form.ride}
-                    onChange={handleChange}
-                    placeholder="Example: Araku Valley Escape"
-                  />
-                </label>
-
-                <label>
-                  ROUTE
-                  <input
-                    name="route"
-                    value={form.route}
-                    onChange={handleChange}
-                    placeholder="Example: Vizag → Araku"
-                  />
-                </label>
-
-              </div>
-
-              <div className="input-grid">
-
-                <label>
-                  DIFFICULTY
-
-                  <select
-                    name="difficulty"
-                    value={form.difficulty}
-                    onChange={handleChange}
-                  >
-                    <option>EASY</option>
-                    <option>MODERATE</option>
-                    <option>HARD</option>
-                    <option>EXTREME</option>
-                  </select>
-                </label>
-
-                <label>
-                  ROAD CONDITION
-
-                  <select
-                    name="roadCondition"
-                    value={form.roadCondition}
-                    onChange={handleChange}
-                  >
-                    <option>GOOD</option>
-                    <option>MODERATE</option>
-                    <option>ROUGH</option>
-                    <option>POOR</option>
-                  </select>
-                </label>
-
-              </div>
-
-              <div className="form-section-title">
-                <span>02</span>
-                ROUTE INTELLIGENCE
-              </div>
-
-              <label>
-                ⚠ WARNINGS
-                <textarea
-                  name="warning"
-                  value={form.warning}
-                  onChange={handleChange}
-                  placeholder="Mention dangerous turns, traffic, construction, weather risks..."
-                />
-              </label>
-
-              <label>
-                ⛽ FUEL INFORMATION
-                <textarea
-                  name="fuel"
-                  value={form.fuel}
-                  onChange={handleChange}
-                  placeholder="Where can riders refuel?"
-                />
-              </label>
-
-              <label>
-                🍴 FOOD STOPS
-                <textarea
-                  name="food"
-                  value={form.food}
-                  onChange={handleChange}
-                  placeholder="Useful food or refreshment stops..."
-                />
-              </label>
-
-              <label>
-                🛏 ACCOMMODATION
-                <textarea
-                  name="stay"
-                  value={form.stay}
-                  onChange={handleChange}
-                  placeholder="Recommended stays or rest locations..."
-                />
-              </label>
-
-              <label>
-                ⛰ SCENIC LOCATIONS
-                <textarea
-                  name="scenic"
-                  value={form.scenic}
-                  onChange={handleChange}
-                  placeholder="Viewpoints, photography locations, interesting places..."
-                />
-              </label>
-
-              <div className="form-section-title">
-                <span>03</span>
-                RIDER EXPERIENCE
-              </div>
-
-              <label>
-                RIDING TIP
-                <textarea
-                  name="tip"
-                  value={form.tip}
-                  onChange={handleChange}
-                  placeholder="What would you tell the next rider?"
-                />
-              </label>
-
-              <div className="privacy-box">
-
-                <div>
-                  <span>VISIBILITY</span>
-                  <p>
-                    Choose who can use your guide.
-                  </p>
-                </div>
-
-                <select
-                  name="privacy"
-                  value={form.privacy}
-                  onChange={handleChange}
-                >
-                  <option>PRIVATE</option>
-                  <option>CONNECTIONS</option>
-                  <option>RIDE GROUP</option>
-                  <option>COMMUNITY</option>
-                </select>
-
-              </div>
-
-              <div className="form-actions">
-
-                <button
-                  type="button"
-                  className="reset-button"
-                  onClick={handleReset}
-                >
-                  RESET
-                </button>
-
-                <button
-                  type="submit"
-                  className="publish-button"
-                >
-                  PUBLISH GUIDE →
-                </button>
-
-              </div>
-
-            </form>
-
-            {/* PREVIEW */}
-            <aside className="guide-preview">
-
-              <div className="preview-header">
-                <span>LIVE PREVIEW</span>
-                <small>
-                  COMMUNITY INTELLIGENCE
-                </small>
-              </div>
-
-              <div className="preview-card">
-
-                <div className="preview-trust">
-                  <span>✓</span>
-                  RIDER COMPLETED
-                </div>
-
-                <h3>
-                  {form.ride || "Your Ride"}
-                </h3>
-
-                <p className="preview-route">
-                  {form.route ||
-                    "Your route will appear here"}
-                </p>
-
-                <div className="preview-tags">
-
-                  <span>{form.difficulty}</span>
-                  <span>{form.roadCondition}</span>
-                  <span>{form.privacy}</span>
-
-                </div>
-
-                <div className="preview-divider"></div>
-
-                <div className="preview-item">
-                  <span>⚠ WARNING</span>
-                  <p>
-                    {form.warning ||
-                      "No warning added yet."}
-                  </p>
-                </div>
-
-                <div className="preview-item">
-                  <span>⛽ FUEL</span>
-                  <p>
-                    {form.fuel ||
-                      "Fuel information will appear here."}
-                  </p>
-                </div>
-
-                <div className="preview-item">
-                  <span>🍴 FOOD</span>
-                  <p>
-                    {form.food ||
-                      "Food stops will appear here."}
-                  </p>
-                </div>
-
-                <div className="preview-item">
-                  <span>⛰ SCENIC</span>
-                  <p>
-                    {form.scenic ||
-                      "Scenic information will appear here."}
-                  </p>
-                </div>
-
-                <div className="preview-item">
-                  <span>RIDER TIP</span>
-                  <p>
-                    {form.tip ||
-                      "Your personal riding advice will appear here."}
-                  </p>
-                </div>
-
-              </div>
-
-              <div className="knowledge-note">
-                <span>KNOWLEDGE LAYER</span>
-
-                <p>
-                  Your contribution can help another rider
-                  plan a safer and better journey.
-                </p>
-              </div>
-
-            </aside>
+              </button>
+            ))}
 
           </div>
-        )}
 
-        {activeTab === "EXPLORE" && (
-          <div className="guide-explore">
+          {/* DETAIL */}
 
-            <div className="explore-toolbar">
+          <div className="community-guide-detail">
 
-              <div>
-                <span>COMMUNITY KNOWLEDGE</span>
-                <h3>
-                  Guides from riders who completed the ride.
-                </h3>
-              </div>
+            {activeGuide && (
+              <>
+                <div className="guide-detail-top">
 
-              <div className="explore-filters">
+                  <div>
+                    <span>
+                      GUIDE / {activeGuide.number}
+                    </span>
 
-                {[
-                  "ALL",
-                  "EASY",
-                  "MODERATE",
-                  "HARD",
-                  "EXTREME",
-                ].map((item) => (
+                    <h3>
+                      {activeGuide.title}
+                    </h3>
+                  </div>
+
                   <button
-                    key={item}
-                    className={
-                      filter === item ? "active" : ""
+                    className={`guide-save ${
+                      savedGuides.includes(
+                        activeGuide.id
+                      )
+                        ? "saved"
+                        : ""
+                    }`}
+                    onClick={() =>
+                      toggleSave(activeGuide.id)
                     }
-                    onClick={() => setFilter(item)}
                   >
-                    {item}
+                    {savedGuides.includes(
+                      activeGuide.id
+                    )
+                      ? "SAVED ✓"
+                      : "SAVE GUIDE"}
                   </button>
-                ))}
 
-              </div>
+                </div>
 
-            </div>
+                <div className="guide-detail-line"></div>
 
-            <div className="guide-list">
+                <p className="guide-detail-description">
+                  {activeGuide.description}
+                </p>
 
-              {filteredGuides.map((guide) => (
-                <article
-                  className={`guide-card ${
-                    selectedGuide?.id === guide.id
-                      ? "selected"
-                      : ""
-                  }`}
-                  key={guide.id}
-                  onClick={() => setSelectedGuide(guide)}
-                >
+                <div className="guide-items">
 
-                  <div className="guide-card-top">
+                  {activeGuide.items.map(
+                    (item, index) => (
+                      <div
+                        className="guide-item"
+                        key={item}
+                      >
 
-                    <span className="completed-label">
-                      ✓ RIDER COMPLETED
-                    </span>
+                        <span>
+                          {String(index + 1).padStart(
+                            2,
+                            "0"
+                          )}
+                        </span>
 
-                    <span className="guide-date">
-                      {guide.date}
-                    </span>
+                        <p>{item}</p>
 
-                  </div>
+                        <strong>+</strong>
 
-                  <h3>{guide.ride}</h3>
+                      </div>
+                    )
+                  )}
 
-                  <p className="guide-card-route">
-                    {guide.route}
+                </div>
+
+                <div className="guide-detail-footer">
+
+                  <span>
+                    MOTOTRIBE COMMUNITY STANDARD
+                  </span>
+
+                  <p>
+                    Good riding is not only about the
+                    motorcycle. It is about how we
+                    treat the road and each other.
                   </p>
 
-                  <div className="guide-card-tags">
-                    <span>{guide.difficulty}</span>
-                    <span>{guide.roadCondition}</span>
-                  </div>
+                </div>
 
-                  <div className="guide-card-content">
-
-                    <div>
-                      <span>WARNING</span>
-                      <p>
-                        {guide.warning ||
-                          "No warning reported."}
-                      </p>
-                    </div>
-
-                    <div>
-                      <span>FUEL</span>
-                      <p>
-                        {guide.fuel ||
-                          "No fuel information."}
-                      </p>
-                    </div>
-
-                    <div>
-                      <span>RIDER TIP</span>
-                      <p>
-                        {guide.tip ||
-                          "No riding tip added."}
-                      </p>
-                    </div>
-
-                  </div>
-
-                  <button className="view-guide">
-                    VIEW GUIDE →
-                  </button>
-
-                </article>
-              ))}
-
-            </div>
-
-            {filteredGuides.length === 0 && (
-              <div className="no-guides">
-                No guides available for this difficulty.
-              </div>
+              </>
             )}
 
           </div>
-        )}
 
-        {published && (
-          <div className="publish-success">
-            ✓ YOUR EXPERIENCE HAS BEEN ADDED TO
-            MOTOTRIBE COMMUNITY KNOWLEDGE
+        </div>
+
+        {/* COMMUNITY PRINCIPLES */}
+
+        <div className="community-principles">
+
+          <div className="principle-heading">
+            <span>OUR PRINCIPLES</span>
+            <h3>
+              Strong riders.
+              <br />
+              Stronger community.
+            </h3>
           </div>
-        )}
+
+          <div className="principle-grid">
+
+            <div className="principle-card">
+              <span>01</span>
+              <strong>RESPECT</strong>
+              <p>
+                Respect riders, pedestrians and every
+                community you travel through.
+              </p>
+            </div>
+
+            <div className="principle-card">
+              <span>02</span>
+              <strong>RESPONSIBILITY</strong>
+              <p>
+                Prepare properly and make decisions
+                that protect yourself and your group.
+              </p>
+            </div>
+
+            <div className="principle-card">
+              <span>03</span>
+              <strong>CONNECTION</strong>
+              <p>
+                Share useful knowledge and help other
+                riders discover better journeys.
+              </p>
+            </div>
+
+          </div>
+
+        </div>
 
       </div>
     </section>
