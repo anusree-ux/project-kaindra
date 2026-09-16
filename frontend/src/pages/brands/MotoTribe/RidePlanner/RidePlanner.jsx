@@ -143,7 +143,7 @@ function RidePlanner() {
     } catch (err) {
       console.error("Error initializing RidePlanner data:", err);
     }
-  }, []);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     fetchInitialData();

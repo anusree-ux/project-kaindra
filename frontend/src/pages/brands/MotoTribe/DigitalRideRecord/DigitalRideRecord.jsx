@@ -78,7 +78,7 @@ function DigitalRideRecord() {
     } catch (err) {
       console.error("Error fetching DigitalRideRecord backend data:", err);
     }
-  }, []);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     fetchDigitalRecordData();

@@ -61,7 +61,7 @@ function UpcomingRides() {
       const res = await apiClient.get("/api/mototribe/rides");
       const dbList = res.data.data?.rides || [];
 
-      const dbFormatted = dbList.map((r, idx) => {
+      const dbFormatted = dbList.map((r) => {
         const startDateObj = r.startDate ? new Date(r.startDate) : new Date();
         const yyyy = startDateObj.getFullYear();
         const mm = String(startDateObj.getMonth() + 1).padStart(2, "0");

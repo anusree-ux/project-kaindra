@@ -34,19 +34,6 @@ import AdminCommunity from "./pages/admin/community/AdminCommunity";
 // Brand pages
 import MotoTribe from "./pages/brands/MotoTribe";
 
-// ModaSphere sections
-import ModaNavbar from "./pages/brands/ModaSphere/ModaNavbar/ModaNavbar";
-import VisionMission from "./pages/brands/ModaSphere/VisionMission/VisionMission";
-import CorePillars from "./pages/brands/ModaSphere/CorePillars/CorePillars";
-import ValueProposition from "./pages/brands/ModaSphere/ValueProposition/ValueProposition";
-import Stakeholders from "./pages/brands/ModaSphere/Stakeholders/Stakeholders";
-import SubEcosystems from "./pages/brands/ModaSphere/SubEcosystems/SubEcosystems";
-import RevenueStreams from "./pages/brands/ModaSphere/RevenueStreams/RevenueStreams";
-import TechnologyFoundation from "./pages/brands/ModaSphere/TechnologyFoundation/TechnologyFoundation";
-import GoToMarket from "./pages/brands/ModaSphere/GoToMarket/GoToMarket";
-import LongTermImpact from "./pages/brands/ModaSphere/LongTermImpact/LongTermImpact";
-import SuccessMetrics from "./pages/brands/ModaSphere/SuccessMetrics/SuccessMetrics";
-
 // MotoTribe sub-pages
 import MotoSignup from "./pages/brands/MotoTribe/Auth/Signup";
 import OTPVerification from "./pages/brands/MotoTribe/Auth/OTPVerification";

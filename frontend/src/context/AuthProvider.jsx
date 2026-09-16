@@ -60,7 +60,7 @@ export function AuthProvider({ children }) {
   }, [checkAuth]);
 
   // Login handler
-  const login = async (email, password) => {
+  const login = useCallback(async (email, password) => {
     try {
       const res = await apiClient.post("/api/auth/login", { email, password });
       const accessToken = res.data?.accessToken;
@@ -97,10 +97,10 @@ export function AuthProvider({ children }) {
         message: resp?.message || "Login failed. Please check your credentials.",
       };
     }
-  };
+  }, [closeAuthModal, openAuthModal, updateToken]);
 
   // Signup handler
-  const signup = async (formData) => {
+  const signup = useCallback(async (formData) => {
     try {
       const res = await apiClient.post("/api/auth/signup", formData);
       const data = res.data?.data || res.data;
@@ -121,10 +121,10 @@ export function AuthProvider({ children }) {
         message: resp?.message || "Registration failed. Please check your input.",
       };
     }
-  };
+  }, [openAuthModal]);
 
   // Verify OTP handler
-  const verifyOtp = async (userId, otpCode) => {
+  const verifyOtp = useCallback(async (userId, otpCode) => {
     try {
       const res = await apiClient.post("/api/auth/verify-otp", { userId, otpCode });
       const accessToken = res.data?.accessToken;
@@ -145,10 +145,10 @@ export function AuthProvider({ children }) {
         message: resp?.message || "Invalid or expired OTP code.",
       };
     }
-  };
+  }, [closeAuthModal, updateToken]);
 
   // Resend OTP handler
-  const resendOtp = async (userId) => {
+  const resendOtp = useCallback(async (userId) => {
     try {
       const res = await apiClient.post("/api/auth/resend-otp", { userId });
       return {
@@ -162,10 +162,10 @@ export function AuthProvider({ children }) {
         message: resp?.message || "Failed to resend OTP. Please try again later.",
       };
     }
-  };
+  }, []);
 
   // Logout handler
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
       await apiClient.post("/api/auth/logout");
     } catch {
@@ -175,7 +175,7 @@ export function AuthProvider({ children }) {
       setUser(null);
       setPendingOtpData(null);
     }
-  };
+  }, [updateToken]);
 
   const value = useMemo(
     () => ({
