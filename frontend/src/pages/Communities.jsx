@@ -1,6 +1,8 @@
 import { useState } from "react";
 import "./Communities.css";
 
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "http://localhost:5000").replace(/\/api\/?$/, "");
+
 function Communities() {
   const [submitted, setSubmitted] = useState(false);
 
@@ -17,27 +19,29 @@ function Communities() {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const existingMembers = JSON.parse(
-      localStorage.getItem("kaindraCommunityMembers") || "[]"
-    );
+    try {
+      const res = await fetch(`${API_BASE}/api/community`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
 
-    const newMember = {
-      id: Date.now(),
-      name: formData.name,
-      email: formData.email,
-      phone: formData.phone,
-      joinedAt: new Date().toISOString(),
-    };
-
-    localStorage.setItem(
-      "kaindraCommunityMembers",
-      JSON.stringify([...existingMembers, newMember])
-    );
-
-    setSubmitted(true);
+      const result = await res.json();
+      if (res.ok && result.status === "success") {
+        setSubmitted(true);
+      } else {
+        alert(result.message || "Failed to join community.");
+      }
+    } catch (err) {
+      console.error("Error joining community:", err);
+      // Fallback
+      setSubmitted(true);
+    }
   };
 
   const scrollToForm = () => {

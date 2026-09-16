@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Footer from "../components/Footer/Footer";
 import "./Careers.css";
 
-const jobs = [
+const defaultJobs = [
   {
     title: "Business Development Associate",
     location: "India",
@@ -41,39 +41,25 @@ const jobs = [
   },
 ];
 
-/* --------------------------------------------------
-   Load additional jobs saved by admin
--------------------------------------------------- */
-
-function loadAdminJobs() {
-  try {
-    const savedCareers = localStorage.getItem("kaindraCareers");
-
-    if (!savedCareers) {
-      return [];
-    }
-
-    const careers = JSON.parse(savedCareers);
-
-    if (!Array.isArray(careers)) {
-      return [];
-    }
-
-    return careers;
-  } catch (error) {
-    console.error(
-      "Unable to load careers from localStorage:",
-      error
-    );
-
-    return [];
-  }
-}
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "http://localhost:5000").replace(/\/api\/?$/, "");
 
 function Careers() {
-  const [adminJobs] = useState(loadAdminJobs);
+  const [allJobs, setAllJobs] = useState(defaultJobs);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
-  const allJobs = [...jobs, ...adminJobs];
+  useEffect(() => {
+    fetch(`${API_BASE}/api/careers`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.status === "success" && Array.isArray(data.data?.careers) && data.data.careers.length > 0) {
+          setAllJobs(data.data.careers);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to fetch careers from backend, using default positions:", err);
+      });
+  }, []);
 
   const countries = [
   { name: "Afghanistan", code: "+93" },
@@ -333,73 +319,63 @@ function Careers() {
   };
 
   /* --------------------------------------------------
-     Submit application
+     Submit application with Cloudinary upload
   -------------------------------------------------- */
 
-  const handleSubmit = (event) => {
-  event.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
 
-  if (!selectedJob) {
-    return;
-  }
+    if (!selectedJob) {
+      return;
+    }
 
-  try {
-    const existingApplications =
-      JSON.parse(
-        localStorage.getItem("kaindraApplications")
-      ) || [];
+    setIsSubmitting(true);
+    setSubmitError("");
 
-    const newApplication = {
-      id: Date.now(),
+    try {
+      const data = new FormData();
+      data.append("jobId", selectedJob._id || selectedJob.id || "");
+      data.append("jobTitle", selectedJob.title);
+      data.append("jobLocation", selectedJob.location || "India");
+      data.append("jobType", selectedJob.type || "Full Time");
+      data.append("jobExperience", selectedJob.experience || "");
 
-      jobTitle: selectedJob.title,
-      jobLocation: selectedJob.location,
-      jobType: selectedJob.type,
-      jobExperience: selectedJob.experience,
+      data.append("name", formData.name);
+      data.append("email", formData.email);
+      data.append("phone", `${formData.phoneCode} ${formData.phone}`);
+      data.append("location", formData.location);
+      data.append("qualification", formData.qualification);
+      data.append("experience", formData.experience);
+      data.append("linkedin", formData.linkedin);
+      data.append("coverLetter", formData.coverLetter);
 
-      name: formData.name,
-      email: formData.email,
-      phone: `${formData.phoneCode} ${formData.phone}`,
-      location: formData.location,
-      qualification: formData.qualification,
-      experience: formData.experience,
-      linkedin: formData.linkedin,
+      if (formData.resume) {
+        data.append("resume", formData.resume);
+      }
 
-      /*
-        For frontend-only storage we save the
-        file name, not the actual file.
-      */
-      resume: formData.resume
-        ? formData.resume.name
-        : "",
+      const res = await fetch(`${API_BASE}/api/applications`, {
+        method: "POST",
+        body: data,
+      });
 
-      coverLetter: formData.coverLetter,
+      const result = await res.json();
 
-      submittedAt: new Date().toLocaleString(),
-    };
+      if (!res.ok || result.status !== "success") {
+        throw new Error(result.message || "Application submission failed.");
+      }
 
-    const updatedApplications = [
-      ...existingApplications,
-      newApplication,
-    ];
+      setSubmitted(true);
+      setIsSubmitting(false);
 
-    localStorage.setItem(
-      "kaindraApplications",
-      JSON.stringify(updatedApplications)
-    );
-
-    setSubmitted(true);
-
-    setTimeout(() => {
-      handleCloseApplication();
-    }, 2500);
-  } catch (error) {
-    console.error(
-      "Unable to save application:",
-      error
-    );
-  }
-};
+      setTimeout(() => {
+        handleCloseApplication();
+      }, 2500);
+    } catch (error) {
+      console.error("Unable to save application:", error);
+      setSubmitError(error.message || "Failed to submit application. Please try again.");
+      setIsSubmitting(false);
+    }
+  };
   /* --------------------------------------------------
      Scroll to open positions
   -------------------------------------------------- */
@@ -922,12 +898,19 @@ function Careers() {
                   </div>
 
 
+                  {submitError && (
+                    <div style={{ color: "#e53e3e", marginBottom: "1rem", fontSize: "0.9rem" }}>
+                      {submitError}
+                    </div>
+                  )}
+
                   <div className="application-actions">
 
                     <button
                       type="button"
                       className="application-cancel"
                       onClick={handleCloseApplication}
+                      disabled={isSubmitting}
                     >
                       Cancel
                     </button>
@@ -935,9 +918,9 @@ function Careers() {
                     <button
                       type="submit"
                       className="application-submit"
+                      disabled={isSubmitting}
                     >
-                      Submit Application
-                      <span>→</span>
+                      {isSubmitting ? "Uploading Resume..." : "Submit Application"}
                     </button>
 
                   </div>

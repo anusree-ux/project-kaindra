@@ -19,6 +19,10 @@ const expenseRoutes = require("./routes/mototribe/expenseRoutes");
 const routeReportRoutes = require("./routes/mototribe/routeReportRoutes");
 const presenceRoutes = require("./routes/mototribe/presenceRoutes");
 const connectionRoutes = require("./routes/core/connectionRoutes");
+const careerRoutes = require("./routes/core/careerRoutes");
+const applicationRoutes = require("./routes/core/applicationRoutes");
+const communityRoutes = require("./routes/core/communityRoutes");
+const adminRoutes = require("./routes/core/adminRoutes");
 const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
@@ -57,9 +61,21 @@ app.get("/health", (req, res) => {
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/auth", authRoutes);
 
-// Core Connection Routes
+// Core Connection & Operations Routes
 app.use("/api/v1/core", connectionRoutes);
 app.use("/api/core", connectionRoutes);
+
+app.use("/api/v1/careers", careerRoutes);
+app.use("/api/careers", careerRoutes);
+
+app.use("/api/v1/applications", applicationRoutes);
+app.use("/api/applications", applicationRoutes);
+
+app.use("/api/v1/community", communityRoutes);
+app.use("/api/community", communityRoutes);
+
+app.use("/api/v1/admin", adminRoutes);
+app.use("/api/admin", adminRoutes);
 
 // MotoTribe Routes (supports both /api/mototribe and /api/v1/mototribe)
 app.use("/api/v1/mototribe", routeMatchRoutes);

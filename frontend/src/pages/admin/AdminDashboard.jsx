@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   Briefcase,
@@ -9,75 +10,48 @@ import {
 
 import "./AdminDashboard.css";
 
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "http://localhost:5000").replace(/\/api\/?$/, "");
+
 function AdminDashboard() {
-  // Get submitted applications
-  const getApplications = () => {
-    try {
-      const savedApplications =
-        localStorage.getItem("kaindraApplications");
+  const [statsData, setStatsData] = useState({
+    openPositions: 6,
+    applications: 0,
+    communityMembers: 0,
+    growth: "12%",
+  });
 
-      if (!savedApplications) {
-        return [];
-      }
-
-      const applications = JSON.parse(savedApplications);
-
-      return Array.isArray(applications) ? applications : [];
-    } catch (error) {
-      console.error(
-        "Unable to load applications:",
-        error
-      );
-
-      return [];
-    }
-  };
-
-  // Get community members
-  const getCommunityMembers = () => {
-    try {
-      const savedMembers =
-        localStorage.getItem("kaindraCommunityMembers");
-
-      if (!savedMembers) {
-        return [];
-      }
-
-      const members = JSON.parse(savedMembers);
-
-      return Array.isArray(members) ? members : [];
-    } catch (error) {
-      console.error(
-        "Unable to load community members:",
-        error
-      );
-
-      return [];
-    }
-  };
-
-  const applications = getApplications();
-  const communityMembers = getCommunityMembers();
+  useEffect(() => {
+    fetch(`${API_BASE}/api/admin/stats`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.status === "success" && data.data) {
+          setStatsData(data.data);
+        }
+      })
+      .catch((err) => {
+        console.error("Error fetching admin stats:", err);
+      });
+  }, []);
 
   const stats = [
     {
       title: "Open Positions",
-      value: "6",
+      value: statsData.openPositions,
       icon: Briefcase,
     },
     {
       title: "Applications",
-      value: applications.length,
+      value: statsData.applications,
       icon: FileText,
     },
     {
       title: "Community Members",
-      value: communityMembers.length,
+      value: statsData.communityMembers,
       icon: Users,
     },
     {
       title: "Growth",
-      value: "12%",
+      value: statsData.growth,
       icon: TrendingUp,
     },
   ];
@@ -185,9 +159,9 @@ function AdminDashboard() {
                 <h3>
                   Applications
 
-                  {applications.length > 0 && (
+                  {statsData.applications > 0 && (
                     <span className="application-count">
-                      {applications.length}
+                      {statsData.applications}
                     </span>
                   )}
                 </h3>
@@ -218,9 +192,9 @@ function AdminDashboard() {
                 <h3>
                   Community
 
-                  {communityMembers.length > 0 && (
+                  {statsData.communityMembers > 0 && (
                     <span className="application-count">
-                      {communityMembers.length}
+                      {statsData.communityMembers}
                     </span>
                   )}
                 </h3>
