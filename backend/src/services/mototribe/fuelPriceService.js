@@ -70,7 +70,7 @@ const getCurrentAverage = async (state, fuelType) => {
  * @param {number} pricePerLiter - Price per liter in INR
  * @returns {Promise<Object>} Object containing saved submission and updated median
  */
-const submitFuelPrice = async (userId, state, fuelType, pricePerLiter) => {
+const submitFuelPrice = async (userId, state, fuelType, pricePerLiter, station, location) => {
   if (!state || !fuelType || pricePerLiter === undefined || pricePerLiter === null) {
     throw new AppError("state, fuelType, and pricePerLiter are required.", 400);
   }
@@ -99,13 +99,22 @@ const submitFuelPrice = async (userId, state, fuelType, pricePerLiter) => {
     }
   }
 
-  const submission = await FuelPriceSubmission.create({
+  const submissionData = {
     userId,
     state: state.trim(),
     fuelType: normalizedFuelType,
     pricePerLiter: numPrice,
     submittedAt: new Date(),
-  });
+  };
+
+  if (station && typeof station === "string" && station.trim()) {
+    submissionData.station = station.trim();
+  }
+  if (location && typeof location === "string" && location.trim()) {
+    submissionData.location = location.trim();
+  }
+
+  const submission = await FuelPriceSubmission.create(submissionData);
 
   const updatedStats = await getCurrentAverage(state, normalizedFuelType);
 
@@ -114,6 +123,19 @@ const submitFuelPrice = async (userId, state, fuelType, pricePerLiter) => {
     updatedMedian: updatedStats.median,
     count: updatedStats.count,
   };
+};
+
+/**
+ * Fetch recent community fuel price submissions
+ * @param {number} [limit=20]
+ * @returns {Promise<Array>}
+ */
+const getRecentSubmissions = async (limit = 20) => {
+  const submissions = await FuelPriceSubmission.find()
+    .sort({ submittedAt: -1, createdAt: -1 })
+    .limit(limit)
+    .populate("userId", "name");
+  return submissions;
 };
 
 /**
@@ -179,4 +201,5 @@ module.exports = {
   getCurrentAverage,
   submitFuelPrice,
   estimateFuelCost,
+  getRecentSubmissions,
 };

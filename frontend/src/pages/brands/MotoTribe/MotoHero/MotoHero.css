@@ -1,0 +1,721 @@
+.moto-hero {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  min-height: 720px;
+  overflow: hidden;
+  background: #050505;
+  color: #fff;
+}
+
+/* BACKGROUND */
+
+.moto-hero-images {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.moto-hero-image {
+  position: absolute;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+
+  opacity: 0;
+  visibility: hidden;
+
+  transform: scale(1.04);
+
+  transition:
+    opacity 1.2s ease,
+    transform 5s ease;
+}
+
+.moto-hero-image.active {
+  opacity: 1;
+  visibility: visible;
+  transform: scale(1);
+}
+
+/* OVERLAYS */
+
+.moto-hero-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.moto-hero-left-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.9) 0%,
+      rgba(0, 0, 0, 0.7) 27%,
+      rgba(0, 0, 0, 0.28) 58%,
+      rgba(0, 0, 0, 0.08) 100%
+    );
+}
+
+.moto-hero-bottom-overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  height: 38%;
+  z-index: 2;
+
+  background:
+    linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.95),
+      transparent
+    );
+}
+
+.moto-hero-grid {
+  position: absolute;
+  inset: 0;
+
+  z-index: 3;
+
+  opacity: 0.08;
+
+  background-image:
+    linear-gradient(
+      rgba(255, 255, 255, 0.18) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.18) 1px,
+      transparent 1px
+    );
+
+  background-size: 70px 70px;
+
+  pointer-events: none;
+}
+
+/* CONTAINER */
+
+.moto-hero-container {
+  position: relative;
+  z-index: 5;
+
+  width: 92%;
+  max-width: 1400px;
+
+  height: 100%;
+
+  margin: 0 auto;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(350px, 0.8fr);
+
+  align-items: center;
+
+  gap: 50px;
+}
+
+/* LEFT */
+
+.moto-hero-content {
+  max-width: 760px;
+  padding-top: 50px;
+}
+
+.moto-hero-eyebrow {
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  margin-bottom: 28px;
+
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 3px;
+
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.eyebrow-line {
+  width: 45px;
+  height: 1px;
+  background: #fff;
+}
+
+.eyebrow-dot {
+  width: 5px;
+  height: 5px;
+
+  border-radius: 50%;
+
+  background: #d5a83d;
+}
+
+/* TITLE */
+
+.moto-hero-title {
+  display: flex;
+  flex-direction: column;
+
+  margin: 0;
+
+  font-size: clamp(60px, 7.5vw, 112px);
+
+  line-height: 0.86;
+
+  font-weight: 900;
+
+  letter-spacing: -5px;
+
+  text-transform: uppercase;
+}
+
+.moto-hero-title span {
+  display: block;
+}
+
+.outline-text {
+  color: transparent;
+
+  -webkit-text-stroke: 1.5px #fff;
+}
+
+/* DESCRIPTION */
+
+.moto-hero-description {
+  max-width: 650px;
+
+  margin: 38px 0 30px;
+
+  font-size: 15px;
+
+  line-height: 1.8;
+
+  color: rgba(255, 255, 255, 0.78);
+}
+
+/* BUTTONS */
+
+.moto-hero-buttons {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.hero-primary-btn,
+.hero-secondary-btn {
+  height: 62px;
+
+  padding: 0 26px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 28px;
+
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2px;
+
+  cursor: pointer;
+
+  transition: 0.3s ease;
+}
+
+.hero-primary-btn {
+  min-width: 235px;
+
+  border: 1px solid #fff;
+
+  background: #fff;
+  color: #050505;
+}
+
+.hero-secondary-btn {
+  min-width: 200px;
+
+  border: 1px solid rgba(255, 255, 255, 0.55);
+
+  background: rgba(0, 0, 0, 0.25);
+
+  color: #fff;
+}
+
+.hero-primary-btn:hover {
+  background: transparent;
+  color: #fff;
+}
+
+.hero-secondary-btn:hover {
+  background: #fff;
+  color: #050505;
+}
+
+/* STATS */
+
+.moto-hero-stats {
+  display: flex;
+  align-items: center;
+
+  margin-top: 48px;
+}
+
+.hero-stat {
+  display: flex;
+  flex-direction: column;
+
+  gap: 6px;
+}
+
+.hero-stat strong {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.hero-stat span {
+  font-size: 9px;
+  letter-spacing: 2px;
+
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.stat-divider {
+  width: 1px;
+  height: 40px;
+
+  margin: 0 28px;
+
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* RIGHT */
+
+.moto-hero-right {
+  position: relative;
+
+  height: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* SLIDE INFO */
+
+.slide-info {
+  position: absolute;
+
+  top: 25%;
+  right: 0;
+
+  width: 260px;
+
+  animation: slideInfo 0.7s ease;
+}
+
+@keyframes slideInfo {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.slide-number {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 3px;
+}
+
+.slide-line {
+  width: 58px;
+  height: 1px;
+
+  margin: 14px 0;
+
+  background: #fff;
+}
+
+.slide-label {
+  font-size: 11px;
+  letter-spacing: 2px;
+
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.slide-route {
+  margin-top: 8px;
+
+  font-size: 21px;
+  font-weight: 800;
+}
+
+.slide-location {
+  margin-top: 6px;
+
+  font-size: 10px;
+  letter-spacing: 2px;
+
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* CIRCLE */
+
+.tribe-circle {
+  position: relative;
+
+  width: 290px;
+  height: 290px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.circle {
+  position: absolute;
+
+  border: 1px solid rgba(255, 255, 255, 0.38);
+
+  border-radius: 50%;
+}
+
+.circle-one {
+  width: 290px;
+  height: 290px;
+}
+
+.circle-two {
+  width: 220px;
+  height: 220px;
+}
+
+.circle-three {
+  width: 150px;
+  height: 150px;
+}
+
+.circle-logo {
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+
+  line-height: 0.9;
+
+  letter-spacing: 4px;
+}
+
+.circle-logo span {
+  font-size: 13px;
+}
+
+.circle-logo strong {
+  font-size: 29px;
+}
+
+/* ARROWS */
+
+.hero-arrows {
+  position: absolute;
+
+  right: 0;
+  bottom: 21%;
+
+  display: flex;
+  gap: 8px;
+}
+
+.hero-arrow {
+  width: 56px;
+  height: 56px;
+
+  border: 1px solid rgba(255, 255, 255, 0.5);
+
+  background: rgba(0, 0, 0, 0.3);
+
+  color: #fff;
+
+  font-size: 20px;
+
+  cursor: pointer;
+
+  transition: 0.3s ease;
+}
+
+.hero-arrow:hover {
+  background: #fff;
+  color: #000;
+}
+
+/* BOTTOM */
+
+.moto-hero-bottom {
+  position: absolute;
+
+  left: 4%;
+  right: 4%;
+  bottom: 30px;
+
+  z-index: 10;
+
+  display: grid;
+
+  grid-template-columns:
+    1.2fr
+    1fr
+    1fr
+    0.8fr;
+
+  align-items: center;
+
+  gap: 25px;
+}
+
+/* INDICATORS */
+
+.slide-indicators {
+  display: flex;
+  gap: 8px;
+}
+
+.indicator {
+  width: 58px;
+  height: 3px;
+
+  padding: 0;
+
+  border: 0;
+
+  background: rgba(255, 255, 255, 0.28);
+
+  cursor: pointer;
+}
+
+.indicator span {
+  display: block;
+
+  width: 0;
+  height: 100%;
+
+  background: #fff;
+}
+
+.indicator.active span {
+  width: 100%;
+
+  transition: width 5s linear;
+}
+
+/* ROUTE */
+
+.current-route {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.current-route small {
+  font-size: 8px;
+  letter-spacing: 2px;
+
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.current-route strong {
+  font-size: 11px;
+  letter-spacing: 1.5px;
+}
+
+/* SCROLL */
+
+.scroll-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 10px;
+
+  font-size: 8px;
+  letter-spacing: 2px;
+
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.scroll-text span {
+  width: 30px;
+  height: 1px;
+
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.scroll-text b {
+  font-size: 15px;
+}
+
+/* LOGIN */
+
+.rider-login {
+  justify-self: end;
+
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  border: 0;
+
+  background: transparent;
+
+  color: #fff;
+
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 2px;
+
+  cursor: pointer;
+}
+
+/* PROGRESS */
+
+.hero-progress {
+  position: absolute;
+
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  z-index: 20;
+
+  height: 3px;
+
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.progress-fill {
+  width: 0;
+  height: 100%;
+
+  background: #fff;
+
+  animation: progressAnimation 5s linear forwards;
+}
+
+.progress-fill.paused {
+  animation-play-state: paused;
+}
+
+@keyframes progressAnimation {
+  from {
+    width: 0;
+  }
+
+  to {
+    width: 100%;
+  }
+}
+
+/* TABLET */
+
+@media (max-width: 1050px) {
+  .moto-hero-container {
+    grid-template-columns: 1fr;
+  }
+
+  .moto-hero-right {
+    display: none;
+  }
+
+  .moto-hero-bottom {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .scroll-text {
+    display: none;
+  }
+}
+
+/* MOBILE */
+
+@media (max-width: 600px) {
+  .moto-hero {
+    min-height: 700px;
+  }
+
+  .moto-hero-container {
+    width: 88%;
+  }
+
+  .moto-hero-title {
+    font-size: clamp(48px, 15vw, 76px);
+    letter-spacing: -3px;
+  }
+
+  .moto-hero-description {
+    font-size: 13px;
+  }
+
+  .moto-hero-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .hero-primary-btn,
+  .hero-secondary-btn {
+    width: 100%;
+  }
+
+  .moto-hero-stats {
+    margin-top: 35px;
+  }
+
+  .stat-divider {
+    margin: 0 15px;
+  }
+
+  .moto-hero-bottom {
+    left: 6%;
+    right: 6%;
+
+    grid-template-columns: 1fr;
+  }
+
+  .current-route,
+  .rider-login {
+    display: none;
+  }
+
+  .slide-indicators {
+    justify-content: center;
+  }
+
+  .indicator {
+    width: 40px;
+  }
+}

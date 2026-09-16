@@ -1,0 +1,699 @@
+/* =========================================================
+   MOTOTRIBE - RIDE ASSISTANT
+   ========================================================= */
+
+.ride-assistant-section {
+  padding: 110px 0;
+  background: #080908;
+  color: #eeeae2;
+}
+
+.ride-assistant-container {
+  width: min(1380px, calc(100% - 50px));
+  margin: 0 auto;
+}
+
+.ride-assistant-section * {
+  box-sizing: border-box;
+}
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.ride-assistant-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+
+  gap: 40px;
+
+  padding-bottom: 45px;
+
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.assistant-eyebrow {
+  display: block;
+
+  margin-bottom: 18px;
+
+  color: #c9a45d;
+
+  font-size: 8px;
+  font-weight: 800;
+
+  letter-spacing: 0.18em;
+}
+
+.assistant-heading h2 {
+  margin: 0;
+
+  font-size: clamp(46px, 6vw, 80px);
+
+  line-height: 0.9;
+
+  letter-spacing: -0.05em;
+
+  text-transform: uppercase;
+}
+
+.assistant-heading p {
+  max-width: 560px;
+
+  margin: 23px 0 0;
+
+  color: #6d6e68;
+
+  font-size: 13px;
+
+  line-height: 1.8;
+}
+
+.assistant-status {
+  min-width: 145px;
+
+  padding-left: 18px;
+
+  border-left: 1px solid #c9a45d;
+}
+
+.assistant-status-label {
+  display: block;
+
+  margin-bottom: 10px;
+
+  color: #555650;
+
+  font-size: 6px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.13em;
+}
+
+.assistant-status-button {
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  padding: 0;
+
+  border: 0;
+
+  background: transparent;
+
+  color: #c9a45d;
+
+  cursor: pointer;
+
+  font-family: inherit;
+
+  font-size: 8px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.1em;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+
+  border-radius: 50%;
+
+  background: #c9a45d;
+
+  box-shadow: 0 0 8px rgba(201,164,93,0.7);
+}
+
+/* =========================================================
+   NAVIGATION
+   ========================================================= */
+
+.assistant-navigation {
+  display: grid;
+
+  grid-template-columns: repeat(4, 1fr);
+
+  gap: 1px;
+
+  margin-top: 30px;
+
+  background: rgba(255,255,255,0.06);
+}
+
+.assistant-nav-item {
+  position: relative;
+
+  display: grid;
+
+  grid-template-columns: 28px 35px 1fr 20px;
+
+  align-items: center;
+
+  gap: 10px;
+
+  min-height: 75px;
+
+  padding: 15px;
+
+  border: 0;
+
+  background: #101110;
+
+  color: #777872;
+
+  cursor: pointer;
+
+  text-align: left;
+
+  font-family: inherit;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.assistant-nav-item:hover {
+  background: #141512;
+}
+
+.assistant-nav-item.active {
+  background: #151512;
+
+  color: #c9a45d;
+}
+
+.assistant-nav-number {
+  font-size: 7px;
+
+  color: #4f504b;
+}
+
+.assistant-nav-icon {
+  font-size: 15px;
+
+  color: #5e5f59;
+}
+
+.assistant-nav-item.active
+.assistant-nav-icon {
+  color: #c9a45d;
+}
+
+.assistant-nav-title {
+  font-size: 8px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.1em;
+}
+
+.assistant-nav-arrow {
+  color: #454640;
+
+  font-size: 12px;
+}
+
+.assistant-nav-item.active
+.assistant-nav-arrow {
+  color: #c9a45d;
+}
+
+/* =========================================================
+   MAIN PANEL
+   ========================================================= */
+
+.assistant-main-panel {
+  display: grid;
+
+  grid-template-columns: 390px minmax(0, 1fr);
+
+  margin-top: 20px;
+
+  border: 1px solid rgba(255,255,255,0.08);
+
+  background: #101110;
+}
+
+/* =========================================================
+   INTRO
+   ========================================================= */
+
+.assistant-panel-intro {
+  padding: 35px;
+
+  border-right: 1px solid rgba(255,255,255,0.07);
+
+  background:
+    radial-gradient(
+      circle at 20% 20%,
+      rgba(201,164,93,0.06),
+      transparent 45%
+    );
+}
+
+.assistant-panel-label {
+  color: #c9a45d;
+
+  font-size: 6px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.13em;
+}
+
+.assistant-large-icon {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  width: 70px;
+  height: 70px;
+
+  margin-top: 50px;
+
+  border: 1px solid rgba(201,164,93,0.35);
+
+  color: #c9a45d;
+
+  font-size: 26px;
+}
+
+.assistant-panel-intro h3 {
+  margin: 24px 0 10px;
+
+  color: #ddd9d1;
+
+  font-size: 25px;
+
+  font-weight: 500;
+
+  letter-spacing: 0.02em;
+}
+
+.assistant-panel-intro > p {
+  color: #696a64;
+
+  font-size: 9px;
+
+  line-height: 1.8;
+}
+
+.assistant-progress {
+  margin-top: 45px;
+}
+
+.assistant-progress-header {
+  display: flex;
+
+  justify-content: space-between;
+
+  margin-bottom: 9px;
+
+  color: #555650;
+
+  font-size: 6px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.1em;
+}
+
+.assistant-progress-header strong {
+  color: #c9a45d;
+}
+
+.assistant-progress-bar {
+  width: 100%;
+  height: 3px;
+
+  background: #262722;
+}
+
+.assistant-progress-bar span {
+  display: block;
+
+  height: 100%;
+
+  background: #c9a45d;
+
+  transition: width 0.3s ease;
+}
+
+.assistant-reset {
+  margin-top: 22px;
+
+  padding: 9px 0;
+
+  border: 0;
+
+  background: transparent;
+
+  color: #555650;
+
+  cursor: pointer;
+
+  font-family: inherit;
+
+  font-size: 6px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.12em;
+}
+
+.assistant-reset:hover {
+  color: #c9a45d;
+}
+
+/* =========================================================
+   CHECKLIST
+   ========================================================= */
+
+.assistant-checklist {
+  padding: 30px 35px;
+}
+
+.checklist-heading {
+  display: flex;
+
+  justify-content: space-between;
+
+  padding-bottom: 15px;
+
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+
+  color: #555650;
+
+  font-size: 6px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.12em;
+}
+
+.checklist-heading span:last-child {
+  color: #c9a45d;
+}
+
+.assistant-check-item {
+  display: grid;
+
+  grid-template-columns: 35px 25px 1fr 25px;
+
+  align-items: center;
+
+  gap: 12px;
+
+  width: 100%;
+
+  min-height: 80px;
+
+  padding: 10px 0;
+
+  border: 0;
+
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+
+  background: transparent;
+
+  color: #777872;
+
+  cursor: pointer;
+
+  text-align: left;
+
+  font-family: inherit;
+}
+
+.assistant-check-item:hover {
+  color: #b2afa7;
+}
+
+.check-number {
+  color: #555650;
+
+  font-size: 7px;
+
+  font-weight: 800;
+}
+
+.check-box {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  width: 17px;
+  height: 17px;
+
+  border: 1px solid #454640;
+
+  color: #090a09;
+
+  font-size: 9px;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.assistant-check-item.completed
+.check-box {
+  border-color: #c9a45d;
+
+  background: #c9a45d;
+}
+
+.check-text {
+  color: #858680;
+
+  font-size: 9px;
+
+  line-height: 1.6;
+}
+
+.assistant-check-item.completed
+.check-text {
+  color: #555650;
+
+  text-decoration: line-through;
+}
+
+.check-arrow {
+  color: #41423d;
+
+  font-size: 12px;
+}
+
+/* =========================================================
+   QUICK ASSISTANCE
+   ========================================================= */
+
+.quick-assistance {
+  display: grid;
+
+  grid-template-columns: 250px 1fr;
+
+  gap: 45px;
+
+  margin-top: 70px;
+
+  padding-top: 45px;
+
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.quick-assistance-heading > span {
+  color: #c9a45d;
+
+  font-size: 6px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.14em;
+}
+
+.quick-assistance-heading h3 {
+  margin: 16px 0 0;
+
+  color: #aaa79f;
+
+  font-size: 25px;
+
+  line-height: 1.1;
+
+  font-weight: 500;
+}
+
+.quick-assistance-grid {
+  display: grid;
+
+  grid-template-columns: repeat(4, 1fr);
+
+  gap: 1px;
+
+  background: rgba(255,255,255,0.06);
+}
+
+.quick-card {
+  min-height: 165px;
+
+  padding: 22px;
+
+  background: #101110;
+}
+
+.quick-card > span {
+  display: block;
+
+  margin-bottom: 22px;
+
+  color: #555650;
+
+  font-size: 7px;
+
+  font-weight: 800;
+}
+
+.quick-card strong {
+  display: block;
+
+  color: #c9a45d;
+
+  font-size: 8px;
+
+  letter-spacing: 0.1em;
+}
+
+.quick-card p {
+  margin: 12px 0 0;
+
+  color: #61625c;
+
+  font-size: 8px;
+
+  line-height: 1.7;
+}
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.assistant-footer {
+  display: flex;
+
+  justify-content: space-between;
+
+  gap: 20px;
+
+  margin-top: 35px;
+
+  padding-top: 18px;
+
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+.assistant-footer span {
+  color: #494a45;
+
+  font-size: 6px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.13em;
+}
+
+.assistant-footer p {
+  margin: 0;
+
+  color: #5c5d57;
+
+  font-size: 7px;
+
+  letter-spacing: 0.05em;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1050px) {
+  .assistant-main-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .assistant-panel-intro {
+    border-right: 0;
+
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+
+  .quick-assistance {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 800px) {
+  .assistant-navigation {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .quick-assistance-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .ride-assistant-section {
+    padding: 80px 0;
+  }
+
+  .ride-assistant-container {
+    width: calc(100% - 30px);
+  }
+
+  .ride-assistant-header {
+    flex-direction: column;
+
+    align-items: flex-start;
+  }
+
+  .assistant-heading h2 {
+    font-size: 48px;
+  }
+
+  .assistant-navigation {
+    grid-template-columns: 1fr;
+  }
+
+  .assistant-panel-intro,
+  .assistant-checklist {
+    padding: 25px 20px;
+  }
+
+  .quick-assistance-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .assistant-footer {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 420px) {
+  .assistant-heading h2 {
+    font-size: 40px;
+  }
+
+  .assistant-check-item {
+    grid-template-columns: 25px 22px 1fr 15px;
+
+    gap: 8px;
+  }
+}

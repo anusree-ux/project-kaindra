@@ -1,0 +1,745 @@
+/* =========================================================
+   MOTOTRIBE - RIDE PLANNER
+   ========================================================= */
+
+.ride-planner-section {
+  padding: 110px 0;
+  background:
+    radial-gradient(
+      circle at 10% 30%,
+      rgba(201, 164, 93, 0.055),
+      transparent 30%
+    ),
+    #090a09;
+  color: #f0ede5;
+}
+
+.ride-planner-container {
+  width: min(1380px, calc(100% - 50px));
+  margin: 0 auto;
+}
+
+.ride-planner-section * {
+  box-sizing: border-box;
+}
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.ride-planner-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+
+  gap: 40px;
+
+  padding-bottom: 45px;
+
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.ride-planner-eyebrow {
+  display: block;
+
+  margin-bottom: 18px;
+
+  color: #c9a45d;
+
+  font-size: 8px;
+  font-weight: 800;
+
+  letter-spacing: 0.18em;
+}
+
+.ride-planner-header h2 {
+  margin: 0;
+
+  color: #f2efe8;
+
+  font-size: clamp(45px, 6vw, 80px);
+
+  line-height: 0.9;
+
+  letter-spacing: -0.05em;
+
+  text-transform: uppercase;
+}
+
+.ride-planner-header p {
+  max-width: 580px;
+
+  margin: 22px 0 0;
+
+  color: #777873;
+
+  font-size: 13px;
+
+  line-height: 1.8;
+}
+
+.planner-header-label {
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
+
+  padding: 18px 22px;
+
+  border-left: 1px solid #c9a45d;
+
+  color: #656660;
+
+  font-size: 7px;
+
+  font-weight: 700;
+
+  letter-spacing: 0.15em;
+}
+
+.planner-header-label strong {
+  color: #c9a45d;
+
+  font-size: 9px;
+}
+
+/* =========================================================
+   WORKSPACE
+   ========================================================= */
+
+.ride-planner-workspace {
+  display: grid;
+
+  grid-template-columns: 1fr 1fr;
+
+  margin-top: 30px;
+
+  border: 1px solid rgba(255,255,255,0.08);
+
+  background: #0d0e0d;
+}
+
+/* =========================================================
+   FORM
+   ========================================================= */
+
+.ride-planner-form {
+  padding: 35px;
+
+  border-right: 1px solid rgba(255,255,255,0.08);
+}
+
+.planner-form-heading {
+  display: flex;
+
+  gap: 18px;
+
+  margin-bottom: 25px;
+}
+
+.planner-form-heading.second {
+  margin-top: 42px;
+}
+
+.planner-form-heading > span {
+  color: #c9a45d;
+
+  font-size: 9px;
+
+  font-weight: 800;
+}
+
+.planner-form-heading strong {
+  display: block;
+
+  color: #dedbd3;
+
+  font-size: 9px;
+
+  letter-spacing: 0.12em;
+}
+
+.planner-form-heading p {
+  margin: 7px 0 0;
+
+  color: #5e5f59;
+
+  font-size: 9px;
+}
+
+/* =========================================================
+   FIELDS
+   ========================================================= */
+
+.planner-fields {
+  display: grid;
+
+  grid-template-columns: 1fr 1fr;
+
+  gap: 17px;
+}
+
+.planner-fields label {
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
+
+  color: #5e5f59;
+
+  font-size: 6px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.13em;
+}
+
+.planner-fields input,
+.planner-fields select {
+  width: 100%;
+
+  height: 45px;
+
+  padding: 0 13px;
+
+  border: 1px solid rgba(255,255,255,0.09);
+
+  outline: none;
+
+  background: #131413;
+
+  color: #d8d5cd;
+
+  font-family: inherit;
+
+  font-size: 10px;
+
+  transition: border-color 0.2s ease;
+}
+
+.planner-fields input:focus,
+.planner-fields select:focus {
+  border-color: rgba(201,164,93,0.6);
+}
+
+.planner-fields input::placeholder {
+  color: #494a45;
+}
+
+.planner-fields select {
+  cursor: pointer;
+}
+
+.planner-fields input[type="date"],
+.planner-fields input[type="time"] {
+  color-scheme: dark;
+}
+
+/* =========================================================
+   FORM ACTIONS
+   ========================================================= */
+
+.planner-form-actions {
+  display: flex;
+
+  gap: 9px;
+
+  margin-top: 30px;
+}
+
+.planner-generate {
+  flex: 1;
+
+  min-height: 46px;
+
+  border: 1px solid #c9a45d;
+
+  background: #c9a45d;
+
+  color: #090a09;
+
+  cursor: pointer;
+
+  font-family: inherit;
+
+  font-size: 7px;
+
+  font-weight: 900;
+
+  letter-spacing: 0.14em;
+
+  transition: all 0.2s ease;
+}
+
+.planner-generate:hover {
+  background: transparent;
+
+  color: #c9a45d;
+}
+
+.planner-reset {
+  min-width: 85px;
+
+  border: 1px solid rgba(255,255,255,0.1);
+
+  background: transparent;
+
+  color: #696a64;
+
+  cursor: pointer;
+
+  font-family: inherit;
+
+  font-size: 7px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.12em;
+}
+
+.planner-reset:hover {
+  color: #c9a45d;
+
+  border-color: rgba(201,164,93,0.4);
+}
+
+/* =========================================================
+   RESULT PANEL
+   ========================================================= */
+
+.ride-planner-result {
+  min-height: 610px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,0.025),
+      rgba(255,255,255,0)
+    );
+}
+
+/* =========================================================
+   EMPTY
+   ========================================================= */
+
+.planner-empty {
+  height: 100%;
+
+  min-height: 610px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  justify-content: center;
+
+  align-items: center;
+
+  padding: 40px;
+
+  text-align: center;
+}
+
+.planner-empty > span {
+  color: #c9a45d;
+
+  font-size: 7px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.16em;
+}
+
+.planner-empty-mark {
+  width: 72px;
+  height: 72px;
+
+  display: flex;
+
+  justify-content: center;
+  align-items: center;
+
+  margin: 22px 0;
+
+  border: 1px solid rgba(201,164,93,0.4);
+
+  color: #c9a45d;
+
+  font-size: 28px;
+
+  font-weight: 200;
+}
+
+.planner-empty h3 {
+  margin: 0;
+
+  color: #bdbab2;
+
+  font-size: 25px;
+
+  font-weight: 500;
+}
+
+.planner-empty p {
+  max-width: 300px;
+
+  margin: 12px 0 0;
+
+  color: #5f605a;
+
+  font-size: 9px;
+
+  line-height: 1.7;
+}
+
+/* =========================================================
+   RESULT CONTENT
+   ========================================================= */
+
+.planner-result-content {
+  padding: 35px;
+}
+
+.result-top {
+  display: flex;
+
+  justify-content: space-between;
+
+  gap: 20px;
+}
+
+.result-top > div > span {
+  color: #5e5f59;
+
+  font-size: 6px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.13em;
+}
+
+.result-top h3 {
+  display: flex;
+
+  align-items: center;
+
+  gap: 13px;
+
+  margin: 12px 0 0;
+
+  color: #e6e3dc;
+
+  font-size: 27px;
+
+  font-weight: 500;
+}
+
+.result-top h3 b {
+  color: #c9a45d;
+
+  font-weight: 400;
+}
+
+.result-style {
+  align-self: flex-start;
+
+  padding: 7px 9px;
+
+  border: 1px solid rgba(201,164,93,0.3);
+
+  color: #c9a45d;
+
+  font-size: 6px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.12em;
+}
+
+/* =========================================================
+   ROUTE LINE
+   ========================================================= */
+
+.result-route-line {
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  margin: 35px 0;
+}
+
+.result-route-line span {
+  width: 8px;
+  height: 8px;
+
+  border: 1px solid #c9a45d;
+
+  border-radius: 50%;
+}
+
+.result-route-line div {
+  flex: 1;
+
+  height: 1px;
+
+  background:
+    repeating-linear-gradient(
+      to right,
+      rgba(201,164,93,0.5) 0,
+      rgba(201,164,93,0.5) 5px,
+      transparent 5px,
+      transparent 10px
+    );
+}
+
+/* =========================================================
+   RESULT STATS
+   ========================================================= */
+
+.planner-result-stats {
+  display: grid;
+
+  grid-template-columns: repeat(2, 1fr);
+
+  gap: 1px;
+
+  background: rgba(255,255,255,0.06);
+}
+
+.planner-result-stats div {
+  min-height: 95px;
+
+  padding: 18px;
+
+  background: #111211;
+}
+
+.planner-result-stats span {
+  display: block;
+
+  margin-bottom: 10px;
+
+  color: #5c5d57;
+
+  font-size: 6px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.12em;
+}
+
+.planner-result-stats strong {
+  color: #d8d5cd;
+
+  font-size: 24px;
+
+  font-weight: 500;
+}
+
+.planner-result-stats small {
+  color: #777873;
+
+  font-size: 8px;
+}
+
+/* =========================================================
+   STOPS
+   ========================================================= */
+
+.planner-stops {
+  display: grid;
+
+  grid-template-columns: repeat(3, 1fr);
+
+  gap: 1px;
+
+  margin-top: 18px;
+
+  background: rgba(255,255,255,0.06);
+}
+
+.planner-stops div {
+  padding: 16px;
+
+  background: #111211;
+}
+
+.planner-stops span {
+  display: block;
+
+  margin-bottom: 7px;
+
+  color: #5c5d57;
+
+  font-size: 6px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.11em;
+}
+
+.planner-stops strong {
+  color: #aaa8a1;
+
+  font-size: 14px;
+}
+
+/* =========================================================
+   NOTICE
+   ========================================================= */
+
+.planner-notice {
+  margin-top: 20px;
+
+  padding: 16px;
+
+  border-left: 2px solid #c9a45d;
+
+  background: rgba(201,164,93,0.04);
+}
+
+.planner-notice span {
+  color: #c9a45d;
+
+  font-size: 6px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.12em;
+}
+
+.planner-notice p {
+  margin: 8px 0 0;
+
+  color: #6c6d67;
+
+  font-size: 8px;
+
+  line-height: 1.7;
+}
+
+/* =========================================================
+   SAVE
+   ========================================================= */
+
+.planner-save {
+  width: 100%;
+
+  min-height: 45px;
+
+  margin-top: 20px;
+
+  border: 1px solid rgba(201,164,93,0.5);
+
+  background: transparent;
+
+  color: #c9a45d;
+
+  cursor: pointer;
+
+  font-family: inherit;
+
+  font-size: 7px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.14em;
+
+  transition: all 0.2s ease;
+}
+
+.planner-save:hover,
+.planner-save.saved {
+  background: #c9a45d;
+
+  color: #090a09;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1000px) {
+  .ride-planner-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .ride-planner-form {
+    border-right: 0;
+
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+}
+
+@media (max-width: 700px) {
+  .ride-planner-section {
+    padding: 80px 0;
+  }
+
+  .ride-planner-container {
+    width: calc(100% - 30px);
+  }
+
+  .ride-planner-header {
+    flex-direction: column;
+
+    align-items: flex-start;
+  }
+
+  .ride-planner-header h2 {
+    font-size: 48px;
+  }
+
+  .ride-planner-form,
+  .planner-result-content {
+    padding: 25px 20px;
+  }
+
+  .planner-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .planner-result-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 450px) {
+  .ride-planner-header h2 {
+    font-size: 39px;
+  }
+
+  .planner-form-actions {
+    flex-direction: column;
+  }
+
+  .planner-reset {
+    min-height: 42px;
+  }
+
+  .result-top {
+    flex-direction: column;
+  }
+
+  .result-top h3 {
+    font-size: 21px;
+  }
+
+  .planner-result-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .planner-stops {
+    grid-template-columns: 1fr;
+  }
+
+  .planner-empty {
+    min-height: 450px;
+  }
+
+  .ride-planner-result {
+    min-height: 450px;
+  }
+}

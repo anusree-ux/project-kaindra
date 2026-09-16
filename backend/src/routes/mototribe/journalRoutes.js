@@ -4,6 +4,7 @@ const {
   upsertJournalEntry,
   getRideJournals,
   getMyJournals,
+  getCommunityJournals,
   deleteJournalPhoto,
 } = require("../../controllers/mototribe/journalController");
 const { protect } = require("../../middleware/authMiddleware");
@@ -30,13 +31,16 @@ router.use(protect);
 // GET logged-in user's own journals across all rides
 router.get("/rider-profile/me/journal", getMyJournals);
 
+// GET public community explore feed across all rides
+router.get("/journal/community", getCommunityJournals);
+
 // POST create/update journal entry for a ride (up to 5 photos)
 router.post("/rides/:id/journal", upload.array("photos", 5), upsertJournalEntry);
 
 // GET all journal entries for a ride
 router.get("/rides/:id/journal", getRideJournals);
 
-// DELETE specific photo from a journal entry (Express 5 wildcard parameter syntax: {*publicId})
+// DELETE specific photo from a journal entry
 router.delete("/rides/:id/journal/photos/{*publicId}", deleteJournalPhoto);
 
 module.exports = router;

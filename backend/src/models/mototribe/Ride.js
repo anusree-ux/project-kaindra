@@ -28,6 +28,11 @@ const rideSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    vehicleId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Vehicle",
+      required: [true, "Vehicle ID is required"],
+    },
     title: {
       type: String,
       required: [true, "Ride title is required"],

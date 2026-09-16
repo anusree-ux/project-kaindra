@@ -1,0 +1,1143 @@
+/* =========================================================
+   MOTOTRIBE - SAFETY & EMERGENCY
+   ========================================================= */
+
+.safety-emergency-section {
+  padding: 115px 0;
+  background: #080908;
+  color: #e7e3da;
+}
+
+.safety-emergency-container {
+  width: min(1380px, calc(100% - 50px));
+  margin: auto;
+}
+
+.safety-emergency-section * {
+  box-sizing: border-box;
+}
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.safety-header {
+  display: flex;
+
+  justify-content: space-between;
+  align-items: flex-end;
+
+  gap: 40px;
+
+  padding-bottom: 45px;
+
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.safety-eyebrow {
+  display: block;
+
+  margin-bottom: 18px;
+
+  color: #c9a45d;
+
+  font-size: 8px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.18em;
+}
+
+.safety-header h2 {
+  margin: 0;
+
+  font-size: clamp(48px, 6vw, 80px);
+
+  line-height: 0.9;
+
+  letter-spacing: -0.05em;
+
+  text-transform: uppercase;
+}
+
+.safety-header p {
+  max-width: 540px;
+
+  margin: 22px 0 0;
+
+  color: #666762;
+
+  font-size: 12px;
+
+  line-height: 1.8;
+}
+
+.safety-system-status {
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+
+  min-width: 175px;
+
+  padding-left: 18px;
+
+  border-left: 1px solid #c9a45d;
+}
+
+.system-status-dot {
+  width: 7px;
+  height: 7px;
+
+  border-radius: 50%;
+
+  background: #c9a45d;
+
+  box-shadow: 0 0 10px rgba(201,164,93,0.8);
+}
+
+.safety-system-status small {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: #4f504b;
+
+  font-size: 6px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.12em;
+}
+
+.safety-system-status strong {
+  color: #99968e;
+
+  font-size: 7px;
+
+  letter-spacing: 0.08em;
+}
+
+/* =========================================================
+   SOS PANEL
+   ========================================================= */
+
+.sos-panel {
+  display: grid;
+
+  grid-template-columns: 1fr 300px 1fr;
+
+  align-items: center;
+
+  gap: 30px;
+
+  min-height: 390px;
+
+  margin-top: 25px;
+
+  padding: 45px;
+
+  border: 1px solid rgba(255,255,255,0.08);
+
+  background:
+    radial-gradient(
+      circle at 50% 50%,
+      rgba(201,164,93,0.07),
+      transparent 32%
+    ),
+    #101110;
+}
+
+.sos-panel-copy {
+  align-self: center;
+}
+
+.sos-label {
+  color: #c9a45d;
+
+  font-size: 6px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.14em;
+}
+
+.sos-panel-copy h3 {
+  margin: 18px 0 15px;
+
+  color: #c8c4bb;
+
+  font-size: 32px;
+
+  line-height: 1;
+
+  font-weight: 500;
+}
+
+.sos-panel-copy p {
+  max-width: 350px;
+
+  margin: 0;
+
+  color: #62635e;
+
+  font-size: 9px;
+
+  line-height: 1.8;
+}
+
+.sos-active-message {
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  margin-top: 25px;
+
+  color: #c9a45d;
+
+  font-size: 7px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.1em;
+}
+
+.pulse-dot {
+  width: 6px;
+  height: 6px;
+
+  border-radius: 50%;
+
+  background: #c9a45d;
+
+  box-shadow:
+    0 0 0 4px rgba(201,164,93,0.1),
+    0 0 12px rgba(201,164,93,0.7);
+}
+
+/* =========================================================
+   SOS BUTTON
+   ========================================================= */
+
+.sos-action-area {
+  display: flex;
+
+  justify-content: center;
+  align-items: center;
+}
+
+.sos-button {
+  position: relative;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  width: 190px;
+  height: 190px;
+
+  border: 1px solid rgba(201,164,93,0.45);
+
+  border-radius: 50%;
+
+  background: #0c0d0c;
+
+  color: #c9a45d;
+
+  cursor: pointer;
+
+  font-family: inherit;
+
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.sos-button:hover {
+  transform: scale(1.03);
+
+  background: #141512;
+
+  border-color: #c9a45d;
+}
+
+.sos-button.active {
+  background: #171612;
+
+  border-color: #c9a45d;
+}
+
+.sos-button-ring {
+  position: absolute;
+
+  width: 215px;
+  height: 215px;
+
+  border: 1px solid rgba(201,164,93,0.12);
+
+  border-radius: 50%;
+}
+
+.sos-button strong {
+  position: relative;
+
+  font-size: 38px;
+
+  font-weight: 500;
+
+  letter-spacing: 0.03em;
+}
+
+.sos-button small {
+  position: relative;
+
+  margin-top: 5px;
+
+  color: #555650;
+
+  font-size: 6px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.12em;
+}
+
+/* =========================================================
+   SOS STATUS
+   ========================================================= */
+
+.sos-status-list {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 1px;
+
+  background: rgba(255,255,255,0.06);
+}
+
+.sos-status-list > div {
+  display: grid;
+
+  grid-template-columns: 30px 1fr auto;
+
+  align-items: center;
+
+  gap: 10px;
+
+  min-height: 75px;
+
+  padding: 15px;
+
+  background: #0c0d0c;
+}
+
+.sos-status-list span {
+  color: #4e4f4a;
+
+  font-size: 7px;
+}
+
+.sos-status-list strong {
+  color: #777872;
+
+  font-size: 7px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.08em;
+}
+
+.sos-status-list small {
+  color: #c9a45d;
+
+  font-size: 6px;
+
+  font-weight: 800;
+}
+
+/* =========================================================
+   EMERGENCY SERVICES
+   ========================================================= */
+
+.emergency-services {
+  display: grid;
+
+  grid-template-columns: 240px 1fr;
+
+  gap: 45px;
+
+  margin-top: 75px;
+
+  padding-top: 45px;
+
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.emergency-heading > span {
+  color: #c9a45d;
+
+  font-size: 6px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.14em;
+}
+
+.emergency-heading h3 {
+  margin: 15px 0 0;
+
+  color: #aaa79f;
+
+  font-size: 27px;
+
+  line-height: 1.05;
+
+  font-weight: 500;
+}
+
+.emergency-grid {
+  display: grid;
+
+  grid-template-columns: repeat(3, 1fr);
+
+  gap: 1px;
+
+  background: rgba(255,255,255,0.06);
+}
+
+.emergency-card {
+  min-height: 190px;
+
+  padding: 22px;
+
+  border: 0;
+
+  background: #101110;
+
+  color: #e7e3da;
+
+  cursor: pointer;
+
+  text-align: left;
+
+  font-family: inherit;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.emergency-card:hover {
+  background: #151613;
+
+  transform: translateY(-3px);
+}
+
+.emergency-card-top {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  margin-bottom: 35px;
+}
+
+.emergency-icon {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  width: 38px;
+  height: 38px;
+
+  border: 1px solid rgba(201,164,93,0.25);
+
+  color: #c9a45d;
+
+  font-size: 14px;
+}
+
+.emergency-arrow {
+  color: #464741;
+
+  font-size: 12px;
+}
+
+.emergency-card strong {
+  display: block;
+
+  color: #c9a45d;
+
+  font-size: 8px;
+
+  letter-spacing: 0.12em;
+}
+
+.emergency-card p {
+  margin: 10px 0;
+
+  color: #5d5e58;
+
+  font-size: 8px;
+
+  line-height: 1.6;
+}
+
+.emergency-card small {
+  color: #777872;
+
+  font-size: 8px;
+}
+
+/* =========================================================
+   CONFIRMATION
+   ========================================================= */
+
+.emergency-confirmation {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  gap: 25px;
+
+  margin-top: 15px;
+
+  padding: 20px 25px;
+
+  border: 1px solid rgba(201,164,93,0.25);
+
+  background: rgba(201,164,93,0.04);
+}
+
+.emergency-confirmation > div:first-child > span {
+  display: block;
+
+  margin-bottom: 8px;
+
+  color: #c9a45d;
+
+  font-size: 6px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.12em;
+}
+
+.emergency-confirmation strong {
+  color: #a7a49c;
+
+  font-size: 10px;
+}
+
+.emergency-confirmation p {
+  margin: 7px 0 0;
+
+  color: #555650;
+
+  font-size: 7px;
+}
+
+.confirmation-actions {
+  display: flex;
+
+  gap: 8px;
+}
+
+.call-emergency-button,
+.confirmation-actions button {
+  padding: 12px 17px;
+
+  border: 1px solid #c9a45d;
+
+  background: transparent;
+
+  color: #c9a45d;
+
+  cursor: pointer;
+
+  font-family: inherit;
+
+  font-size: 7px;
+
+  font-weight: 800;
+
+  text-decoration: none;
+
+  letter-spacing: 0.1em;
+}
+
+.call-emergency-button:hover {
+  background: #c9a45d;
+
+  color: #0b0c0b;
+}
+
+.confirmation-actions button {
+  border-color: rgba(255,255,255,0.08);
+
+  color: #5a5b55;
+}
+
+/* =========================================================
+   SAFETY CHECKLIST
+   ========================================================= */
+
+.safety-check-section {
+  display: grid;
+
+  grid-template-columns: 270px 1fr;
+
+  gap: 45px;
+
+  margin-top: 75px;
+
+  padding-top: 45px;
+
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.safety-check-heading > span {
+  color: #c9a45d;
+
+  font-size: 6px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.14em;
+}
+
+.safety-check-heading h3 {
+  margin: 15px 0 0;
+
+  color: #aaa79f;
+
+  font-size: 27px;
+
+  line-height: 1.05;
+
+  font-weight: 500;
+}
+
+.safety-check-list {
+  border-top: 1px solid rgba(255,255,255,0.07);
+}
+
+.safety-check {
+  display: grid;
+
+  grid-template-columns: 35px 25px 1fr 20px;
+
+  align-items: center;
+
+  gap: 12px;
+
+  width: 100%;
+
+  min-height: 68px;
+
+  padding: 10px 0;
+
+  border: 0;
+
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+
+  background: transparent;
+
+  color: #777872;
+
+  cursor: pointer;
+
+  text-align: left;
+
+  font-family: inherit;
+}
+
+.safety-check:hover {
+  color: #aaa79f;
+}
+
+.safety-check-number {
+  color: #4d4e49;
+
+  font-size: 7px;
+}
+
+.safety-check-box {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  width: 17px;
+  height: 17px;
+
+  border: 1px solid #454640;
+
+  color: #0b0c0b;
+
+  font-size: 9px;
+}
+
+.safety-check.completed
+.safety-check-box {
+  border-color: #c9a45d;
+
+  background: #c9a45d;
+}
+
+.safety-check-text {
+  font-size: 8px;
+
+  line-height: 1.5;
+}
+
+.safety-check.completed
+.safety-check-text {
+  color: #555650;
+
+  text-decoration: line-through;
+}
+
+.safety-check-arrow {
+  color: #41423e;
+}
+
+/* =========================================================
+   LOCATION SHARING
+   ========================================================= */
+
+.location-sharing-panel {
+  display: grid;
+
+  grid-template-columns: 65px 1fr auto;
+
+  align-items: center;
+
+  gap: 22px;
+
+  margin-top: 70px;
+
+  padding: 25px;
+
+  border: 1px solid rgba(255,255,255,0.07);
+
+  background: #101110;
+}
+
+.location-sharing-icon {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  width: 50px;
+  height: 50px;
+
+  border: 1px solid rgba(201,164,93,0.25);
+
+  color: #c9a45d;
+
+  font-size: 17px;
+}
+
+.location-sharing-copy span {
+  color: #c9a45d;
+
+  font-size: 6px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.12em;
+}
+
+.location-sharing-copy h3 {
+  margin: 8px 0 5px;
+
+  color: #aaa79f;
+
+  font-size: 16px;
+
+  font-weight: 500;
+}
+
+.location-sharing-copy p {
+  margin: 0;
+
+  color: #555650;
+
+  font-size: 8px;
+}
+
+.location-toggle {
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  border: 0;
+
+  background: transparent;
+
+  color: #555650;
+
+  cursor: pointer;
+
+  font-family: inherit;
+
+  font-size: 6px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.1em;
+}
+
+.location-toggle.enabled {
+  color: #c9a45d;
+}
+
+.toggle-track {
+  position: relative;
+
+  width: 38px;
+  height: 18px;
+
+  border: 1px solid #454640;
+
+  border-radius: 20px;
+}
+
+.location-toggle.enabled
+.toggle-track {
+  border-color: #c9a45d;
+}
+
+.toggle-thumb {
+  position: absolute;
+
+  top: 3px;
+  left: 3px;
+
+  width: 10px;
+  height: 10px;
+
+  border-radius: 50%;
+
+  background: #555650;
+
+  transition: left 0.2s ease;
+}
+
+.location-toggle.enabled
+.toggle-thumb {
+  left: 23px;
+
+  background: #c9a45d;
+}
+
+/* =========================================================
+   CONTACTS
+   ========================================================= */
+
+.emergency-contacts {
+  display: grid;
+
+  grid-template-columns: 240px 1fr;
+
+  gap: 45px;
+
+  margin-top: 70px;
+
+  padding-top: 45px;
+
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.contacts-heading > span {
+  color: #c9a45d;
+
+  font-size: 6px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.14em;
+}
+
+.contacts-heading h3 {
+  margin: 15px 0 0;
+
+  color: #aaa79f;
+
+  font-size: 27px;
+
+  line-height: 1.05;
+
+  font-weight: 500;
+}
+
+.contacts-list {
+  display: grid;
+
+  grid-template-columns: 1fr 1fr;
+
+  gap: 1px;
+
+  background: rgba(255,255,255,0.06);
+}
+
+.emergency-contact {
+  display: grid;
+
+  grid-template-columns: 35px 1fr auto;
+
+  align-items: center;
+
+  gap: 12px;
+
+  min-height: 125px;
+
+  padding: 20px;
+
+  background: #101110;
+}
+
+.contact-index {
+  color: #4f504b;
+
+  font-size: 7px;
+
+  font-weight: 800;
+}
+
+.contact-info span {
+  display: block;
+
+  margin-bottom: 7px;
+
+  color: #555650;
+
+  font-size: 6px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.1em;
+}
+
+.contact-info strong {
+  display: block;
+
+  color: #99968e;
+
+  font-size: 10px;
+
+  font-weight: 500;
+}
+
+.contact-info small {
+  display: block;
+
+  margin-top: 5px;
+
+  color: #555650;
+
+  font-size: 7px;
+}
+
+.contact-call {
+  padding: 9px 12px;
+
+  border: 1px solid rgba(201,164,93,0.3);
+
+  background: transparent;
+
+  color: #c9a45d;
+
+  cursor: pointer;
+
+  font-family: inherit;
+
+  font-size: 6px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.1em;
+}
+
+.contact-call:hover {
+  background: #c9a45d;
+
+  color: #0b0c0b;
+}
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.safety-footer {
+  display: flex;
+
+  justify-content: space-between;
+
+  gap: 25px;
+
+  margin-top: 35px;
+
+  padding-top: 20px;
+
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+.safety-footer span {
+  color: #4f504b;
+
+  font-size: 6px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.13em;
+}
+
+.safety-footer p {
+  margin: 0;
+
+  color: #4f504b;
+
+  font-size: 7px;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1050px) {
+  .sos-panel {
+    grid-template-columns: 1fr 260px;
+  }
+
+  .sos-status-list {
+    grid-column: 1 / -1;
+
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 850px) {
+  .safety-header {
+    flex-direction: column;
+
+    align-items: flex-start;
+  }
+
+  .emergency-services,
+  .safety-check-section,
+  .emergency-contacts {
+    grid-template-columns: 1fr;
+  }
+
+  .emergency-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .contacts-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .sos-panel {
+    grid-template-columns: 1fr;
+
+    padding: 30px;
+  }
+
+  .sos-action-area {
+    order: 2;
+  }
+
+  .sos-status-list {
+    order: 3;
+
+    grid-template-columns: 1fr;
+  }
+
+  .emergency-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .location-sharing-panel {
+    grid-template-columns: 50px 1fr;
+  }
+
+  .location-toggle {
+    grid-column: 2;
+  }
+
+  .safety-footer {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 520px) {
+  .safety-emergency-section {
+    padding: 80px 0;
+  }
+
+  .safety-emergency-container {
+    width: calc(100% - 30px);
+  }
+
+  .safety-header h2 {
+    font-size: 48px;
+  }
+
+  .sos-panel {
+    padding: 25px 20px;
+  }
+
+  .sos-button {
+    width: 165px;
+    height: 165px;
+  }
+
+  .sos-button-ring {
+    width: 185px;
+    height: 185px;
+  }
+
+  .emergency-confirmation {
+    flex-direction: column;
+
+    align-items: flex-start;
+  }
+
+  .confirmation-actions {
+    width: 100%;
+  }
+
+  .call-emergency-button,
+  .confirmation-actions button {
+    flex: 1;
+
+    text-align: center;
+  }
+
+  .safety-check {
+    grid-template-columns: 25px 22px 1fr 15px;
+
+    gap: 8px;
+  }
+}

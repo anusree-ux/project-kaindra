@@ -4,6 +4,7 @@ const {
   getCurrentAverage,
   submitFuelPrice,
   estimateFuelCost,
+  getRecentSubmissions,
 } = require("../../services/mototribe/fuelPriceService");
 const AppError = require("../../utils/AppError");
 
@@ -14,13 +15,15 @@ const AppError = require("../../utils/AppError");
  */
 const postFuelPriceSubmission = async (req, res, next) => {
   try {
-    const { state, fuelType, pricePerLiter } = req.body;
+    const { state, fuelType, pricePerLiter, station, location } = req.body;
 
     const result = await submitFuelPrice(
       req.user._id,
       state,
       fuelType,
-      pricePerLiter
+      pricePerLiter,
+      station,
+      location
     );
 
     res.status(201).json({
@@ -73,6 +76,26 @@ const getFuelPriceAverageController = async (req, res, next) => {
 };
 
 /**
+ * @desc    Get recent community fuel price submissions directly from DB
+ * @route   GET /api/mototribe/fuel-prices/submissions
+ * @access  Private (JWT Protected)
+ */
+const getRecentSubmissionsController = async (req, res, next) => {
+  try {
+    const submissions = await getRecentSubmissions();
+    res.status(200).json({
+      status: "success",
+      results: submissions.length,
+      data: {
+        submissions,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * @desc    Get estimated fuel cost for a ride using crowdsourced state prices
  * @route   GET /api/mototribe/rides/:id/fuel-estimate?state=X&mileage=Y&fuelType=Z
  * @access  Private (Confirmed participants & Organizer only)
@@ -82,7 +105,7 @@ const getRideFuelEstimateController = async (req, res, next) => {
     const rideId = req.params.id;
     const { state, mileage, fuelType } = req.query;
 
-    const ride = await Ride.findById(rideId);
+    const ride = await Ride.findById(rideId).populate("vehicleId");
     if (!ride) {
       return next(new AppError("Ride not found.", 404));
     }
@@ -105,9 +128,13 @@ const getRideFuelEstimateController = async (req, res, next) => {
     }
 
     const distanceKm = ride.distanceKm;
-    const vehicleMileageKmpl = mileage ? Number(mileage) : 40; // Default 40 km/L if omitted
+    // Pull mileageKmpl and fuelType from the ride's linked Vehicle unless overridden by query params
+    const vehicleMileageKmpl = mileage
+      ? Number(mileage)
+      : (ride.vehicleId ? ride.vehicleId.mileageKmpl : 40);
     const targetState = state || ride.origin || "Delhi";
-    const targetFuelType = fuelType || "petrol";
+    const targetFuelType = fuelType
+      || (ride.vehicleId ? ride.vehicleId.fuelType : "petrol");
 
     const estimate = await estimateFuelCost(
       distanceKm,
@@ -132,5 +159,6 @@ const getRideFuelEstimateController = async (req, res, next) => {
 module.exports = {
   postFuelPriceSubmission,
   getFuelPriceAverageController,
+  getRecentSubmissionsController,
   getRideFuelEstimateController,
 };

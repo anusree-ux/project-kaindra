@@ -2,6 +2,8 @@ const request = require("supertest");
 const app = require("../../src/app");
 const SosAlert = require("../../src/models/mototribe/SosAlert");
 
+const { createTestUser } = require("../helpers/testUser");
+
 describe("MotoTribe SOS Emergency Alerts API & Multiple Emergency Contacts", () => {
   let organizerToken;
   let organizerId;
@@ -10,13 +12,10 @@ describe("MotoTribe SOS Emergency Alerts API & Multiple Emergency Contacts", () 
   let ongoingRideId;
 
   beforeEach(async () => {
-    const orgRes = await request(app).post("/api/v1/auth/signup").send({
-      name: "SOS Organizer",
-      email: "sos.org@example.com",
-      password: "password123",
-    });
-    organizerToken = orgRes.body.accessToken;
-    organizerId = orgRes.body.data.user._id;
+    const org = await createTestUser({ name: "SOS Organizer" });
+    organizerToken = org.token;
+    organizerId = org.userId;
+    const organizerVehicleId = org.vehicleId;
 
     await request(app)
       .post("/api/mototribe/rider-profile")
@@ -29,13 +28,9 @@ describe("MotoTribe SOS Emergency Alerts API & Multiple Emergency Contacts", () 
         ],
       });
 
-    const partRes = await request(app).post("/api/v1/auth/signup").send({
-      name: "SOS Participant",
-      email: "sos.part@example.com",
-      password: "password123",
-    });
-    participantToken = partRes.body.accessToken;
-    participantId = partRes.body.data.user._id;
+    const part = await createTestUser({ name: "SOS Participant" });
+    participantToken = part.token;
+    participantId = part.userId;
 
     await request(app)
       .post("/api/mototribe/rider-profile")
@@ -57,6 +52,7 @@ describe("MotoTribe SOS Emergency Alerts API & Multiple Emergency Contacts", () 
         destination: "Ooty",
         startDate: new Date(Date.now() + 86400000).toISOString(),
         distanceKm: 270,
+        vehicleId: organizerVehicleId,
       });
     ongoingRideId = rideRes.body.data.ride._id;
 

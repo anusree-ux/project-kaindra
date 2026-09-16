@@ -4,6 +4,8 @@ const FuelPriceSubmission = require("../../src/models/mototribe/FuelPriceSubmiss
 const Ride = require("../../src/models/mototribe/Ride");
 const RideParticipant = require("../../src/models/mototribe/RideParticipant");
 
+const { createTestUser } = require("../helpers/testUser");
+
 describe("MotoTribe Crowdsourced Fuel Price Tracking API", () => {
   let organizerToken;
   let participantToken;
@@ -15,16 +17,13 @@ describe("MotoTribe Crowdsourced Fuel Price Tracking API", () => {
     await FuelPriceSubmission.deleteMany({});
 
     // 1. Create Organizer User & Ride
-    const orgRes = await request(app).post("/api/v1/auth/signup").send({
-      name: "Ride Organizer",
-      email: "org.crowdfuel@example.com",
-      password: "Password123!",
-    });
-    organizerToken = orgRes.body.accessToken;
-    const organizerId = orgRes.body.data.user._id;
+    const org = await createTestUser({ name: "Ride Organizer" });
+    organizerToken = org.token;
+    const organizerId = org.userId;
 
     ride = await Ride.create({
       organizerId,
+      vehicleId: org.vehicleId,
       title: "Western Ghats Tour",
       origin: "Mumbai",
       destination: "Goa",
@@ -33,13 +32,9 @@ describe("MotoTribe Crowdsourced Fuel Price Tracking API", () => {
     });
 
     // 2. Create Participant User & confirm participation
-    const partRes = await request(app).post("/api/v1/auth/signup").send({
-      name: "Confirmed Participant",
-      email: "part.crowdfuel@example.com",
-      password: "Password123!",
-    });
-    participantToken = partRes.body.accessToken;
-    const participantId = partRes.body.data.user._id;
+    const part = await createTestUser({ name: "Confirmed Participant" });
+    participantToken = part.token;
+    const participantId = part.userId;
 
     await RideParticipant.create({
       rideId: ride._id,
@@ -48,12 +43,8 @@ describe("MotoTribe Crowdsourced Fuel Price Tracking API", () => {
     });
 
     // 3. Create Non-member User
-    const nonRes = await request(app).post("/api/v1/auth/signup").send({
-      name: "Outsider User",
-      email: "outsider.crowdfuel@example.com",
-      password: "Password123!",
-    });
-    nonMemberToken = nonRes.body.accessToken;
+    const non = await createTestUser({ name: "Outsider User" });
+    nonMemberToken = non.token;
   });
 
   describe("POST /api/mototribe/fuel-prices (Crowdsourced Submission & Outlier Rejection)", () => {

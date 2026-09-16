@@ -18,6 +18,11 @@ const routeMatchRoutes = require("./routes/mototribe/routeMatchRoutes");
 const chatRoutes = require("./routes/mototribe/chatRoutes");
 const fuelPriceRoutes = require("./routes/mototribe/fuelPriceRoutes");
 const agoraRoutes = require("./routes/mototribe/agoraRoutes");
+const vehicleRoutes = require("./routes/mototribe/vehicleRoutes");
+const expenseRoutes = require("./routes/mototribe/expenseRoutes");
+const routeReportRoutes = require("./routes/mototribe/routeReportRoutes");
+const presenceRoutes = require("./routes/mototribe/presenceRoutes");
+const connectionRoutes = require("./routes/core/connectionRoutes");
 const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
@@ -64,6 +69,9 @@ app.use(
   organizationMemberRoutes
 );
 app.use("/api/v1/modasphere/articles", articleRoutes);
+// Core Connection Routes
+app.use("/api/v1/core", connectionRoutes);
+app.use("/api/core", connectionRoutes);
 
 // MotoTribe Routes (supports both /api/mototribe and /api/v1/mototribe)
 app.use("/api/v1/mototribe", routeMatchRoutes);
@@ -98,6 +106,18 @@ app.use("/api/mototribe", fuelPriceRoutes);
 
 app.use("/api/v1/mototribe", agoraRoutes);
 app.use("/api/mototribe", agoraRoutes);
+
+app.use("/api/v1/mototribe", vehicleRoutes);
+app.use("/api/mototribe", vehicleRoutes);
+
+app.use("/api/v1/mototribe", expenseRoutes);
+app.use("/api/mototribe", expenseRoutes);
+
+app.use("/api/v1/mototribe", routeReportRoutes);
+app.use("/api/mototribe", routeReportRoutes);
+
+app.use("/api/v1/mototribe", presenceRoutes);
+app.use("/api/mototribe", presenceRoutes);
 
 // 404 Route Handler
 app.use((req, res) => {

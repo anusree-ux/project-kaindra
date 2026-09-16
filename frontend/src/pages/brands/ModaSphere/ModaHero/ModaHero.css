@@ -1,96 +1,559 @@
+/* =========================
+   HERO
+========================= */
+
 .moda-hero {
-  min-height: 720px;
   position: relative;
-  display: flex;
-  align-items: center;
+  isolation: isolate;
   overflow: hidden;
-  color: white;
+
+  width: 100%;
+  height: calc(100vh - 82px);
+  min-height: 620px;
+
+  padding: 40px 0 25px;
+  box-sizing: border-box;
+
+  background: transparent;
+  color: #151515;
+
+  scroll-margin-top: 90px;
 }
 
+/* =========================
+   BACKGROUND VIDEO
+========================= */
 .moda-hero-video {
   position: absolute;
-  top: 0;
-  left: 0;
+  inset: 0;
+
   width: 100%;
   height: 100%;
+
   object-fit: cover;
-  z-index: 0;
+
+  z-index: -2;
+
+  /* Makes the video cleaner and more cinematic */
+  filter: brightness(0.72) saturate(0.85);
 }
+
+
+/* =========================
+   VIDEO OVERLAY
+========================= */
 
 .moda-hero-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 1;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(247, 246, 243, 0.88) 0%,
+      rgba(247, 246, 243, 0.64) 38%,
+      rgba(247, 246, 243, 0.30) 72%,
+      rgba(247, 246, 243, 0.20) 100%
+    );
+
+  z-index: -1;
 }
+
+
+/* =========================
+   CONTAINER
+========================= */
+
+.moda-hero-container {
+  position: relative;
+  z-index: 1;
+
+  width: min(1180px, calc(100% - 48px));
+  height: 100%;
+  min-height: 0;
+
+  margin: 0 auto;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+
+/* =========================
+   TOP
+========================= */
+
+.moda-hero-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding-bottom: 22px;
+
+  border-bottom: 1px solid rgba(222, 219, 213, 0.85);
+
+  color: #666666;
+
+  font-size: 10px;
+  font-weight: 600;
+
+  letter-spacing: 2.5px;
+}
+
+
+/* =========================
+   MAIN
+========================= */
+
+.moda-hero-main {
+  flex: 1;
+  min-height: 0;
+
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+
+  align-items: center;
+
+  gap: 50px;
+
+  padding: 45px 0;
+}
+
+
+/* =========================
+   CONTENT
+========================= */
 
 .moda-hero-content {
-  position: relative;
-  z-index: 2;
-  max-width: 1400px;
-  width: 100%;
-  margin: auto;
-  padding: 100px 50px;
+  max-width: 760px;
 }
 
-.moda-label {
-  font-size: 13px;
-  letter-spacing: 4px;
-  margin-bottom: 25px;
-}
+
+/* =========================
+   HEADING
+========================= */
 
 .moda-hero h1 {
-  font-size: clamp(50px, 7vw, 100px);
-  line-height: 0.95;
   margin: 0;
-  font-weight: 700;
-  letter-spacing: -4px;
+
+  color: #151515;
+
+  font-size: clamp(52px, 6vw, 82px);
+  line-height: 0.98;
+
+  font-weight: 600;
+
+  letter-spacing: -3.5px;
 }
 
 .moda-hero h1 span {
-  font-weight: 300;
+  color: #bd8b46;
 }
 
-.moda-hero-description {
-  max-width: 650px;
-  margin-top: 35px;
-  font-size: 18px;
+
+/* =========================
+   DESCRIPTION
+========================= */
+
+.moda-hero p {
+  max-width: 610px;
+
+  margin: 28px 0 0;
+
+  color: #505050;
+
+  font-size: 17px;
   line-height: 1.7;
-  color: #dddddd;
 }
 
-.moda-hero-actions {
-  margin-top: 40px;
+
+/* =========================
+   HERO LINE
+========================= */
+
+.moda-hero-line {
+  margin-top: 32px;
+
   display: flex;
   align-items: center;
-  gap: 25px;
-}
 
-.moda-hero-actions a:first-child {
-  padding: 15px 28px;
-  border-radius: 30px;
-  background: white;
-  color: #111;
-  text-decoration: none;
+  gap: 12px;
+
+  color: #bd8b46;
+
+  font-size: 10px;
   font-weight: 600;
+
+  letter-spacing: 2.5px;
 }
 
-.moda-hero-actions a:last-child {
-  color: white;
-  text-decoration: none;
+.hero-sparkle {
+  width: 38px;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #bd8b46;
+  border-radius: 50%;
+
+  background: rgba(247, 246, 243, 0.35);
 }
+
+
+/* =========================
+   HERO VISUAL
+========================= */
+
+.moda-hero-visual {
+  width: 390px;
+  height: 390px;
+
+  margin: 0 auto;
+
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+/* =========================
+   ORBITS
+========================= */
+
+.hero-orbit {
+  position: absolute;
+
+  border: 1px solid rgba(189, 139, 70, 0.55);
+
+  border-radius: 50%;
+}
+
+.orbit-one {
+  width: 300px;
+  height: 300px;
+}
+
+.orbit-two {
+  width: 220px;
+  height: 220px;
+}
+
+
+/* =========================
+   CENTER
+========================= */
+
+.hero-center {
+  width: 105px;
+  height: 105px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(23, 23, 23, 0.96);
+
+  border: 1px solid #bd8b46;
+  border-radius: 50%;
+
+  box-shadow:
+    0 0 0 12px rgba(247, 246, 243, 0.88),
+    0 0 0 13px rgba(189, 139, 70, 0.55),
+    0 15px 40px rgba(0, 0, 0, 0.15);
+}
+
+.hero-center span {
+  color: #bd8b46;
+
+  font-size: 48px;
+  font-weight: 600;
+
+  letter-spacing: -3px;
+}
+
+
+/* =========================
+   DOTS
+========================= */
+
+.hero-dot {
+  width: 10px;
+  height: 10px;
+
+  position: absolute;
+
+  background: #bd8b46;
+
+  border-radius: 50%;
+}
+
+.hero-dot-one {
+  top: 38px;
+  right: 90px;
+}
+
+.hero-dot-two {
+  bottom: 70px;
+  left: 55px;
+}
+
+.hero-dot-three {
+  top: 115px;
+  left: 35px;
+}
+
+
+/* =========================
+   BOTTOM
+========================= */
+
+.moda-hero-bottom {
+  flex-shrink: 0;
+
+  padding-top: 18px;
+
+  border-top: 1px solid rgba(222, 219, 213, 0.85);
+
+  display: flex;
+  align-items: center;
+
+  gap: 30px;
+
+  color: #666666;
+
+  font-size: 9px;
+  font-weight: 600;
+
+  letter-spacing: 2px;
+}
+
+.hero-scroll {
+  margin-left: auto;
+
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  color: #151515;
+
+  text-decoration: none;
+
+  transition: color 0.25s ease;
+}
+
+.hero-scroll:hover {
+  color: #bd8b46;
+}
+
+
+/* =========================
+   TABLET
+========================= */
+
+@media (max-width: 900px) {
+
+  .moda-hero {
+    height: auto;
+    min-height: auto;
+
+    padding: 45px 0 30px;
+  }
+
+  .moda-hero-container {
+    height: auto;
+    min-height: auto;
+  }
+
+  .moda-hero-main {
+    grid-template-columns: 1fr;
+
+    gap: 25px;
+
+    padding: 55px 0 45px;
+  }
+
+  .moda-hero-content {
+    max-width: 700px;
+  }
+
+  .moda-hero-visual {
+    width: 300px;
+    height: 300px;
+  }
+
+  .orbit-one {
+    width: 240px;
+    height: 240px;
+  }
+
+  .orbit-two {
+    width: 175px;
+    height: 175px;
+  }
+
+  .hero-center {
+    width: 85px;
+    height: 85px;
+  }
+
+  .hero-center span {
+    font-size: 40px;
+  }
+
+  .moda-hero-overlay {
+    background:
+      rgba(247, 246, 243, 0.72);
+  }
+}
+
+
+/* =========================
+   MOBILE
+========================= */
 
 @media (max-width: 600px) {
-  .moda-hero-content {
-    padding: 80px 25px;
+
+  .moda-hero {
+    height: auto;
+    min-height: auto;
+
+    padding: 35px 0 25px;
+
+    scroll-margin-top: 75px;
+  }
+
+  .moda-hero-container {
+    width: calc(100% - 32px);
+
+    height: auto;
+  }
+
+  .moda-hero-top {
+    font-size: 9px;
+
+    letter-spacing: 2px;
+  }
+
+  .moda-hero-top span:last-child {
+    display: none;
+  }
+
+  .moda-hero-main {
+    padding: 50px 0 40px;
   }
 
   .moda-hero h1 {
-    letter-spacing: -2px;
+    font-size: 46px;
+
+    line-height: 1;
+
+    letter-spacing: -2.5px;
   }
 
-  .moda-hero-actions {
-    flex-direction: column;
-    align-items: flex-start;
+  .moda-hero p {
+    margin-top: 23px;
+
+    font-size: 15px;
+
+    line-height: 1.7;
+  }
+
+  .moda-hero-line {
+    margin-top: 26px;
+
+    font-size: 9px;
+
+    letter-spacing: 2px;
+  }
+
+  .hero-sparkle {
+    width: 34px;
+    height: 34px;
+  }
+
+  .moda-hero-visual {
+    width: 250px;
+    height: 250px;
+  }
+
+  .orbit-one {
+    width: 200px;
+    height: 200px;
+  }
+
+  .orbit-two {
+    width: 145px;
+    height: 145px;
+  }
+
+  .hero-center {
+    width: 72px;
+    height: 72px;
+  }
+
+  .hero-center span {
+    font-size: 34px;
+  }
+
+  .hero-dot {
+    width: 8px;
+    height: 8px;
+  }
+
+  .moda-hero-bottom {
+    flex-wrap: wrap;
+
+    gap: 12px 20px;
+
+    font-size: 8px;
+  }
+
+  .hero-scroll {
+    width: 100%;
+
+    margin-left: 0;
+    margin-top: 8px;
+  }
+
+  .moda-hero-overlay {
+    background:
+      rgba(247, 246, 243, 0.72);
+  }
+}
+
+
+/* =========================
+   SMALL MOBILE
+========================= */
+
+@media (max-width: 400px) {
+
+  .moda-hero h1 {
+    font-size: 40px;
+  }
+
+  .moda-hero p {
+    font-size: 14px;
+  }
+
+  .moda-hero-visual {
+    width: 220px;
+    height: 220px;
+  }
+
+  .orbit-one {
+    width: 175px;
+    height: 175px;
+  }
+
+  .orbit-two {
+    width: 125px;
+    height: 125px;
   }
 }

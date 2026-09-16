@@ -2,6 +2,7 @@ const express = require("express");
 const {
   postFuelPriceSubmission,
   getFuelPriceAverageController,
+  getRecentSubmissionsController,
   getRideFuelEstimateController,
 } = require("../../controllers/mototribe/fuelPriceController");
 const { protect } = require("../../middleware/authMiddleware");
@@ -13,6 +14,9 @@ router.use(protect);
 
 // POST /api/mototribe/fuel-prices - Submit crowdsourced fuel price (Any logged-in user)
 router.post("/fuel-prices", postFuelPriceSubmission);
+
+// GET /api/mototribe/fuel-prices/submissions - Get recent community fuel price reports from DB
+router.get("/fuel-prices/submissions", getRecentSubmissionsController);
 
 // GET /api/mototribe/fuel-prices?state=X&fuelType=Y - Get current 7-day median fuel price
 router.get("/fuel-prices", getFuelPriceAverageController);

@@ -3,21 +3,21 @@ const app = require("../../src/app");
 const RiderProfile = require("../../src/models/mototribe/RiderProfile");
 const RideParticipant = require("../../src/models/mototribe/RideParticipant");
 
+const { createTestUser } = require("../helpers/testUser");
+
 describe("MotoTribe Ride Lifecycle API", () => {
   let organizerToken;
   let organizerId;
+  let organizerVehicleId;
   let riderToken;
   let riderId;
 
   beforeEach(async () => {
     // Signup organizer
-    const orgRes = await request(app).post("/api/v1/auth/signup").send({
-      name: "Organizer Rider",
-      email: "organizer@example.com",
-      password: "password123",
-    });
-    organizerToken = orgRes.body.accessToken;
-    organizerId = orgRes.body.data.user._id;
+    const org = await createTestUser({ name: "Organizer Rider" });
+    organizerToken = org.token;
+    organizerId = org.userId;
+    organizerVehicleId = org.vehicleId;
 
     // Create RiderProfile for organizer
     await request(app)
@@ -26,13 +26,9 @@ describe("MotoTribe Ride Lifecycle API", () => {
       .send({ vehicleNumber: "KA01AB1234", bikeModel: "Duke 390" });
 
     // Signup rider
-    const riderRes = await request(app).post("/api/v1/auth/signup").send({
-      name: "Participant Rider",
-      email: "participant@example.com",
-      password: "password123",
-    });
-    riderToken = riderRes.body.accessToken;
-    riderId = riderRes.body.data.user._id;
+    const rider = await createTestUser({ name: "Participant Rider" });
+    riderToken = rider.token;
+    riderId = rider.userId;
 
     // Create RiderProfile for participant
     await request(app)
@@ -51,6 +47,7 @@ describe("MotoTribe Ride Lifecycle API", () => {
         destination: "Coorg",
         startDate: new Date(Date.now() + 86400000).toISOString(),
         distanceKm: 250,
+        vehicleId: organizerVehicleId,
       });
 
     expect(res.statusCode).toEqual(201);
@@ -70,6 +67,7 @@ describe("MotoTribe Ride Lifecycle API", () => {
         destination: "Udupi",
         startDate: new Date(Date.now() + 86400000).toISOString(),
         distanceKm: 60,
+        vehicleId: organizerVehicleId,
       });
 
     const rideId = rideRes.body.data.ride._id;
@@ -96,6 +94,7 @@ describe("MotoTribe Ride Lifecycle API", () => {
         destination: "Wayanad",
         startDate: new Date(Date.now() + 86400000).toISOString(),
         distanceKm: 120,
+        vehicleId: organizerVehicleId,
       });
     const rideId = rideRes.body.data.ride._id;
 
@@ -123,6 +122,7 @@ describe("MotoTribe Ride Lifecycle API", () => {
         destination: "Goa",
         startDate: new Date(Date.now() + 86400000).toISOString(),
         distanceKm: 560,
+        vehicleId: organizerVehicleId,
       });
     const rideId = rideRes.body.data.ride._id;
 
@@ -160,6 +160,7 @@ describe("MotoTribe Ride Lifecycle API", () => {
         destination: "City B",
         startDate: new Date(Date.now() + 86400000).toISOString(),
         distanceKm: 100,
+        vehicleId: organizerVehicleId,
       });
     const rideId = rideRes.body.data.ride._id;
 
@@ -181,6 +182,7 @@ describe("MotoTribe Ride Lifecycle API", () => {
         destination: "City B",
         startDate: new Date(Date.now() + 86400000).toISOString(),
         distanceKm: 100,
+        vehicleId: organizerVehicleId,
       });
     const rideId = rideRes.body.data.ride._id;
 

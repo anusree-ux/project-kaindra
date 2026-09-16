@@ -1,0 +1,1017 @@
+/* =========================================================
+   MOTOTRIBE - RIDE PASSPORT
+   ========================================================= */
+
+.ride-passport-section {
+  padding: 115px 0;
+  background: #090a09;
+  color: #e7e3da;
+}
+
+.ride-passport-container {
+  width: min(1380px, calc(100% - 50px));
+  margin: auto;
+}
+
+.ride-passport-section * {
+  box-sizing: border-box;
+}
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.passport-header {
+  display: flex;
+
+  justify-content: space-between;
+  align-items: flex-end;
+
+  gap: 40px;
+
+  padding-bottom: 45px;
+
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.passport-eyebrow {
+  display: block;
+
+  margin-bottom: 18px;
+
+  color: #c9a45d;
+
+  font-size: 8px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.18em;
+}
+
+.passport-header h2 {
+  margin: 0;
+
+  font-size: clamp(48px, 6vw, 80px);
+
+  line-height: 0.9;
+
+  letter-spacing: -0.05em;
+
+  text-transform: uppercase;
+}
+
+.passport-header p {
+  max-width: 530px;
+
+  margin: 22px 0 0;
+
+  color: #666762;
+
+  font-size: 12px;
+
+  line-height: 1.8;
+}
+
+.passport-id-block {
+  min-width: 190px;
+
+  padding-left: 18px;
+
+  border-left: 1px solid #c9a45d;
+}
+
+.passport-id-block span,
+.passport-id-block small {
+  display: block;
+
+  color: #4f504b;
+
+  font-size: 6px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.12em;
+}
+
+.passport-id-block strong {
+  display: block;
+
+  margin: 9px 0;
+
+  color: #aaa79f;
+
+  font-size: 10px;
+
+  letter-spacing: 0.08em;
+}
+
+.passport-id-block small {
+  color: #c9a45d;
+}
+
+/* =========================================================
+   PASSPORT CARD
+   ========================================================= */
+
+.passport-card {
+  position: relative;
+
+  margin-top: 28px;
+
+  border: 1px solid rgba(201,164,93,0.28);
+
+  background:
+    radial-gradient(
+      circle at 80% 25%,
+      rgba(201,164,93,0.08),
+      transparent 28%
+    ),
+    #111210;
+
+  overflow: hidden;
+}
+
+.passport-card-top {
+  display: flex;
+
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 22px 30px;
+
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+
+.passport-brand {
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+}
+
+.passport-brand > span {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  width: 35px;
+  height: 35px;
+
+  border: 1px solid #c9a45d;
+
+  color: #c9a45d;
+
+  font-size: 10px;
+
+  font-weight: 800;
+}
+
+.passport-brand strong {
+  display: block;
+
+  color: #aaa79f;
+
+  font-size: 8px;
+
+  letter-spacing: 0.12em;
+}
+
+.passport-brand small {
+  display: block;
+
+  margin-top: 4px;
+
+  color: #4f504b;
+
+  font-size: 6px;
+
+  letter-spacing: 0.1em;
+}
+
+.passport-valid {
+  color: #c9a45d;
+
+  font-size: 6px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.12em;
+}
+
+.passport-card-main {
+  display: flex;
+
+  justify-content: space-between;
+  align-items: center;
+
+  min-height: 240px;
+
+  padding: 40px 50px;
+}
+
+.rider-label {
+  display: block;
+
+  margin-bottom: 12px;
+
+  color: #4f504b;
+
+  font-size: 6px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.13em;
+}
+
+.rider-name-row {
+  display: flex;
+
+  align-items: center;
+
+  gap: 15px;
+}
+
+.rider-name-row h3 {
+  margin: 0;
+
+  color: #c8c4bb;
+
+  font-size: clamp(25px, 4vw, 42px);
+
+  font-weight: 500;
+
+  letter-spacing: 0.01em;
+}
+
+.rider-name-row button {
+  padding: 7px 10px;
+
+  border: 1px solid rgba(255,255,255,0.1);
+
+  background: transparent;
+
+  color: #555650;
+
+  cursor: pointer;
+
+  font-family: inherit;
+
+  font-size: 6px;
+
+  font-weight: 800;
+}
+
+.rider-name-row button:hover {
+  color: #c9a45d;
+
+  border-color: rgba(201,164,93,0.3);
+}
+
+.rider-level {
+  display: inline-block;
+
+  margin-top: 12px;
+
+  color: #c9a45d;
+
+  font-size: 7px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.15em;
+}
+
+.name-editor {
+  display: flex;
+
+  gap: 8px;
+}
+
+.name-editor input {
+  width: min(400px, 55vw);
+
+  padding: 12px;
+
+  border: 1px solid rgba(201,164,93,0.35);
+
+  outline: none;
+
+  background: #0a0b0a;
+
+  color: #c8c4bb;
+
+  font-family: inherit;
+
+  font-size: 13px;
+}
+
+.name-editor button {
+  padding: 0 15px;
+
+  border: 1px solid #c9a45d;
+
+  background: #c9a45d;
+
+  color: #0a0b0a;
+
+  cursor: pointer;
+
+  font-family: inherit;
+
+  font-size: 7px;
+
+  font-weight: 800;
+}
+
+.passport-emblem {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  width: 145px;
+  height: 145px;
+
+  border: 1px solid rgba(201,164,93,0.35);
+
+  border-radius: 50%;
+}
+
+.passport-emblem span {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  width: 105px;
+  height: 105px;
+
+  border: 1px solid rgba(201,164,93,0.25);
+
+  border-radius: 50%;
+
+  color: #c9a45d;
+
+  font-size: 25px;
+
+  font-weight: 700;
+
+  letter-spacing: 0.05em;
+}
+
+.passport-card-bottom {
+  display: grid;
+
+  grid-template-columns: repeat(4, 1fr);
+
+  gap: 1px;
+
+  background: rgba(255,255,255,0.06);
+}
+
+.passport-card-bottom div {
+  min-height: 75px;
+
+  padding: 17px 25px;
+
+  background: #0c0d0c;
+}
+
+.passport-card-bottom span {
+  display: block;
+
+  margin-bottom: 7px;
+
+  color: #4f504b;
+
+  font-size: 6px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.11em;
+}
+
+.passport-card-bottom strong {
+  color: #99968e;
+
+  font-size: 9px;
+}
+
+/* =========================================================
+   STATS
+   ========================================================= */
+
+.passport-stat-section {
+  display: grid;
+
+  grid-template-columns: 250px 1fr;
+
+  gap: 45px;
+
+  margin-top: 75px;
+
+  padding-top: 45px;
+
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.passport-stat-heading > span,
+.milestone-heading > span,
+.journeys-heading > span {
+  color: #c9a45d;
+
+  font-size: 6px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.14em;
+}
+
+.passport-stat-heading h3,
+.milestone-heading h3,
+.journeys-heading h3 {
+  margin: 15px 0 0;
+
+  color: #aaa79f;
+
+  font-size: 27px;
+
+  line-height: 1.05;
+
+  font-weight: 500;
+}
+
+.passport-stat-grid {
+  display: grid;
+
+  grid-template-columns: repeat(4, 1fr);
+
+  gap: 1px;
+
+  background: rgba(255,255,255,0.06);
+}
+
+.passport-stat {
+  min-height: 150px;
+
+  padding: 20px;
+
+  background: #101110;
+}
+
+.passport-stat > span {
+  color: #4f504b;
+
+  font-size: 7px;
+
+  font-weight: 800;
+}
+
+.passport-stat strong {
+  display: block;
+
+  margin-top: 25px;
+
+  color: #c9a45d;
+
+  font-size: 32px;
+
+  font-weight: 400;
+}
+
+.passport-stat small {
+  display: block;
+
+  margin-top: 5px;
+
+  color: #555650;
+
+  font-size: 6px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.1em;
+}
+
+/* =========================================================
+   MILESTONES
+   ========================================================= */
+
+.passport-milestones {
+  display: grid;
+
+  grid-template-columns: 250px 1fr;
+
+  gap: 45px;
+
+  margin-top: 75px;
+
+  padding-top: 45px;
+
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.milestone-layout {
+  display: grid;
+
+  grid-template-columns: 1fr 320px;
+
+  gap: 1px;
+
+  background: rgba(255,255,255,0.06);
+}
+
+.milestone-list {
+  background: #101110;
+}
+
+.milestone-item {
+  display: grid;
+
+  grid-template-columns: 35px 25px 1fr 20px;
+
+  align-items: center;
+
+  gap: 10px;
+
+  width: 100%;
+
+  min-height: 72px;
+
+  padding: 10px 20px;
+
+  border: 0;
+
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+
+  background: transparent;
+
+  color: #777872;
+
+  cursor: pointer;
+
+  text-align: left;
+
+  font-family: inherit;
+}
+
+.milestone-item:last-child {
+  border-bottom: 0;
+}
+
+.milestone-item:hover,
+.milestone-item.active {
+  background: #151613;
+
+  color: #aaa79f;
+}
+
+.milestone-number {
+  color: #4f504b;
+
+  font-size: 7px;
+}
+
+.milestone-status {
+  color: #4f504b;
+
+  font-size: 10px;
+}
+
+.milestone-item.completed
+.milestone-status {
+  color: #c9a45d;
+}
+
+.milestone-item.active
+.milestone-status {
+  color: #c9a45d;
+}
+
+.milestone-title {
+  font-size: 8px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.08em;
+}
+
+.milestone-arrow {
+  color: #44453f;
+}
+
+.milestone-item.active
+.milestone-arrow {
+  color: #c9a45d;
+}
+
+.milestone-detail {
+  min-height: 288px;
+
+  padding: 30px;
+
+  background:
+    radial-gradient(
+      circle at 80% 20%,
+      rgba(201,164,93,0.07),
+      transparent 40%
+    ),
+    #0c0d0c;
+}
+
+.milestone-detail-label {
+  display: block;
+
+  color: #c9a45d;
+
+  font-size: 6px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.12em;
+}
+
+.milestone-detail-icon {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  width: 50px;
+  height: 50px;
+
+  margin-top: 35px;
+
+  border: 1px solid rgba(201,164,93,0.3);
+
+  color: #c9a45d;
+
+  font-size: 15px;
+}
+
+.milestone-detail-title {
+  display: block;
+
+  margin-top: 20px;
+
+  color: #aaa79f;
+
+  font-size: 13px;
+
+  font-weight: 700;
+
+  letter-spacing: 0.08em;
+}
+
+.milestone-detail p {
+  color: #5e5f59;
+
+  font-size: 8px;
+
+  line-height: 1.7;
+}
+
+.milestone-detail small {
+  display: block;
+
+  margin-top: 20px;
+
+  color: #4f504b;
+
+  font-size: 6px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.1em;
+}
+
+.milestone-detail strong {
+  display: block;
+
+  margin-top: 8px;
+
+  color: #c9a45d;
+
+  font-size: 6px;
+
+  letter-spacing: 0.1em;
+}
+
+/* =========================================================
+   JOURNEYS
+   ========================================================= */
+
+.passport-journeys {
+  display: grid;
+
+  grid-template-columns: 250px 1fr;
+
+  gap: 45px;
+
+  margin-top: 75px;
+
+  padding-top: 45px;
+
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.passport-journey-list {
+  border-top: 1px solid rgba(255,255,255,0.07);
+}
+
+.passport-journey {
+  display: grid;
+
+  grid-template-columns: 40px 1fr 120px;
+
+  align-items: center;
+
+  gap: 15px;
+
+  min-height: 90px;
+
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.journey-number {
+  color: #4f504b;
+
+  font-size: 7px;
+
+  font-weight: 800;
+}
+
+.journey-info span {
+  display: block;
+
+  margin-bottom: 6px;
+
+  color: #c9a45d;
+
+  font-size: 6px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.1em;
+}
+
+.journey-info strong {
+  display: block;
+
+  color: #99968e;
+
+  font-size: 10px;
+
+  font-weight: 500;
+}
+
+.journey-info small {
+  display: block;
+
+  margin-top: 5px;
+
+  color: #555650;
+
+  font-size: 7px;
+}
+
+.journey-distance {
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: flex-end;
+
+  gap: 5px;
+}
+
+.journey-distance strong {
+  color: #aaa79f;
+
+  font-size: 8px;
+}
+
+.journey-distance span {
+  color: #4f504b;
+
+  font-size: 7px;
+}
+
+/* =========================================================
+   CONTROLS
+   ========================================================= */
+
+.passport-controls {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  gap: 20px;
+
+  margin-top: 35px;
+
+  padding-top: 20px;
+
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+.passport-controls p {
+  margin: 0;
+
+  color: #4f504b;
+
+  font-size: 7px;
+}
+
+.passport-controls button {
+  padding: 10px 14px;
+
+  border: 1px solid rgba(255,255,255,0.08);
+
+  background: transparent;
+
+  color: #555650;
+
+  cursor: pointer;
+
+  font-family: inherit;
+
+  font-size: 6px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.1em;
+}
+
+.passport-controls button:hover {
+  color: #c9a45d;
+
+  border-color: rgba(201,164,93,0.3);
+}
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.passport-footer {
+  display: flex;
+
+  justify-content: space-between;
+
+  margin-top: 30px;
+
+  padding-top: 18px;
+
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+.passport-footer span {
+  color: #4f504b;
+
+  font-size: 6px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.13em;
+}
+
+.passport-footer p {
+  margin: 0;
+
+  color: #4f504b;
+
+  font-size: 7px;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1050px) {
+  .passport-stat-section,
+  .passport-milestones,
+  .passport-journeys {
+    grid-template-columns: 1fr;
+  }
+
+  .milestone-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 800px) {
+  .passport-header {
+    flex-direction: column;
+
+    align-items: flex-start;
+  }
+
+  .passport-stat-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .passport-card-main {
+    padding: 35px;
+  }
+}
+
+@media (max-width: 600px) {
+  .ride-passport-section {
+    padding: 80px 0;
+  }
+
+  .ride-passport-container {
+    width: calc(100% - 30px);
+  }
+
+  .passport-header h2 {
+    font-size: 48px;
+  }
+
+  .passport-card-top {
+    padding: 18px;
+  }
+
+  .passport-card-main {
+    min-height: 200px;
+
+    padding: 25px 20px;
+  }
+
+  .passport-emblem {
+    width: 95px;
+    height: 95px;
+  }
+
+  .passport-emblem span {
+    width: 68px;
+    height: 68px;
+
+    font-size: 17px;
+  }
+
+  .passport-card-bottom {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .passport-stat-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .passport-journey {
+    grid-template-columns: 25px 1fr;
+
+    padding: 15px 0;
+  }
+
+  .journey-distance {
+    grid-column: 2;
+
+    flex-direction: row;
+
+    justify-content: flex-start;
+
+    align-items: center;
+  }
+
+  .passport-controls,
+  .passport-footer {
+    flex-direction: column;
+
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 430px) {
+  .passport-stat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .passport-card-main {
+    flex-direction: column;
+
+    align-items: flex-start;
+
+    gap: 25px;
+  }
+
+  .rider-name-row {
+    align-items: flex-start;
+
+    flex-direction: column;
+
+    gap: 8px;
+  }
+
+  .milestone-item {
+    grid-template-columns: 25px 20px 1fr 15px;
+
+    gap: 7px;
+
+    padding: 10px;
+  }
+}

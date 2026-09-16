@@ -1,25 +1,26 @@
 const request = require("supertest");
 const app = require("../../src/app");
 const UserAchievement = require("../../src/models/mototribe/UserAchievement");
+const RiderProfile = require("../../src/models/mototribe/RiderProfile");
 const { checkAndAwardBadges } = require("../../src/services/mototribe/achievementService");
+
+const { createTestUser } = require("../helpers/testUser");
 
 describe("MotoTribe Passport Achievements API & Service", () => {
   let organizerToken;
   let organizerId;
+  let vehicleId;
 
   beforeEach(async () => {
-    const orgRes = await request(app).post("/api/v1/auth/signup").send({
-      name: "Achievement Rider",
-      email: "achievement.rider@example.com",
-      password: "password123",
-    });
-    organizerToken = orgRes.body.accessToken;
-    organizerId = orgRes.body.data.user._id;
+    const org = await createTestUser({ name: "Achievement Rider" });
+    organizerToken = org.token;
+    organizerId = org.userId;
+    vehicleId = org.vehicleId;
 
-    await request(app)
-      .post("/api/mototribe/rider-profile")
-      .set("Authorization", `Bearer ${organizerToken}`)
-      .send({ vehicleNumber: "KA05EF9999", bikeModel: "Interceptor 650" });
+    await RiderProfile.create({
+      userId: organizerId,
+      bikeModel: "Interceptor 650",
+    });
   });
 
   test("A user who completes their first ride earns the 'first_ride' badge", async () => {
@@ -27,6 +28,7 @@ describe("MotoTribe Passport Achievements API & Service", () => {
       .post("/api/mototribe/rides")
       .set("Authorization", `Bearer ${organizerToken}`)
       .send({
+        vehicleId,
         title: "First Ride Sprint",
         origin: "City X",
         destination: "City Y",
@@ -64,6 +66,7 @@ describe("MotoTribe Passport Achievements API & Service", () => {
       .post("/api/mototribe/rides")
       .set("Authorization", `Bearer ${organizerToken}`)
       .send({
+        vehicleId,
         title: "Idempotency Ride Test",
         origin: "City X",
         destination: "City Y",

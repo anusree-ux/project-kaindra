@@ -5,10 +5,11 @@ const {
   uploadImageToCloudinary,
   deleteImageFromCloudinary,
 } = require("../../services/mototribe/uploadService");
+const { canViewJournalEntry } = require("../../services/mototribe/visibilityService");
 const AppError = require("../../utils/AppError");
 
 /**
- * @desc    Create or update ride journal entry with photos & note
+ * @desc    Create or update ride journal entry with photos, note & visibility level
  * @route   POST /api/mototribe/rides/:id/journal
  * @access  Private (Confirmed Participant or Organizer)
  */
@@ -52,7 +53,11 @@ const upsertJournalEntry = async (req, res, next) => {
       }
     }
 
-    const { note } = req.body;
+    const { note, visibility } = req.body;
+    const allowedVisibilities = ["private", "connections", "ride_group", "community"];
+    const targetVisibility = allowedVisibilities.includes(visibility)
+      ? visibility
+      : "private";
 
     // 4. Find existing journal entry or create new one
     let wasCreated = false;
@@ -61,6 +66,9 @@ const upsertJournalEntry = async (req, res, next) => {
     if (journal) {
       if (note !== undefined) {
         journal.note = note;
+      }
+      if (visibility !== undefined && allowedVisibilities.includes(visibility)) {
+        journal.visibility = visibility;
       }
       if (uploadedPhotos.length > 0) {
         journal.photos.push(...uploadedPhotos);
@@ -72,6 +80,7 @@ const upsertJournalEntry = async (req, res, next) => {
         userId,
         note: note || "",
         photos: uploadedPhotos,
+        visibility: targetVisibility,
       });
       wasCreated = true;
     }
@@ -98,7 +107,7 @@ const upsertJournalEntry = async (req, res, next) => {
 };
 
 /**
- * @desc    Get all journal entries for a ride
+ * @desc    Get all journal entries for a ride filtered by viewer permissions
  * @route   GET /api/mototribe/rides/:id/journal
  * @access  Private (Confirmed Participant or Organizer)
  */
@@ -132,11 +141,19 @@ const getRideJournals = async (req, res, next) => {
       .populate("userId", "name email")
       .sort({ createdAt: -1 });
 
+    const visibleJournals = [];
+    for (const journal of journals) {
+      const allowed = await canViewJournalEntry(userId, journal, rideId);
+      if (allowed) {
+        visibleJournals.push(journal);
+      }
+    }
+
     res.status(200).json({
       status: "success",
-      results: journals.length,
+      results: visibleJournals.length,
       data: {
-        journals,
+        journals: visibleJournals,
       },
     });
   } catch (error) {
@@ -162,6 +179,47 @@ const getMyJournals = async (req, res, next) => {
       results: journals.length,
       data: {
         journals,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Get public community explore feed of journal entries across all rides (visibility = 'community')
+ * @route   GET /api/mototribe/journal/community
+ * @access  Private
+ */
+const getCommunityJournals = async (req, res, next) => {
+  try {
+    const { page = 1, limit = 20 } = req.query;
+
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.max(1, Math.min(100, parseInt(limit, 10) || 20));
+    const skip = (pageNum - 1) * limitNum;
+
+    const query = { visibility: "community" };
+
+    const total = await RideJournal.countDocuments(query);
+    const journals = await RideJournal.find(query)
+      .populate("userId", "name")
+      .populate("rideId", "title origin destination startDate status")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNum);
+
+    res.status(200).json({
+      status: "success",
+      results: journals.length,
+      data: {
+        journals,
+        pagination: {
+          total,
+          page: pageNum,
+          limit: limitNum,
+          totalPages: Math.ceil(total / limitNum) || 1,
+        },
       },
     });
   } catch (error) {
@@ -220,5 +278,6 @@ module.exports = {
   upsertJournalEntry,
   getRideJournals,
   getMyJournals,
+  getCommunityJournals,
   deleteJournalPhoto,
 };

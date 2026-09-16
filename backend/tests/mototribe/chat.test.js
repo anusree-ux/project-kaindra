@@ -8,6 +8,8 @@ const RideParticipant = require("../../src/models/mototribe/RideParticipant");
 const ChatMessage = require("../../src/models/mototribe/ChatMessage");
 const { initLocationSocketService } = require("../../src/services/mototribe/locationSocketService");
 
+const { createTestUser } = require("../helpers/testUser");
+
 describe("MotoTribe Ride Group Chat & Socket Service", () => {
   let server, io, port;
   let organizerToken, organizerId;
@@ -32,36 +34,25 @@ describe("MotoTribe Ride Group Chat & Socket Service", () => {
 
   beforeEach(async () => {
     // 1. Create organizer
-    const orgRes = await request(app).post("/api/v1/auth/signup").send({
-      name: "Chat Organizer",
-      email: "chat.org@example.com",
-      password: "password123",
-    });
-    organizerToken = orgRes.body.accessToken;
-    organizerId = orgRes.body.data.user._id;
+    const org = await createTestUser({ name: "Chat Organizer" });
+    organizerToken = org.token;
+    organizerId = org.userId;
 
     // 2. Create rider
-    const riderRes = await request(app).post("/api/v1/auth/signup").send({
-      name: "Chat Rider",
-      email: "chat.rider@example.com",
-      password: "password123",
-    });
-    riderToken = riderRes.body.accessToken;
-    riderId = riderRes.body.data.user._id;
+    const rider = await createTestUser({ name: "Chat Rider" });
+    riderToken = rider.token;
+    riderId = rider.userId;
 
     // 3. Create non-participant
-    const nonRes = await request(app).post("/api/v1/auth/signup").send({
-      name: "Non Participant",
-      email: "nonpart@example.com",
-      password: "password123",
-    });
-    nonParticipantToken = nonRes.body.accessToken;
+    const non = await createTestUser({ name: "Non Participant" });
+    nonParticipantToken = non.token;
 
     // 4. Create an ongoing ride
     const rideRes = await request(app)
       .post("/api/mototribe/rides")
       .set("Authorization", `Bearer ${organizerToken}`)
       .send({
+        vehicleId: org.vehicleId,
         title: "Chat Test Highway Run",
         origin: "City C",
         destination: "City D",
