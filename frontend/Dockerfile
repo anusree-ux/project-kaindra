@@ -1,7 +1,7 @@
 FROM node:24-alpine AS base
 WORKDIR /app
 RUN chown node:node /app
-COPY package*.json ./
+COPY --chown=node:node package*.json ./
 
 # ---- Dev stage ----
 FROM base AS dev
