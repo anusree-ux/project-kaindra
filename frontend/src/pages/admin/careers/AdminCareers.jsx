@@ -2,51 +2,88 @@ import { useState } from "react";
 import { Plus, Briefcase, X, Pencil, Trash2 } from "lucide-react";
 import "./AdminCareers.css";
 
+const STORAGE_KEY = "kaindraCareers";
+
+const emptyForm = {
+  title: "",
+  department: "",
+  location: "",
+  type: "",
+  experience: "",
+  description: "",
+};
+
 function AdminCareers() {
   const [showForm, setShowForm] = useState(false);
 
-  const [careers, setCareers] = useState([]);
+  // Load careers from localStorage when component starts
+  const [careers, setCareers] = useState(() => {
+    try {
+      const savedCareers = localStorage.getItem(STORAGE_KEY);
 
-  const [formData, setFormData] = useState({
-    title: "",
-    department: "",
-    location: "",
-    type: "",
-    experience: "",
-    description: "",
+      return savedCareers ? JSON.parse(savedCareers) : [];
+    } catch (error) {
+      console.error("Error loading careers:", error);
+      return [];
+    }
   });
 
+  const [formData, setFormData] = useState(emptyForm);
+
+  // Handle form inputs
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
+  // Add new career
   const handleSubmit = (e) => {
     e.preventDefault();
 
     const newCareer = {
       id: Date.now(),
-      ...formData,
+      title: formData.title.trim(),
+      department: formData.department.trim(),
+      location: formData.location.trim(),
+      type: formData.type,
+      experience: formData.experience.trim(),
+      description: formData.description.trim(),
     };
 
-    setCareers([...careers, newCareer]);
+    const updatedCareers = [...careers, newCareer];
 
-    setFormData({
-      title: "",
-      department: "",
-      location: "",
-      type: "",
-      experience: "",
-      description: "",
-    });
+    // Update React state
+    setCareers(updatedCareers);
 
+    // Save careers
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(updatedCareers)
+    );
+
+    // Reset form
+    setFormData(emptyForm);
+
+    // Close form
     setShowForm(false);
   };
 
+  // Delete career
   const handleDelete = (id) => {
-    setCareers(careers.filter((career) => career.id !== id));
+    const updatedCareers = careers.filter(
+      (career) => career.id !== id
+    );
+
+    setCareers(updatedCareers);
+
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(updatedCareers)
+    );
   };
 
   return (
@@ -77,7 +114,7 @@ function AdminCareers() {
           </button>
         </div>
 
-        {/* ADD FORM */}
+        {/* ADD CAREER FORM */}
         {showForm && (
           <div className="career-form-card">
 
@@ -91,6 +128,7 @@ function AdminCareers() {
               </div>
 
               <button
+                type="button"
                 className="career-close-button"
                 onClick={() => setShowForm(false)}
               >
@@ -100,6 +138,7 @@ function AdminCareers() {
 
             <form onSubmit={handleSubmit}>
 
+              {/* JOB TITLE */}
               <div className="career-form-group">
                 <label>Job Title</label>
 
@@ -113,6 +152,7 @@ function AdminCareers() {
                 />
               </div>
 
+              {/* DEPARTMENT + LOCATION */}
               <div className="career-form-row">
 
                 <div className="career-form-group">
@@ -143,6 +183,7 @@ function AdminCareers() {
 
               </div>
 
+              {/* EMPLOYMENT TYPE + EXPERIENCE */}
               <div className="career-form-row">
 
                 <div className="career-form-group">
@@ -191,6 +232,7 @@ function AdminCareers() {
 
               </div>
 
+              {/* JOB DESCRIPTION */}
               <div className="career-form-group">
                 <label>Job Description</label>
 
@@ -204,6 +246,7 @@ function AdminCareers() {
                 />
               </div>
 
+              {/* FORM ACTIONS */}
               <div className="career-form-actions">
 
                 <button
@@ -236,11 +279,15 @@ function AdminCareers() {
                 className="career-list-card"
                 key={career.id}
               >
+
+                {/* ICON */}
                 <div className="career-list-icon">
                   <Briefcase size={24} />
                 </div>
 
+                {/* CONTENT */}
                 <div className="career-list-content">
+
                   <h2>{career.title}</h2>
 
                   <div className="career-meta">
@@ -251,10 +298,14 @@ function AdminCareers() {
                   </div>
 
                   <p>{career.description}</p>
+
                 </div>
 
+                {/* ACTIONS */}
                 <div className="career-list-actions">
+
                   <button
+                    type="button"
                     title="Edit"
                     className="career-edit-button"
                   >
@@ -262,13 +313,16 @@ function AdminCareers() {
                   </button>
 
                   <button
+                    type="button"
                     title="Delete"
                     className="career-delete-button"
                     onClick={() => handleDelete(career.id)}
                   >
                     <Trash2 size={17} />
                   </button>
+
                 </div>
+
               </div>
             ))}
 
@@ -291,6 +345,7 @@ function AdminCareers() {
             </p>
 
             <button
+              type="button"
               className="empty-add-button"
               onClick={() => setShowForm(true)}
             >

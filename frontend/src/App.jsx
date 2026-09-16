@@ -3,30 +3,40 @@ import { useEffect } from "react";
 import { AuthProvider } from "./context/AuthContext";
 
 import Navbar from "./components/Navbar/Navbar";
+import Ecosystem from "./pages/brands/ModaSphere/Ecosystem/Ecosystem";
 
 // Public pages
 import Home from "./pages/Home";
 import About from "./pages/About";
 import Businesses from "./pages/Businesses";
+import BusinessDetail from "./pages/BusinessDetail";
 import Communities from "./pages/Communities";
 import Contact from "./pages/Contact";
 import Careers from "./pages/Careers";
 import News from "./pages/News";
+import ModaMart from "./pages/ModaMart";
+import ProductDetails from "./pages/ProductDetails";
+import Cart from "./pages/Cart";
+import Checkout from "./pages/Checkout";
+import Orders from "./pages/Orders";
+import ModaDrop from "./pages/ModaDrop";
+import DropDetails from "./pages/DropDetails";
+import ModaDropOrders from "./pages/ModaDropOrders";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 
 // Admin
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminCareers from "./pages/admin/careers/AdminCareers";
+import AdminApplications from "./pages/admin/applications/AdminApplications";
+import AdminCommunity from "./pages/admin/community/AdminCommunity";
 
 // Brand pages
-import ModaSphere from "./pages/brands/ModaSphere";
 import MotoTribe from "./pages/brands/MotoTribe";
 
 // ModaSphere sections
 import ModaNavbar from "./pages/brands/ModaSphere/ModaNavbar/ModaNavbar";
 import VisionMission from "./pages/brands/ModaSphere/VisionMission/VisionMission";
-import Ecosystem from "./pages/brands/ModaSphere/Ecosystem/Ecosystem";
 import CorePillars from "./pages/brands/ModaSphere/CorePillars/CorePillars";
 import ValueProposition from "./pages/brands/ModaSphere/ValueProposition/ValueProposition";
 import Stakeholders from "./pages/brands/ModaSphere/Stakeholders/Stakeholders";
@@ -46,7 +56,6 @@ import MotoLogin from "./pages/brands/MotoTribe/Auth/Login";
 import RideDetails from "./pages/brands/MotoTribe/RideDetails/RideDetails";
 import Expenses from "./pages/brands/MotoTribe/Expenses/Expenses";
 
-
 /* =========================
    SCROLL TO TOP
 ========================= */
@@ -58,7 +67,6 @@ function ScrollToTop() {
 
   return null;
 }
-
 
 /* =========================
    PUBLIC LAYOUT
@@ -73,23 +81,8 @@ function PublicLayout({ children }) {
   );
 }
 
-
 /* =========================
-   MODASPHERE LAYOUT
-========================= */
-
-function ModaPage({ children }) {
-  return (
-    <div className="moda-page">
-      <ModaNavbar />
-      <main>{children}</main>
-    </div>
-  );
-}
-
-
-/* =========================
-   404
+   404 PAGE
 ========================= */
 
 function NotFound() {
@@ -105,7 +98,12 @@ function NotFound() {
         padding: "40px 20px",
       }}
     >
-      <h1 style={{ fontSize: "64px", margin: 0 }}>
+      <h1
+        style={{
+          fontSize: "64px",
+          margin: 0,
+        }}
+      >
         404
       </h1>
 
@@ -132,7 +130,6 @@ function NotFound() {
   );
 }
 
-
 /* =========================
    APP
 ========================= */
@@ -141,11 +138,8 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-
         <ScrollToTop />
-
         <Routes>
-
           {/* =========================
               KAINDRA PUBLIC WEBSITE
           ========================= */}
@@ -159,265 +153,249 @@ function App() {
             }
           />
 
-        <Route
-          path="/about"
-          element={
-            <PublicLayout>
-              <About />
-            </PublicLayout>
-          }
-        />
+          <Route
+            path="/about"
+            element={
+              <PublicLayout>
+                <About />
+              </PublicLayout>
+            }
+          />
 
-        <Route
-          path="/businesses"
-          element={
-            <PublicLayout>
-              <Businesses />
-            </PublicLayout>
-          }
-        />
+          <Route
+            path="/businesses"
+            element={
+              <PublicLayout>
+                <Businesses />
+              </PublicLayout>
+            }
+          />
 
-        <Route
-          path="/communities"
-          element={
-            <PublicLayout>
-              <Communities />
-            </PublicLayout>
-          }
-        />
+          <Route
+            path="/businesses/modamart/shop"
+            element={
+              <PublicLayout>
+                <ModaMart />
+              </PublicLayout>
+            }
+          />
 
-        <Route
-          path="/contact"
-          element={
-            <PublicLayout>
-              <Contact />
-            </PublicLayout>
-          }
-        />
+          <Route
+            path="/businesses/:businessSlug"
+            element={
+              <PublicLayout>
+                <BusinessDetail />
+              </PublicLayout>
+            }
+          />
 
-        <Route
-          path="/careers"
-          element={
-            <PublicLayout>
-              <Careers />
-            </PublicLayout>
-          }
-        />
+          <Route
+            path="/businesses/modamart/product/:productId"
+            element={
+              <PublicLayout>
+                <ProductDetails />
+              </PublicLayout>
+            }
+          />
 
-        <Route
-          path="/news"
-          element={
-            <PublicLayout>
-              <News />
-            </PublicLayout>
-          }
-        />
+          <Route
+            path="/businesses/modamart/cart"
+            element={
+              <PublicLayout>
+                <Cart />
+              </PublicLayout>
+            }
+          />
 
-        <Route
-          path="/login"
-          element={
-            <PublicLayout>
-              <Login />
-            </PublicLayout>
-          }
-        />
+          <Route
+            path="/businesses/modamart/checkout"
+            element={
+              <PublicLayout>
+                <Checkout />
+              </PublicLayout>
+            }
+          />
 
-        <Route
-          path="/signup"
-          element={
-            <PublicLayout>
-              <Signup />
-            </PublicLayout>
-          }
-        />
+          <Route
+            path="/businesses/modamart/orders"
+            element={
+              <PublicLayout>
+                <Orders />
+              </PublicLayout>
+            }
+          />
 
+          <Route
+            path="/businesses/modadrop"
+            element={
+              <PublicLayout>
+                <ModaDrop />
+              </PublicLayout>
+            }
+          />
 
-        {/* =========================
-            ADMIN
-        ========================= */}
+          <Route
+            path="/businesses/modadrop/drop/:dropId"
+            element={
+              <PublicLayout>
+                <DropDetails />
+              </PublicLayout>
+            }
+          />
 
-        <Route
-          path="/admin"
-          element={<AdminDashboard />}
-        />
+          <Route
+            path="/communities"
+            element={
+              <PublicLayout>
+                <Communities />
+              </PublicLayout>
+            }
+          />
 
-        <Route
-          path="/admin/careers"
-          element={<AdminCareers />}
-        />
+          <Route
+            path="/contact"
+            element={
+              <PublicLayout>
+                <Contact />
+              </PublicLayout>
+            }
+          />
 
+          <Route
+            path="/careers"
+            element={
+              <PublicLayout>
+                <Careers />
+              </PublicLayout>
+            }
+          />
 
-        {/* =========================
-            MODASPHERE MAIN PAGE
-        ========================= */}
+          <Route
+            path="/news"
+            element={
+              <PublicLayout>
+                <News />
+              </PublicLayout>
+            }
+          />
 
-        <Route
-          path="/businesses/modasphere"
-          element={
-            <ModaPage>
-              <ModaSphere />
-            </ModaPage>
-          }
-        />
+          <Route
+            path="/ecosystem"
+            element={
+              <PublicLayout>
+                <Ecosystem />
+              </PublicLayout>
+            }
+          />
 
+          <Route
+            path="/businesses/modadrop/orders"
+            element={
+              <PublicLayout>
+                <ModaDropOrders />
+              </PublicLayout>
+            }
+          />
 
-        {/* =========================
-            MODASPHERE PAGES
-        ========================= */}
+          <Route
+            path="/login"
+            element={
+              <PublicLayout>
+                <Login />
+              </PublicLayout>
+            }
+          />
 
-        <Route
-          path="/businesses/modasphere/vision"
-          element={
-            <ModaPage>
-              <VisionMission />
-            </ModaPage>
-          }
-        />
+          <Route
+            path="/signup"
+            element={
+              <PublicLayout>
+                <Signup />
+              </PublicLayout>
+            }
+          />
 
-        <Route
-          path="/businesses/modasphere/ecosystem"
-          element={
-            <ModaPage>
-              <Ecosystem />
-            </ModaPage>
-          }
-        />
+          {/* =========================
+              ADMIN
+          ========================= */}
 
-        <Route
-          path="/businesses/modasphere/pillars"
-          element={
-            <ModaPage>
-              <CorePillars />
-            </ModaPage>
-          }
-        />
+          <Route
+            path="/admin"
+            element={<AdminDashboard />}
+          />
 
-        <Route
-          path="/businesses/modasphere/value"
-          element={
-            <ModaPage>
-              <ValueProposition />
-            </ModaPage>
-          }
-        />
+          <Route
+            path="/admin/careers"
+            element={<AdminCareers />}
+          />
 
-        <Route
-          path="/businesses/modasphere/stakeholders"
-          element={
-            <ModaPage>
-              <Stakeholders />
-            </ModaPage>
-          }
-        />
+          <Route
+            path="/admin/applications"
+            element={<AdminApplications />}
+          />
 
-        <Route
-          path="/businesses/modasphere/verticals"
-          element={
-            <ModaPage>
-              <SubEcosystems />
-            </ModaPage>
-          }
-        />
+          <Route
+            path="/admin/community"
+            element={<AdminCommunity />}
+          />
 
-        <Route
-          path="/businesses/modasphere/revenue"
-          element={
-            <ModaPage>
-              <RevenueStreams />
-            </ModaPage>
-          }
-        />
+          {/* =========================
+              MOTOTRIBE
+          ========================= */}
 
-        <Route
-          path="/businesses/modasphere/technology"
-          element={
-            <ModaPage>
-              <TechnologyFoundation />
-            </ModaPage>
-          }
-        />
+          <Route
+            path="/businesses/mototribe"
+            element={<MotoTribe />}
+          />
 
-        <Route
-          path="/businesses/modasphere/go-to-market"
-          element={
-            <ModaPage>
-              <GoToMarket />
-            </ModaPage>
-          }
-        />
+          <Route
+            path="/businesses/mototribe/signup"
+            element={<MotoSignup />}
+          />
 
-        <Route
-          path="/businesses/modasphere/impact"
-          element={
-            <ModaPage>
-              <LongTermImpact />
-            </ModaPage>
-          }
-        />
+          <Route
+            path="/businesses/mototribe/verify-otp"
+            element={<OTPVerification />}
+          />
 
-        <Route
-          path="/businesses/modasphere/success"
-          element={
-            <ModaPage>
-              <SuccessMetrics />
-            </ModaPage>
-          }
-        />
+          <Route
+            path="/businesses/mototribe/profile-setup"
+            element={<ProfileSetup />}
+          />
 
+          <Route
+            path="/businesses/mototribe/vehicles"
+            element={<Vehicles />}
+          />
 
-        {/* =========================
-            MOTOTRIBE
-        ========================= */}
+          <Route
+            path="/businesses/mototribe/login"
+            element={<MotoLogin />}
+          />
 
-        <Route
-          path="/businesses/mototribe"
-          element={<MotoTribe />}
-        />
-        <Route
-          path="/businesses/mototribe/signup"
-          element={<MotoSignup />}
-        />
-        <Route
-          path="/businesses/mototribe/verify-otp"
-          element={<OTPVerification />}
-        />
-        <Route
-          path="/businesses/mototribe/profile-setup"
-          element={<ProfileSetup />}
-        />
-        <Route
-          path="/businesses/mototribe/vehicles"
-          element={<Vehicles />}
-        />
-        <Route
-          path="/businesses/mototribe/login"
-          element={<MotoLogin />}
-        />
-        <Route
-          path="/businesses/mototribe/ride/:rideId"
-          element={<RideDetails />}
-        />
-        <Route
-          path="/businesses/mototribe/ride/:rideId/expenses"
-          element={<Expenses />}
-        />
+          <Route
+            path="/businesses/mototribe/ride/:rideId"
+            element={<RideDetails />}
+          />
 
+          <Route
+            path="/businesses/mototribe/ride/:rideId/expenses"
+            element={<Expenses />}
+          />
 
-        {/* =========================
-            404
-        ========================= */}
+          {/* =========================
+              404
+          ========================= */}
 
-        <Route
-          path="*"
-          element={
-            <PublicLayout>
-              <NotFound />
-            </PublicLayout>
-          }
-        />
-
-      </Routes>
-
+          <Route
+            path="*"
+            element={
+              <PublicLayout>
+                <NotFound />
+              </PublicLayout>
+            }
+          />
+        </Routes>
       </AuthProvider>
     </BrowserRouter>
   );

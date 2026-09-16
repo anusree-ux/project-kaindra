@@ -1,0 +1,408 @@
+* {
+  box-sizing: border-box;
+}
+
+.modamart-page {
+  background: #f8f7f3;
+  color: #171717;
+}
+
+.modamart-container {
+  width: min(1200px, calc(100% - 40px));
+  margin: 0 auto;
+}
+
+/* HERO */
+
+.modamart-hero {
+  background: #111;
+  color: white;
+  padding: 100px 0;
+}
+
+.modamart-hero-content {
+  max-width: 800px;
+}
+
+.modamart-hero-content span {
+  color: #c4a15a;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 3px;
+}
+
+.modamart-hero h1 {
+  margin: 20px 0;
+  font-size: clamp(45px, 7vw, 80px);
+  line-height: 1;
+  letter-spacing: -3px;
+}
+
+.modamart-hero p {
+  max-width: 650px;
+  color: #cfcfcf;
+  font-size: 18px;
+  line-height: 1.7;
+}
+
+/* SHOP */
+
+.modamart-shop {
+  padding: 80px 0;
+}
+
+.modamart-shop-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 30px;
+  margin-bottom: 45px;
+}
+
+.modamart-label {
+  color: #b89552;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.modamart-shop h2 {
+  margin: 10px 0 0;
+  font-size: 42px;
+}
+
+.modamart-shop-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.modamart-search {
+  width: 260px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 15px;
+  background: white;
+  border: 1px solid #ddd;
+}
+
+.modamart-search input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  font-size: 14px;
+  background: transparent;
+}
+
+.modamart-cart,
+.modamart-wishlist {
+  position: relative;
+  width: 46px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #111;
+  color: white;
+  border: 0;
+  cursor: pointer;
+}
+
+.modamart-cart span,
+.modamart-wishlist span {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  width: 19px;
+  height: 19px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #b89552;
+  color: white;
+  font-size: 10px;
+}
+
+/* FILTERS */
+
+.modamart-filters {
+  padding: 20px 0;
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+}
+
+.filter-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 15px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.category-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.category-buttons button {
+  padding: 10px 18px;
+  background: white;
+  border: 1px solid #d8d5ce;
+  cursor: pointer;
+  font-size: 13px;
+  transition: 0.2s ease;
+}
+
+.category-buttons button:hover,
+.category-buttons button.active-category {
+  background: #111;
+  color: white;
+  border-color: #111;
+}
+
+/* RESULT */
+
+.modamart-result {
+  margin: 30px 0 20px;
+}
+
+.modamart-result p {
+  margin: 0;
+  color: #777;
+  font-size: 14px;
+}
+
+/* PRODUCTS */
+
+.modamart-products {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 25px;
+}
+
+.modamart-product-card {
+  background: white;
+  border: 1px solid #e2dfd8;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.modamart-product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+}
+
+.product-image-wrapper {
+  position: relative;
+  height: 380px;
+  overflow: hidden;
+  background: #eee;
+}
+
+.product-image-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.product-wishlist {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.product-info {
+  padding: 22px;
+}
+
+.product-info > span {
+  color: #a27d3c;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.product-info h3 {
+  margin: 8px 0;
+  font-size: 19px;
+}
+
+.product-category {
+  margin: 0 0 20px;
+  color: #777;
+  font-size: 13px;
+}
+
+.product-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+}
+
+.product-bottom strong {
+  font-size: 18px;
+}
+
+.product-bottom button {
+  padding: 10px 15px;
+  background: #111;
+  color: white;
+  border: 0;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.product-bottom button:hover {
+  background: #b89552;
+}
+
+/* EMPTY */
+
+.no-products {
+  padding: 80px 20px;
+  text-align: center;
+}
+
+.no-products svg {
+  color: #aaa;
+}
+
+.no-products h3 {
+  margin: 15px 0 8px;
+}
+
+.no-products p {
+  color: #777;
+}
+
+
+/* TABLET */
+
+@media (max-width: 950px) {
+  .modamart-shop-top {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .modamart-shop-actions {
+    width: 100%;
+  }
+
+  .modamart-search {
+    flex: 1;
+  }
+
+  .modamart-products {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+
+/* MOBILE */
+
+@media (max-width: 650px) {
+  .modamart-container {
+    width: min(100% - 30px, 1200px);
+  }
+
+  .modamart-hero {
+    padding: 70px 0;
+  }
+
+  .modamart-hero h1 {
+    font-size: 46px;
+    letter-spacing: -2px;
+  }
+
+  .modamart-hero p {
+    font-size: 16px;
+  }
+
+  .modamart-shop {
+    padding: 60px 0;
+  }
+
+  .modamart-shop h2 {
+    font-size: 34px;
+  }
+
+  .modamart-shop-actions {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+  }
+
+  .modamart-search {
+    width: auto;
+  }
+
+  .category-buttons {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 5px;
+  }
+
+  .category-buttons button {
+    flex-shrink: 0;
+  }
+
+  .modamart-products {
+    grid-template-columns: 1fr;
+  }
+
+  .product-image-wrapper {
+    height: 430px;
+  }
+}
+.product-name-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.product-name-link:hover {
+  text-decoration: underline;
+}
+.modamart-cart {
+  border: none;
+  background: transparent;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  padding: 0;
+}
+
+.modamart-cart svg {
+  display: block;
+  width: 19px;
+  height: 19px;
+  flex-shrink: 0;
+}
+
+.modamart-cart span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

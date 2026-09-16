@@ -1,0 +1,335 @@
+/* =========================
+   MODADROP ORDERS PAGE
+========================= */
+
+.modadrop-orders-page {
+  min-height: 100vh;
+  background: #f7f7f5;
+  padding: 60px 20px 90px;
+}
+
+.modadrop-orders-container {
+  width: min(1100px, 100%);
+  margin: 0 auto;
+}
+
+/* =========================
+   BACK LINK
+========================= */
+
+.modadrop-orders-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #111;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 35px;
+}
+
+.modadrop-orders-back:hover {
+  opacity: 0.65;
+}
+
+/* =========================
+   HEADER
+========================= */
+
+.modadrop-orders-header {
+  margin-bottom: 40px;
+}
+
+.modadrop-orders-header > span {
+  display: block;
+  margin-bottom: 10px;
+  color: #777;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.modadrop-orders-header h1 {
+  margin: 0;
+  color: #111;
+  font-size: clamp(38px, 5vw, 56px);
+  line-height: 1;
+}
+
+.modadrop-orders-header p {
+  margin: 15px 0 0;
+  color: #777;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* =========================
+   EMPTY STATE
+========================= */
+
+.modadrop-orders-empty {
+  min-height: 430px;
+  padding: 50px 25px;
+  background: #fff;
+  border: 1px solid #e4e4e4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.modadrop-orders-empty > svg {
+  color: #777;
+  margin-bottom: 20px;
+}
+
+.modadrop-orders-empty h2 {
+  margin: 0;
+  color: #111;
+  font-size: 25px;
+}
+
+.modadrop-orders-empty p {
+  margin: 10px 0 25px;
+  color: #777;
+  font-size: 14px;
+}
+
+.modadrop-orders-shop-button {
+  min-height: 48px;
+  padding: 0 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #111;
+  color: #fff;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.modadrop-orders-shop-button:hover {
+  background: #333;
+}
+
+/* =========================
+   ORDERS LIST
+========================= */
+
+.modadrop-orders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+/* =========================
+   ORDER CARD
+========================= */
+
+.modadrop-order-card {
+  background: #fff;
+  border: 1px solid #e3e3e3;
+  padding: 30px;
+}
+
+/* =========================
+   ORDER TOP
+========================= */
+
+.modadrop-order-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.modadrop-order-label {
+  display: block;
+  margin-bottom: 7px;
+  color: #888;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+}
+
+.modadrop-order-top h2 {
+  margin: 0;
+  color: #111;
+  font-size: 21px;
+}
+
+.modadrop-order-status {
+  padding: 9px 14px;
+  background: #f1f1f1;
+  border-radius: 30px;
+  color: #111;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* =========================
+   ORDER INFO
+========================= */
+
+.modadrop-order-info {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  padding: 25px 0;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.modadrop-order-info div {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.modadrop-order-info span,
+.modadrop-order-footer span {
+  color: #888;
+  font-size: 11px;
+}
+
+.modadrop-order-info strong,
+.modadrop-order-footer strong {
+  color: #111;
+  font-size: 13px;
+}
+
+/* =========================
+   PRODUCT
+========================= */
+
+.modadrop-order-product {
+  display: grid;
+  grid-template-columns: 85px 1fr auto;
+  align-items: center;
+  gap: 20px;
+  padding: 25px 0;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.modadrop-order-product-image {
+  width: 85px;
+  height: 105px;
+  overflow: hidden;
+  background: #f2f2f2;
+}
+
+.modadrop-order-product-image img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.modadrop-order-product-info {
+  min-width: 0;
+}
+
+.modadrop-order-product-info h3 {
+  margin: 0 0 7px;
+  color: #111;
+  font-size: 16px;
+}
+
+.modadrop-order-product-info p {
+  margin: 0 0 8px;
+  color: #777;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.modadrop-order-product-info span {
+  color: #555;
+  font-size: 12px;
+}
+
+.modadrop-order-product > strong {
+  color: #111;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+/* =========================
+   FOOTER
+========================= */
+
+.modadrop-order-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 60px;
+  padding-top: 25px;
+}
+
+.modadrop-order-footer div {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+/* =========================
+   TABLET
+========================= */
+
+@media (max-width: 800px) {
+  .modadrop-order-info {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .modadrop-order-footer {
+    justify-content: space-between;
+    gap: 20px;
+  }
+}
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 600px) {
+  .modadrop-orders-page {
+    padding: 35px 15px 60px;
+  }
+
+  .modadrop-order-card {
+    padding: 20px;
+  }
+
+  .modadrop-order-top {
+    flex-direction: column;
+  }
+
+  .modadrop-order-status {
+    align-self: flex-start;
+  }
+
+  .modadrop-order-info {
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+
+  .modadrop-order-product {
+    grid-template-columns: 60px 1fr;
+    gap: 12px;
+  }
+
+  .modadrop-order-product-image {
+    width: 60px;
+    height: 75px;
+  }
+
+  .modadrop-order-product > strong {
+    grid-column: 2;
+  }
+
+  .modadrop-order-footer {
+    flex-direction: column;
+    gap: 18px;
+  }
+}
