@@ -1,53 +1,34 @@
 ﻿import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { useEffect } from "react";
 
-import Navbar from "./components/Navbar/Navbar";
-
+import Navbar from "./components/Navbar/Navbar"
+import Ecosystem from "./pages/brands/ModaSphere/Ecosystem/Ecosystem";
 // Public pages
 import Home from "./pages/Home";
 import About from "./pages/About";
 import Businesses from "./pages/Businesses";
+import BusinessDetail from "./pages/BusinessDetail";
 import Communities from "./pages/Communities";
 import Contact from "./pages/Contact";
 import Careers from "./pages/Careers";
 import News from "./pages/News";
+import ModaMart from "./pages/ModaMart";
+import ProductDetails from "./pages/ProductDetails";
+import Cart from "./pages/Cart";
+import Checkout from "./pages/Checkout";
+import Orders from "./pages/Orders";
+import ModaDrop from "./pages/ModaDrop";
+import DropDetails from "./pages/DropDetails";
+import ModaDropOrders from "./pages/ModaDropOrders";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 
 // Admin
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminCareers from "./pages/admin/careers/AdminCareers";
-
+import AdminApplications from "./pages/admin/applications/AdminApplications";
+import AdminCommunity from "./pages/admin/community/AdminCommunity";
 // Brand pages
-import ModaSphere from "./pages/brands/ModaSphere";
 import MotoTribe from "./pages/brands/MotoTribe";
-
-// ModaSphere sections
-import ModaNavbar from "./pages/brands/ModaSphere/ModaNavbar/ModaNavbar";
-import VisionMission from "./pages/brands/ModaSphere/VisionMission/VisionMission";
-import Ecosystem from "./pages/brands/ModaSphere/Ecosystem/Ecosystem";
-import CorePillars from "./pages/brands/ModaSphere/CorePillars/CorePillars";
-import ValueProposition from "./pages/brands/ModaSphere/ValueProposition/ValueProposition";
-import Stakeholders from "./pages/brands/ModaSphere/Stakeholders/Stakeholders";
-import SubEcosystems from "./pages/brands/ModaSphere/SubEcosystems/SubEcosystems";
-import RevenueStreams from "./pages/brands/ModaSphere/RevenueStreams/RevenueStreams";
-import TechnologyFoundation from "./pages/brands/ModaSphere/TechnologyFoundation/TechnologyFoundation";
-import GoToMarket from "./pages/brands/ModaSphere/GoToMarket/GoToMarket";
-import LongTermImpact from "./pages/brands/ModaSphere/LongTermImpact/LongTermImpact";
-import SuccessMetrics from "./pages/brands/ModaSphere/SuccessMetrics/SuccessMetrics";
-
-
-/* =========================
-   SCROLL TO TOP
-========================= */
-
-function ScrollToTop() {
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
-
-  return null;
-}
 
 
 /* =========================
@@ -65,21 +46,7 @@ function PublicLayout({ children }) {
 
 
 /* =========================
-   MODASPHERE LAYOUT
-========================= */
-
-function ModaPage({ children }) {
-  return (
-    <div className="moda-page">
-      <ModaNavbar />
-      <main>{children}</main>
-    </div>
-  );
-}
-
-
-/* =========================
-   404
+   404 PAGE
 ========================= */
 
 function NotFound() {
@@ -95,7 +62,12 @@ function NotFound() {
         padding: "40px 20px",
       }}
     >
-      <h1 style={{ fontSize: "64px", margin: 0 }}>
+      <h1
+        style={{
+          fontSize: "64px",
+          margin: 0,
+        }}
+      >
         404
       </h1>
 
@@ -130,9 +102,6 @@ function NotFound() {
 function App() {
   return (
     <BrowserRouter>
-
-      <ScrollToTop />
-
       <Routes>
 
         {/* =========================
@@ -165,7 +134,72 @@ function App() {
             </PublicLayout>
           }
         />
+        <Route
+  path="/businesses/modamart/shop"
+  element={
+    <PublicLayout>
+      <ModaMart />
+    </PublicLayout>
+  }
+/>
 
+        <Route
+  path="/businesses/:businessSlug"
+  element={
+    <PublicLayout>
+      <BusinessDetail />
+    </PublicLayout>
+  }
+/>
+
+<Route
+  path="/businesses/modamart/product/:productId"
+  element={
+    <PublicLayout>
+      <ProductDetails />
+    </PublicLayout>
+  }
+/>
+<Route
+  path="/businesses/modamart/cart"
+  element={
+    <PublicLayout>
+      <Cart />
+    </PublicLayout>
+  }
+/>
+<Route
+  path="/businesses/modamart/checkout"
+  element={
+    <PublicLayout>
+      <Checkout />
+    </PublicLayout>
+  }
+/>
+<Route
+  path="/businesses/modamart/orders"
+  element={
+    <PublicLayout>
+      <Orders />
+    </PublicLayout>
+  }
+/>
+<Route
+  path="/businesses/modadrop"
+  element={
+    <PublicLayout>
+      <ModaDrop />
+    </PublicLayout>
+  }
+/>
+<Route
+  path="/businesses/modadrop/drop/:dropId"
+  element={
+    <PublicLayout>
+      <DropDetails />
+    </PublicLayout>
+  }
+/>
         <Route
           path="/communities"
           element={
@@ -201,7 +235,22 @@ function App() {
             </PublicLayout>
           }
         />
-
+       <Route
+  path="/ecosystem"
+  element={
+    <PublicLayout>
+      <Ecosystem />
+    </PublicLayout>
+  }
+/>
+<Route
+  path="/businesses/modadrop/orders"
+  element={
+    <PublicLayout>
+      <ModaDropOrders />
+    </PublicLayout>
+  }
+/>
         <Route
           path="/login"
           element={
@@ -234,125 +283,14 @@ function App() {
           path="/admin/careers"
           element={<AdminCareers />}
         />
-
-
-        {/* =========================
-            MODASPHERE MAIN PAGE
-        ========================= */}
-
         <Route
-          path="/businesses/modasphere"
-          element={
-            <ModaPage>
-              <ModaSphere />
-            </ModaPage>
-          }
-        />
-
-
-        {/* =========================
-            MODASPHERE PAGES
-        ========================= */}
-
-        <Route
-          path="/businesses/modasphere/vision"
-          element={
-            <ModaPage>
-              <VisionMission />
-            </ModaPage>
-          }
-        />
-
-        <Route
-          path="/businesses/modasphere/ecosystem"
-          element={
-            <ModaPage>
-              <Ecosystem />
-            </ModaPage>
-          }
-        />
-
-        <Route
-          path="/businesses/modasphere/pillars"
-          element={
-            <ModaPage>
-              <CorePillars />
-            </ModaPage>
-          }
-        />
-
-        <Route
-          path="/businesses/modasphere/value"
-          element={
-            <ModaPage>
-              <ValueProposition />
-            </ModaPage>
-          }
-        />
-
-        <Route
-          path="/businesses/modasphere/stakeholders"
-          element={
-            <ModaPage>
-              <Stakeholders />
-            </ModaPage>
-          }
-        />
-
-        <Route
-          path="/businesses/modasphere/verticals"
-          element={
-            <ModaPage>
-              <SubEcosystems />
-            </ModaPage>
-          }
-        />
-
-        <Route
-          path="/businesses/modasphere/revenue"
-          element={
-            <ModaPage>
-              <RevenueStreams />
-            </ModaPage>
-          }
-        />
-
-        <Route
-          path="/businesses/modasphere/technology"
-          element={
-            <ModaPage>
-              <TechnologyFoundation />
-            </ModaPage>
-          }
-        />
-
-        <Route
-          path="/businesses/modasphere/go-to-market"
-          element={
-            <ModaPage>
-              <GoToMarket />
-            </ModaPage>
-          }
-        />
-
-        <Route
-          path="/businesses/modasphere/impact"
-          element={
-            <ModaPage>
-              <LongTermImpact />
-            </ModaPage>
-          }
-        />
-
-        <Route
-          path="/businesses/modasphere/success"
-          element={
-            <ModaPage>
-              <SuccessMetrics />
-            </ModaPage>
-          }
-        />
-
+  path="/admin/applications"
+  element={<AdminApplications />}
+/>
+<Route
+  path="/admin/community"
+  element={<AdminCommunity />}
+/>
 
         {/* =========================
             MOTOTRIBE
@@ -378,7 +316,6 @@ function App() {
         />
 
       </Routes>
-
     </BrowserRouter>
   );
 }

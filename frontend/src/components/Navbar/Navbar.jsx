@@ -22,9 +22,18 @@ function Navbar() {
         </Link>
 
         <nav className={`navbar-links ${menuOpen ? "active" : ""}`}>
-          <Link to="/" onClick={closeMenu}>
-            Home
-          </Link>
+          <Link
+  to="/"
+  onClick={() => {
+    window.history.replaceState(null, "", "/");
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }}
+>
+  Home
+</Link>
 
           <Link to="/businesses" onClick={closeMenu}>
             Businesses
@@ -40,6 +49,10 @@ function Navbar() {
 
           <Link to="/news" onClick={closeMenu}>
             News
+          </Link>
+
+          <Link to="/careers" onClick={closeMenu}>
+            Careers
           </Link>
 
           <Link to="/contact" onClick={closeMenu}>

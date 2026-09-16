@@ -1,0 +1,510 @@
+/* =========================================
+   BUSINESSES PAGE
+========================================= */
+
+.businesses-page {
+  width: 100%;
+  background: #f7f6f3;
+  color: #171717;
+}
+
+/* =========================================
+   CONTAINER
+========================================= */
+
+.businesses-container {
+  width: min(1200px, calc(100% - 80px));
+  margin: 0 auto;
+}
+
+/* =========================================
+   HERO
+========================================= */
+
+.businesses-hero {
+  min-height: 620px;
+  display: flex;
+  align-items: center;
+  background:
+    radial-gradient(
+      circle at 75% 35%,
+      rgba(184, 138, 69, 0.12),
+      transparent 32%
+    ),
+    #101110;
+  color: #ffffff;
+  padding: 100px 0;
+}
+
+.businesses-label {
+  display: inline-block;
+  color: #c9a05d;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 4px;
+  margin-bottom: 22px;
+}
+
+.businesses-hero h1 {
+  max-width: 900px;
+  margin: 0;
+
+  font-size: clamp(48px, 7vw, 88px);
+  line-height: 0.98;
+  letter-spacing: -4px;
+  font-weight: 600;
+}
+
+.businesses-hero-text {
+  max-width: 700px;
+  margin: 30px 0 0;
+
+  font-size: 18px;
+  line-height: 1.75;
+  color: #cfcfcf;
+}
+
+.businesses-hero-button {
+  width: fit-content;
+  margin-top: 38px;
+  padding: 15px 23px;
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  border: 1px solid #c9a05d;
+  color: #ffffff;
+  text-decoration: none;
+
+  transition: 0.25s ease;
+}
+
+.businesses-hero-button:hover {
+  background: #c9a05d;
+  color: #111111;
+}
+
+/* =========================================
+   SECTION HEADING
+========================================= */
+
+.business-section-heading {
+  max-width: 700px;
+  margin-bottom: 50px;
+}
+
+.business-section-heading span {
+  color: #b88a45;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 3px;
+}
+
+.business-section-heading h2 {
+  margin: 15px 0 0;
+
+  font-size: clamp(38px, 5vw, 62px);
+  line-height: 1.05;
+  letter-spacing: -2.5px;
+  font-weight: 600;
+}
+
+.business-section-heading p {
+  max-width: 650px;
+  margin: 20px 0 0;
+
+  font-size: 17px;
+  line-height: 1.7;
+  color: #666666;
+}
+
+.business-section-heading.centered {
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* =========================================
+   BUSINESS FLOW
+========================================= */
+
+.business-flow {
+  padding: 100px 0;
+  background: #ffffff;
+}
+
+.business-flow-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid #dedbd5;
+  border-left: 1px solid #dedbd5;
+}
+
+.flow-item {
+  min-height: 160px;
+  padding: 28px;
+
+  border-right: 1px solid #dedbd5;
+  border-bottom: 1px solid #dedbd5;
+
+  background: #ffffff;
+}
+
+.flow-item span {
+  font-size: 12px;
+  color: #b88a45;
+  letter-spacing: 2px;
+}
+
+.flow-item h3 {
+  margin: 22px 0 5px;
+
+  font-size: 23px;
+  font-weight: 600;
+}
+
+.flow-item p {
+  margin: 0;
+
+  color: #777777;
+  font-size: 15px;
+}
+
+/* =========================================
+   BUSINESSES LIST
+========================================= */
+
+.businesses-list-section {
+  padding: 110px 0;
+  background: #f7f6f3;
+}
+
+.businesses-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  border-top: 1px solid #dedbd5;
+  border-left: 1px solid #dedbd5;
+}
+
+/* =========================================
+   BUSINESS CARD
+========================================= */
+
+.business-card {
+  min-height: 390px;
+  padding: 38px;
+
+  background: #ffffff;
+
+  border-right: 1px solid #dedbd5;
+  border-bottom: 1px solid #dedbd5;
+
+  display: flex;
+  flex-direction: column;
+
+  transition:
+    background 0.25s ease,
+    transform 0.25s ease;
+}
+
+.business-card:hover {
+  background: #faf9f6;
+}
+
+.business-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.business-number {
+  color: #aaa;
+  font-size: 12px;
+  letter-spacing: 2px;
+}
+
+.business-icon {
+  width: 58px;
+  height: 58px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #c9a05d;
+  border-radius: 50%;
+
+  color: #b88a45;
+}
+
+.business-card-content {
+  margin-top: 30px;
+}
+
+.business-category {
+  color: #b88a45;
+
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+}
+
+.business-card h3 {
+  margin: 10px 0 5px;
+
+  font-size: 32px;
+  line-height: 1.1;
+  font-weight: 600;
+  letter-spacing: -1px;
+}
+
+.business-card h4 {
+  margin: 0;
+
+  font-size: 16px;
+  font-weight: 500;
+  color: #444444;
+}
+
+.business-card p {
+  max-width: 500px;
+  margin: 18px 0 0;
+
+  font-size: 15px;
+  line-height: 1.7;
+  color: #696969;
+}
+
+.business-card-link {
+  width: fit-content;
+  margin-top: auto;
+  padding-top: 25px;
+
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  color: #171717;
+  text-decoration: none;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  transition: 0.2s ease;
+}
+
+.business-card-link:hover {
+  color: #b88a45;
+}
+
+/* =========================================
+   CONNECTION
+========================================= */
+
+.business-connection {
+  padding: 110px 0;
+  background: #111311;
+  color: #ffffff;
+}
+
+.business-connection-content {
+  max-width: 800px;
+}
+
+.business-connection h2 {
+  margin: 0;
+
+  font-size: clamp(40px, 5vw, 65px);
+  line-height: 1.05;
+  letter-spacing: -2.5px;
+}
+
+.business-connection p {
+  max-width: 700px;
+  margin: 28px 0 0;
+
+  font-size: 17px;
+  line-height: 1.8;
+  color: #c7c7c7;
+}
+
+.connection-flow {
+  margin-top: 60px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+
+  flex-wrap: wrap;
+}
+
+.connection-flow div {
+  padding: 15px 22px;
+
+  border: 1px solid #8c6b39;
+
+  color: #e0c17e;
+  font-size: 13px;
+  letter-spacing: 2px;
+}
+
+.connection-flow span {
+  color: #b88a45;
+  font-size: 22px;
+}
+
+/* =========================================
+   TABLET
+========================================= */
+
+@media (max-width: 900px) {
+
+  .businesses-container {
+    width: min(100% - 50px, 700px);
+  }
+
+  .businesses-hero {
+    min-height: 550px;
+  }
+
+  .businesses-hero h1 {
+    letter-spacing: -3px;
+  }
+
+  .business-flow-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .businesses-grid {
+    grid-template-columns: 1fr;
+  }
+
+}
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 600px) {
+
+  .businesses-container {
+    width: calc(100% - 30px);
+  }
+
+  .businesses-hero {
+    min-height: auto;
+    padding: 90px 0 80px;
+  }
+
+  .businesses-label {
+    font-size: 11px;
+    letter-spacing: 2.5px;
+  }
+
+  .businesses-hero h1 {
+    font-size: 46px;
+    letter-spacing: -2px;
+  }
+
+  .businesses-hero-text {
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  .businesses-hero-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .business-flow {
+    padding: 75px 0;
+  }
+
+  .business-section-heading {
+    margin-bottom: 35px;
+  }
+
+  .business-section-heading h2 {
+    font-size: 38px;
+    letter-spacing: -1.5px;
+  }
+
+  .business-section-heading p {
+    font-size: 15px;
+  }
+
+  .business-flow-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .flow-item {
+    min-height: 125px;
+    padding: 25px;
+  }
+
+  .businesses-list-section {
+    padding: 75px 0;
+  }
+
+  .business-card {
+    min-height: 360px;
+    padding: 28px 24px;
+  }
+
+  .business-card h3 {
+    font-size: 29px;
+  }
+
+  .business-card p {
+    font-size: 14px;
+  }
+
+  .business-connection {
+    padding: 75px 0;
+  }
+
+  .business-connection h2 {
+    font-size: 40px;
+    letter-spacing: -1.5px;
+  }
+
+  .business-connection p {
+    font-size: 15px;
+  }
+
+  .connection-flow {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .connection-flow div {
+    text-align: center;
+  }
+
+  .connection-flow span {
+    text-align: center;
+    transform: rotate(90deg);
+  }
+}
+
+/* =========================================
+   VERY SMALL MOBILE
+========================================= */
+
+@media (max-width: 380px) {
+
+  .businesses-hero h1 {
+    font-size: 40px;
+  }
+
+  .business-card h3 {
+    font-size: 26px;
+  }
+
+  .business-card {
+    padding: 25px 20px;
+  }
+}

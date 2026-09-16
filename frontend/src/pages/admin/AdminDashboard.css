@@ -247,3 +247,18 @@
     grid-template-columns: 1fr;
   }
 }
+.application-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  margin-left: 10px;
+  padding: 0 7px;
+  border-radius: 20px;
+  background: #111;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  vertical-align: middle;
+}
