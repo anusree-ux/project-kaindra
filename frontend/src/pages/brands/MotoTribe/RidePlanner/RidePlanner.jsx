@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useAuth } from "../../../../context/AuthContext";
 import apiClient from "../../../../services/apiClient";
