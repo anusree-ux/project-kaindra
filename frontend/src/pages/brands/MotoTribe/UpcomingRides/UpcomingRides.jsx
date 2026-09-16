@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
+import { useAuth } from "../../../../context/AuthContext";
+import { motoRides } from "../../../../data/motoRides";
 import apiClient from "../../../../services/apiClient";
 import "./UpcomingRides.css";
 
@@ -12,6 +14,7 @@ const filters = [
 ];
 
 function UpcomingRides() {
+  const { isAuthenticated, openAuthModal } = useAuth();
   const [rides, setRides] = useState([]);
   const [activeFilter, setActiveFilter] = useState("ALL");
   const [selectedRide, setSelectedRide] = useState(null);
@@ -20,14 +23,45 @@ function UpcomingRides() {
   const [now, setNow] = useState(new Date());
   const [loading, setLoading] = useState(false);
 
-  // 1. Fetch live upcoming rides from MongoDB database
+  // 1. Fetch live upcoming rides from MongoDB database & combine with community rides
   const fetchUpcomingRides = useCallback(async () => {
+    if (!isAuthenticated) {
+      setRides([]);
+      setSelectedRide(null);
+      return;
+    }
+
     setLoading(true);
+
+    const sampleFormatted = motoRides.map((r) => ({
+      id: r.id,
+      name: r.name,
+      start: r.start,
+      destination: r.destination,
+      date: r.date,
+      time: r.time,
+      type: r.type,
+      difficulty: r.difficulty,
+      organizer: r.organizer,
+      organizerType: r.organizerType,
+      riders: r.riders,
+      maxRiders: r.maxRiders,
+      requestRequired: r.requestRequired,
+      distance: r.distanceLabel || `${r.distance} KM`,
+      duration: r.duration,
+      route: r.route,
+      description: r.description,
+      requirements: r.requirements,
+      safety: r.safety,
+      status: "UPCOMING",
+      isUserRide: false,
+    }));
+
     try {
       const res = await apiClient.get("/api/mototribe/rides");
       const dbList = res.data.data?.rides || [];
 
-      const formatted = dbList.map((r) => {
+      const dbFormatted = dbList.map((r, idx) => {
         const startDateObj = r.startDate ? new Date(r.startDate) : new Date();
         const yyyy = startDateObj.getFullYear();
         const mm = String(startDateObj.getMonth() + 1).padStart(2, "0");
@@ -37,13 +71,13 @@ function UpcomingRides() {
         return {
           id: r._id,
           name: r.title || `${r.origin} to ${r.destination}`,
-          start: r.origin || "Origin",
-          destination: r.destination || "Destination",
+          start: typeof r.origin === "object" ? r.origin.name : r.origin || "Origin",
+          destination: typeof r.destination === "object" ? r.destination.name : r.destination || "Destination",
           date: `${yyyy}-${mm}-${dd}`,
           time: timeStr !== "00:00" ? timeStr : "06:00",
           type: "ADVENTURE",
-          difficulty: r.distanceKm > 300 ? "ADVANCED" : "INTERMEDIATE",
-          organizer: r.organizerId?.name || "MotoTribe Rider",
+          difficulty: (r.distanceKm || 150) > 300 ? "ADVANCED" : "INTERMEDIATE",
+          organizer: r.organizerId?.name || "You (Planned)",
           organizerType: "COMMUNITY",
           riders: 1,
           maxRiders: 20,
@@ -51,7 +85,7 @@ function UpcomingRides() {
           distance: `${r.distanceKm || 150} KM`,
           duration: `${Math.ceil((r.distanceKm || 150) / 120)} Days`,
           route: `${r.origin} → ${r.destination}`,
-          description: `Community ride organized by ${r.organizerId?.name || "verified rider"} from ${r.origin} to ${r.destination}.`,
+          description: `User ride planned from ${r.origin} to ${r.destination}.`,
           requirements: [
             "Helmet and full riding gear required",
             "Motorcycle in good mechanical condition",
@@ -59,19 +93,21 @@ function UpcomingRides() {
           ],
           safety: "Follow group riding etiquette and keep safe braking distances on highways.",
           status: r.status === "ongoing" ? "LIVE" : "UPCOMING",
+          isUserRide: true,
         };
       });
 
-      setRides(formatted);
-      setSelectedRide(formatted.length > 0 ? formatted[0] : null);
+      const combined = [...dbFormatted, ...sampleFormatted];
+      setRides(combined);
+      setSelectedRide(combined.length > 0 ? combined[0] : null);
     } catch (err) {
       console.error("Error fetching live upcoming rides:", err);
-      setRides([]);
-      setSelectedRide(null);
+      setRides(sampleFormatted);
+      setSelectedRide(sampleFormatted.length > 0 ? sampleFormatted[0] : null);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     fetchUpcomingRides();
@@ -85,6 +121,7 @@ function UpcomingRides() {
       window.removeEventListener("mototribe:ride-created", handleRideCreated);
     };
   }, [fetchUpcomingRides]);
+
 
   /*
    * Clock timer for countdowns
@@ -293,60 +330,103 @@ function UpcomingRides() {
           </div>
         </div>
 
-        <div className="ride-filter-bar">
-          {filters.map((filter) => (
+        {!isAuthenticated ? (
+          <div
+            style={{
+              padding: "60px 20px",
+              textAlign: "center",
+              background: "rgba(255, 255, 255, 0.02)",
+              border: "1px dashed rgba(212, 160, 62, 0.3)",
+              borderRadius: "12px",
+              margin: "40px 0",
+            }}
+          >
+            <div style={{ fontSize: "36px", marginBottom: "16px" }}>🔒</div>
+            <h3 style={{ fontSize: "16px", fontWeight: "800", letterSpacing: "2px", color: "#d4a03e", marginBottom: "8px" }}>
+              AUTHENTICATION REQUIRED
+            </h3>
+            <p style={{ fontSize: "13px", color: "rgba(255, 255, 255, 0.6)", maxWidth: "480px", margin: "0 auto 20px" }}>
+              Please log in to unlock your upcoming rides, view community event details, and join group journeys.
+            </p>
             <button
-              key={filter}
-              className={activeFilter === filter ? "active" : ""}
-              onClick={() => setActiveFilter(filter)}
+              type="button"
+              onClick={() => openAuthModal("login")}
+              style={{
+                padding: "12px 28px",
+                background: "linear-gradient(135deg, #d4a03e 0%, #b88328 100%)",
+                color: "#07080a",
+                fontWeight: "800",
+                border: "none",
+                borderRadius: "6px",
+                cursor: "pointer",
+                letterSpacing: "1.5px",
+                fontSize: "12px",
+              }}
             >
-              {filter}
+              LOGIN / SIGN UP TO UNLOCK
             </button>
-          ))}
-        </div>
-
-        <div className="upcoming-rides-layout">
-          <div className="ride-list">
-            <div className="ride-list-header">
-              <span>
-                {filteredRides.length.toString().padStart(2, "0")} RIDES
-              </span>
-
-              <span>SELECT A RIDE TO EXPLORE</span>
+          </div>
+        ) : (
+          <>
+            <div className="ride-filter-bar">
+              {filters.map((filter) => (
+                <button
+                  key={filter}
+                  className={activeFilter === filter ? "active" : ""}
+                  onClick={() => setActiveFilter(filter)}
+                >
+                  {filter}
+                </button>
+              ))}
             </div>
 
-            {loading ? (
-              <div
-                style={{
-                  padding: "40px",
-                  textAlign: "center",
-                  color: "rgba(255, 255, 255, 0.6)",
-                  fontSize: "13px",
-                  letterSpacing: "1px",
-                }}
-              >
-                LOADING UPCOMING RIDES FROM DATABASE...
-              </div>
-            ) : filteredRides.length > 0 ? (
-              filteredRides.map((ride) => {
-                const countdown = getCountdown(ride);
-                const status = getCurrentStatus(ride);
-                const capacity = Math.round(
-                  (ride.riders / ride.maxRiders) * 100
-                );
+            <div className="upcoming-rides-layout">
+              <div className="ride-list">
+                <div className="ride-list-header">
+                  <span>
+                    {filteredRides.length.toString().padStart(2, "0")} RIDES
+                  </span>
 
-                return (
-                  <article
-                    key={ride.id}
-                    className={`ride-card ${
-                      selectedRide?.id === ride.id ? "selected" : ""
-                    }`}
-                    onClick={() => setSelectedRide(ride)}
+                  <span>SELECT A RIDE TO EXPLORE</span>
+                </div>
+
+                {loading ? (
+                  <div
+                    style={{
+                      padding: "40px",
+                      textAlign: "center",
+                      color: "rgba(255, 255, 255, 0.6)",
+                      fontSize: "13px",
+                      letterSpacing: "1px",
+                    }}
                   >
-                    <div className="ride-card-top">
-                      <div className="ride-type">
-                        {ride.type}
-                      </div>
+                    LOADING UPCOMING RIDES FROM DATABASE...
+                  </div>
+                ) : filteredRides.length > 0 ? (
+                  filteredRides.map((ride) => {
+                    const countdown = getCountdown(ride);
+                    const status = getCurrentStatus(ride);
+                    const capacity = Math.round(
+                      (ride.riders / ride.maxRiders) * 100
+                    );
+
+                    return (
+                      <article
+                        key={ride.id}
+                        className={`ride-card ${
+                          selectedRide?.id === ride.id ? "selected" : ""
+                        }`}
+                        onClick={() => setSelectedRide(ride)}
+                      >
+                        <div className="ride-card-top">
+                          <div className="ride-type">
+                            {ride.isUserRide ? (
+                              <span style={{ color: "#d4a03e", fontWeight: "800" }}>★ YOUR PLANNED RIDE</span>
+                            ) : (
+                              ride.type
+                            )}
+                          </div>
+
 
                       <div
                         className={`ride-status status-${status.toLowerCase()}`}
@@ -681,8 +761,12 @@ function UpcomingRides() {
             </div>
           </div>
         </div>
+        </>
+        )}
       </div>
     </section>
+
+
   );
 }
 

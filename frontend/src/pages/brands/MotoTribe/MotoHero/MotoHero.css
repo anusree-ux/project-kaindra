@@ -1,637 +1,752 @@
+/* =========================================================
+   MOTOTRIBE HERO
+   Premium motorcycle ecosystem landing section
+========================================================= */
+
+.moto-hero-wrapper {
+  width: 100%;
+  background: #080808;
+  color: #ffffff;
+  overflow: hidden;
+}
+
+
+/* =========================================================
+   HERO IMAGE AREA
+========================================================= */
+
 .moto-hero {
   position: relative;
-  width: 100%;
-  height: 100vh;
-  min-height: 720px;
+  min-height: 760px;
+  height: calc(100vh - 70px);
+  max-height: 900px;
   overflow: hidden;
-  background: #050505;
-  color: #fff;
+  isolation: isolate;
 }
 
-/* BACKGROUND */
 
-.moto-hero-images {
+/* =========================================================
+   BACKGROUND SLIDES
+========================================================= */
+
+.moto-hero-background {
   position: absolute;
   inset: 0;
-  z-index: 0;
+  z-index: -5;
 }
 
-.moto-hero-image {
+.moto-hero-slide {
   position: absolute;
-  inset: 0;
-
-  width: 100%;
-  height: 100%;
-
+  inset: -2%;
+  background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  background-size: cover;
 
   opacity: 0;
-  visibility: hidden;
 
-  transform: scale(1.04);
+  transform: scale(1.08);
 
   transition:
     opacity 1.2s ease,
-    transform 5s ease;
-}
-
-.moto-hero-image.active {
-  opacity: 1;
-  visibility: visible;
-  transform: scale(1);
-}
-
-/* OVERLAYS */
-
-.moto-hero-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-
-  background: rgba(0, 0, 0, 0.25);
-}
-
-.moto-hero-left-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-
-  background:
-    linear-gradient(
-      90deg,
-      rgba(0, 0, 0, 0.9) 0%,
-      rgba(0, 0, 0, 0.7) 27%,
-      rgba(0, 0, 0, 0.28) 58%,
-      rgba(0, 0, 0, 0.08) 100%
-    );
-}
-
-.moto-hero-bottom-overlay {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-
-  height: 38%;
-  z-index: 2;
-
-  background:
-    linear-gradient(
-      to top,
-      rgba(0, 0, 0, 0.95),
-      transparent
-    );
-}
-
-.moto-hero-grid {
-  position: absolute;
-  inset: 0;
-
-  z-index: 3;
-
-  opacity: 0.08;
-
-  background-image:
-    linear-gradient(
-      rgba(255, 255, 255, 0.18) 1px,
-      transparent 1px
-    ),
-    linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0.18) 1px,
-      transparent 1px
-    );
-
-  background-size: 70px 70px;
+    transform 6s ease;
 
   pointer-events: none;
 }
 
-/* CONTAINER */
-
-.moto-hero-container {
-  position: relative;
-  z-index: 5;
-
-  width: 92%;
-  max-width: 1400px;
-
-  height: 100%;
-
-  margin: 0 auto;
-
-  display: grid;
-
-  grid-template-columns:
-    minmax(0, 1fr)
-    minmax(350px, 0.8fr);
-
-  align-items: center;
-
-  gap: 50px;
+.moto-hero-slide.active {
+  opacity: 1;
+  transform: scale(1);
 }
 
-/* LEFT */
+
+/* =========================================================
+   CINEMATIC OVERLAYS
+========================================================= */
+
+.moto-hero-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: -3;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.88) 0%,
+      rgba(0, 0, 0, 0.67) 35%,
+      rgba(0, 0, 0, 0.30) 68%,
+      rgba(0, 0, 0, 0.60) 100%
+    );
+}
+
+.moto-hero-vignette {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.55) 0%,
+      transparent 25%,
+      transparent 65%,
+      rgba(0, 0, 0, 0.88) 100%
+    );
+}
+
+
+/* =========================================================
+   HERO CONTAINER
+========================================================= */
+
+.moto-hero-container {
+  width: min(1400px, 92%);
+  height: 100%;
+  margin: 0 auto;
+
+  display: flex;
+  align-items: center;
+}
+
+
+/* =========================================================
+   HERO CONTENT
+========================================================= */
 
 .moto-hero-content {
+  width: 100%;
+
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.55fr);
+  align-items: center;
+  gap: 70px;
+
+  padding-top: 40px;
+}
+
+
+/* =========================================================
+   HERO COPY
+========================================================= */
+
+.moto-hero-copy {
   max-width: 760px;
-  padding-top: 50px;
 }
 
 .moto-hero-eyebrow {
   display: flex;
   align-items: center;
-
   gap: 12px;
 
-  margin-bottom: 28px;
+  margin-bottom: 24px;
 
-  font-size: 10px;
+  color: #d6a83e;
+
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 3px;
-
-  color: rgba(255, 255, 255, 0.75);
 }
 
 .eyebrow-line {
-  width: 45px;
+  width: 42px;
   height: 1px;
-  background: #fff;
+
+  background: #d6a83e;
 }
 
-.eyebrow-dot {
-  width: 5px;
-  height: 5px;
 
-  border-radius: 50%;
-
-  background: #d5a83d;
-}
-
-/* TITLE */
+/* =========================================================
+   HERO TITLE
+========================================================= */
 
 .moto-hero-title {
-  display: flex;
-  flex-direction: column;
-
   margin: 0;
 
-  font-size: clamp(60px, 7.5vw, 112px);
+  font-size: clamp(48px, 6.5vw, 94px);
+  line-height: 0.92;
 
-  line-height: 0.86;
-
-  font-weight: 900;
-
-  letter-spacing: -5px;
+  font-weight: 800;
+  letter-spacing: -4px;
 
   text-transform: uppercase;
 }
 
 .moto-hero-title span {
   display: block;
+
+  margin-top: 10px;
+
+  color: #d6a83e;
 }
 
-.outline-text {
-  color: transparent;
 
-  -webkit-text-stroke: 1.5px #fff;
-}
-
-/* DESCRIPTION */
+/* =========================================================
+   HERO DESCRIPTION
+========================================================= */
 
 .moto-hero-description {
-  max-width: 650px;
+  max-width: 600px;
 
-  margin: 38px 0 30px;
+  margin: 30px 0 20px;
+
+  color: rgba(255, 255, 255, 0.72);
+
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+
+/* =========================================================
+   LOCATION
+========================================================= */
+
+.moto-hero-location {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  margin-bottom: 32px;
+
+  color: rgba(255, 255, 255, 0.65);
+
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.location-dot {
+  color: #d6a83e;
+  font-size: 8px;
+
+  animation: locationPulse 2s infinite;
+}
+
+@keyframes locationPulse {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+
+/* =========================================================
+   HERO BUTTONS
+========================================================= */
+
+.moto-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.moto-btn {
+  min-height: 52px;
+
+  padding: 0 24px;
+
+  border-radius: 2px;
+
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.25s ease,
+    background 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.moto-btn span {
+  margin-left: 14px;
+
+  font-size: 16px;
+}
+
+.moto-btn:hover {
+  transform: translateY(-3px);
+}
+
+.moto-btn-primary {
+  border: 1px solid #d6a83e;
+
+  background: #d6a83e;
+  color: #090909;
+}
+
+.moto-btn-primary:hover {
+  background: #edc45c;
+
+  box-shadow:
+    0 12px 35px rgba(214, 168, 62, 0.25);
+}
+
+.moto-btn-secondary {
+  border: 1px solid rgba(255, 255, 255, 0.35);
+
+  background: rgba(0, 0, 0, 0.22);
+
+  color: #ffffff;
+
+  backdrop-filter: blur(8px);
+}
+
+.moto-btn-secondary:hover {
+  border-color: #d6a83e;
+  color: #d6a83e;
+}
+
+
+/* =========================================================
+   MOTO AI CARD
+========================================================= */
+
+.moto-ai-card {
+  width: 100%;
+  max-width: 390px;
+
+  justify-self: end;
+
+  padding: 25px;
+
+  border: 1px solid rgba(214, 168, 62, 0.28);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(20, 20, 20, 0.92),
+      rgba(8, 8, 8, 0.80)
+    );
+
+  box-shadow:
+    0 25px 70px rgba(0, 0, 0, 0.40),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+  backdrop-filter: blur(18px);
+
+  transition:
+    transform 0.35s ease,
+    border-color 0.35s ease;
+}
+
+.moto-ai-card:hover {
+  transform: translateY(-8px);
+
+  border-color: rgba(214, 168, 62, 0.65);
+}
+
+
+/* =========================================================
+   AI HEADER
+========================================================= */
+
+.moto-ai-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  padding-bottom: 20px;
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.ai-label {
+  display: inline-block;
+
+  margin-bottom: 8px;
+
+  color: #d6a83e;
+
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.moto-ai-header h3 {
+  margin: 0;
+
+  font-size: 22px;
+  line-height: 1.05;
+
+  letter-spacing: -0.5px;
+}
+
+.ai-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  color: rgba(255, 255, 255, 0.55);
+
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+.ai-status span {
+  width: 7px;
+  height: 7px;
+
+  border-radius: 50%;
+
+  background: #7fd18a;
+
+  box-shadow:
+    0 0 10px rgba(127, 209, 138, 0.8);
+
+  animation: livePulse 1.8s infinite;
+}
+
+@keyframes livePulse {
+  0% {
+    opacity: 0.45;
+    transform: scale(0.85);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+
+  100% {
+    opacity: 0.45;
+    transform: scale(0.85);
+  }
+}
+
+
+/* =========================================================
+   AI ROUTE
+========================================================= */
+
+.ai-route {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  margin: 22px 0;
+  padding: 14px;
+
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.route-icon {
+  width: 40px;
+  height: 40px;
+
+  display: grid;
+  place-items: center;
+
+  border: 1px solid rgba(214, 168, 62, 0.35);
+
+  color: #d6a83e;
+
+  font-size: 18px;
+}
+
+.ai-route small {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: rgba(255, 255, 255, 0.40);
+
+  font-size: 8px;
+  letter-spacing: 1.5px;
+}
+
+.ai-route strong {
+  display: block;
+
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+
+/* =========================================================
+   AI DATA GRID
+========================================================= */
+
+.ai-data-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.ai-data {
+  min-height: 80px;
+
+  padding: 13px;
+
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.ai-data span {
+  display: block;
+
+  margin-bottom: 7px;
+
+  color: rgba(255, 255, 255, 0.38);
+
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+}
+
+.ai-data strong {
+  display: block;
+
+  margin-bottom: 3px;
+
+  color: #ffffff;
+
+  font-size: 15px;
+}
+
+.ai-data small {
+  color: #d6a83e;
+
+  font-size: 8px;
+  letter-spacing: 1px;
+}
+
+
+/* =========================================================
+   AI BUTTON
+========================================================= */
+
+.ai-card-button {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-top: 18px;
+  padding: 13px 0 0;
+
+  border: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+
+  background: transparent;
+
+  color: rgba(255, 255, 255, 0.72);
+
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+
+  cursor: pointer;
+
+  transition: color 0.25s ease;
+}
+
+.ai-card-button span {
+  color: #d6a83e;
 
   font-size: 15px;
 
-  line-height: 1.8;
-
-  color: rgba(255, 255, 255, 0.78);
+  transition: transform 0.25s ease;
 }
 
-/* BUTTONS */
-
-.moto-hero-buttons {
-  display: flex;
-  align-items: center;
-  gap: 16px;
+.ai-card-button:hover {
+  color: #ffffff;
 }
 
-.hero-primary-btn,
-.hero-secondary-btn {
-  height: 62px;
-
-  padding: 0 26px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  gap: 28px;
-
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 2px;
-
-  cursor: pointer;
-
-  transition: 0.3s ease;
+.ai-card-button:hover span {
+  transform: translateX(5px);
 }
 
-.hero-primary-btn {
-  min-width: 235px;
 
-  border: 1px solid #fff;
+/* =========================================================
+   SLIDER CONTROLS
+========================================================= */
 
-  background: #fff;
-  color: #050505;
-}
-
-.hero-secondary-btn {
-  min-width: 200px;
-
-  border: 1px solid rgba(255, 255, 255, 0.55);
-
-  background: rgba(0, 0, 0, 0.25);
-
-  color: #fff;
-}
-
-.hero-primary-btn:hover {
-  background: transparent;
-  color: #fff;
-}
-
-.hero-secondary-btn:hover {
-  background: #fff;
-  color: #050505;
-}
-
-/* STATS */
-
-.moto-hero-stats {
-  display: flex;
-  align-items: center;
-
-  margin-top: 48px;
-}
-
-.hero-stat {
-  display: flex;
-  flex-direction: column;
-
-  gap: 6px;
-}
-
-.hero-stat strong {
-  font-size: 28px;
-  line-height: 1;
-}
-
-.hero-stat span {
-  font-size: 9px;
-  letter-spacing: 2px;
-
-  color: rgba(255, 255, 255, 0.55);
-}
-
-.stat-divider {
-  width: 1px;
-  height: 40px;
-
-  margin: 0 28px;
-
-  background: rgba(255, 255, 255, 0.25);
-}
-
-/* RIGHT */
-
-.moto-hero-right {
-  position: relative;
-
-  height: 100%;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* SLIDE INFO */
-
-.slide-info {
+.moto-slider-controls {
   position: absolute;
 
-  top: 25%;
-  right: 0;
+  left: 50%;
+  bottom: 65px;
 
-  width: 260px;
-
-  animation: slideInfo 0.7s ease;
-}
-
-@keyframes slideInfo {
-  from {
-    opacity: 0;
-    transform: translateX(30px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-.slide-number {
-  font-size: 14px;
-  font-weight: 800;
-  letter-spacing: 3px;
-}
-
-.slide-line {
-  width: 58px;
-  height: 1px;
-
-  margin: 14px 0;
-
-  background: #fff;
-}
-
-.slide-label {
-  font-size: 11px;
-  letter-spacing: 2px;
-
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.slide-route {
-  margin-top: 8px;
-
-  font-size: 21px;
-  font-weight: 800;
-}
-
-.slide-location {
-  margin-top: 6px;
-
-  font-size: 10px;
-  letter-spacing: 2px;
-
-  color: rgba(255, 255, 255, 0.55);
-}
-
-/* CIRCLE */
-
-.tribe-circle {
-  position: relative;
-
-  width: 290px;
-  height: 290px;
+  transform: translateX(-50%);
 
   display: flex;
   align-items: center;
-  justify-content: center;
-}
-
-.circle {
-  position: absolute;
-
-  border: 1px solid rgba(255, 255, 255, 0.38);
-
-  border-radius: 50%;
-}
-
-.circle-one {
-  width: 290px;
-  height: 290px;
-}
-
-.circle-two {
-  width: 220px;
-  height: 220px;
-}
-
-.circle-three {
-  width: 150px;
-  height: 150px;
-}
-
-.circle-logo {
-  position: relative;
-
-  display: flex;
-  flex-direction: column;
-
-  align-items: center;
-
-  line-height: 0.9;
-
-  letter-spacing: 4px;
-}
-
-.circle-logo span {
-  font-size: 13px;
-}
-
-.circle-logo strong {
-  font-size: 29px;
-}
-
-/* ARROWS */
-
-.hero-arrows {
-  position: absolute;
-
-  right: 0;
-  bottom: 21%;
-
-  display: flex;
-  gap: 8px;
-}
-
-.hero-arrow {
-  width: 56px;
-  height: 56px;
-
-  border: 1px solid rgba(255, 255, 255, 0.5);
-
-  background: rgba(0, 0, 0, 0.3);
-
-  color: #fff;
-
-  font-size: 20px;
-
-  cursor: pointer;
-
-  transition: 0.3s ease;
-}
-
-.hero-arrow:hover {
-  background: #fff;
-  color: #000;
-}
-
-/* BOTTOM */
-
-.moto-hero-bottom {
-  position: absolute;
-
-  left: 4%;
-  right: 4%;
-  bottom: 30px;
+  gap: 18px;
 
   z-index: 10;
-
-  display: grid;
-
-  grid-template-columns:
-    1.2fr
-    1fr
-    1fr
-    0.8fr;
-
-  align-items: center;
-
-  gap: 25px;
 }
 
-/* INDICATORS */
+.slider-arrow {
+  width: 42px;
+  height: 42px;
 
-.slide-indicators {
+  display: grid;
+  place-items: center;
+
+  border: 1px solid rgba(255, 255, 255, 0.25);
+
+  background: rgba(0, 0, 0, 0.30);
+
+  color: #ffffff;
+
+  font-size: 17px;
+
+  cursor: pointer;
+
+  backdrop-filter: blur(8px);
+
+  transition:
+    background 0.25s ease,
+    border-color 0.25s ease,
+    color 0.25s ease,
+    transform 0.25s ease;
+}
+
+.slider-arrow:hover {
+  border-color: #d6a83e;
+
+  background: rgba(214, 168, 62, 0.15);
+
+  color: #d6a83e;
+
+  transform: translateY(-2px);
+}
+
+.moto-slider-dots {
   display: flex;
+  align-items: center;
   gap: 8px;
 }
 
-.indicator {
-  width: 58px;
-  height: 3px;
+.slider-dot {
+  width: 25px;
+  height: 2px;
 
   padding: 0;
 
   border: 0;
 
-  background: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.30);
 
   cursor: pointer;
+
+  transition:
+    width 0.35s ease,
+    background 0.35s ease;
 }
 
-.indicator span {
-  display: block;
+.slider-dot.active {
+  width: 42px;
 
-  width: 0;
-  height: 100%;
-
-  background: #fff;
+  background: #d6a83e;
 }
 
-.indicator.active span {
-  width: 100%;
 
-  transition: width 5s linear;
-}
+/* =========================================================
+   SCROLL TO EXPLORE
+========================================================= */
 
-/* ROUTE */
+.moto-scroll-indicator {
+  position: absolute;
 
-.current-route {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.current-route small {
-  font-size: 8px;
-  letter-spacing: 2px;
-
-  color: rgba(255, 255, 255, 0.45);
-}
-
-.current-route strong {
-  font-size: 11px;
-  letter-spacing: 1.5px;
-}
-
-/* SCROLL */
-
-.scroll-text {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  gap: 10px;
-
-  font-size: 8px;
-  letter-spacing: 2px;
-
-  color: rgba(255, 255, 255, 0.55);
-}
-
-.scroll-text span {
-  width: 30px;
-  height: 1px;
-
-  background: rgba(255, 255, 255, 0.5);
-}
-
-.scroll-text b {
-  font-size: 15px;
-}
-
-/* LOGIN */
-
-.rider-login {
-  justify-self: end;
+  right: 5%;
+  bottom: 60px;
 
   display: flex;
   align-items: center;
-
   gap: 12px;
 
-  border: 0;
+  padding: 10px 15px;
 
-  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.16);
 
-  color: #fff;
+  border-radius: 30px;
 
-  font-size: 10px;
+  background: rgba(0, 0, 0, 0.28);
+
+  color: rgba(255, 255, 255, 0.68);
+
+  font-size: 8px;
   font-weight: 800;
-  letter-spacing: 2px;
+  letter-spacing: 1.7px;
 
   cursor: pointer;
+
+  backdrop-filter: blur(10px);
+
+  transition:
+    color 0.25s ease,
+    border-color 0.25s ease,
+    background 0.25s ease;
 }
 
-/* PROGRESS */
+.moto-scroll-indicator:hover {
+  border-color: rgba(214, 168, 62, 0.65);
 
-.hero-progress {
+  background: rgba(214, 168, 62, 0.08);
+
+  color: #ffffff;
+}
+
+.scroll-arrow {
+  color: #d6a83e;
+
+  font-size: 14px;
+
+  animation: scrollArrow 1.8s ease-in-out infinite;
+}
+
+@keyframes scrollArrow {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(4px);
+  }
+}
+
+
+/* =========================================================
+   PROGRESS BAR
+========================================================= */
+
+.moto-hero-progress {
   position: absolute;
 
   left: 0;
   right: 0;
   bottom: 0;
 
+  height: 2px;
+
+  background: rgba(255, 255, 255, 0.10);
+
   z-index: 20;
-
-  height: 3px;
-
-  background: rgba(255, 255, 255, 0.18);
 }
 
-.progress-fill {
+.moto-hero-progress-bar {
   width: 0;
   height: 100%;
 
-  background: #fff;
+  background: #d6a83e;
 
-  animation: progressAnimation 5s linear forwards;
+  animation: heroProgress 5s linear forwards;
 }
 
-.progress-fill.paused {
-  animation-play-state: paused;
-}
-
-@keyframes progressAnimation {
+@keyframes heroProgress {
   from {
     width: 0;
   }
@@ -641,81 +756,285 @@
   }
 }
 
-/* TABLET */
 
-@media (max-width: 1050px) {
-  .moto-hero-container {
-    grid-template-columns: 1fr;
-  }
+/* =========================================================
+   IMPACT STATISTICS
+   OUTSIDE HERO IMAGE
+========================================================= */
 
-  .moto-hero-right {
-    display: none;
-  }
+.moto-impact-strip {
+  width: min(1400px, 92%);
 
-  .moto-hero-bottom {
-    grid-template-columns: 1fr 1fr;
-  }
+  margin: 0 auto;
 
-  .scroll-text {
-    display: none;
-  }
+  min-height: 145px;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, 1fr)
+    1.3fr;
+
+  align-items: center;
+
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* MOBILE */
+.moto-impact-item {
+  min-height: 72px;
 
-@media (max-width: 600px) {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  padding: 0 30px;
+
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.moto-impact-item strong {
+  margin-bottom: 7px;
+
+  color: #ffffff;
+
+  font-size: 27px;
+  line-height: 1;
+
+  letter-spacing: -1px;
+}
+
+.moto-impact-item span {
+  color: rgba(255, 255, 255, 0.42);
+
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1.8px;
+}
+
+.moto-impact-experience {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+
+  padding-left: 35px;
+}
+
+.experience-icon {
+  width: 42px;
+  height: 42px;
+
+  display: grid;
+  place-items: center;
+
+  border: 1px solid rgba(214, 168, 62, 0.45);
+
+  color: #d6a83e;
+
+  font-size: 20px;
+}
+
+.moto-impact-experience strong,
+.moto-impact-experience span {
+  display: block;
+}
+
+.moto-impact-experience strong {
+  margin-bottom: 6px;
+
+  color: #ffffff;
+
+  font-size: 10px;
+  letter-spacing: 1.5px;
+}
+
+.moto-impact-experience span {
+  color: rgba(255, 255, 255, 0.38);
+
+  font-size: 8px;
+  letter-spacing: 1.5px;
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 1050px) {
   .moto-hero {
-    min-height: 700px;
+    min-height: 720px;
   }
 
-  .moto-hero-container {
-    width: 88%;
+  .moto-hero-content {
+    grid-template-columns: 1fr 320px;
+
+    gap: 35px;
   }
 
   .moto-hero-title {
-    font-size: clamp(48px, 15vw, 76px);
-    letter-spacing: -3px;
+    font-size: clamp(46px, 7vw, 72px);
+  }
+
+  .moto-ai-card {
+    max-width: 320px;
+  }
+
+  .moto-impact-item {
+    padding: 0 18px;
+  }
+
+  .moto-impact-experience {
+    padding-left: 18px;
+  }
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 760px) {
+  .moto-hero {
+    min-height: 760px;
+    height: auto;
+  }
+
+  .moto-hero-container {
+    width: 90%;
+  }
+
+  .moto-hero-content {
+    display: block;
+
+    padding-top: 100px;
+    padding-bottom: 130px;
+  }
+
+  .moto-hero-copy {
+    max-width: 100%;
+  }
+
+  .moto-hero-title {
+    font-size: clamp(43px, 13vw, 65px);
+
+    letter-spacing: -2.5px;
   }
 
   .moto-hero-description {
-    font-size: 13px;
+    font-size: 14px;
+
+    line-height: 1.7;
   }
 
-  .moto-hero-buttons {
+  .moto-ai-card {
+    max-width: 100%;
+
+    margin-top: 45px;
+  }
+
+  .moto-slider-controls {
+    bottom: 48px;
+  }
+
+  .moto-scroll-indicator {
+    right: auto;
+    left: 50%;
+
+    bottom: 12px;
+
+    transform: translateX(-50%);
+
+    white-space: nowrap;
+  }
+
+  .moto-scroll-indicator:hover {
+    transform: translateX(-50%);
+  }
+
+  .moto-impact-strip {
+    grid-template-columns: repeat(2, 1fr);
+
+    padding: 25px 0;
+  }
+
+  .moto-impact-item {
+    min-height: 75px;
+
+    padding: 15px 20px;
+
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .moto-impact-experience {
+    grid-column: 1 / -1;
+
+    min-height: 85px;
+
+    padding: 20px;
+  }
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 480px) {
+  .moto-hero-content {
+    padding-top: 90px;
+  }
+
+  .moto-hero-eyebrow {
+    font-size: 9px;
+
+    letter-spacing: 2px;
+  }
+
+  .moto-hero-title {
+    font-size: 43px;
+  }
+
+  .moto-hero-actions {
     flex-direction: column;
-    align-items: stretch;
   }
 
-  .hero-primary-btn,
-  .hero-secondary-btn {
+  .moto-btn {
     width: 100%;
   }
 
-  .moto-hero-stats {
-    margin-top: 35px;
+  .moto-ai-card {
+    padding: 18px;
   }
 
-  .stat-divider {
-    margin: 0 15px;
+  .slider-arrow {
+    width: 36px;
+    height: 36px;
   }
 
-  .moto-hero-bottom {
-    left: 6%;
-    right: 6%;
-
-    grid-template-columns: 1fr;
+  .slider-dot {
+    width: 18px;
   }
 
-  .current-route,
-  .rider-login {
-    display: none;
+  .slider-dot.active {
+    width: 32px;
   }
 
-  .slide-indicators {
-    justify-content: center;
+  .moto-impact-item strong {
+    font-size: 23px;
   }
+}
 
-  .indicator {
-    width: 40px;
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .moto-hero-slide,
+  .moto-hero-progress-bar,
+  .location-dot,
+  .ai-status span,
+  .scroll-arrow {
+    animation: none !important;
+    transition: none !important;
   }
 }

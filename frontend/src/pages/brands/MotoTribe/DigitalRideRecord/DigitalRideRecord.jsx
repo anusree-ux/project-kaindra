@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
+import { useAuth } from "../../../../context/AuthContext";
 import apiClient from "../../../../services/apiClient";
 import "./DigitalRideRecord.css";
 
 function DigitalRideRecord() {
+  const { isAuthenticated, openAuthModal } = useAuth();
   const [records, setRecords] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [filter, setFilter] = useState("ALL");
@@ -11,7 +13,9 @@ function DigitalRideRecord() {
 
   // 1. Fetch live passport, completed ride history & journals from database
   const fetchDigitalRecordData = useCallback(async () => {
+    if (!isAuthenticated) return;
     try {
+
       const [passportRes, historyRes, journalRes] = await Promise.allSettled([
         apiClient.get("/api/mototribe/rider-profile/me/passport"),
         apiClient.get("/api/mototribe/rider-profile/me/history"),
@@ -175,8 +179,47 @@ function DigitalRideRecord() {
           </div>
         </div>
 
-        {/* STATS */}
-        <div className="record-stats">
+        {!isAuthenticated ? (
+          <div
+            style={{
+              padding: "60px 20px",
+              textAlign: "center",
+              background: "rgba(255, 255, 255, 0.02)",
+              border: "1px dashed rgba(212, 160, 62, 0.3)",
+              borderRadius: "12px",
+              margin: "40px 0",
+            }}
+          >
+            <div style={{ fontSize: "36px", marginBottom: "16px" }}>🔒</div>
+            <h3 style={{ fontSize: "16px", fontWeight: "800", letterSpacing: "2px", color: "#d4a03e", marginBottom: "8px" }}>
+              AUTHENTICATION REQUIRED
+            </h3>
+            <p style={{ fontSize: "13px", color: "rgba(255, 255, 255, 0.6)", maxWidth: "480px", margin: "0 auto 20px" }}>
+              Please log in to view your digital ride record, completed journey statistics, fuel usage, and ride passport history.
+            </p>
+            <button
+              type="button"
+              onClick={() => openAuthModal("login")}
+              style={{
+                padding: "12px 28px",
+                background: "linear-gradient(135deg, #d4a03e 0%, #b88328 100%)",
+                color: "#07080a",
+                fontWeight: "800",
+                border: "none",
+                borderRadius: "6px",
+                cursor: "pointer",
+                letterSpacing: "1.5px",
+                fontSize: "12px",
+              }}
+            >
+              LOGIN / SIGN UP TO UNLOCK
+            </button>
+          </div>
+        ) : (
+          <>
+            {/* STATS */}
+            <div className="record-stats">
+
 
           <div className="record-stat">
             <span>RIDES</span>
@@ -579,9 +622,11 @@ function DigitalRideRecord() {
 
         </div>
         )}
-
+        </>
+        )}
       </div>
     </section>
+
   );
 }
 

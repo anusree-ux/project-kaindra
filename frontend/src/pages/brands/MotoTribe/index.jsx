@@ -1,5 +1,6 @@
 import MotoNavbar from "./MotoNavbar/MotoNavbar";
 import AuthModal from "./Auth/AuthModal";
+import "./MotoTribe.css";
 
 import MotoHero from "./MotoHero/MotoHero";
 

@@ -1079,3 +1079,74 @@
     animation: none;
   }
 }
+
+/* Empty & Loading States */
+.journey-empty-state {
+  padding: 60px 20px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  margin: 30px 0;
+}
+
+.journey-empty-state .empty-icon {
+  font-size: 36px;
+  margin-bottom: 15px;
+}
+
+.journey-empty-state h3 {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: #c9964a;
+  margin-bottom: 8px;
+}
+
+.journey-empty-state p {
+  font-size: 12px;
+  color: #888;
+  max-width: 450px;
+  margin: 0 auto;
+}
+
+.empty-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgba(201, 150, 74, 0.2);
+  border-top-color: #c9964a;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 15px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.status-badge {
+  padding: 3px 8px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  background: rgba(201, 150, 74, 0.15);
+  color: #c9964a;
+  border: 1px solid rgba(201, 150, 74, 0.3);
+  border-radius: 4px;
+  margin-right: 10px;
+}
+
+.map-empty-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  color: #888;
+}
+
+.map-empty-overlay .overlay-icon {
+  font-size: 32px;
+  margin-bottom: 10px;
+}
