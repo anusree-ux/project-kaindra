@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../../../context/AuthContext";
 import "./ProfileSetup.css";
 
 const experienceOptions = [
@@ -28,6 +29,7 @@ const interests = [
 
 function ProfileSetup() {
   const navigate = useNavigate();
+  const { user, isAuthenticated, openAuthModal } = useAuth();
 
   const [profile, setProfile] = useState(() => {
     const defaultVal = {
@@ -71,10 +73,19 @@ function ProfileSetup() {
   useEffect(() => {
     const account = localStorage.getItem("mototribeSignupAccount");
 
-    if (!account) {
-      navigate("/businesses/mototribe/signup");
+    // If not authenticated and no local signup account, prompt login
+    if (!isAuthenticated && !account) {
+      openAuthModal("login");
+      navigate("/businesses/mototribe");
     }
-  }, [navigate]);
+  }, [navigate, isAuthenticated, openAuthModal]);
+
+  // Pre-fill rider name from auth user if profile name is empty
+  useEffect(() => {
+    if (isAuthenticated && user?.name && !profile.riderName.trim()) {
+      setProfile((prev) => ({ ...prev, riderName: user.name }));
+    }
+  }, [isAuthenticated, user]);
 
   const handleBasicChange = (event) => {
     const { name, value } = event.target;

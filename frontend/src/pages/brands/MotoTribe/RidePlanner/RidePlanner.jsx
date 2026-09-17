@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useAuth } from "../../../../context/AuthContext";
 import apiClient from "../../../../services/apiClient";
+import PlacesAutocomplete from "../../../../components/PlacesAutocomplete/PlacesAutocomplete";
+import "../../../../components/PlacesAutocomplete/PlacesAutocomplete.css";
 import "./RidePlanner.css";
 
 const defaultRouteOptions = [
@@ -69,76 +71,106 @@ function RidePlanner() {
   const [routeStats, setRouteStats] = useState(null);
   const [fuelPrice, setFuelPrice] = useState(105);
 
-  // 1. Fetch user vehicles, discoverable riders & fuel price from backend
+  // 1. Fetch user vehicles, discoverable riders & fuel price from backend/profile DB
   const fetchInitialData = useCallback(async () => {
-    if (!isAuthenticated) return;
     try {
       // Fuel Price
-
       const fuelRes = await apiClient.get("/api/mototribe/fuel-prices").catch(() => null);
       if (fuelRes?.data?.data?.fuelPrice?.pricePerLiter) {
         setFuelPrice(fuelRes.data.data.fuelPrice.pricePerLiter);
       }
 
-      // Vehicles
-      const vehiclesRes = await apiClient.get("/api/mototribe/vehicles/me").catch(() => null);
-      let vehicles = vehiclesRes?.data?.data?.vehicles || [];
-
-      if (vehicles.length === 0) {
-        const newVehRes = await apiClient.post("/api/mototribe/vehicles", {
-          make: "Royal Enfield",
-          model: "Himalayan",
-          registrationNumber: `KA-01-MT-${Math.floor(1000 + Math.random() * 9000)}`,
-          year: 2023,
-        }).catch(() => null);
-        if (newVehRes?.data?.data?.vehicle) {
-          vehicles = [newVehRes.data.data.vehicle];
+      // Vehicles from Database & Local Garage Profile
+      let vehicles = [];
+      if (isAuthenticated) {
+        const vehiclesRes = await apiClient.get("/api/mototribe/vehicles/me").catch(() => null);
+        const dbVehs = vehiclesRes?.data?.data?.vehicles;
+        if (Array.isArray(dbVehs) && dbVehs.length > 0) {
+          vehicles = dbVehs.map((v) => ({
+            _id: v._id,
+            id: v._id,
+            name: (v.vehicleName || "My Motorcycle").trim(),
+            registrationNumber: v.registrationNumber || "",
+            mileageKmpl: Number(v.mileageKmpl) || 28,
+            fuelType: v.fuelType || "petrol",
+            isDefault: !!v.isDefault,
+          }));
         }
+      }
+
+      // If no backend vehicles, load from saved garage in localStorage
+      if (vehicles.length === 0) {
+        try {
+          const localVehicles = JSON.parse(localStorage.getItem("mototribeVehicles") || "[]");
+          if (Array.isArray(localVehicles) && localVehicles.length > 0) {
+            vehicles = localVehicles.map((v) => ({
+              _id: v.id || v._id || String(Math.random()),
+              id: v.id || v._id || String(Math.random()),
+              name: (v.name || `${v.brand || ""} ${v.model || ""}` || "My Motorcycle").trim(),
+              registrationNumber: v.registration || v.registrationNumber || "",
+              mileageKmpl: Number(v.mileage || v.mileageKmpl) || 28,
+              fuelType: v.fuelType || "petrol",
+              isDefault: !!v.isDefault,
+            }));
+          }
+        } catch (_) {}
       }
 
       if (vehicles.length > 0) {
         setUserVehicles(vehicles);
-        setSelectedVehicleId(vehicles[0]._id);
-        setMotorcycle(`${vehicles[0].make} ${vehicles[0].model}`.toUpperCase());
+        const defaultVeh = vehicles.find((v) => v.isDefault) || vehicles[0];
+        setSelectedVehicleId(defaultVeh._id || defaultVeh.id);
+        setMotorcycle(defaultVeh.name.toUpperCase());
+        setMileage(String(defaultVeh.mileageKmpl || 28));
+      } else {
+        // Fallback to mototribeProfile if available
+        try {
+          const profile = JSON.parse(localStorage.getItem("mototribeProfile") || "{}");
+          if (profile.primaryBike) {
+            setMotorcycle(profile.primaryBike.toUpperCase());
+          }
+        } catch (_) {}
       }
 
-      // Riders Nearby & User Connections
-      const [ridersRes, connRes] = await Promise.allSettled([
-        apiClient.get("/api/mototribe/riders-nearby?lat=12.9716&lng=77.5946&radius=1000000&filter=all"),
-        apiClient.get("/api/core/connections"),
-      ]);
+      // Riders Nearby & User Connections (if authenticated)
+      if (isAuthenticated) {
+        const [ridersRes, connRes] = await Promise.allSettled([
+          apiClient.get("/api/mototribe/riders-nearby?lat=12.9716&lng=77.5946&radius=1000000&filter=all"),
+          apiClient.get("/api/core/connections"),
+        ]);
 
-      const ridersList = ridersRes.status === "fulfilled" ? ridersRes.value.data?.data?.riders || [] : [];
-      const connList = connRes.status === "fulfilled" ? connRes.value.data?.data?.connections || [] : [];
+        const ridersList = ridersRes.status === "fulfilled" ? ridersRes.value.data?.data?.riders || [] : [];
+        const connList = connRes.status === "fulfilled" ? connRes.value.data?.data?.connections || [] : [];
 
-      const combinedMap = new Map();
+        const combinedMap = new Map();
 
-      // Add nearby discoverable riders
-      ridersList.forEach((r) => {
-        if (r.userId) {
-          combinedMap.set(String(r.userId), {
-            id: String(r.userId),
-            name: (r.name || "Rider").toUpperCase(),
-            bike: (r.primaryVehicleName || "HIMALAYAN").toUpperCase(),
-            experience: r.totalRidesCompleted > 10 ? "ADVANCED" : "INTERMEDIATE",
-          });
-        }
-      });
+        // Add nearby discoverable riders
+        ridersList.forEach((r) => {
+          if (r.userId) {
+            combinedMap.set(String(r.userId), {
+              id: String(r.userId),
+              name: (r.name || "Rider").toUpperCase(),
+              bike: (r.primaryVehicleName || "HIMALAYAN").toUpperCase(),
+              experience: r.totalRidesCompleted > 10 ? "ADVANCED" : "INTERMEDIATE",
+            });
+          }
+        });
 
-      // Add connected riders
-      connList.forEach((c) => {
-        const friend = c.fromUserId?._id === c.toUserId?._id ? c.toUserId : c.fromUserId || {};
-        if (friend._id && !combinedMap.has(String(friend._id))) {
-          combinedMap.set(String(friend._id), {
-            id: String(friend._id),
-            name: (friend.name || "Connected Rider").toUpperCase(),
-            bike: "MEMBER BIKE",
-            experience: "EXPERIENCED",
-          });
-        }
-      });
+        // Add connected riders
+        connList.forEach((c) => {
+          const friend = c.fromUserId?._id === c.toUserId?._id ? c.toUserId : c.fromUserId || {};
+          if (friend._id && !combinedMap.has(String(friend._id))) {
+            combinedMap.set(String(friend._id), {
+              id: String(friend._id),
+              name: (friend.name || "Connected Rider").toUpperCase(),
+              bike: "MEMBER BIKE",
+              experience: "EXPERIENCED",
+            });
+          }
+        });
 
-      setDbRiders(Array.from(combinedMap.values()));
+        setDbRiders(Array.from(combinedMap.values()));
+      }
     } catch (err) {
       console.error("Error initializing RidePlanner data:", err);
     }
@@ -275,14 +307,20 @@ function RidePlanner() {
     setCreating(true);
     try {
       let vId = selectedVehicleId;
-      if (!vId) {
+      const isMongoId = typeof vId === "string" && /^[0-9a-fA-F]{24}$/.test(vId);
+
+      if (!isMongoId) {
+        const found = userVehicles.find((v) => (v._id || v.id) === vId);
         const newVeh = await apiClient.post("/api/mototribe/vehicles", {
-          make: "Royal Enfield",
-          model: "Himalayan",
-          registrationNumber: `KA-01-MT-${Math.floor(1000 + Math.random() * 9000)}`,
-          year: 2023,
-        });
-        vId = newVeh.data.data.vehicle._id;
+          vehicleName: found?.name || motorcycle || "Royal Enfield Himalayan",
+          registrationNumber: found?.registrationNumber || `KA-01-MT-${Math.floor(1000 + Math.random() * 9000)}`,
+          mileageKmpl: Number(mileage) || 28,
+          fuelType: found?.fuelType || "petrol",
+        }).catch(() => null);
+        if (newVeh?.data?.data?.vehicle?._id) {
+          vId = newVeh.data.data.vehicle._id;
+          setSelectedVehicleId(vId);
+        }
       }
 
       const rideTitle = `${start.trim()} to ${destination.trim()} (${selectedRoute.name})`;
@@ -290,7 +328,7 @@ function RidePlanner() {
       const futureDate = rideDate ? new Date(rideDate).toISOString() : new Date(Date.now() + 86400000 * 2).toISOString();
 
       const res = await apiClient.post("/api/mototribe/rides", {
-        vehicleId: vId,
+        ...(vId && /^[0-9a-fA-F]{24}$/.test(vId) && { vehicleId: vId }),
         title: rideTitle,
         origin: start.trim(),
         destination: destination.trim(),
@@ -430,19 +468,16 @@ function RidePlanner() {
             </div>
 
             <div className="location-fields">
-              <label className="planner-field">
+              <div className="planner-field">
                 <span>START LOCATION</span>
 
-                <div className="input-with-icon">
-                  <i>●</i>
-
-                  <input
-                    value={start}
-                    onChange={(event) => setStart(event.target.value)}
-                    placeholder="Enter starting point"
-                  />
-                </div>
-              </label>
+                <PlacesAutocomplete
+                  value={start}
+                  onChange={setStart}
+                  placeholder="Enter starting point"
+                  icon="●"
+                />
+              </div>
 
               <div className="route-connector">
                 <span />
@@ -450,21 +485,16 @@ function RidePlanner() {
                 <span />
               </div>
 
-              <label className="planner-field">
+              <div className="planner-field">
                 <span>DESTINATION</span>
 
-                <div className="input-with-icon">
-                  <i>◎</i>
-
-                  <input
-                    value={destination}
-                    onChange={(event) =>
-                      setDestination(event.target.value)
-                    }
-                    placeholder="Where do you want to ride?"
-                  />
-                </div>
-              </label>
+                <PlacesAutocomplete
+                  value={destination}
+                  onChange={setDestination}
+                  placeholder="Where do you want to ride?"
+                  icon="◎"
+                />
+              </div>
             </div>
 
             <div className="stops-section">
@@ -474,15 +504,18 @@ function RidePlanner() {
               </div>
 
               <div className="add-stop">
-                <input
+                <PlacesAutocomplete
                   value={newStop}
-                  onChange={(event) => setNewStop(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter") {
-                      addStop();
+                  onChange={setNewStop}
+                  placeholder="Add a fuel stop, cafe, viewpoint, heritage site..."
+                  icon="📍"
+                  onSelect={(stopName) => {
+                    const clean = (stopName || newStop).trim();
+                    if (clean && !stops.includes(clean)) {
+                      setStops((prev) => [...prev, clean]);
+                      setNewStop("");
                     }
                   }}
-                  placeholder="Add a fuel stop, cafe, viewpoint..."
                 />
 
                 <button type="button" onClick={addStop}>
@@ -518,6 +551,11 @@ function RidePlanner() {
                   type="date"
                   value={rideDate}
                   onChange={(event) => setRideDate(event.target.value)}
+                  onClick={(e) => {
+                    try {
+                      e.target.showPicker?.();
+                    } catch (_) {}
+                  }}
                 />
               </label>
 
@@ -529,20 +567,26 @@ function RidePlanner() {
                   onChange={(event) => {
                     const vId = event.target.value;
                     setSelectedVehicleId(vId);
-                    const found = userVehicles.find((v) => v._id === vId);
+                    const found = userVehicles.find((v) => (v._id || v.id) === vId);
                     if (found) {
-                      setMotorcycle(`${found.make} ${found.model}`.toUpperCase());
+                      setMotorcycle(found.name.toUpperCase());
+                      setMileage(String(found.mileageKmpl || found.mileage || 28));
                     }
                   }}
                 >
                   {userVehicles.length > 0 ? (
-                    userVehicles.map((v) => (
-                      <option key={v._id} value={v._id}>
-                        {v.make} {v.model} ({v.registrationNumber})
-                      </option>
-                    ))
+                    userVehicles.map((v) => {
+                      const vId = v._id || v.id;
+                      const regText = v.registrationNumber ? `(${v.registrationNumber})` : "";
+                      const mileageText = (v.mileageKmpl || v.mileage) ? `• ${v.mileageKmpl || v.mileage} KM/L` : "";
+                      return (
+                        <option key={vId} value={vId}>
+                          {v.name.toUpperCase()} {regText} {mileageText}
+                        </option>
+                      );
+                    })
                   ) : (
-                    <option value="">ROYAL ENFIELD HIMALAYAN</option>
+                    <option value="">{motorcycle || "ROYAL ENFIELD HIMALAYAN (28 KM/L)"}</option>
                   )}
                 </select>
               </label>
@@ -823,34 +867,6 @@ function RidePlanner() {
                 preference and {distancePreference.toLowerCase()} distance
                 setting.
               </p>
-            </div>
-
-            <div className="route-options-title">
-              <span>AVAILABLE ROUTES</span>
-              <small>{routeOptions.length} OPTIONS</small>
-            </div>
-
-            <div className="route-options">
-              {routeOptions.map((route) => (
-                <button
-                  type="button"
-                  key={route.id}
-                  className={`route-choice ${
-                    selectedRoute.id === route.id ? "active" : ""
-                  }`}
-                  onClick={() => analyzeRoute(route)}
-                >
-                  <div>
-                    <span>0{route.id}</span>
-                    <strong>{route.name}</strong>
-                  </div>
-
-                  <div className="route-choice-time">
-                    <strong>{route.duration}</strong>
-                    <small>{route.distance}</small>
-                  </div>
-                </button>
-              ))}
             </div>
 
             <div className="fuel-summary">

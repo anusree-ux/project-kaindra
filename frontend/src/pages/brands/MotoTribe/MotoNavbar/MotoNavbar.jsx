@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../../../../context/AuthContext";
 import "./MotoNavbar.css";
 
@@ -66,7 +67,12 @@ function MotoNavbar() {
 
     return (
       <div className="moto-user-pill">
-        <span className="moto-user-name">👤 {user?.name || "Rider"}</span>
+        <Link
+          to="/businesses/mototribe/profile-setup"
+          className="moto-user-name"
+        >
+          👤 {user?.name || "Rider"}
+        </Link>
         <button className="moto-logout-btn" onClick={logout}>
           LOGOUT
         </button>

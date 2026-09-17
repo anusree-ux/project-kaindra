@@ -75,12 +75,14 @@
   background: #111111;
   color: #ffffff;
 
+  border: 0;
   border-radius: 6px;
-
-  text-decoration: none;
 
   font-size: 14px;
   font-weight: 600;
+  font-family: inherit;
+
+  cursor: pointer;
 
   transition:
     background 0.2s ease,
@@ -90,6 +92,52 @@
 .navbar-login:hover {
   background: #333333;
   transform: translateY(-1px);
+}
+
+/* Authenticated user area */
+.navbar-user-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.navbar-user-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111111;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.navbar-user-name:hover {
+  color: #555555;
+}
+
+.navbar-logout-btn {
+  padding: 8px 14px;
+
+  background: transparent;
+  color: #666666;
+
+  border: 1px solid #dddddd;
+  border-radius: 6px;
+
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+
+  cursor: pointer;
+
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.navbar-logout-btn:hover {
+  color: #111111;
+  border-color: #111111;
 }
 
 .navbar-menu {
@@ -184,7 +232,8 @@
     display: none;
   }
 
-  .navbar-login {
+  .navbar-login,
+  .navbar-user-area {
     display: none;
   }
 
@@ -200,12 +249,56 @@
 
     margin-top: 8px;
 
+    padding: 14px 10px;
+
     background: #111111;
 
     color: #ffffff !important;
 
+    border: 0;
     border-radius: 6px;
 
+    font-size: 15px;
+    font-weight: 600;
+    font-family: inherit;
+
     text-align: center;
+
+    cursor: pointer;
+  }
+
+  .mobile-profile-link {
+    display: block !important;
+
+    margin-top: 8px;
+
+    padding: 14px 10px;
+
+    background: transparent;
+
+    color: #111111 !important;
+
+    border: 1px solid #dddddd;
+    border-radius: 6px;
+
+    font-size: 15px;
+    font-weight: 600;
+
+    text-align: center;
+    text-decoration: none;
+  }
+
+  .mobile-profile-link:hover {
+    background: #f5f5f5;
+  }
+
+  .mobile-logout {
+    background: transparent !important;
+    color: #dc2626 !important;
+    border: 1px solid #fecaca !important;
+  }
+
+  .mobile-logout:hover {
+    background: #fef2f2 !important;
   }
 }

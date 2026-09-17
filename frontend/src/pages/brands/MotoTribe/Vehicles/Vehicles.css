@@ -418,6 +418,23 @@
   font-size: 12px;
 }
 
+.vehicle-field input[type="date"] {
+  color-scheme: dark;
+  cursor: pointer;
+}
+
+.vehicle-field input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(0.8) brightness(1.2);
+  opacity: 0.85;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.vehicle-field input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+  transform: scale(1.15);
+}
+
 .vehicle-field input:focus,
 .vehicle-field select:focus {
   border-color: #d6a84f;

@@ -234,6 +234,13 @@
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.5px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.moto-user-name:hover {
+  color: #d4a03e;
 }
 
 .moto-logout-btn {

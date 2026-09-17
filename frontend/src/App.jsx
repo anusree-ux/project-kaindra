@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useEffect } from "react";
 import { AuthProvider } from "./context/AuthContext";
+import AuthModal from "./pages/brands/MotoTribe/Auth/AuthModal";
 
 import Navbar from "./components/Navbar/Navbar";
 import Ecosystem from "./pages/brands/ModaSphere/Ecosystem/Ecosystem";
@@ -22,7 +23,7 @@ import Orders from "./pages/Orders";
 import ModaDrop from "./pages/ModaDrop";
 import DropDetails from "./pages/DropDetails";
 import ModaDropOrders from "./pages/ModaDropOrders";
-import Login from "./pages/Login";
+
 import Signup from "./pages/Signup";
 
 // Admin
@@ -125,6 +126,7 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <AuthModal />
         <ScrollToTop />
         <Routes>
           {/* =========================
@@ -280,15 +282,6 @@ function App() {
             element={
               <PublicLayout>
                 <ModaDropOrders />
-              </PublicLayout>
-            }
-          />
-
-          <Route
-            path="/login"
-            element={
-              <PublicLayout>
-                <Login />
               </PublicLayout>
             }
           />

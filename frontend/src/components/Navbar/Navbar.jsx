@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import "./Navbar.css";
 
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { user, isAuthenticated, logout, openAuthModal, loading } = useAuth();
 
   const closeMenu = () => {
     setMenuOpen(false);
@@ -59,18 +61,62 @@ function Navbar() {
             Contact
           </Link>
 
-          <Link
-            to="/login"
-            className="mobile-login"
-            onClick={closeMenu}
-          >
-            Login
-          </Link>
+          {/* Mobile auth action */}
+          {!isAuthenticated ? (
+            <button
+              className="mobile-login"
+              onClick={() => {
+                closeMenu();
+                openAuthModal("login");
+              }}
+            >
+              Login
+            </button>
+          ) : (
+            <>
+              <Link
+                to="/businesses/mototribe/profile-setup"
+                className="mobile-profile-link"
+                onClick={closeMenu}
+              >
+                👤 My Profile
+              </Link>
+              <button
+                className="mobile-login mobile-logout"
+                onClick={() => {
+                  closeMenu();
+                  logout();
+                }}
+              >
+                Logout
+              </button>
+            </>
+          )}
         </nav>
 
-        <Link to="/login" className="navbar-login">
-          Login
-        </Link>
+        {/* Desktop auth area */}
+        {!loading && (
+          !isAuthenticated ? (
+            <button
+              className="navbar-login"
+              onClick={() => openAuthModal("login")}
+            >
+              Login
+            </button>
+          ) : (
+            <div className="navbar-user-area">
+              <Link
+                to="/businesses/mototribe/profile-setup"
+                className="navbar-user-name"
+              >
+                👤 {user?.name || "User"}
+              </Link>
+              <button className="navbar-logout-btn" onClick={logout}>
+                Logout
+              </button>
+            </div>
+          )
+        )}
 
         <button
           type="button"
