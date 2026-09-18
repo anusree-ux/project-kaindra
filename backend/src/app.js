@@ -23,6 +23,7 @@ const careerRoutes = require("./routes/core/careerRoutes");
 const applicationRoutes = require("./routes/core/applicationRoutes");
 const communityRoutes = require("./routes/core/communityRoutes");
 const adminRoutes = require("./routes/core/adminRoutes");
+const orderRoutes = require("./routes/core/orderRoutes");
 const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
@@ -77,18 +78,21 @@ app.use("/api/community", communityRoutes);
 app.use("/api/v1/admin", adminRoutes);
 app.use("/api/admin", adminRoutes);
 
+app.use("/api/v1/orders", orderRoutes);
+app.use("/api/orders", orderRoutes);
+
 // MotoTribe Routes (supports both /api/mototribe and /api/v1/mototribe)
+app.use("/api/v1/mototribe", directionsRoutes);
+app.use("/api/mototribe", directionsRoutes);
+
+app.use("/api/v1/mototribe", placesRoutes);
+app.use("/api/mototribe", placesRoutes);
+
 app.use("/api/v1/mototribe", routeMatchRoutes);
 app.use("/api/mototribe", routeMatchRoutes);
 
 app.use("/api/v1/mototribe", rideRoutes);
 app.use("/api/mototribe", rideRoutes);
-
-app.use("/api/v1/mototribe", placesRoutes);
-app.use("/api/mototribe", placesRoutes);
-
-app.use("/api/v1/mototribe", directionsRoutes);
-app.use("/api/mototribe", directionsRoutes);
 
 app.use("/api/v1/mototribe", sosRoutes);
 app.use("/api/mototribe", sosRoutes);

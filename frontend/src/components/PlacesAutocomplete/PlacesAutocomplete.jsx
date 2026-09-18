@@ -122,6 +122,10 @@ export default function PlacesAutocomplete({
             main: name,
             secondary: parts.join(", ") || props.country || "",
             description: [name, ...parts].join(", "),
+            coordinates:
+              f.geometry?.coordinates && f.geometry.coordinates.length === 2
+                ? { lon: f.geometry.coordinates[0], lat: f.geometry.coordinates[1] }
+                : null,
           });
         }
       }
@@ -154,6 +158,10 @@ export default function PlacesAutocomplete({
             main: main.trim(),
             secondary: parts.join(", ") || item.display_name,
             description: item.display_name,
+            coordinates:
+              item.lat && item.lon
+                ? { lon: parseFloat(item.lon), lat: parseFloat(item.lat) }
+                : null,
           });
         }
       }
@@ -201,7 +209,7 @@ export default function PlacesAutocomplete({
     const selectedText = suggestion.description || suggestion.main;
     onChange(selectedText);
     if (onSelect) {
-      onSelect(selectedText);
+      onSelect(selectedText, suggestion);
     }
     setOpen(false);
     setSuggestions([]);

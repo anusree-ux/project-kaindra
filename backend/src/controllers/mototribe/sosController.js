@@ -107,13 +107,16 @@ const triggerSosAlert = async (req, res, next) => {
 
     if (emergencyContacts.length > 0) {
       const googleMapsUrl = `https://maps.google.com/?q=${latitude},${longitude}`;
-      const smsMessage = `EMERGENCY SOS! Rider ${riderName} triggered an SOS alert on ride "${ride.title}". Location: ${googleMapsUrl}`;
       const deliveryStatuses = [];
 
       for (const contact of emergencyContacts) {
         if (!contact.phoneNumber) continue;
 
-        const smsResult = await sendSms(contact.phoneNumber, smsMessage);
+        const smsResult = await sendSms(contact.phoneNumber, "sos", {
+          riderName,
+          rideTitle: ride.title,
+          locationUrl: googleMapsUrl,
+        });
 
         deliveryStatuses.push({
           contactName: contact.name || "Unknown",

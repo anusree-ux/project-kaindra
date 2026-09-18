@@ -32,7 +32,7 @@
   align-items: center;
   gap: 12px;
   color: #c9964a;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.2em;
 }
@@ -80,7 +80,7 @@
   place-items: center;
   border: 1px solid rgba(201, 150, 74, 0.4);
   color: #c9964a;
-  font-size: 9px;
+  font-size: 13px;
 }
 
 .planner-cycle strong,
@@ -89,14 +89,14 @@
 }
 
 .planner-cycle strong {
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 0.13em;
 }
 
 .planner-cycle small {
   margin-top: 5px;
   color: #5d5d5d;
-  font-size: 7px;
+  font-size: 11px;
   letter-spacing: 0.1em;
 }
 
@@ -114,6 +114,10 @@
   background: #0d0d0d;
 }
 
+.route-analysis {
+  align-self: start;
+}
+
 .planner-form {
   padding: 28px;
 }
@@ -129,7 +133,7 @@
 .planner-form-header span,
 .route-options-title > span {
   color: #c9964a;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 0.17em;
 }
 
@@ -144,7 +148,7 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: transparent;
   color: #555;
-  font-size: 7px;
+  font-size: 11px;
   letter-spacing: 0.12em;
   cursor: pointer;
 }
@@ -169,7 +173,7 @@
   display: block;
   margin-bottom: 8px;
   color: #666;
-  font-size: 7px;
+  font-size: 11px;
   letter-spacing: 0.14em;
 }
 
@@ -228,7 +232,7 @@
   z-index: 2;
   transform: translateY(-50%);
   color: #c9964a;
-  font-size: 9px;
+  font-size: 13px;
   font-style: normal;
 }
 
@@ -274,14 +278,14 @@
 .stops-header span,
 .invite-riders-heading span {
   color: #666;
-  font-size: 7px;
+  font-size: 11px;
   letter-spacing: 0.14em;
 }
 
 .stops-header small,
 .invite-riders-heading > small {
   color: #c9964a;
-  font-size: 7px;
+  font-size: 11px;
 }
 
 .add-stop {
@@ -296,7 +300,7 @@
   border: 1px solid rgba(201, 150, 74, 0.35);
   background: transparent;
   color: #c9964a;
-  font-size: 7px;
+  font-size: 11px;
   letter-spacing: 0.1em;
   cursor: pointer;
 }
@@ -324,13 +328,13 @@
 
 .stop-item > span {
   color: #c9964a;
-  font-size: 7px;
+  font-size: 11px;
 }
 
 .stop-item strong {
   flex: 1;
   color: #999;
-  font-size: 9px;
+  font-size: 13px;
   font-weight: 500;
 }
 
@@ -346,11 +350,16 @@
 
 .planner-fields-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: 1fr 1fr 1.3fr 0.9fr 1fr;
   gap: 9px;
   padding: 23px 0;
   border-top: 1px solid rgba(255, 255, 255, 0.07);
   border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.planner-field input[type="date"],
+.planner-field input[type="time"] {
+  color-scheme: dark;
 }
 
 .planner-field select {
@@ -412,7 +421,7 @@
   display: block;
   margin-bottom: 9px;
   color: #666;
-  font-size: 7px;
+  font-size: 11px;
   letter-spacing: 0.14em;
 }
 
@@ -427,7 +436,7 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: transparent;
   color: #666;
-  font-size: 7px;
+  font-size: 11px;
   letter-spacing: 0.08em;
   cursor: pointer;
 }
@@ -470,7 +479,7 @@
 .travel-preference strong,
 .mileage-input > span {
   color: #aaa;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 0.08em;
 }
 
@@ -478,7 +487,7 @@
   max-width: 120px;
   margin-top: 5px;
   color: #555;
-  font-size: 7px;
+  font-size: 11px;
   line-height: 1.4;
 }
 
@@ -535,7 +544,7 @@
 
 .mileage-input small {
   color: #555;
-  font-size: 7px;
+  font-size: 11px;
 }
 
 /* INVITE */
@@ -585,7 +594,7 @@
   place-items: center;
   border: 1px solid rgba(201, 150, 74, 0.3);
   color: #c9964a;
-  font-size: 8px;
+  font-size: 12px;
 }
 
 .invite-rider strong,
@@ -594,14 +603,14 @@
 }
 
 .invite-rider strong {
-  font-size: 9px;
+  font-size: 13px;
   letter-spacing: 0.08em;
 }
 
 .invite-rider small {
   margin-top: 4px;
   color: #555;
-  font-size: 6px;
+  font-size: 11px;
 }
 
 .invite-rider i {
@@ -626,7 +635,7 @@
 
 .analysis-heading span {
   color: #c9964a;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 0.17em;
 }
 
@@ -649,103 +658,276 @@
 
 /* MAP PREVIEW */
 
-.analysis-route-preview {
+.analysis-route-preview.real-google-maps-container {
   position: relative;
-  height: 235px;
+  width: 100%;
+  height: 280px;
+  min-height: 280px;
   overflow: hidden;
-  background:
-    radial-gradient(circle at 50% 50%, rgba(201, 150, 74, 0.08), transparent 45%),
-    #0a0a0a;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: #111;
 }
 
-.preview-grid {
+.real-google-maps-iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+  filter: contrast(1.02) brightness(0.95);
+}
+
+.preview-badges-row {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.preview-badges-row > * {
+  pointer-events: auto;
+}
+
+.route-badge-recommended {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  background: rgba(10, 10, 10, 0.85);
+  border: 1px solid rgba(201, 150, 74, 0.5);
+  color: #c9964a;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  font-weight: 700;
+  text-transform: uppercase;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.route-badge-gmaps {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: rgba(10, 10, 10, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #f4f1ea;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+  text-transform: uppercase;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.route-badge-gmaps:hover {
+  background: #c9964a;
+  border-color: #c9964a;
+  color: #080808;
+  transform: translateY(-1px);
+}
+
+/* IDLE STATE */
+.planner-idle-state {
+  padding: 38px 24px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.idle-compass-icon {
+  font-size: 32px;
+  margin-bottom: 14px;
+  color: #c9964a;
+  opacity: 0.9;
+}
+
+.planner-idle-state h4 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  letter-spacing: 0.16em;
+  font-weight: 600;
+  color: #f4f1ea;
+  text-transform: uppercase;
+}
+
+.planner-idle-state p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #777;
+}
+
+.planner-idle-state strong {
+  color: #c9964a;
+}
+
+.preview-road-svg {
   position: absolute;
   inset: 0;
-  opacity: 0.3;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-  background-size: 35px 35px;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
 }
 
-.preview-road {
-  position: absolute;
-  height: 70px;
-  border: 1px solid rgba(201, 150, 74, 0.55);
-  border-radius: 50%;
-  transform: rotate(-18deg);
+.route-path-bg {
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 6;
+  fill: none;
+  stroke-linecap: round;
 }
 
-.preview-road-one {
-  width: 80%;
-  left: 8%;
-  top: 35%;
+.route-path-main {
+  stroke: #c9964a;
+  stroke-width: 3;
+  fill: none;
+  stroke-linecap: round;
+  stroke-dasharray: 6 4;
+  animation: routeDash 30s linear infinite;
+  transition: stroke 0.3s, filter 0.3s;
 }
 
-.preview-road-two {
-  width: 58%;
-  left: 20%;
-  top: 40%;
-  opacity: 0.35;
-  transform: rotate(13deg);
+@keyframes routeDash {
+  to {
+    stroke-dashoffset: -1000;
+  }
 }
 
 .preview-point {
   position: absolute;
-  z-index: 5;
+  z-index: 6;
   display: flex;
   align-items: center;
-  gap: 5px;
-  color: #777;
-  font-size: 6px;
-  letter-spacing: 0.1em;
+  gap: 7px;
+  color: #aaa;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  background: rgba(10, 10, 10, 0.85);
+  padding: 3px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  backdrop-filter: blur(4px);
+  max-width: 140px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.preview-point span {
+.point-dot-start {
   width: 8px;
   height: 8px;
-  border: 1px solid #c9964a;
+  background: #22c55e;
+  border: 1px solid #16a34a;
   border-radius: 50%;
-  background: #111;
+  box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+  flex-shrink: 0;
+}
+
+.point-dot-stop {
+  width: 8px;
+  height: 8px;
+  background: #eab308;
+  border: 1px solid #ca8a04;
+  border-radius: 50%;
+  box-shadow: 0 0 6px rgba(234, 179, 8, 0.6);
+  flex-shrink: 0;
+}
+
+.point-dot-dest {
+  width: 8px;
+  height: 8px;
+  background: #ef4444;
+  border: 1px solid #dc2626;
+  border-radius: 50%;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.6);
+  flex-shrink: 0;
+}
+
+.point-dot-direct {
+  width: 8px;
+  height: 8px;
+  background: #38bdf8;
+  border: 1px solid #0284c7;
+  border-radius: 50%;
+  box-shadow: 0 0 6px rgba(56, 189, 248, 0.6);
+  flex-shrink: 0;
+}
+
+.preview-point div {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.preview-point small {
+  font-size: 8px;
+  color: #777;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+}
+
+.preview-point strong {
+  font-size: 10px;
+  color: #eee;
+  font-weight: 500;
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .preview-start {
-  left: 10%;
-  bottom: 32%;
+  left: 14px;
+  top: 65px;
 }
 
 .preview-stop {
-  left: 48%;
-  top: 37%;
+  left: 36%;
+  top: 110px;
 }
 
 .preview-end {
-  right: 8%;
-  top: 20%;
+  right: 14px;
+  bottom: 60px;
 }
 
 .preview-route-label {
   position: absolute;
-  left: 20px;
-  bottom: 16px;
-  z-index: 6;
-}
-
-.preview-route-label span,
-.preview-route-label strong {
-  display: block;
+  left: 16px;
+  bottom: 14px;
+  right: 16px;
+  z-index: 7;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
 }
 
 .preview-route-label span {
   color: #c9964a;
-  font-size: 6px;
-  letter-spacing: 0.15em;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  font-weight: 600;
+  display: block;
 }
 
 .preview-route-label strong {
-  margin-top: 5px;
+  margin-top: 4px;
   font-size: 13px;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
+  color: #f4f1ea;
+  display: block;
+}
+
+.preview-cta-hint {
+  color: #777;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  transition: all 0.2s ease;
 }
 
 .route-analyzing {
@@ -757,17 +939,17 @@
   justify-content: center;
   flex-direction: column;
   gap: 10px;
-  background: rgba(5, 5, 5, 0.75);
+  background: rgba(5, 5, 5, 0.85);
   backdrop-filter: blur(6px);
   color: #c9964a;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 0.15em;
 }
 
 .route-analyzing div {
-  width: 25px;
-  height: 25px;
-  border: 1px solid rgba(201, 150, 74, 0.3);
+  width: 28px;
+  height: 28px;
+  border: 2px solid rgba(201, 150, 74, 0.25);
   border-top-color: #c9964a;
   border-radius: 50%;
   animation: plannerSpin 0.8s linear infinite;
@@ -797,7 +979,7 @@
 
 .selected-route-summary span {
   color: #555;
-  font-size: 6px;
+  font-size: 11px;
   letter-spacing: 0.12em;
 }
 
@@ -810,7 +992,7 @@
 
 .selected-route-summary small {
   color: #555;
-  font-size: 7px;
+  font-size: 11px;
 }
 
 /* CHARACTERISTICS */
@@ -834,14 +1016,14 @@
 
 .route-characteristics span {
   color: #555;
-  font-size: 6px;
+  font-size: 11px;
   letter-spacing: 0.1em;
 }
 
 .route-characteristics strong {
   margin-top: 5px;
   color: #999;
-  font-size: 9px;
+  font-size: 13px;
 }
 
 /* AI NOTE */
@@ -863,13 +1045,13 @@
 .ai-plan-note p {
   margin: 0;
   color: #777;
-  font-size: 8px;
+  font-size: 12px;
   line-height: 1.6;
 }
 
 .ai-plan-note strong {
   color: #c9964a;
-  font-size: 7px;
+  font-size: 11px;
   letter-spacing: 0.12em;
 }
 
@@ -883,7 +1065,7 @@
 
 .route-options-title small {
   color: #555;
-  font-size: 6px;
+  font-size: 11px;
 }
 
 .route-options {
@@ -917,11 +1099,11 @@
 
 .route-choice > div:first-child > span {
   color: #c9964a;
-  font-size: 7px;
+  font-size: 11px;
 }
 
 .route-choice > div:first-child > strong {
-  font-size: 9px;
+  font-size: 13px;
   font-weight: 500;
 }
 
@@ -936,13 +1118,13 @@
 
 .route-choice-time strong {
   color: #bbb;
-  font-size: 8px;
+  font-size: 12px;
 }
 
 .route-choice-time small {
   margin-top: 3px;
   color: #555;
-  font-size: 6px;
+  font-size: 11px;
 }
 
 /* FUEL */
@@ -962,7 +1144,7 @@
 
 .fuel-summary span {
   color: #555;
-  font-size: 6px;
+  font-size: 11px;
   letter-spacing: 0.12em;
 }
 
@@ -986,7 +1168,7 @@
   border: 1px solid #c9964a;
   background: #c9964a;
   color: #080808;
-  font-size: 8px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.13em;
   cursor: pointer;
@@ -1004,7 +1186,7 @@
   display: block;
   padding: 12px 15px 18px;
   color: #444;
-  font-size: 6px;
+  font-size: 11px;
   line-height: 1.5;
 }
 
@@ -1025,11 +1207,11 @@
 }
 
 .flow-item span {
-  font-size: 8px;
+  font-size: 12px;
 }
 
 .flow-item strong {
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 0.13em;
   font-weight: 500;
 }

@@ -6,6 +6,7 @@ const RideParticipant = require("../../models/mototribe/RideParticipant");
 const LiveLocation = require("../../models/mototribe/LiveLocation");
 const AppError = require("../../utils/AppError");
 const { checkAndAwardBadges } = require("../../services/mototribe/achievementService");
+const { checkAndSendReminders } = require("../../services/mototribe/reminderService");
 
 /**
  * Format ride object for API responses, applying registration number masking for non-owners
@@ -132,22 +133,32 @@ const createRide = async (req, res, next) => {
       budget,
     } = req.body;
 
-    if (!vehicleId) {
-      return next(new AppError("vehicleId is required to create a ride.", 400));
+    let resolvedVehicle = null;
+    if (vehicleId && mongoose.Types.ObjectId.isValid(vehicleId)) {
+      resolvedVehicle = await Vehicle.findOne({ _id: vehicleId, userId: req.user._id });
     }
 
-    const vehicle = await Vehicle.findById(vehicleId);
-    if (!vehicle) {
-      return next(new AppError("Selected vehicle not found.", 404));
+    if (!resolvedVehicle) {
+      // Find user's default or first vehicle
+      resolvedVehicle = await Vehicle.findOne({ userId: req.user._id, isDefault: true }) ||
+                        await Vehicle.findOne({ userId: req.user._id });
     }
 
-    if (vehicle.userId.toString() !== req.user._id.toString()) {
-      return next(new AppError("The selected vehicle does not belong to you.", 403));
+    if (!resolvedVehicle) {
+      // Auto-create a default vehicle for this rider
+      resolvedVehicle = await Vehicle.create({
+        userId: req.user._id,
+        vehicleName: "Royal Enfield Himalayan 450",
+        registrationNumber: `KA-01-MT-${Math.floor(1000 + Math.random() * 9000)}`,
+        mileageKmpl: 28,
+        fuelType: "petrol",
+        isDefault: true,
+      });
     }
 
     const newRide = await Ride.create({
       organizerId: req.user._id,
-      vehicleId: vehicle._id,
+      vehicleId: resolvedVehicle._id,
       title,
       origin,
       destination,
@@ -155,6 +166,7 @@ const createRide = async (req, res, next) => {
       durationDays: durationDays || 1,
       distanceKm,
       budget: budget || 0,
+      maxRiders: Math.max(1, Number(req.body.maxRiders) || 1),
       status: "planning",
     });
 
@@ -165,12 +177,36 @@ const createRide = async (req, res, next) => {
       status: "confirmed",
     });
 
+    // Automatically add invited riders as confirmed participants if specified
+    const { invitedRiderIds } = req.body;
+    if (Array.isArray(invitedRiderIds) && invitedRiderIds.length > 0) {
+      for (const riderId of invitedRiderIds) {
+        if (
+          mongoose.Types.ObjectId.isValid(riderId) &&
+          riderId.toString() !== req.user._id.toString()
+        ) {
+          await RideParticipant.create({
+            rideId: newRide._id,
+            userId: riderId,
+            status: "confirmed",
+          }).catch(() => null);
+        }
+      }
+    }
+
     // Safely increment routesContributed and rideGroupsJoined for organizer (without upsert)
     await RiderProfile.updateOne(
       { userId: req.user._id },
       { $inc: { routesContributed: 1, rideGroupsJoined: 1 } }
     );
     await checkAndAwardBadges(req.user._id);
+
+    // Trigger background SendGrid email reminders evaluation asynchronously
+    setImmediate(() => {
+      checkAndSendReminders().catch((err) => {
+        console.warn("[RideController] Automated SendGrid reminder check notice:", err.message || err);
+      });
+    });
 
     res.status(201).json({
       status: "success",
@@ -197,7 +233,37 @@ const getUpcomingRides = async (req, res, next) => {
       .populate("vehicleId")
       .sort({ startDate: 1 });
 
-    const formattedRides = rides.map((r) => formatRideForUser(r, req.user._id));
+    const rideIds = rides.map((r) => r._id);
+    const participants = await RideParticipant.find({
+      rideId: { $in: rideIds },
+      status: { $ne: "left" },
+    });
+
+    const participantCountMap = {};
+    const userParticipationMap = {};
+    participants.forEach((p) => {
+      const rId = p.rideId.toString();
+      participantCountMap[rId] = (participantCountMap[rId] || 0) + 1;
+      if (p.userId.toString() === req.user._id.toString()) {
+        userParticipationMap[rId] = p.status;
+      }
+    });
+
+    const formattedRides = rides.map((r) => {
+      const rideObj = formatRideForUser(r, req.user._id);
+      const isOrganizer =
+        r.organizerId?._id?.toString() === req.user._id.toString() ||
+        r.organizerId?.toString() === req.user._id.toString();
+
+      return {
+        ...rideObj,
+        maxRiders: r.maxRiders || 1,
+        participantsCount: participantCountMap[r._id.toString()] || 1,
+        isOrganizer,
+        userParticipationStatus:
+          userParticipationMap[r._id.toString()] || (isOrganizer ? "confirmed" : null),
+      };
+    });
 
     res.status(200).json({
       status: "success",
@@ -232,11 +298,18 @@ const getRideDetails = async (req, res, next) => {
     });
 
     const formattedRide = formatRideForUser(ride, req.user._id);
+    const isOrganizer =
+      ride.organizerId?._id?.toString() === req.user._id.toString() ||
+      ride.organizerId?.toString() === req.user._id.toString();
 
     res.status(200).json({
       status: "success",
       data: {
-        ride: formattedRide,
+        ride: {
+          ...formattedRide,
+          maxRiders: ride.maxRiders || 1,
+          isOrganizer,
+        },
         participantCount,
       },
     });
@@ -257,6 +330,12 @@ const joinRide = async (req, res, next) => {
     const ride = await Ride.findById(rideId);
     if (!ride) {
       return next(new AppError("Ride not found.", 404));
+    }
+
+    if (ride.organizerId.toString() === req.user._id.toString()) {
+      return next(
+        new AppError("You are the organizer of this ride and already part of it.", 400)
+      );
     }
 
     if (ride.status === "completed" || ride.status === "cancelled") {

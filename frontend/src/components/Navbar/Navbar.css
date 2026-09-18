@@ -98,46 +98,49 @@
 .navbar-user-area {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .navbar-user-name {
-  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  font-size: 13px;
   font-weight: 600;
-  color: #111111;
+  color: #0f172a;
   white-space: nowrap;
   text-decoration: none;
   cursor: pointer;
-  transition: color 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .navbar-user-name:hover {
-  color: #555555;
+  background: #e2e8f0;
+  color: #000000;
+  transform: translateY(-1px);
 }
 
 .navbar-logout-btn {
-  padding: 8px 14px;
-
+  padding: 6px 14px;
   background: transparent;
-  color: #666666;
-
-  border: 1px solid #dddddd;
+  color: #dc2626;
+  border: 1px solid #fecaca;
   border-radius: 6px;
-
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 12px;
+  font-weight: 600;
   font-family: inherit;
-
   cursor: pointer;
-
-  transition:
-    color 0.2s ease,
-    border-color 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .navbar-logout-btn:hover {
-  color: #111111;
-  border-color: #111111;
+  background: #fef2f2;
+  border-color: #f87171;
+  color: #b91c1c;
 }
 
 .navbar-menu {
@@ -158,10 +161,9 @@
   cursor: pointer;
 }
 
-.mobile-login {
+.navbar-mobile-auth {
   display: none;
 }
-
 
 /* =========================
    TABLET
@@ -244,16 +246,22 @@
     justify-content: center;
   }
 
+  .navbar-mobile-auth {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #eeeeee;
+  }
+
   .mobile-login {
-    display: block !important;
-
-    margin-top: 8px;
-
+    display: block;
+    width: 100%;
     padding: 14px 10px;
 
     background: #111111;
-
-    color: #ffffff !important;
+    color: #ffffff;
 
     border: 0;
     border-radius: 6px;
@@ -263,42 +271,57 @@
     font-family: inherit;
 
     text-align: center;
-
     cursor: pointer;
+    transition: background 0.2s ease;
   }
 
-  .mobile-profile-link {
-    display: block !important;
+  .mobile-login:hover {
+    background: #333333;
+  }
 
-    margin-top: 8px;
+  .mobile-user-area {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+  }
 
-    padding: 14px 10px;
-
-    background: transparent;
-
-    color: #111111 !important;
-
-    border: 1px solid #dddddd;
+  .mobile-user-name {
+    display: block;
+    padding: 12px 14px;
+    background: #f8f9fa;
+    color: #111111;
+    border: 1px solid #e5e7eb;
     border-radius: 6px;
-
     font-size: 15px;
     font-weight: 600;
-
     text-align: center;
     text-decoration: none;
+    transition: background 0.2s ease;
   }
 
-  .mobile-profile-link:hover {
-    background: #f5f5f5;
+  .mobile-user-name:hover {
+    background: #f1f3f5;
   }
 
-  .mobile-logout {
-    background: transparent !important;
-    color: #dc2626 !important;
-    border: 1px solid #fecaca !important;
+  .mobile-logout-btn {
+    display: block;
+    width: 100%;
+    padding: 12px 10px;
+    background: transparent;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
   }
 
-  .mobile-logout:hover {
-    background: #fef2f2 !important;
+  .mobile-logout-btn:hover {
+    background: #fef2f2;
+    border-color: #f87171;
   }
 }

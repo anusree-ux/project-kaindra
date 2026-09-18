@@ -62,36 +62,40 @@ function Navbar() {
           </Link>
 
           {/* Mobile auth action */}
-          {!isAuthenticated ? (
-            <button
-              className="mobile-login"
-              onClick={() => {
-                closeMenu();
-                openAuthModal("login");
-              }}
-            >
-              Login
-            </button>
-          ) : (
-            <>
-              <Link
-                to="/businesses/mototribe/profile-setup"
-                className="mobile-profile-link"
-                onClick={closeMenu}
-              >
-                👤 My Profile
-              </Link>
-              <button
-                className="mobile-login mobile-logout"
-                onClick={() => {
-                  closeMenu();
-                  logout();
-                }}
-              >
-                Logout
-              </button>
-            </>
-          )}
+          <div className="navbar-mobile-auth">
+            {!loading && (
+              !isAuthenticated ? (
+                <button
+                  className="mobile-login"
+                  onClick={() => {
+                    closeMenu();
+                    openAuthModal("login");
+                  }}
+                >
+                  Login
+                </button>
+              ) : (
+                <div className="mobile-user-area">
+                  <Link
+                    to="/profile"
+                    className="mobile-user-name"
+                    onClick={closeMenu}
+                  >
+                    👤 {user?.name || "User"}
+                  </Link>
+                  <button
+                    className="mobile-logout-btn"
+                    onClick={() => {
+                      closeMenu();
+                      logout();
+                    }}
+                  >
+                    Logout
+                  </button>
+                </div>
+              )
+            )}
+          </div>
         </nav>
 
         {/* Desktop auth area */}
@@ -106,7 +110,7 @@ function Navbar() {
           ) : (
             <div className="navbar-user-area">
               <Link
-                to="/businesses/mototribe/profile-setup"
+                to="/profile"
                 className="navbar-user-name"
               >
                 👤 {user?.name || "User"}

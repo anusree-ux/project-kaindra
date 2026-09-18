@@ -25,8 +25,8 @@ const upload = multer({
 
 const router = express.Router();
 
-// All journal routes require authentication
-router.use(protect);
+// Protected journal routes require authentication
+router.use(["/rider-profile", "/rides", "/journal"], protect);
 
 // GET logged-in user's own journals across all rides
 router.get("/rider-profile/me/journal", getMyJournals);

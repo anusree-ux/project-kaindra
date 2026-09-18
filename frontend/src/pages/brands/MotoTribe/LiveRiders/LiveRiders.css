@@ -32,7 +32,7 @@
   align-items: center;
   gap: 12px;
   color: #c9964a;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.2em;
 }
@@ -114,14 +114,14 @@
 }
 
 .live-network-status strong {
-  font-size: 9px;
+  font-size: 13px;
   letter-spacing: 0.13em;
 }
 
 .live-network-status small {
   margin-top: 5px;
   color: #666;
-  font-size: 7px;
+  font-size: 11px;
   letter-spacing: 0.1em;
 }
 
@@ -151,7 +151,7 @@
 
 .rider-discovery-top span {
   color: #c9964a;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 0.17em;
 }
 
@@ -175,7 +175,7 @@
 
 .rider-count span {
   color: #666;
-  font-size: 7px;
+  font-size: 11px;
   margin-bottom: 5px;
 }
 
@@ -194,7 +194,7 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: transparent;
   color: #666;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 0.11em;
   cursor: pointer;
   transition: 0.2s ease;
@@ -277,7 +277,7 @@
   background: rgba(5, 5, 5, 0.72);
   backdrop-filter: blur(8px);
   color: #aaa;
-  font-size: 7px;
+  font-size: 11px;
   letter-spacing: 0.1em;
 }
 
@@ -301,7 +301,7 @@
   border: 1px solid rgba(201, 150, 74, 0.25);
   background: rgba(5, 5, 5, 0.72);
   color: #c9964a;
-  font-size: 7px;
+  font-size: 11px;
 }
 
 .rider-initials {
@@ -315,7 +315,7 @@
   border: 1px solid rgba(201, 150, 74, 0.45);
   background: rgba(10, 10, 10, 0.75);
   color: #c9964a;
-  font-size: 9px;
+  font-size: 13px;
 }
 
 /* CARD BODY */
@@ -343,7 +343,7 @@
 .rider-card-name span {
   margin-top: 4px;
   color: #666;
-  font-size: 7px;
+  font-size: 11px;
   letter-spacing: 0.1em;
 }
 
@@ -354,14 +354,14 @@
   place-items: center;
   border: 1px solid rgba(201, 150, 74, 0.3);
   color: #c9964a;
-  font-size: 8px;
+  font-size: 12px;
   font-weight: 500;
 }
 
 .rider-bike {
   margin-top: 12px;
   color: #858585;
-  font-size: 7px;
+  font-size: 11px;
   line-height: 1.5;
   letter-spacing: 0.06em;
 }
@@ -376,7 +376,7 @@
 
 .rider-card-footer span {
   color: #555;
-  font-size: 7px;
+  font-size: 11px;
   letter-spacing: 0.08em;
 }
 
@@ -399,7 +399,7 @@
 
 .profile-panel-top > span {
   color: #c9964a;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 0.16em;
 }
 
@@ -408,7 +408,7 @@
   align-items: center;
   gap: 5px;
   color: #666;
-  font-size: 8px;
+  font-size: 12px;
 }
 
 .profile-location span {
@@ -451,7 +451,7 @@
   align-items: center;
   gap: 6px;
   color: #c9964a;
-  font-size: 7px;
+  font-size: 11px;
   letter-spacing: 0.12em;
 }
 
@@ -473,7 +473,7 @@
 .profile-hero-content p {
   margin: 0;
   color: #aaa;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 0.09em;
 }
 
@@ -489,7 +489,7 @@
 .profile-experience span {
   display: block;
   color: #555;
-  font-size: 7px;
+  font-size: 11px;
   letter-spacing: 0.12em;
 }
 
@@ -513,7 +513,7 @@
 
 .trust-score small {
   color: #555;
-  font-size: 8px;
+  font-size: 12px;
 }
 
 /* ROUTE */
@@ -528,7 +528,7 @@
   align-items: center;
   gap: 7px;
   color: #c9964a;
-  font-size: 7px;
+  font-size: 11px;
   letter-spacing: 0.13em;
 }
 
@@ -549,7 +549,7 @@
 .route-location {
   margin-top: 7px;
   color: #666;
-  font-size: 8px;
+  font-size: 12px;
 }
 
 .route-location span {
@@ -589,7 +589,7 @@
 .profile-stats span {
   margin-top: 4px;
   color: #555;
-  font-size: 6px;
+  font-size: 11px;
   letter-spacing: 0.1em;
 }
 
@@ -605,7 +605,7 @@
 .profile-actions button {
   min-height: 43px;
   cursor: pointer;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 0.1em;
 }
 
@@ -641,13 +641,13 @@
 
 .privacy-note > span {
   color: #c9964a;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .privacy-note p {
   margin: 0;
   color: #555;
-  font-size: 7px;
+  font-size: 11px;
   line-height: 1.6;
 }
 
@@ -687,7 +687,7 @@
 .connect-banner span {
   display: block;
   color: #c9964a;
-  font-size: 7px;
+  font-size: 11px;
   letter-spacing: 0.16em;
 }
 
@@ -708,7 +708,7 @@
   border: 1px solid rgba(201, 150, 74, 0.45);
   background: transparent;
   color: #c9964a;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 0.1em;
   cursor: pointer;
 }

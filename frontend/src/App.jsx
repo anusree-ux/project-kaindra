@@ -25,6 +25,7 @@ import DropDetails from "./pages/DropDetails";
 import ModaDropOrders from "./pages/ModaDropOrders";
 
 import Signup from "./pages/Signup";
+import Profile from "./pages/Profile";
 
 // Admin
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -291,6 +292,15 @@ function App() {
             element={
               <PublicLayout>
                 <Signup />
+              </PublicLayout>
+            }
+          />
+
+          <Route
+            path="/profile"
+            element={
+              <PublicLayout>
+                <Profile />
               </PublicLayout>
             }
           />
