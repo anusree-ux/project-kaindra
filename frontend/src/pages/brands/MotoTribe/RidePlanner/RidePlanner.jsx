@@ -1,5 +1,5 @@
-/* eslint-disable no-unused-vars */
 import { useEffect, useMemo, useState, useCallback } from "react";
+import { useAuth } from "../../../../context/AuthContext";
 import apiClient from "../../../../services/apiClient";
 import "./RidePlanner.css";
 
@@ -40,9 +40,11 @@ const defaultRouteOptions = [
 ];
 
 function RidePlanner() {
+  const { isAuthenticated, openAuthModal } = useAuth();
   const [start, setStart] = useState("");
   const [destination, setDestination] = useState("");
   const [rideDate, setRideDate] = useState("");
+
   const [rideType, setRideType] = useState("ADVENTURE");
   const [userVehicles, setUserVehicles] = useState([]);
   const [selectedVehicleId, setSelectedVehicleId] = useState(null);
@@ -69,8 +71,10 @@ function RidePlanner() {
 
   // 1. Fetch user vehicles, discoverable riders & fuel price from backend
   const fetchInitialData = useCallback(async () => {
+    if (!isAuthenticated) return;
     try {
       // Fuel Price
+
       const fuelRes = await apiClient.get("/api/mototribe/fuel-prices").catch(() => null);
       if (fuelRes?.data?.data?.fuelPrice?.pricePerLiter) {
         setFuelPrice(fuelRes.data.data.fuelPrice.pricePerLiter);
@@ -138,7 +142,7 @@ function RidePlanner() {
     } catch (err) {
       console.error("Error initializing RidePlanner data:", err);
     }
-  }, []);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     fetchInitialData();
@@ -257,10 +261,16 @@ function RidePlanner() {
   };
 
   const createRide = async () => {
+    if (!isAuthenticated) {
+      openAuthModal("login");
+      return;
+    }
+
     if (!start.trim() || !destination.trim()) {
       alert("Please enter your start location and destination.");
       return;
     }
+
 
     setCreating(true);
     try {
@@ -367,7 +377,46 @@ function RidePlanner() {
           </div>
         </div>
 
-        <div className="planner-layout">
+        {!isAuthenticated ? (
+          <div
+            style={{
+              padding: "60px 20px",
+              textAlign: "center",
+              background: "rgba(255, 255, 255, 0.02)",
+              border: "1px dashed rgba(212, 160, 62, 0.3)",
+              borderRadius: "12px",
+              margin: "40px 0",
+            }}
+          >
+            <div style={{ fontSize: "36px", marginBottom: "16px" }}>🔒</div>
+            <h3 style={{ fontSize: "16px", fontWeight: "800", letterSpacing: "2px", color: "#d4a03e", marginBottom: "8px" }}>
+              AUTHENTICATION REQUIRED
+            </h3>
+            <p style={{ fontSize: "13px", color: "rgba(255, 255, 255, 0.6)", maxWidth: "480px", margin: "0 auto 20px" }}>
+              Please log in to access the AI Route Builder, plan intelligent motorcycle journeys, and schedule rides.
+            </p>
+            <button
+              type="button"
+              onClick={() => openAuthModal("login")}
+              style={{
+                padding: "12px 28px",
+                background: "linear-gradient(135deg, #d4a03e 0%, #b88328 100%)",
+                color: "#07080a",
+                fontWeight: "800",
+                border: "none",
+                borderRadius: "6px",
+                cursor: "pointer",
+                letterSpacing: "1.5px",
+                fontSize: "12px",
+              }}
+            >
+              LOGIN / SIGN UP TO UNLOCK
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="planner-layout">
+
           <div className="planner-form">
             <div className="planner-form-header">
               <div>
@@ -859,8 +908,11 @@ function RidePlanner() {
             <strong>RECORD</strong>
           </div>
         </div>
+        </>
+        )}
       </div>
     </section>
+
   );
 }
 

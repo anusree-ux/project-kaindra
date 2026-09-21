@@ -1,4 +1,5 @@
 const FuelPriceSubmission = require("../../models/mototribe/FuelPriceSubmission");
+const FuelPrice = require("../../models/mototribe/FuelPrice");
 const AppError = require("../../utils/AppError");
 
 /**
@@ -140,6 +141,7 @@ const getRecentSubmissions = async (limit = 20) => {
 
 /**
  * 3. Estimate fuel cost for distance, vehicle mileage, state, and fuel type
+ * Uses stored IOCL state-wise petrol and diesel prices from DB for estimation.
  *
  * @param {number} distanceKm - Total distance in km
  * @param {number} vehicleMileageKmpl - Vehicle mileage in km/L
@@ -161,18 +163,38 @@ const estimateFuelCost = async (distanceKm, vehicleMileageKmpl, state, fuelType)
   const normalizedState = state && typeof state === "string" && state.trim() ? state.trim() : "Delhi";
   const normalizedFuelType = fuelType && typeof fuelType === "string" && fuelType.trim() ? fuelType.trim().toLowerCase() : "petrol";
 
-  const stats = await getCurrentAverage(normalizedState, normalizedFuelType);
+  // 1. Primary lookup: Official IOCL state-wise FuelPrice record stored in DB
+  const searchRegex = new RegExp(normalizedState.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+  let ioclRecord = await FuelPrice.findOne({
+    $or: [{ state: searchRegex }, { city: searchRegex }, { location: searchRegex }],
+    isLatest: true,
+  });
+
+  if (!ioclRecord) {
+    ioclRecord = await FuelPrice.findOne({
+      $or: [{ state: searchRegex }, { city: searchRegex }, { location: searchRegex }],
+    });
+  }
 
   let pricePerLiter;
   let isFallback = false;
+  let priceSource = "IOCL DB";
 
-  if (stats.count > 0 && stats.median !== null) {
-    pricePerLiter = stats.median;
+  if (ioclRecord) {
+    pricePerLiter = normalizedFuelType === "petrol" ? ioclRecord.petrolPrice : ioclRecord.dieselPrice;
     isFallback = false;
   } else {
-    // Hardcoded national default fallback (~₹105/L petrol, ~₹95/L diesel)
-    pricePerLiter = normalizedFuelType === "petrol" ? 105.0 : 95.0;
-    isFallback = true;
+    // 2. Fallback to crowdsourced community submission 7-day average if DB state missing
+    const stats = await getCurrentAverage(normalizedState, normalizedFuelType);
+    if (stats.count > 0 && stats.median !== null) {
+      pricePerLiter = stats.median;
+      priceSource = "Community 7-Day Median";
+    } else {
+      // 3. Fallback to national default
+      pricePerLiter = normalizedFuelType === "petrol" ? 94.72 : 87.62;
+      isFallback = true;
+      priceSource = "National Default";
+    }
   }
 
   const fuelRequiredExact = numDistance / numMileage;
@@ -189,11 +211,9 @@ const estimateFuelCost = async (distanceKm, vehicleMileageKmpl, state, fuelType)
     pricePerLiter,
     fuelRequired,
     estimatedFuelCost,
-    submissionCount: stats.count,
+    priceSource,
     isFallback,
-    note: isFallback
-      ? `Using national default fallback price (₹${pricePerLiter}/L). No community submissions available yet for state '${normalizedState}'.`
-      : `Calculated using 7-day community median price (₹${pricePerLiter}/L) from ${stats.count} submission(s).`,
+    note: `Estimated using official IOCL state-wise DB rate (₹${pricePerLiter}/L for ${normalizedFuelType}) for state '${normalizedState}'.`,
   };
 };
 

@@ -10,6 +10,55 @@ import {
 import "./AdminDashboard.css";
 
 function AdminDashboard() {
+  // Get submitted applications
+  const getApplications = () => {
+    try {
+      const savedApplications =
+        localStorage.getItem("kaindraApplications");
+
+      if (!savedApplications) {
+        return [];
+      }
+
+      const applications = JSON.parse(savedApplications);
+
+      return Array.isArray(applications) ? applications : [];
+    } catch (error) {
+      console.error(
+        "Unable to load applications:",
+        error
+      );
+
+      return [];
+    }
+  };
+
+  // Get community members
+  const getCommunityMembers = () => {
+    try {
+      const savedMembers =
+        localStorage.getItem("kaindraCommunityMembers");
+
+      if (!savedMembers) {
+        return [];
+      }
+
+      const members = JSON.parse(savedMembers);
+
+      return Array.isArray(members) ? members : [];
+    } catch (error) {
+      console.error(
+        "Unable to load community members:",
+        error
+      );
+
+      return [];
+    }
+  };
+
+  const applications = getApplications();
+  const communityMembers = getCommunityMembers();
+
   const stats = [
     {
       title: "Open Positions",
@@ -18,12 +67,12 @@ function AdminDashboard() {
     },
     {
       title: "Applications",
-      value: "0",
+      value: applications.length,
       icon: FileText,
     },
     {
-      title: "Team Members",
-      value: "0",
+      title: "Community Members",
+      value: communityMembers.length,
       icon: Users,
     },
     {
@@ -40,13 +89,15 @@ function AdminDashboard() {
         {/* Header */}
         <div className="admin-header">
           <div>
-            <span className="admin-label">KAINDRA ADMIN</span>
+            <span className="admin-label">
+              KAINDRA ADMIN
+            </span>
 
             <h1>Dashboard</h1>
 
             <p>
-              Manage your Kaindra website and business operations
-              from one place.
+              Manage your Kaindra website and business
+              operations from one place.
             </p>
           </div>
 
@@ -62,7 +113,10 @@ function AdminDashboard() {
             const Icon = stat.icon;
 
             return (
-              <div className="admin-stat-card" key={stat.title}>
+              <div
+                className="admin-stat-card"
+                key={stat.title}
+              >
                 <div className="admin-stat-icon">
                   <Icon size={22} />
                 </div>
@@ -81,13 +135,16 @@ function AdminDashboard() {
 
           <div className="admin-section-heading">
             <div>
-              <span className="admin-label">MANAGEMENT</span>
+              <span className="admin-label">
+                MANAGEMENT
+              </span>
+
               <h2>Manage your website</h2>
             </div>
 
             <p>
-              Quickly access the main areas of the Kaindra
-              administration panel.
+              Quickly access the main areas of the
+              Kaindra administration panel.
             </p>
           </div>
 
@@ -104,8 +161,8 @@ function AdminDashboard() {
 
                 <p>
                   Add, edit and remove job openings.
-                  Changes can later be connected directly
-                  to the public Careers page.
+                  Changes can later be connected
+                  directly to the public Careers page.
                 </p>
 
                 <Link
@@ -125,17 +182,61 @@ function AdminDashboard() {
               </div>
 
               <div className="admin-card-content">
-                <h3>Applications</h3>
+                <h3>
+                  Applications
+
+                  {applications.length > 0 && (
+                    <span className="application-count">
+                      {applications.length}
+                    </span>
+                  )}
+                </h3>
 
                 <p>
-                  Review applications submitted by candidates
-                  for available Kaindra positions.
+                  Review applications submitted by
+                  candidates for available Kaindra
+                  positions.
                 </p>
 
-                <button className="admin-card-link disabled">
+                <Link
+                  to="/admin/applications"
+                  className="admin-card-link"
+                >
                   View Applications
                   <ArrowRight size={18} />
-                </button>
+                </Link>
+              </div>
+            </div>
+
+            {/* Community */}
+            <div className="admin-management-card">
+              <div className="admin-card-icon">
+                <Users size={24} />
+              </div>
+
+              <div className="admin-card-content">
+                <h3>
+                  Community
+
+                  {communityMembers.length > 0 && (
+                    <span className="application-count">
+                      {communityMembers.length}
+                    </span>
+                  )}
+                </h3>
+
+                <p>
+                  View and manage people who have
+                  joined the Kaindra community.
+                </p>
+
+                <Link
+                  to="/admin/community"
+                  className="admin-card-link"
+                >
+                  View Community
+                  <ArrowRight size={18} />
+                </Link>
               </div>
             </div>
 
@@ -153,7 +254,11 @@ function AdminDashboard() {
                   company details.
                 </p>
 
-                <button className="admin-card-link disabled">
+                <button
+                  type="button"
+                  className="admin-card-link disabled"
+                  disabled
+                >
                   Manage Team
                   <ArrowRight size={18} />
                 </button>

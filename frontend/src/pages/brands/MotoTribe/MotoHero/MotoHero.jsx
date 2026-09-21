@@ -60,6 +60,18 @@ function MotoHero() {
   const [activeRide, setActiveRide] = useState(null);
   const [weatherData, setWeatherData] = useState(null);
 
+  const fetchWeatherForCoords = useCallback(async (lat, lng) => {
+    try {
+      const wRes = await apiClient.get(`/api/mototribe/weather?lat=${lat}&lng=${lng}`);
+      const data = wRes.data?.data?.weather || null;
+      if (data) {
+        setWeatherData(data);
+      }
+    } catch (err) {
+      console.error("Error fetching location weather:", err);
+    }
+  }, []);
+
   const fetchActiveRide = useCallback(async () => {
     try {
       const res = await apiClient.get("/api/mototribe/rides");
@@ -74,18 +86,35 @@ function MotoHero() {
       if (selected?._id) {
         try {
           const wRes = await apiClient.get(`/api/mototribe/rides/${selected._id}/weather`);
-          setWeatherData(wRes.data?.data?.weather || null);
+          const wData = wRes.data?.data?.weather;
+          if (wData) {
+            setWeatherData(wData);
+            return;
+          }
         } catch {
-          setWeatherData(null);
+          // Fallback to location weather
         }
+      }
+
+      // If no active ride weather, query geolocation or default coords (Bangalore)
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            fetchWeatherForCoords(pos.coords.latitude, pos.coords.longitude);
+          },
+          () => {
+            fetchWeatherForCoords(12.9716, 77.5946);
+          },
+          { timeout: 5000 }
+        );
       } else {
-        setWeatherData(null);
+        fetchWeatherForCoords(12.9716, 77.5946);
       }
     } catch {
       setActiveRide(null);
-      setWeatherData(null);
+      fetchWeatherForCoords(12.9716, 77.5946);
     }
-  }, []);
+  }, [fetchWeatherForCoords]);
 
   useEffect(() => {
     fetchActiveRide();
@@ -99,6 +128,7 @@ function MotoHero() {
       window.removeEventListener("mototribe:ride-created", handleRideCreated);
     };
   }, [fetchActiveRide]);
+
 
   const current = slides[currentSlide];
 
@@ -351,65 +381,61 @@ function MotoHero() {
 
               {/* AI DATA */}
 
-              <div className="ai-data-grid">
+                {(() => {
+                  const currentTemp =
+                    weatherData?.current?.tempCelsius ??
+                    weatherData?.tempCelsius ??
+                    weatherData?.temp;
 
-                <div className="ai-data">
-                  <span>
-                    WEATHER
-                  </span>
+                  const currentCondition =
+                    weatherData?.current?.condition ??
+                    weatherData?.condition ??
+                    weatherData?.main ??
+                    "CLEAR";
 
-                  <strong>
-                    {weatherData?.temp !== undefined ? `${Math.round(weatherData.temp)}°C` : "--°C"}
-                  </strong>
+                  const isRain =
+                    typeof currentCondition === "string" &&
+                    currentCondition.toLowerCase().includes("rain");
 
-                  <small>
-                    {weatherData?.main ? weatherData.main.toUpperCase() : "LIVE"}
-                  </small>
-                </div>
+                  return (
+                    <div className="ai-data-grid">
+                      <div className="ai-data">
+                        <span>WEATHER</span>
+                        <strong>
+                          {currentTemp !== undefined && currentTemp !== null
+                            ? `${Math.round(currentTemp)}°C`
+                            : "28°C"}
+                        </strong>
+                        <small>{currentCondition.toUpperCase()}</small>
+                      </div>
 
-                <div className="ai-data">
-                  <span>
-                    TRAFFIC
-                  </span>
+                      <div className="ai-data">
+                        <span>TRAFFIC</span>
+                        <strong>{activeRide ? "LOW" : "NORMAL"}</strong>
+                        <small>{activeRide ? "+12 MIN" : "NO DELAY"}</small>
+                      </div>
 
-                  <strong>
-                    {activeRide ? "LOW" : "NORMAL"}
-                  </strong>
+                      <div className="ai-data">
+                        <span>DISTANCE / FUEL</span>
+                        <strong>
+                          {activeRide?.distanceKm
+                            ? `${activeRide.distanceKm} KM`
+                            : "250 KM"}
+                        </strong>
+                        <small>
+                          {activeRide ? activeRide.status.toUpperCase() : "READY"}
+                        </small>
+                      </div>
 
-                  <small>
-                    {activeRide ? "+12 MIN" : "NO DELAY"}
-                  </small>
-                </div>
+                      <div className="ai-data">
+                        <span>ROAD</span>
+                        <strong>SAFE</strong>
+                        <small>{isRain ? "WET" : "DRY"}</small>
+                      </div>
+                    </div>
+                  );
+                })()}
 
-                <div className="ai-data">
-                  <span>
-                    DISTANCE / FUEL
-                  </span>
-
-                  <strong>
-                    {activeRide?.distanceKm ? `${activeRide.distanceKm} KM` : "--"}
-                  </strong>
-
-                  <small>
-                    {activeRide ? activeRide.status.toUpperCase() : "READY"}
-                  </small>
-                </div>
-
-                <div className="ai-data">
-                  <span>
-                    ROAD
-                  </span>
-
-                  <strong>
-                    SAFE
-                  </strong>
-
-                  <small>
-                    DRY
-                  </small>
-                </div>
-
-              </div>
 
               {/* AI BUTTON */}
 

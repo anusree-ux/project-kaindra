@@ -1,20 +1,14 @@
 import { Link } from "react-router-dom";
 import { Menu } from "lucide-react";
+
 import "./ModaNavbar.css";
 
 export default function ModaNavbar() {
-  const handleHome = () => {
-    window.location.assign("/");
-  };
-
   return (
     <nav className="moda-navbar">
 
       {/* MODASPHERE BRAND */}
-      <Link
-        to="/businesses/modasphere"
-        className="moda-brand"
-      >
+      <Link to="/#modasphere" className="moda-brand">
         <div className="moda-brand-mark">
           M
         </div>
@@ -34,55 +28,55 @@ export default function ModaNavbar() {
       {/* NAVIGATION */}
       <div className="moda-nav-links">
 
-        <button
-          type="button"
-          onClick={handleHome}
-          className="moda-home-button"
-        >
-          Home
-        </button>
+        {/* KAINDRA HOME */}
+        <a
+  href="/"
+  className="moda-home-link"
+>
+  Home
+</a>
 
-        <Link to="/businesses/modasphere/vision">
+        <Link to="/#vision">
           Vision
         </Link>
 
-        <Link to="/businesses/modasphere/ecosystem">
+        <Link to="/#ecosystem">
           Ecosystem
         </Link>
 
-        <Link to="/businesses/modasphere/pillars">
+        <Link to="/#pillars">
           Pillars
         </Link>
 
-        <Link to="/businesses/modasphere/value">
+        <Link to="/#value">
           Value
         </Link>
 
-        <Link to="/businesses/modasphere/verticals">
+        <Link to="/#verticals">
           Verticals
         </Link>
 
-        <Link to="/businesses/modasphere/stakeholders">
+        <Link to="/#stakeholders">
           Stakeholders
         </Link>
 
-        <Link to="/businesses/modasphere/revenue">
+        <Link to="/#revenue">
           Revenue
         </Link>
 
-        <Link to="/businesses/modasphere/technology">
+        <Link to="/#technology">
           Technology
         </Link>
 
-        <Link to="/businesses/modasphere/go-to-market">
+        <Link to="/#go-to-market">
           Go-To-Market
         </Link>
 
-        <Link to="/businesses/modasphere/impact">
+        <Link to="/#impact">
           Impact
         </Link>
 
-        <Link to="/businesses/modasphere/success">
+        <Link to="/#success">
           Success
         </Link>
 

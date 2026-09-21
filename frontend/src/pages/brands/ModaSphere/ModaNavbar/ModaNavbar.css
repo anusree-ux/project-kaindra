@@ -311,33 +311,43 @@
     display: none;
   }
 }
-.moda-home-link {
-  color: inherit;
+.moda-nav-links .moda-home-link {
+  position: relative;
+
+  color: #222222;
   text-decoration: none;
-}
-.moda-home-button {
-  background: none;
-  border: none;
-  padding: 0;
-  margin: 0;
-  color: inherit;
-  font: inherit;
+
+  font-family: Arial, sans-serif;
+  font-size: 9px;
+  font-weight: 500;
+
+  letter-spacing: 1.3px;
+
   cursor: pointer;
+
+  transition: color 0.25s ease;
 }
 
-.moda-home-button:hover {
-  opacity: 0.7;
-}
-.moda-home-button {
-  background: none;
-  border: none;
-  padding: 0;
-  margin: 0;
-  color: inherit;
-  font: inherit;
-  cursor: pointer;
+.moda-nav-links .moda-home-link:hover {
+  color: #bd8b46;
 }
 
-.moda-home-button:hover {
-  opacity: 0.7;
+.moda-nav-links .moda-home-link::after {
+  content: "";
+
+  position: absolute;
+
+  left: 0;
+  bottom: -7px;
+
+  width: 0;
+  height: 1px;
+
+  background: #bd8b46;
+
+  transition: width 0.25s ease;
+}
+
+.moda-nav-links .moda-home-link:hover::after {
+  width: 100%;
 }

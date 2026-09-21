@@ -1,8 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import apiClient from "../../../../services/apiClient";
+import { useAuth } from "../../../../context/AuthContext";
 import "./SafetyEmergency.css";
 
 function SafetyEmergency() {
+  const { isAuthenticated, openAuthModal } = useAuth();
+
   const [safetyItems, setSafetyItems] = useState([
     { id: 1, label: "HELMET", checked: true },
     { id: 2, label: "RIDING GEAR", checked: true },
@@ -68,8 +71,12 @@ function SafetyEmergency() {
   const completedCount = safetyItems.filter((item) => item.checked).length;
   const safetyPercentage = Math.round((completedCount / safetyItems.length) * 100);
 
-  // Step 1: User clicks SOS button -> Open confirmation dialog
+  // Step 1: User clicks SOS button -> Check auth then open confirmation dialog
   const handleSOSClick = () => {
+    if (!isAuthenticated) {
+      openAuthModal("login");
+      return;
+    }
     setSosError("");
     setSosResult(null);
     setShowConfirmModal(true);

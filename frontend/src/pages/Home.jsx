@@ -6,9 +6,9 @@ import News from "../sections/News/News";
 import Timeline from "../sections/Timeline/Timeline";
 
 // ModaSphere sections
+
 import ModaHero from "./brands/ModaSphere/ModaHero/ModaHero";
 import VisionMission from "./brands/ModaSphere/VisionMission/VisionMission";
-import Ecosystem from "./brands/ModaSphere/Ecosystem/Ecosystem";
 import CorePillars from "./brands/ModaSphere/CorePillars/CorePillars";
 import ValueProposition from "./brands/ModaSphere/ValueProposition/ValueProposition";
 import Stakeholders from "./brands/ModaSphere/Stakeholders/Stakeholders";
@@ -29,11 +29,11 @@ function Home() {
 
       {/* MODASPHERE */}
       <div id="modasphere">
+        
+
         <ModaHero />
 
         <VisionMission />
-
-        <Ecosystem />
 
         <CorePillars />
 

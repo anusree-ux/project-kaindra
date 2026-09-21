@@ -263,4 +263,25 @@
   .moto-mobile-auth {
     display: block;
   }
-}
+}
+
+.moto-auth-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+}
+
+.moto-loading-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #d4a03e;
+  border-radius: 50%;
+  animation: motoPulse 1s infinite alternate;
+}
+
+@keyframes motoPulse {
+  0% { opacity: 0.3; transform: scale(0.8); }
+  100% { opacity: 1; transform: scale(1.2); }
+}
+
