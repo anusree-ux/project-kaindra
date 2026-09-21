@@ -1,5 +1,6 @@
 const CourseEnrollment = require("../../models/modasphere/CourseEnrollment");
 const ModaCourse = require("../../models/modasphere/ModaCourse");
+const CourseCertificate = require("../../models/modasphere/CourseCertificate");
 
 // Enroll in a course
 const enrollInCourse = async (req, res) => {
@@ -104,8 +105,111 @@ const getMyEnrollment = async (req, res) => {
   }
 };
 
+// Complete a course module
+const completeModule = async (req, res) => {
+  try {
+    const { courseId, moduleId } = req.params;
+
+    const enrollment = await CourseEnrollment.findOne({
+      user: req.user._id,
+      course: courseId,
+    });
+
+    if (!enrollment) {
+      return res.status(404).json({
+        success: false,
+        message: "You are not enrolled in this course",
+      });
+    }
+
+    const course = await ModaCourse.findById(courseId);
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found",
+      });
+    }
+
+    const moduleExists = course.modules.some(
+      (module) => module._id.toString() === moduleId
+    );
+
+    if (!moduleExists) {
+      return res.status(404).json({
+        success: false,
+        message: "Module not found in this course",
+      });
+    }
+
+    const alreadyCompleted = enrollment.completedModules.some(
+      (id) => id.toString() === moduleId
+    );
+
+    if (!alreadyCompleted) {
+      enrollment.completedModules.push(moduleId);
+    }
+
+    const totalModules = course.modules.length;
+
+    enrollment.progress =
+      totalModules === 0
+        ? 0
+        : Math.round(
+            (enrollment.completedModules.length / totalModules) * 100
+          );
+
+    if (enrollment.progress === 100) {
+        enrollment.status = "completed";
+
+        if (!enrollment.completedAt) {
+            enrollment.completedAt = new Date();
+        }
+    }
+
+    await enrollment.save();
+
+    let certificate = null;
+
+    if (enrollment.progress === 100) {
+        certificate = await CourseCertificate.findOneAndUpdate(
+            {
+                user: req.user._id,
+                course: course._id,
+            },
+            {
+                user: req.user._id,
+                course: course._id,
+                enrollment: enrollment._id,
+                certificateNumber: `MODA-${Date.now()}`,
+            },
+            {
+                new: true,
+                upsert: true,
+                setDefaultsOnInsert: true,
+            }
+        );
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Module completed successfully",
+      enrollment,
+      certificate,
+    });
+  } catch (error) {
+    console.error("Complete module error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to complete module",
+    });
+  }
+};
+
 module.exports = {
   enrollInCourse,
   getMyEnrollments,
   getMyEnrollment,
+  completeModule,
 };

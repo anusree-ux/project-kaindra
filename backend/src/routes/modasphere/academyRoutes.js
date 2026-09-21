@@ -16,6 +16,7 @@ const {
   enrollInCourse,
   getMyEnrollments,
   getMyEnrollment,
+  completeModule,
 } = require("../../controllers/modasphere/enrollmentController");
 
 const router = express.Router();
@@ -79,6 +80,13 @@ router.get(
   "/my/enrollments/:courseId",
   protect,
   getMyEnrollment
+);
+
+// Authenticated user - Complete a course module
+router.patch(
+  "/enrollments/:courseId/modules/:moduleId/complete",
+  protect,
+  completeModule
 );
 
 module.exports = router;
