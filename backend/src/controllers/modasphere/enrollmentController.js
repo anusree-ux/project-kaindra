@@ -207,9 +207,37 @@ const completeModule = async (req, res) => {
   }
 };
 
+// Get logged-in user's certificates
+const getMyCertificates = async (req, res) => {
+  try {
+    const certificates = await CourseCertificate.find({
+      user: req.user._id,
+    })
+      .populate(
+        "course",
+        "title slug category level coverImage"
+      )
+      .sort({ issuedAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: certificates.length,
+      certificates,
+    });
+  } catch (error) {
+    console.error("Get my certificates error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch certificates",
+    });
+  }
+};
+
 module.exports = {
   enrollInCourse,
   getMyEnrollments,
   getMyEnrollment,
   completeModule,
+  getMyCertificates,
 };
