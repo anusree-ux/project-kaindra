@@ -20,6 +20,7 @@ const routeReportRoutes = require("./routes/mototribe/routeReportRoutes");
 const presenceRoutes = require("./routes/mototribe/presenceRoutes");
 const connectionRoutes = require("./routes/core/connectionRoutes");
 const articleRoutes = require("./routes/modasphere/articleRoutes");
+const academyRoutes = require("./routes/modasphere/academyRoutes");
 const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
@@ -65,7 +66,8 @@ app.use("/api/core", connectionRoutes);
 
 // ModaSphere Routes
 app.use("/api/modasphere/articles", articleRoutes);
-
+app.use("/api/modasphere/academy", academyRoutes);
+  +
 // MotoTribe Routes (supports both /api/mototribe and /api/v1/mototribe)
 app.use("/api/v1/mototribe", routeMatchRoutes);
 app.use("/api/mototribe", routeMatchRoutes);
