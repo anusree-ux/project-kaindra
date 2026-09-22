@@ -262,3 +262,124 @@
   font-weight: 600;
   vertical-align: middle;
 }
+.admin-payment-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #eeeae3;
+}
+
+.admin-payment-summary strong {
+  color: #bd8b46;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.admin-payment-summary span {
+  color: #888;
+  font-size: 10px;
+  line-height: 1.5;
+}
+/* =========================================
+   PAYMENTS DASHBOARD
+========================================= */
+
+.admin-payment-view-link {
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.admin-payments-dashboard-section {
+  margin-top: 40px;
+  padding-top: 30px;
+  border-top: 1px solid #e5e1d9;
+}
+
+.admin-payments-dashboard-header {
+  margin-bottom: 20px;
+}
+
+.admin-back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  border: 1px solid #ddd8cf;
+  background: #ffffff;
+  color: #444;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+.admin-back-button:hover {
+  border-color: #bd8b46;
+  color: #bd8b46;
+}
+.admin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 30px;
+}
+
+.admin-logout-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  height: 42px;
+
+  padding: 0 18px;
+
+  border: 1px solid #dddddd;
+
+  border-radius: 8px;
+
+  background: #ffffff;
+
+  color: #333333;
+
+  font-family: inherit;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.admin-logout-button:hover {
+  background: #171717;
+
+  border-color: #171717;
+
+  color: #ffffff;
+
+  transform: translateY(-1px);
+}
+
+@media (max-width: 600px) {
+  .admin-header {
+    align-items: flex-start;
+
+    flex-direction: column;
+  }
+
+  .admin-logout-button {
+    width: 100%;
+  }
+}

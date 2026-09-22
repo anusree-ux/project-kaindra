@@ -1,4 +1,7 @@
 ﻿import { BrowserRouter, Routes, Route } from "react-router-dom";
+import ManufactureTracking from "./pages/ManufactureTracking";
+import ScrollToTop from "./components/ScrollToTop";
+
 
 import Navbar from "./components/Navbar/Navbar"
 import Ecosystem from "./pages/brands/ModaSphere/Ecosystem/Ecosystem";
@@ -19,14 +22,27 @@ import Orders from "./pages/Orders";
 import ModaDrop from "./pages/ModaDrop";
 import DropDetails from "./pages/DropDetails";
 import ModaDropOrders from "./pages/ModaDropOrders";
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
-
+import ModaStudio from "./pages/ModaStudio";
+import ModaManufacture from "./pages/ModaManufacture";
+import AdminLogin from "./pages/admin/AdminLogin";
+import ModaLogix from "./pages/ModaLogix";
+import ModaPay from "./pages/ModaPay";
+import ModaInfluence from "./pages/ModaInfluence";
+import ModaTales from "./pages/ModaTales";
+import ModaAcademy from "./pages/ModaAcademy";
+import ModaInsights from "./pages/ModaInsights";
+import ProtectedAdminRoute from "./pages/admin/ProtectedAdminRoute";
 // Admin
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminCareers from "./pages/admin/careers/AdminCareers";
 import AdminApplications from "./pages/admin/applications/AdminApplications";
 import AdminCommunity from "./pages/admin/community/AdminCommunity";
+import AdminManufactureRequests from "./pages/admin/manufacture/AdminManufactureRequests";
+import AdminPayments from "./pages/admin/payments/AdminPayments";
+import AdminInfluence from "./pages/admin/influence/AdminInfluence";
+import AdminTales from "./pages/admin/tales/AdminTales";
+import AdminAcademy from "./pages/admin/academy/AdminAcademy";
+import AdminInsights from "./pages/admin/insights/AdminInsights";
 // Brand pages
 import MotoTribe from "./pages/brands/MotoTribe";
 
@@ -102,6 +118,7 @@ function NotFound() {
 function App() {
   return (
     <BrowserRouter>
+    <ScrollToTop />
       <Routes>
 
         {/* =========================
@@ -200,6 +217,78 @@ function App() {
     </PublicLayout>
   }
 />
+<Route
+  path="/businesses/modastudio"
+  element={
+    <PublicLayout>
+  <ModaStudio />
+  </PublicLayout>
+}
+/>
+ <Route
+          path="/businesses/modamanufacture"
+          element={
+            <PublicLayout>
+          <ModaManufacture />
+          </PublicLayout>
+          }
+        />
+<Route
+  path="/businesses/modamanufacture/track/:id"
+  element={
+    <PublicLayout>
+      <ManufactureTracking />
+    </PublicLayout>
+  }
+/>
+<Route
+  path="/businesses/modalogix"
+  element={
+    <PublicLayout>
+      <ModaLogix />
+    </PublicLayout>
+  }
+/>
+<Route
+  path="/businesses/modapay"
+  element={
+    <PublicLayout>
+      <ModaPay />
+    </PublicLayout>
+  }
+/>
+<Route
+  path="/businesses/modainfluence"
+  element={
+    <PublicLayout>
+      <ModaInfluence />
+    </PublicLayout>
+  }
+/>
+<Route
+  path="/businesses/modatales"
+  element={
+    <PublicLayout>
+      <ModaTales />
+    </PublicLayout>
+  }
+/>
+<Route
+  path="/businesses/modaacademy"
+  element={
+    <PublicLayout>
+      <ModaAcademy />
+    </PublicLayout>
+  }
+/>
+<Route
+  path="/businesses/modainsights"
+  element={
+    <PublicLayout>
+      <ModaInsights />
+    </PublicLayout>
+  }
+/>
         <Route
           path="/communities"
           element={
@@ -251,47 +340,106 @@ function App() {
     </PublicLayout>
   }
 />
-        <Route
-          path="/login"
-          element={
-            <PublicLayout>
-              <Login />
-            </PublicLayout>
-          }
-        />
+     
 
-        <Route
-          path="/signup"
-          element={
-            <PublicLayout>
-              <Signup />
-            </PublicLayout>
-          }
-        />
+{/* =========================
+    ADMIN
+========================= */}
 
-
-        {/* =========================
-            ADMIN
-        ========================= */}
-
-        <Route
-          path="/admin"
-          element={<AdminDashboard />}
-        />
-
-        <Route
-          path="/admin/careers"
-          element={<AdminCareers />}
-        />
-        <Route
-  path="/admin/applications"
-  element={<AdminApplications />}
+<Route
+  path="/admin-login"
+  element={<AdminLogin />}
 />
+
+<Route
+  path="/admin"
+  element={
+    <ProtectedAdminRoute>
+      <AdminDashboard />
+    </ProtectedAdminRoute>
+  }
+/>
+
+<Route
+  path="/admin/careers"
+  element={
+    <ProtectedAdminRoute>
+      <AdminCareers />
+    </ProtectedAdminRoute>
+  }
+/>
+
+<Route
+  path="/admin/applications"
+  element={
+    <ProtectedAdminRoute>
+      <AdminApplications />
+    </ProtectedAdminRoute>
+  }
+/>
+
 <Route
   path="/admin/community"
-  element={<AdminCommunity />}
+  element={
+    <ProtectedAdminRoute>
+      <AdminCommunity />
+    </ProtectedAdminRoute>
+  }
 />
 
+<Route
+  path="/admin/manufacture-requests"
+  element={
+    <ProtectedAdminRoute>
+      <AdminManufactureRequests />
+    </ProtectedAdminRoute>
+  }
+/>
+
+<Route
+  path="/admin/payments"
+  element={
+    <ProtectedAdminRoute>
+      <AdminPayments />
+    </ProtectedAdminRoute>
+  }
+/>
+
+<Route
+  path="/admin/influence"
+  element={
+    <ProtectedAdminRoute>
+      <AdminInfluence />
+    </ProtectedAdminRoute>
+  }
+/>
+
+<Route
+  path="/admin/tales"
+  element={
+    <ProtectedAdminRoute>
+      <AdminTales />
+    </ProtectedAdminRoute>
+  }
+/>
+
+<Route
+  path="/admin/academy"
+  element={
+    <ProtectedAdminRoute>
+      <AdminAcademy />
+    </ProtectedAdminRoute>
+  }
+/>
+
+<Route
+  path="/admin/insights"
+  element={
+    <ProtectedAdminRoute>
+      <AdminInsights />
+    </ProtectedAdminRoute>
+  }
+/>
         {/* =========================
             MOTOTRIBE
         ========================= */}
