@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../../../context/AuthContext";
+import apiClient from "../../../../services/apiClient";
 import "./Vehicles.css";
 
 const emptyVehicle = {
@@ -19,6 +21,7 @@ const fuelTypes = ["PETROL", "ELECTRIC", "HYBRID"];
 
 function Vehicles() {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
   const [vehicles, setVehicles] = useState(() => {
     try {
@@ -38,13 +41,43 @@ function Vehicles() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  const fetchDbVehicles = useCallback(async () => {
+    if (!isAuthenticated) return;
+    try {
+      const res = await apiClient.get("/api/mototribe/vehicles/me").catch(() => null);
+      const dbList = res?.data?.data?.vehicles;
+      if (Array.isArray(dbList) && dbList.length > 0) {
+        const mapped = dbList.map((v) => ({
+          id: v._id,
+          _id: v._id,
+          name: v.vehicleName,
+          brand: v.vehicleName.split(" ")[0] || "Motorcycle",
+          model: v.vehicleName.split(" ").slice(1).join(" ") || "Model",
+          registration: v.registrationNumber,
+          fuelType: (v.fuelType || "PETROL").toUpperCase(),
+          mileage: String(v.mileageKmpl || 28),
+          isDefault: !!v.isDefault,
+          createdAt: v.createdAt,
+        }));
+        setVehicles(mapped);
+        localStorage.setItem("mototribeVehicles", JSON.stringify(mapped));
+      }
+    } catch (err) {
+      console.error("Failed to fetch vehicles from DB:", err);
+    }
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    fetchDbVehicles();
+  }, [fetchDbVehicles]);
+
   useEffect(() => {
     const profile = localStorage.getItem("mototribeProfile");
 
-    if (!profile) {
+    if (!profile && !isAuthenticated) {
       navigate("/businesses/mototribe/profile-setup");
     }
-  }, [navigate]);
+  }, [navigate, isAuthenticated]);
 
   const saveVehicles = (updatedVehicles) => {
     setVehicles(updatedVehicles);
@@ -76,6 +109,7 @@ function Vehicles() {
 
   const openEditForm = (vehicle) => {
     setEditingId(vehicle.id);
+    setShowForm(true);
     setForm({
       name: vehicle.name || "",
       brand: vehicle.brand || "",
@@ -85,11 +119,10 @@ function Vehicles() {
       fuelType: vehicle.fuelType || "PETROL",
       mileage: vehicle.mileage || "",
       engine: vehicle.engine || "",
-      lastService: vehicle.lastService || "",
-      serviceDue: vehicle.serviceDue || "",
+      lastService: vehicle.lastService ? String(vehicle.lastService).split("T")[0] : "",
+      serviceDue: vehicle.serviceDue ? String(vehicle.serviceDue).split("T")[0] : "",
     });
 
-    setShowForm(true);
     setError("");
     setSuccess("");
   };
@@ -122,21 +155,49 @@ function Vehicles() {
       return;
     }
 
+    const existingTarget = editingId ? vehicles.find((v) => v.id === editingId || v._id === editingId) : null;
     const vehicleData = {
       ...form,
-      id: editingId || Date.now(),
-      createdAt:
-        editingId
-          ? vehicles.find((vehicle) => vehicle.id === editingId)
-              ?.createdAt || new Date().toISOString()
-          : new Date().toISOString(),
+      id: existingTarget?._id || existingTarget?.id || editingId || Date.now(),
+      _id: existingTarget?._id || undefined,
+      createdAt: existingTarget?.createdAt || new Date().toISOString(),
     };
+
+    // Sync with backend DB if authenticated
+    if (isAuthenticated) {
+      if (existingTarget?._id) {
+        apiClient.patch(`/api/mototribe/vehicles/${existingTarget._id}`, {
+          vehicleName: form.name.trim(),
+          registrationNumber: form.registration.trim(),
+          mileageKmpl: Number(form.mileage) || 28,
+          fuelType: (form.fuelType || "petrol").toLowerCase(),
+        }).catch((err) => console.error("Failed to update vehicle in DB:", err));
+      } else {
+        apiClient.post("/api/mototribe/vehicles", {
+          vehicleName: form.name.trim(),
+          registrationNumber: form.registration.trim(),
+          mileageKmpl: Number(form.mileage) || 28,
+          fuelType: (form.fuelType || "petrol").toLowerCase(),
+          isDefault: vehicles.length === 0,
+        }).then((res) => {
+          if (res?.data?.data?.vehicle?._id) {
+            vehicleData._id = res.data.data.vehicle._id;
+            vehicleData.id = res.data.data.vehicle._id;
+            setVehicles((prev) => {
+              const updated = prev.map((v) => (v.id === vehicleData.id ? { ...v, _id: res.data.data.vehicle._id, id: res.data.data.vehicle._id } : v));
+              localStorage.setItem("mototribeVehicles", JSON.stringify(updated));
+              return updated;
+            });
+          }
+        }).catch((err) => console.error("Failed to create vehicle in DB:", err));
+      }
+    }
 
     let updatedVehicles;
 
     if (editingId) {
       updatedVehicles = vehicles.map((vehicle) =>
-        vehicle.id === editingId
+        (vehicle.id === editingId || vehicle._id === editingId)
           ? vehicleData
           : vehicle
       );
@@ -158,9 +219,9 @@ function Vehicles() {
     setEditingId(null);
   };
 
-  const deleteVehicle = (id) => {
+  const deleteVehicle = async (id) => {
     const vehicle = vehicles.find(
-      (item) => item.id === id
+      (item) => item.id === id || item._id === id
     );
 
     if (!vehicle) return;
@@ -171,30 +232,44 @@ function Vehicles() {
 
     if (!confirmed) return;
 
+    if (isAuthenticated && (vehicle._id || typeof vehicle.id === "string" && /^[0-9a-fA-F]{24}$/.test(vehicle.id))) {
+      const dbId = vehicle._id || vehicle.id;
+      apiClient.delete(`/api/mototribe/vehicles/${dbId}`).catch((err) =>
+        console.error("Failed to delete vehicle from DB:", err)
+      );
+    }
+
     const updatedVehicles = vehicles.filter(
-      (item) => item.id !== id
+      (item) => item.id !== id && item._id !== id
     );
 
     saveVehicles(updatedVehicles);
 
-    if (selectedVehicle?.id === id) {
+    if (selectedVehicle?.id === id || selectedVehicle?._id === id) {
       setSelectedVehicle(null);
     }
 
     setSuccess("Motorcycle removed successfully.");
   };
 
-  const setDefaultVehicle = (id) => {
+  const setDefaultVehicle = async (id) => {
     const updatedVehicles = vehicles.map((vehicle) => ({
       ...vehicle,
-      isDefault: vehicle.id === id,
+      isDefault: vehicle.id === id || vehicle._id === id,
     }));
 
     saveVehicles(updatedVehicles);
 
     const vehicle = updatedVehicles.find(
-      (item) => item.id === id
+      (item) => item.id === id || item._id === id
     );
+
+    if (isAuthenticated && vehicle && (vehicle._id || typeof vehicle.id === "string" && /^[0-9a-fA-F]{24}$/.test(vehicle.id))) {
+      const dbId = vehicle._id || vehicle.id;
+      apiClient.patch(`/api/mototribe/vehicles/${dbId}`, { isDefault: true }).catch((err) =>
+        console.error("Failed to set default vehicle in DB:", err)
+      );
+    }
 
     setSelectedVehicle(vehicle);
     setSuccess(
@@ -578,6 +653,11 @@ function Vehicles() {
                     name="lastService"
                     value={form.lastService}
                     onChange={handleChange}
+                    onClick={(e) => {
+                      try {
+                        e.target.showPicker?.();
+                      } catch (_) {}
+                    }}
                   />
                 </div>
 
@@ -589,6 +669,11 @@ function Vehicles() {
                     name="serviceDue"
                     value={form.serviceDue}
                     onChange={handleChange}
+                    onClick={(e) => {
+                      try {
+                        e.target.showPicker?.();
+                      } catch (_) {}
+                    }}
                   />
                 </div>
 

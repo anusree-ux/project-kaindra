@@ -49,16 +49,48 @@ const getCurrentAverage = async (state, fuelType) => {
     submittedAt: { $gte: sevenDaysAgo },
   }).select("pricePerLiter");
 
-  const prices = submissions.map((s) => s.pricePerLiter);
-  const rawMedian = calculateMedian(prices);
-  const median = rawMedian !== null ? Math.round(rawMedian * 100) / 100 : null;
+  let isFallback = false;
+  let priceSource = "Community 7-Day Median";
+  let count = submissions.length;
+  let median = null;
+
+  if (submissions.length > 0) {
+    const prices = submissions.map((s) => s.pricePerLiter);
+    const rawMedian = calculateMedian(prices);
+    median = rawMedian !== null ? Math.round(rawMedian * 100) / 100 : null;
+    isFallback = false;
+    priceSource = `Community 7-Day Median (${submissions.length} reports)`;
+  } else {
+    // Lookup official state IOCL fuel price from database
+    const searchRegex = new RegExp(normalizedState.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+    let record = await FuelPrice.findOne({
+      $or: [{ state: searchRegex }, { city: searchRegex }, { location: searchRegex }],
+      isLatest: true,
+    });
+    if (!record) {
+      record = await FuelPrice.findOne({
+        $or: [{ state: searchRegex }, { city: searchRegex }, { location: searchRegex }],
+      });
+    }
+
+    if (record) {
+      median = normalizedFuelType === "petrol" ? record.petrolPrice : record.dieselPrice;
+      isFallback = false;
+      priceSource = `Official IOCL ${record.state} Benchmark (Database)`;
+    } else {
+      median = normalizedFuelType === "petrol" ? 94.72 : 87.62;
+      isFallback = true;
+      priceSource = "National Default Fallback";
+    }
+  }
 
   return {
     state: normalizedState,
     fuelType: normalizedFuelType,
     median,
-    count: submissions.length,
-    isFallback: submissions.length === 0,
+    count,
+    isFallback,
+    source: priceSource,
   };
 };
 

@@ -23,8 +23,8 @@ const {
 
 const router = express.Router();
 
-// All MotoTribe routes require authentication
-router.use(protect);
+// All MotoTribe ride & profile routes require authentication
+router.use(["/rider-profile", "/rides"], protect);
 
 // Rider Profile Endpoints
 router.post(

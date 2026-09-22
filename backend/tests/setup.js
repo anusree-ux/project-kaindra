@@ -4,15 +4,10 @@ const connectDB = require("../src/config/database");
 
 // 1. Mock External APIs
 
-// Mock AWS SNS Client
-jest.mock("@aws-sdk/client-sns", () => {
-  return {
-    SNSClient: jest.fn().mockImplementation(() => ({
-      send: jest.fn().mockImplementation(() => Promise.resolve({ MessageId: "mock-msg-id-12345" })),
-    })),
-    PublishCommand: jest.fn().mockImplementation((args) => args),
-  };
-});
+// Set MSG91 env vars for SMS service tests
+process.env.MSG91_AUTH_KEY = "test-msg91-auth-key";
+process.env.MSG91_OTP_TEMPLATE_ID = "test-otp-template-id";
+process.env.MSG91_SOS_TEMPLATE_ID = "test-sos-template-id";
 
 // Mock SendGrid Mail Client
 jest.mock("@sendgrid/mail", () => ({
@@ -72,6 +67,18 @@ global.fetch = jest.fn().mockImplementation((url) => {
           }),
       });
     }
+  }
+  // Mock MSG91 Flow API
+  if (typeof url === "string" && url.includes("control.msg91.com")) {
+    return Promise.resolve({
+      ok: true,
+      status: 200,
+      json: () =>
+        Promise.resolve({
+          type: "success",
+          message: "mock-msg91-request-id-12345",
+        }),
+    });
   }
   return Promise.resolve({
     ok: true,

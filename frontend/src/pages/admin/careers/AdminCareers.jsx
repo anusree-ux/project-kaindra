@@ -1,8 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Briefcase, X, Pencil, Trash2 } from "lucide-react";
 import "./AdminCareers.css";
-
-const STORAGE_KEY = "kaindraCareers";
 
 const emptyForm = {
   title: "",
@@ -13,22 +11,32 @@ const emptyForm = {
   description: "",
 };
 
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "http://localhost:5000").replace(/\/api\/?$/, "");
+
 function AdminCareers() {
   const [showForm, setShowForm] = useState(false);
-
-  // Load careers from localStorage when component starts
-  const [careers, setCareers] = useState(() => {
-    try {
-      const savedCareers = localStorage.getItem(STORAGE_KEY);
-
-      return savedCareers ? JSON.parse(savedCareers) : [];
-    } catch (error) {
-      console.error("Error loading careers:", error);
-      return [];
-    }
-  });
-
+  const [careers, setCareers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState(emptyForm);
+
+  const fetchCareers = () => {
+    setLoading(true);
+    fetch(`${API_BASE}/api/careers`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.status === "success" && Array.isArray(data.data?.careers)) {
+          setCareers(data.data.careers);
+        }
+      })
+      .catch((error) => {
+        console.error("Error loading careers:", error);
+      })
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchCareers();
+  }, []);
 
   // Handle form inputs
   const handleChange = (e) => {
@@ -41,49 +49,55 @@ function AdminCareers() {
   };
 
   // Add new career
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const newCareer = {
-      id: Date.now(),
-      title: formData.title.trim(),
-      department: formData.department.trim(),
-      location: formData.location.trim(),
-      type: formData.type,
-      experience: formData.experience.trim(),
-      description: formData.description.trim(),
-    };
+    try {
+      const res = await fetch(`${API_BASE}/api/careers`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: formData.title.trim(),
+          department: formData.department.trim(),
+          location: formData.location.trim(),
+          type: formData.type,
+          experience: formData.experience.trim(),
+          description: formData.description.trim(),
+        }),
+      });
 
-    const updatedCareers = [...careers, newCareer];
-
-    // Update React state
-    setCareers(updatedCareers);
-
-    // Save careers
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(updatedCareers)
-    );
-
-    // Reset form
-    setFormData(emptyForm);
-
-    // Close form
-    setShowForm(false);
+      const result = await res.json();
+      if (res.ok && result.status === "success") {
+        fetchCareers();
+        setFormData(emptyForm);
+        setShowForm(false);
+      } else {
+        alert(result.message || "Failed to create career.");
+      }
+    } catch (error) {
+      console.error("Error creating career:", error);
+    }
   };
 
   // Delete career
-  const handleDelete = (id) => {
-    const updatedCareers = careers.filter(
-      (career) => career.id !== id
-    );
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this position?")) return;
 
-    setCareers(updatedCareers);
+    try {
+      const res = await fetch(`${API_BASE}/api/careers/${id}`, {
+        method: "DELETE",
+      });
 
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(updatedCareers)
-    );
+      if (res.ok) {
+        setCareers((prev) => prev.filter((c) => (c._id || c.id) !== id));
+      } else {
+        alert("Failed to delete position.");
+      }
+    } catch (error) {
+      console.error("Error deleting career:", error);
+    }
   };
 
   return (
@@ -277,7 +291,7 @@ function AdminCareers() {
             {careers.map((career) => (
               <div
                 className="career-list-card"
-                key={career.id}
+                key={career._id || career.id}
               >
 
                 {/* ICON */}
@@ -316,7 +330,7 @@ function AdminCareers() {
                     type="button"
                     title="Delete"
                     className="career-delete-button"
-                    onClick={() => handleDelete(career.id)}
+                    onClick={() => handleDelete(career._id || career.id)}
                   >
                     <Trash2 size={17} />
                   </button>

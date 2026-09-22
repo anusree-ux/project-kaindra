@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
-
+import { useNavigate, Link } from "react-router-dom";
 import {
   Briefcase,
   Users,
@@ -13,45 +11,56 @@ import {
   GraduationCap,
   LogOut,
   Megaphone,
-  BarChart3
-  
+  BarChart3,
+  TrendingUp,
 } from "lucide-react";
 
 import "./AdminDashboard.css";
 
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "http://localhost:5000").replace(/\/api\/?$/, "");
+
 function AdminDashboard() {
   const navigate = useNavigate();
 
-const handleLogout = () => {
-  sessionStorage.removeItem("kaindraAdminAuthenticated");
+  const handleLogout = () => {
+    sessionStorage.removeItem("kaindraAdminAuthenticated");
+    navigate("/admin-login", {
+      replace: true,
+    });
+  };
 
-  navigate("/admin-login", {
-    replace: true,
-  });
-};
   const [dashboardRefresh, setDashboardRefresh] = useState(0);
+  const [statsData, setStatsData] = useState({
+    openPositions: 6,
+    applications: 0,
+    communityMembers: 0,
+    growth: "12%",
+  });
+
+  useEffect(() => {
+    fetch(`${API_BASE}/api/admin/stats`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.status === "success" && data.data) {
+          setStatsData(data.data);
+        }
+      })
+      .catch((err) => {
+        console.error("Error fetching admin stats:", err);
+      });
+  }, []);
 
   // =============================
   // Load Applications
   // =============================
   const getApplications = () => {
     try {
-      const savedApplications = localStorage.getItem(
-        "kaindraApplications"
-      );
-
+      const savedApplications = localStorage.getItem("kaindraApplications");
       if (!savedApplications) return [];
-
       const applications = JSON.parse(savedApplications);
-
-      return Array.isArray(applications)
-        ? applications
-        : [];
+      return Array.isArray(applications) ? applications : [];
     } catch (error) {
-      console.error(
-        "Unable to load applications:",
-        error
-      );
+      console.error("Unable to load applications:", error);
       return [];
     }
   };
@@ -61,22 +70,12 @@ const handleLogout = () => {
   // =============================
   const getCommunityMembers = () => {
     try {
-      const savedMembers = localStorage.getItem(
-        "kaindraCommunityMembers"
-      );
-
+      const savedMembers = localStorage.getItem("kaindraCommunityMembers");
       if (!savedMembers) return [];
-
       const members = JSON.parse(savedMembers);
-
-      return Array.isArray(members)
-        ? members
-        : [];
+      return Array.isArray(members) ? members : [];
     } catch (error) {
-      console.error(
-        "Unable to load community members:",
-        error
-      );
+      console.error("Unable to load community members:", error);
       return [];
     }
   };
@@ -86,22 +85,12 @@ const handleLogout = () => {
   // =============================
   const getProductionRequests = () => {
     try {
-      const savedRequests = localStorage.getItem(
-        "modaManufactureRequests"
-      );
-
+      const savedRequests = localStorage.getItem("modaManufactureRequests");
       if (!savedRequests) return [];
-
       const requests = JSON.parse(savedRequests);
-
-      return Array.isArray(requests)
-        ? requests
-        : [];
+      return Array.isArray(requests) ? requests : [];
     } catch (error) {
-      console.error(
-        "Unable to load production requests:",
-        error
-      );
+      console.error("Unable to load production requests:", error);
       return [];
     }
   };
@@ -111,22 +100,12 @@ const handleLogout = () => {
   // =============================
   const getPayments = () => {
     try {
-      const savedPayments = localStorage.getItem(
-        "modaPayments"
-      );
-
+      const savedPayments = localStorage.getItem("modaPayments");
       if (!savedPayments) return [];
-
       const payments = JSON.parse(savedPayments);
-
-      return Array.isArray(payments)
-        ? payments
-        : [];
+      return Array.isArray(payments) ? payments : [];
     } catch (error) {
-      console.error(
-        "Unable to load payments:",
-        error
-      );
+      console.error("Unable to load payments:", error);
       return [];
     }
   };
@@ -136,22 +115,12 @@ const handleLogout = () => {
   // =============================
   const getTalesStories = () => {
     try {
-      const savedStories = localStorage.getItem(
-        "modaTalesSubmissions"
-      );
-
+      const savedStories = localStorage.getItem("modaTalesSubmissions");
       if (!savedStories) return [];
-
       const stories = JSON.parse(savedStories);
-
-      return Array.isArray(stories)
-        ? stories
-        : [];
+      return Array.isArray(stories) ? stories : [];
     } catch (error) {
-      console.error(
-        "Unable to load ModaTales submissions:",
-        error
-      );
+      console.error("Unable to load ModaTales submissions:", error);
       return [];
     }
   };
@@ -161,24 +130,12 @@ const handleLogout = () => {
   // =============================
   const getAcademyEnrollments = () => {
     try {
-      const savedEnrollments = localStorage.getItem(
-        "modaAcademyEnrollments"
-      );
-
+      const savedEnrollments = localStorage.getItem("modaAcademyEnrollments");
       if (!savedEnrollments) return [];
-
-      const enrollments = JSON.parse(
-        savedEnrollments
-      );
-
-      return Array.isArray(enrollments)
-        ? enrollments
-        : [];
+      const enrollments = JSON.parse(savedEnrollments);
+      return Array.isArray(enrollments) ? enrollments : [];
     } catch (error) {
-      console.error(
-        "Unable to load ModaAcademy enrollments:",
-        error
-      );
+      console.error("Unable to load ModaAcademy enrollments:", error);
       return [];
     }
   };
@@ -188,24 +145,12 @@ const handleLogout = () => {
   // =============================
   const getInfluenceCampaigns = () => {
     try {
-      const savedCampaigns = localStorage.getItem(
-        "modaInfluenceCampaigns"
-      );
-
+      const savedCampaigns = localStorage.getItem("modaInfluenceCampaigns");
       if (!savedCampaigns) return [];
-
-      const campaigns = JSON.parse(
-        savedCampaigns
-      );
-
-      return Array.isArray(campaigns)
-        ? campaigns
-        : [];
+      const campaigns = JSON.parse(savedCampaigns);
+      return Array.isArray(campaigns) ? campaigns : [];
     } catch (error) {
-      console.error(
-        "Unable to load ModaInfluence campaigns:",
-        error
-      );
+      console.error("Unable to load ModaInfluence campaigns:", error);
       return [];
     }
   };
@@ -213,14 +158,16 @@ const handleLogout = () => {
   // =============================
   // Get Dashboard Data
   // =============================
-  const applications = getApplications();
-  const communityMembers = getCommunityMembers();
+  const localApplications = getApplications();
+  const localCommunityMembers = getCommunityMembers();
   const productionRequests = getProductionRequests();
   const payments = getPayments();
   const talesStories = getTalesStories();
   const academyEnrollments = getAcademyEnrollments();
   const influenceCampaigns = getInfluenceCampaigns();
 
+  const totalApplications = statsData.applications || localApplications.length;
+  const totalCommunity = statsData.communityMembers || localCommunityMembers.length;
   const enrollmentsCount = academyEnrollments.length;
 
   // =============================
@@ -231,70 +178,23 @@ const handleLogout = () => {
       setDashboardRefresh((current) => current + 1);
     };
 
-    window.addEventListener(
-      "modaPaymentsUpdated",
-      handleDashboardUpdates
-    );
-
-    window.addEventListener(
-      "modaTalesSubmissionsUpdated",
-      handleDashboardUpdates
-    );
-
-    window.addEventListener(
-      "modaManufactureRequestsUpdated",
-      handleDashboardUpdates
-    );
-
-    window.addEventListener(
-      "modaAcademyEnrollmentsUpdated",
-      handleDashboardUpdates
-    );
-
-    window.addEventListener(
-      "modaInfluenceCampaignsUpdated",
-      handleDashboardUpdates
-    );
-
-    window.addEventListener(
-      "storage",
-      handleDashboardUpdates
-    );
+    window.addEventListener("modaPaymentsUpdated", handleDashboardUpdates);
+    window.addEventListener("modaTalesSubmissionsUpdated", handleDashboardUpdates);
+    window.addEventListener("modaManufactureRequestsUpdated", handleDashboardUpdates);
+    window.addEventListener("modaAcademyEnrollmentsUpdated", handleDashboardUpdates);
+    window.addEventListener("modaInfluenceCampaignsUpdated", handleDashboardUpdates);
+    window.addEventListener("storage", handleDashboardUpdates);
 
     return () => {
-      window.removeEventListener(
-        "modaPaymentsUpdated",
-        handleDashboardUpdates
-      );
-
-      window.removeEventListener(
-        "modaTalesSubmissionsUpdated",
-        handleDashboardUpdates
-      );
-
-      window.removeEventListener(
-        "modaManufactureRequestsUpdated",
-        handleDashboardUpdates
-      );
-
-      window.removeEventListener(
-        "modaAcademyEnrollmentsUpdated",
-        handleDashboardUpdates
-      );
-
-      window.removeEventListener(
-        "modaInfluenceCampaignsUpdated",
-        handleDashboardUpdates
-      );
-
-      window.removeEventListener(
-        "storage",
-        handleDashboardUpdates
-      );
+      window.removeEventListener("modaPaymentsUpdated", handleDashboardUpdates);
+      window.removeEventListener("modaTalesSubmissionsUpdated", handleDashboardUpdates);
+      window.removeEventListener("modaManufactureRequestsUpdated", handleDashboardUpdates);
+      window.removeEventListener("modaAcademyEnrollmentsUpdated", handleDashboardUpdates);
+      window.removeEventListener("modaInfluenceCampaignsUpdated", handleDashboardUpdates);
+      window.removeEventListener("storage", handleDashboardUpdates);
     };
   }, []);
 
-  // Prevent unused-state warning
   void dashboardRefresh;
 
   // =============================
@@ -303,18 +203,23 @@ const handleLogout = () => {
   const stats = [
     {
       title: "Open Positions",
-      value: "6",
+      value: statsData.openPositions,
       icon: Briefcase,
     },
     {
       title: "Applications",
-      value: applications.length,
+      value: totalApplications,
       icon: FileText,
     },
     {
       title: "Community Members",
-      value: communityMembers.length,
+      value: totalCommunity,
       icon: Users,
+    },
+    {
+      title: "Growth",
+      value: statsData.growth,
+      icon: TrendingUp,
     },
     {
       title: "Production Requests",
@@ -364,13 +269,13 @@ const handleLogout = () => {
             </p>
           </div>
           <button
-  type="button"
-  className="admin-logout-button"
-  onClick={handleLogout}
->
-  <LogOut size={17} />
-  <span>Logout</span>
-</button>
+            type="button"
+            className="admin-logout-button"
+            onClick={handleLogout}
+          >
+            <LogOut size={17} />
+            <span>Logout</span>
+          </button>
 
           <div className="admin-welcome">
             <span>Welcome back</span>
@@ -463,9 +368,9 @@ const handleLogout = () => {
                 <h3>
                   Applications
 
-                  {applications.length > 0 && (
+                  {totalApplications > 0 && (
                     <span className="application-count">
-                      {applications.length}
+                      {totalApplications}
                     </span>
                   )}
                 </h3>
@@ -497,9 +402,9 @@ const handleLogout = () => {
                 <h3>
                   Community
 
-                  {communityMembers.length > 0 && (
+                  {totalCommunity > 0 && (
                     <span className="application-count">
-                      {communityMembers.length}
+                      {totalCommunity}
                     </span>
                   )}
                 </h3>
@@ -691,32 +596,32 @@ const handleLogout = () => {
             </div>
 
             {/* ================================
-    MODAINSIGHTS
-================================= */}
-<div className="admin-management-card">
-  <div className="admin-card-icon">
-    <BarChart3 size={24} />
-  </div>
+                MODAINSIGHTS
+            ================================= */}
+            <div className="admin-management-card">
+              <div className="admin-card-icon">
+                <BarChart3 size={24} />
+              </div>
 
-  <div className="admin-card-content">
-    <h3>
-      ModaInsights
-    </h3>
+              <div className="admin-card-content">
+                <h3>
+                  ModaInsights
+                </h3>
 
-    <p>
-      View and manage intelligence requests
-      submitted through ModaInsights.
-    </p>
+                <p>
+                  View and manage intelligence requests
+                  submitted through ModaInsights.
+                </p>
 
-    <Link
-      to="/admin/insights"
-      className="admin-card-link"
-    >
-      View Insights
-      <ArrowRight size={18} />
-    </Link>
-  </div>
-</div>
+                <Link
+                  to="/admin/insights"
+                  className="admin-card-link"
+                >
+                  View Insights
+                  <ArrowRight size={18} />
+                </Link>
+              </div>
+            </div>
 
           </div>
         </section>

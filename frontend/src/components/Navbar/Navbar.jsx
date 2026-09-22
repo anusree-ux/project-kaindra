@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 import "./Navbar.css";
 
 function Navbar() {
   const [openDropdown, setOpenDropdown] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   const navbarRef = useRef(null);
+  const { user, isAuthenticated, logout, openAuthModal, loading } = useAuth();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -35,6 +38,7 @@ function Navbar() {
 
   const closeDropdown = () => {
     setOpenDropdown(null);
+    setMenuOpen(false);
   };
 
   return (
@@ -50,7 +54,7 @@ function Navbar() {
           KAINDRA
         </Link>
 
-        <div className="navbar-links">
+        <div className={`navbar-links ${menuOpen ? "navbar-links-mobile-open" : ""}`}>
 
           {/* HOME */}
           <Link
@@ -223,7 +227,77 @@ function Navbar() {
             Contact
           </Link>
 
+          {/* Mobile auth area */}
+          <div className="navbar-mobile-auth">
+            {!loading && (
+              !isAuthenticated ? (
+                <button
+                  className="mobile-login"
+                  onClick={() => {
+                    closeDropdown();
+                    openAuthModal("login");
+                  }}
+                >
+                  Login
+                </button>
+              ) : (
+                <div className="mobile-user-area">
+                  <Link
+                    to="/profile"
+                    className="mobile-user-name"
+                    onClick={closeDropdown}
+                  >
+                    👤 {user?.name || "User"}
+                  </Link>
+                  <button
+                    className="mobile-logout-btn"
+                    onClick={() => {
+                      closeDropdown();
+                      logout();
+                    }}
+                  >
+                    Logout
+                  </button>
+                </div>
+              )
+            )}
+          </div>
         </div>
+
+        {/* Desktop auth area */}
+        {!loading && (
+          !isAuthenticated ? (
+            <button
+              className="navbar-login"
+              onClick={() => openAuthModal("login")}
+            >
+              Login
+            </button>
+          ) : (
+            <div className="navbar-user-area">
+              <Link
+                to="/profile"
+                className="navbar-user-name"
+              >
+                👤 {user?.name || "User"}
+              </Link>
+              <button className="navbar-logout-btn" onClick={logout}>
+                Logout
+              </button>
+            </div>
+          )
+        )}
+
+        <button
+          type="button"
+          className="navbar-menu"
+          onClick={() => setMenuOpen(!menuOpen)}
+          aria-label="Toggle navigation menu"
+          aria-expanded={menuOpen}
+        >
+          {menuOpen ? "✕" : "☰"}
+        </button>
+
       </div>
     </nav>
   );

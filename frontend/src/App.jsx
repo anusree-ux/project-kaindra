@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { AuthProvider } from "./context/AuthContext";
 import ManufactureTracking from "./pages/ManufactureTracking";
 import ScrollToTopComponent from "./components/ScrollToTop";
+import AuthModal from "./pages/brands/MotoTribe/Auth/AuthModal";
 
 import Navbar from "./components/Navbar/Navbar";
 import Ecosystem from "./pages/brands/ModaSphere/Ecosystem/Ecosystem";
@@ -33,9 +34,10 @@ import ModaTales from "./pages/ModaTales";
 import ModaAcademy from "./pages/ModaAcademy";
 import ModaInsights from "./pages/ModaInsights";
 
-// Auth pages (with backend API integration)
+// Auth pages
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import Profile from "./pages/Profile";
 
 // Admin
 import AdminLogin from "./pages/admin/AdminLogin";
@@ -145,6 +147,7 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <AuthModal />
         <ScrollToTop />
         <ScrollToTopComponent />
         <Routes>
@@ -400,6 +403,15 @@ function App() {
             element={
               <PublicLayout>
                 <Signup />
+              </PublicLayout>
+            }
+          />
+
+          <Route
+            path="/profile"
+            element={
+              <PublicLayout>
+                <Profile />
               </PublicLayout>
             }
           />
