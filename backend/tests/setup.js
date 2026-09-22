@@ -1,4 +1,3 @@
-const { MongoMemoryServer } = require("mongodb-memory-server");
 const mongoose = require("mongoose");
 const connectDB = require("../src/config/database");
 
@@ -97,22 +96,17 @@ beforeEach(() => {
 });
 
 process.env.NODE_ENV = "test";
-let mongoServer;
 
 beforeAll(async () => {
-  mongoServer = await MongoMemoryServer.create({
-    instance: {
-      launchTimeout: 60000,
-    },
-  });
-  const mongoUri = mongoServer.getUri();
-  process.env.DATABASE_URL = mongoUri;
+  const mongoUri = process.env.DATABASE_URL || process.env.MONGO_URI;
 
   if (mongoose.connection.readyState !== 0) {
     await mongoose.disconnect();
   }
 
-  await mongoose.connect(mongoUri);
+  if (mongoUri) {
+    await mongoose.connect(mongoUri);
+  }
 
   // Seed static Badge definitions
   const Badge = require("../src/models/mototribe/Badge");
@@ -165,10 +159,10 @@ beforeAll(async () => {
     await Badge.findOneAndUpdate(
       { key: b.key },
       { $set: b },
-      { upsert: true, new: true }
+      { upsert: true, returnDocument: "after" }
     );
   }
-}, 120000);
+}, 60000);
 
 afterEach(async () => {
   const collections = mongoose.connection.collections;
@@ -182,8 +176,5 @@ afterEach(async () => {
 afterAll(async () => {
   if (mongoose.connection.readyState !== 0) {
     await mongoose.disconnect();
-  }
-  if (mongoServer) {
-    await mongoServer.stop();
   }
 });
