@@ -36,10 +36,11 @@ jest.mock("cloudinary", () => ({
   },
 }));
 
-// Mock global fetch for OpenWeatherMap and Google Maps APIs
-global.fetch = jest.fn().mockImplementation((url) => {
-  if (typeof url === "string" && url.includes("openweathermap.org")) {
-    if (url.includes("/weather")) {
+// Mock global fetch for OpenWeatherMap, Google Maps, and MSG91 APIs
+const defaultFetchMock = (url) => {
+  const urlStr = typeof url === "string" ? url : url?.url || url?.toString() || "";
+  if (urlStr.includes("openweathermap.org")) {
+    if (urlStr.includes("/weather")) {
       return Promise.resolve({
         ok: true,
         status: 200,
@@ -51,7 +52,7 @@ global.fetch = jest.fn().mockImplementation((url) => {
           }),
       });
     }
-    if (url.includes("/forecast")) {
+    if (urlStr.includes("/forecast")) {
       return Promise.resolve({
         ok: true,
         status: 200,
@@ -69,7 +70,7 @@ global.fetch = jest.fn().mockImplementation((url) => {
     }
   }
   // Mock MSG91 Flow API
-  if (typeof url === "string" && url.includes("control.msg91.com")) {
+  if (urlStr.includes("control.msg91.com")) {
     return Promise.resolve({
       ok: true,
       status: 200,
@@ -85,12 +86,25 @@ global.fetch = jest.fn().mockImplementation((url) => {
     status: 200,
     json: () => Promise.resolve({ status: "OK", results: [] }),
   });
+};
+
+global.fetch = jest.fn().mockImplementation(defaultFetchMock);
+
+beforeEach(() => {
+  if (jest.isMockFunction(global.fetch)) {
+    global.fetch.mockImplementation(defaultFetchMock);
+  }
 });
 
+process.env.NODE_ENV = "test";
 let mongoServer;
 
 beforeAll(async () => {
-  mongoServer = await MongoMemoryServer.create();
+  mongoServer = await MongoMemoryServer.create({
+    instance: {
+      launchTimeout: 60000,
+    },
+  });
   const mongoUri = mongoServer.getUri();
   process.env.DATABASE_URL = mongoUri;
 
