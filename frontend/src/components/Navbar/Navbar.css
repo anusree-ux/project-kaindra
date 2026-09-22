@@ -1,146 +1,478 @@
+/* =========================================
+   KAINDRA NAVBAR
+========================================= */
+
 .navbar {
   position: sticky;
   top: 0;
-  z-index: 1000;
+  left: 0;
+
   width: 100%;
+  height: 82px;
+
   background: #ffffff;
-  border-bottom: 1px solid #eaeaea;
+
+  border-bottom: 1px solid #eeeeee;
+
+  z-index: 1000;
 }
 
-.navbar-inner {
-  width: min(1200px, calc(100% - 40px));
-  min-height: 72px;
+/* =========================================
+   NAVBAR CONTAINER
+========================================= */
+
+.navbar-container {
+  width: 100%;
+  max-width: 1500px;
+  height: 100%;
+
   margin: 0 auto;
 
+  padding: 0 40px;
+
   display: flex;
   align-items: center;
-  gap: 30px;
+
+  box-sizing: border-box;
 }
+
+/* =========================================
+   KAINDRA LOGO
+========================================= */
 
 .navbar-logo {
-  color: #111111;
+  flex-shrink: 0;
+
   text-decoration: none;
 
-  font-size: 24px;
+  color: #171717;
+
+  font-size: 28px;
   font-weight: 800;
+
   letter-spacing: 2px;
 
-  margin-right: auto;
+  line-height: 1;
+
+  margin-right: 60px;
+
+  transition: color 0.2s ease;
 }
+
+.navbar-logo:hover {
+  color: #bd8b46;
+}
+
+/* =========================================
+   NAVIGATION LINKS CONTAINER
+========================================= */
 
 .navbar-links {
+  flex: 1;
+
   display: flex;
   align-items: center;
-  gap: 26px;
+
+  gap: 32px;
+
+  min-width: 0;
 }
 
-.navbar-links a {
+/* =========================================
+   NORMAL NAVBAR LINKS
+========================================= */
+
+.navbar-link {
   position: relative;
 
-  color: #444444;
+  flex-shrink: 0;
+
+  display: inline-flex;
+  align-items: center;
+
+  height: 82px;
+
+  padding: 0;
+
+  color: #252525;
+
+  text-decoration: none;
+
+  font-size: 15px;
+  font-weight: 500;
+
+  white-space: nowrap;
+
+  transition:
+    color 0.2s ease;
+}
+
+.navbar-link:hover {
+  color: #bd8b46;
+}
+
+/* =========================================
+   DROPDOWN WRAPPER
+========================================= */
+
+.navbar-dropdown {
+  position: relative;
+
+  flex-shrink: 0;
+
+  height: 82px;
+
+  display: flex;
+  align-items: center;
+}
+
+/* =========================================
+   DROPDOWN BUTTON
+========================================= */
+
+.navbar-dropdown-button {
+  border: none;
+  outline: none;
+
+  background: transparent;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 6px;
+
+  height: 82px;
+
+  padding: 0;
+
+  color: #252525;
+
+  font-family: inherit;
+
+  font-size: 15px;
+  font-weight: 500;
+
+  white-space: nowrap;
+
+  cursor: pointer;
+
+  transition:
+    color 0.2s ease;
+}
+
+.navbar-dropdown-button:hover {
+  color: #bd8b46;
+}
+
+/* =========================================
+   DROPDOWN ARROW
+========================================= */
+
+.dropdown-arrow {
+  flex-shrink: 0;
+
+  transition:
+    transform 0.25s ease;
+}
+
+.dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+/* =========================================
+   DROPDOWN MENU
+========================================= */
+
+.navbar-dropdown-menu {
+  position: absolute;
+
+  top: calc(100% + 1px);
+  left: 50%;
+
+  transform: translateX(-50%);
+
+  width: 230px;
+
+  padding: 10px 0;
+
+  background: #ffffff;
+
+  border: 1px solid #eeeeee;
+
+  border-radius: 10px;
+
+  box-shadow:
+    0 15px 40px rgba(0, 0, 0, 0.12);
+
+  z-index: 2000;
+}
+
+/* =========================================
+   DROPDOWN SMALL ARROW
+========================================= */
+
+.navbar-dropdown-menu::before {
+  content: "";
+
+  position: absolute;
+
+  top: -7px;
+  left: 50%;
+
+  width: 13px;
+  height: 13px;
+
+  background: #ffffff;
+
+  border-left: 1px solid #eeeeee;
+  border-top: 1px solid #eeeeee;
+
+  transform:
+    translateX(-50%)
+    rotate(45deg);
+}
+
+/* =========================================
+   DROPDOWN LINKS
+========================================= */
+
+.navbar-dropdown-menu a {
+  display: flex;
+  align-items: center;
+
+  width: 100%;
+
+  min-height: 46px;
+
+  padding: 0 20px;
+
+  box-sizing: border-box;
+
+  color: #252525;
+
   text-decoration: none;
 
   font-size: 14px;
   font-weight: 500;
 
-  transition: color 0.2s ease;
-}
-
-.navbar-links a:hover {
-  color: #000000;
-}
-
-.navbar-links a::after {
-  content: "";
-
-  position: absolute;
-  left: 0;
-  bottom: -7px;
-
-  width: 0;
-  height: 2px;
-
-  background: #111111;
-
-  transition: width 0.2s ease;
-}
-
-.navbar-links a:hover::after {
-  width: 100%;
-}
-
-.navbar-login {
-  padding: 10px 18px;
-
-  background: #111111;
-  color: #ffffff;
-
-  border-radius: 6px;
-
-  text-decoration: none;
-
-  font-size: 14px;
-  font-weight: 600;
+  white-space: nowrap;
 
   transition:
     background 0.2s ease,
-    transform 0.2s ease;
+    color 0.2s ease,
+    padding-left 0.2s ease;
 }
 
-.navbar-login:hover {
-  background: #333333;
-  transform: translateY(-1px);
+.navbar-dropdown-menu a:hover {
+  background: #f8f6f2;
+
+  color: #bd8b46;
+
+  padding-left: 25px;
 }
 
-.navbar-menu {
-  display: none;
+/* =========================================
+   MODASPHERE DROPDOWN
+========================================= */
 
-  width: 42px;
-  height: 42px;
+.modasphere-dropdown {
+  position: relative;
+}
 
-  border: 0;
-  border-radius: 6px;
+.modasphere-menu {
+  width: 250px;
 
+  max-height: 520px;
+
+  overflow-y: auto;
+}
+
+/* Scrollbar */
+
+.modasphere-menu::-webkit-scrollbar {
+  width: 5px;
+}
+
+.modasphere-menu::-webkit-scrollbar-track {
   background: transparent;
-
-  color: #111111;
-
-  font-size: 24px;
-
-  cursor: pointer;
 }
 
-.mobile-login {
-  display: none;
+.modasphere-menu::-webkit-scrollbar-thumb {
+  background: #d8d8d8;
+
+  border-radius: 10px;
 }
 
-
-/* =========================
+/* =========================================
    TABLET
-========================= */
+========================================= */
 
-@media (max-width: 900px) {
-  .navbar-inner {
-    width: min(100% - 32px, 700px);
+@media (max-width: 1200px) {
+  .navbar-container {
+    padding: 0 25px;
+  }
+
+  .navbar-logo {
+    margin-right: 35px;
+
+    font-size: 25px;
+  }
+
+  .navbar-links {
+    gap: 22px;
+  }
+
+  .navbar-link,
+  .navbar-dropdown-button {
+    font-size: 14px;
+  }
+
+  .navbar-login {
+    min-width: 80px;
+
+    padding: 0 18px;
+  }
+}
+
+/* =========================================
+   SMALL TABLET
+========================================= */
+
+@media (max-width: 1000px) {
+  .navbar-container {
+    padding: 0 20px;
+  }
+
+  .navbar-logo {
+    margin-right: 25px;
+
+    font-size: 23px;
   }
 
   .navbar-links {
     gap: 16px;
   }
 
-  .navbar-links a {
+  .navbar-link,
+  .navbar-dropdown-button {
+    font-size: 13px;
+  }
+
+  .navbar-login {
+    min-width: 70px;
+
+    padding: 0 15px;
+
     font-size: 13px;
   }
 }
 
-
-/* =========================
+/* =========================================
    MOBILE
-========================= */
+========================================= */
 
-@media (max-width: 700px) {
-  .navbar-inner {
-    min-height: 64px;
+@media (max-width: 768px) {
+  .navbar {
+    height: auto;
+
+    min-height: 70px;
+  }
+
+  .navbar-container {
+    min-height: 70px;
+
+    height: auto;
+
+    padding: 15px 20px;
+
+    flex-wrap: wrap;
+
+    gap: 15px;
+  }
+
+  .navbar-logo {
+    margin-right: auto;
+
+    font-size: 23px;
+  }
+
+  .navbar-links {
+    width: 100%;
+
+    flex: none;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 18px;
+
+    overflow-x: auto;
+
+    padding-bottom: 5px;
+
+    scrollbar-width: none;
+  }
+
+  .navbar-links::-webkit-scrollbar {
+    display: none;
+  }
+
+  .navbar-link {
+    height: 40px;
+
+    font-size: 14px;
+  }
+
+  .navbar-dropdown {
+    height: 40px;
+  }
+
+  .navbar-dropdown-button {
+    height: 40px;
+
+    font-size: 14px;
+  }
+
+  .navbar-login {
+    height: 38px;
+
+    min-width: 75px;
+
+    margin-left: 0;
+  }
+
+  .navbar-dropdown-menu {
+    position: fixed;
+
+    top: 125px;
+
+    left: auto;
+
+    right: 20px;
+
+    transform: none;
+
+    width: 230px;
+
+    max-width: calc(100vw - 40px);
+  }
+
+  .navbar-dropdown-menu::before {
+    left: auto;
+
+    right: 40px;
+  }
+}
+
+/* =========================================
+   SMALL MOBILE
+========================================= */
+
+@media (max-width: 480px) {
+  .navbar-container {
+    padding: 12px 15px;
   }
 
   .navbar-logo {
@@ -148,64 +480,19 @@
   }
 
   .navbar-links {
-    display: none;
-
-    position: absolute;
-
-    top: 64px;
-    left: 0;
-
-    width: 100%;
-
-    padding: 20px;
-
-    background: #ffffff;
-
-    border-bottom: 1px solid #eaeaea;
-
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0;
+    gap: 15px;
   }
 
-  .navbar-links.active {
-    display: flex;
+  .navbar-link,
+  .navbar-dropdown-button {
+    font-size: 13px;
   }
 
-  .navbar-links a {
-    padding: 14px 10px;
+  .navbar-dropdown-menu {
+    right: 15px;
 
-    font-size: 15px;
+    width: 220px;
 
-    border-bottom: 1px solid #f0f0f0;
-  }
-
-  .navbar-links a::after {
-    display: none;
-  }
-
-  .navbar-login {
-    display: none;
-  }
-
-  .navbar-menu {
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-  }
-
-  .mobile-login {
-    display: block !important;
-
-    margin-top: 8px;
-
-    background: #111111;
-
-    color: #ffffff !important;
-
-    border-radius: 6px;
-
-    text-align: center;
+    max-width: calc(100vw - 30px);
   }
 }

@@ -1,0 +1,569 @@
+.admin-academy-page {
+  min-height: 100vh;
+  background: #f7f5f1;
+  color: #171717;
+  padding: 50px 24px 80px;
+}
+
+.admin-academy-container {
+  width: min(1400px, 100%);
+  margin: 0 auto;
+}
+
+/* =========================================
+   HEADER
+========================================= */
+
+.admin-academy-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+  margin-bottom: 35px;
+}
+
+.admin-academy-eyebrow {
+  display: block;
+  margin-bottom: 10px;
+  color: #bd8b46;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.admin-academy-header h1 {
+  margin: 0;
+  font-size: clamp(34px, 5vw, 56px);
+  line-height: 1;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+}
+
+.admin-academy-header p {
+  max-width: 620px;
+  margin: 16px 0 0;
+  color: #666;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.admin-academy-header-icon {
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #d7d1c8;
+  background: #fff;
+  color: #bd8b46;
+}
+
+/* =========================================
+   STATS
+========================================= */
+
+.admin-academy-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 30px;
+}
+
+.admin-academy-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 22px;
+  border: 1px solid #ddd7ce;
+  background: #fff;
+}
+
+.admin-academy-stat-icon {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #171717;
+  color: #bd8b46;
+}
+
+.admin-academy-stat-card span {
+  display: block;
+  margin-bottom: 5px;
+  color: #777;
+  font-size: 12px;
+}
+
+.admin-academy-stat-card strong {
+  font-size: 25px;
+  font-weight: 600;
+}
+
+/* =========================================
+   TOOLBAR
+========================================= */
+
+.admin-academy-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 18px;
+}
+
+.admin-academy-search {
+  width: min(600px, 100%);
+  height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 15px;
+  border: 1px solid #d8d2ca;
+  background: #fff;
+  color: #777;
+}
+
+.admin-academy-search input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #171717;
+  font-size: 14px;
+}
+
+.admin-academy-search input::placeholder {
+  color: #999;
+}
+
+.admin-academy-result-count {
+  color: #777;
+  font-size: 13px;
+}
+
+/* =========================================
+   TABLE
+========================================= */
+
+.admin-academy-table-card {
+  overflow: hidden;
+  border: 1px solid #ddd7ce;
+  background: #fff;
+}
+
+.admin-academy-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.admin-academy-table {
+  width: 100%;
+  min-width: 1100px;
+  border-collapse: collapse;
+}
+
+.admin-academy-table th {
+  padding: 16px 18px;
+  border-bottom: 1px solid #ddd7ce;
+  background: #faf9f7;
+  color: #777;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+
+.admin-academy-table td {
+  padding: 18px;
+  border-bottom: 1px solid #eeeae4;
+  vertical-align: middle;
+  font-size: 13px;
+}
+
+.admin-academy-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.admin-academy-table tbody tr:hover {
+  background: #fcfbf9;
+}
+
+.admin-academy-id {
+  color: #bd8b46;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.admin-academy-student {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.admin-academy-student strong {
+  font-size: 13px;
+}
+
+.admin-academy-student span {
+  color: #777;
+  font-size: 12px;
+}
+
+.admin-academy-course {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  max-width: 230px;
+}
+
+.admin-academy-course svg {
+  flex-shrink: 0;
+  color: #bd8b46;
+}
+
+.admin-academy-level {
+  display: inline-block;
+  padding: 6px 9px;
+  background: #f1eee8;
+  color: #555;
+  font-size: 11px;
+}
+
+.admin-academy-status {
+  display: inline-block;
+  padding: 6px 10px;
+  background: #eef5ed;
+  color: #3f693f;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.admin-academy-date {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #777;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.admin-academy-progress {
+  width: 100px;
+}
+
+.admin-academy-progress-top {
+  margin-bottom: 5px;
+  text-align: right;
+  color: #555;
+  font-size: 11px;
+}
+
+.admin-academy-progress-bar {
+  width: 100%;
+  height: 5px;
+  overflow: hidden;
+  background: #e7e2da;
+}
+
+.admin-academy-progress-bar span {
+  display: block;
+  height: 100%;
+  background: #bd8b46;
+  transition: width 0.3s ease;
+}
+
+.admin-academy-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.admin-academy-view-button,
+.admin-academy-delete-button {
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid #d8d2ca;
+  background: #fff;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.admin-academy-view-button {
+  padding: 0 11px;
+  color: #171717;
+  font-size: 12px;
+}
+
+.admin-academy-delete-button {
+  width: 34px;
+  color: #a33;
+}
+
+.admin-academy-view-button:hover {
+  border-color: #bd8b46;
+  color: #bd8b46;
+}
+
+.admin-academy-delete-button:hover {
+  border-color: #a33;
+  background: #fff7f7;
+}
+
+/* =========================================
+   EMPTY
+========================================= */
+
+.admin-academy-empty {
+  padding: 80px 30px;
+  border: 1px solid #ddd7ce;
+  background: #fff;
+  text-align: center;
+}
+
+.admin-academy-empty svg {
+  margin-bottom: 15px;
+  color: #bd8b46;
+}
+
+.admin-academy-empty h2 {
+  margin: 0 0 8px;
+  font-size: 22px;
+  font-weight: 500;
+}
+
+.admin-academy-empty p {
+  margin: 0;
+  color: #777;
+  font-size: 14px;
+}
+
+/* =========================================
+   MODAL
+========================================= */
+
+.admin-academy-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.65);
+}
+
+.admin-academy-modal {
+  width: min(720px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #fff;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.25);
+}
+
+.admin-academy-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 26px;
+  border-bottom: 1px solid #e5e0d8;
+}
+
+.admin-academy-modal-header span {
+  display: block;
+  margin-bottom: 8px;
+  color: #bd8b46;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+}
+
+.admin-academy-modal-header h2 {
+  margin: 0;
+  font-size: 25px;
+  font-weight: 500;
+}
+
+.admin-academy-modal-close {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #ddd7ce;
+  background: #fff;
+  cursor: pointer;
+}
+
+.admin-academy-modal-close:hover {
+  background: #f7f5f1;
+}
+
+.admin-academy-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  background: #e5e0d8;
+  border-bottom: 1px solid #e5e0d8;
+}
+
+.admin-academy-detail {
+  min-width: 0;
+  padding: 18px 22px;
+  background: #fff;
+}
+
+.admin-academy-detail span {
+  display: block;
+  margin-bottom: 7px;
+  color: #888;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.admin-academy-detail strong {
+  display: block;
+  overflow-wrap: anywhere;
+  color: #171717;
+  font-size: 13px;
+}
+
+.admin-academy-detail-with-icon {
+  display: flex !important;
+  align-items: center;
+  gap: 7px;
+}
+
+.admin-academy-detail-with-icon svg {
+  flex-shrink: 0;
+  color: #bd8b46;
+}
+
+/* =========================================
+   MODAL PROGRESS
+========================================= */
+
+.admin-academy-modal-progress {
+  padding: 24px 26px;
+}
+
+.admin-academy-modal-progress > div:first-child {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.admin-academy-modal-progress span {
+  color: #777;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.admin-academy-modal-progress strong {
+  color: #bd8b46;
+  font-size: 14px;
+}
+
+.admin-academy-modal-progress-bar {
+  width: 100%;
+  height: 8px;
+  overflow: hidden;
+  background: #e7e2da;
+}
+
+.admin-academy-modal-progress-bar span {
+  display: block;
+  height: 100%;
+  background: #bd8b46;
+}
+
+/* =========================================
+   MODAL FOOTER
+========================================= */
+
+.admin-academy-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 18px 26px;
+  border-top: 1px solid #e5e0d8;
+}
+
+.admin-academy-modal-delete {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 14px;
+  border: 1px solid #d7bebe;
+  background: #fff;
+  color: #a33;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.admin-academy-modal-delete:hover {
+  background: #fff7f7;
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 1000px) {
+  .admin-academy-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .admin-academy-page {
+    padding: 35px 15px 60px;
+  }
+
+  .admin-academy-header {
+    align-items: flex-start;
+  }
+
+  .admin-academy-header-icon {
+    width: 55px;
+    height: 55px;
+  }
+
+  .admin-academy-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-academy-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-academy-search {
+    width: 100%;
+  }
+
+  .admin-academy-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-academy-modal-header {
+    padding: 20px;
+  }
+
+  .admin-academy-modal-progress {
+    padding: 20px;
+  }
+
+  .admin-academy-modal-footer {
+    padding: 15px 20px;
+  }
+}

@@ -1,4 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
+import { Factory } from "lucide-react";
 import {
   LayoutDashboard,
   Briefcase,
@@ -80,6 +81,10 @@ function AdminSidebar() {
             </Link>
           );
         })}
+        <Link to="/admin/manufacture-requests">
+  <Factory size={18} />
+  <span>Production Requests</span>
+</Link>
       </nav>
 
       <div className="admin-sidebar-bottom">

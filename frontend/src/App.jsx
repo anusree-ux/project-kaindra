@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useEffect } from "react";
 import { AuthProvider } from "./context/AuthContext";
+import ManufactureTracking from "./pages/ManufactureTracking";
+import ScrollToTopComponent from "./components/ScrollToTop";
 
 import Navbar from "./components/Navbar/Navbar";
 import Ecosystem from "./pages/brands/ModaSphere/Ecosystem/Ecosystem";
@@ -22,14 +24,32 @@ import Orders from "./pages/Orders";
 import ModaDrop from "./pages/ModaDrop";
 import DropDetails from "./pages/DropDetails";
 import ModaDropOrders from "./pages/ModaDropOrders";
+import ModaStudio from "./pages/ModaStudio";
+import ModaManufacture from "./pages/ModaManufacture";
+import ModaLogix from "./pages/ModaLogix";
+import ModaPay from "./pages/ModaPay";
+import ModaInfluence from "./pages/ModaInfluence";
+import ModaTales from "./pages/ModaTales";
+import ModaAcademy from "./pages/ModaAcademy";
+import ModaInsights from "./pages/ModaInsights";
+
+// Auth pages (with backend API integration)
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 
 // Admin
+import AdminLogin from "./pages/admin/AdminLogin";
+import ProtectedAdminRoute from "./pages/admin/ProtectedAdminRoute";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminCareers from "./pages/admin/careers/AdminCareers";
 import AdminApplications from "./pages/admin/applications/AdminApplications";
 import AdminCommunity from "./pages/admin/community/AdminCommunity";
+import AdminManufactureRequests from "./pages/admin/manufacture/AdminManufactureRequests";
+import AdminPayments from "./pages/admin/payments/AdminPayments";
+import AdminInfluence from "./pages/admin/influence/AdminInfluence";
+import AdminTales from "./pages/admin/tales/AdminTales";
+import AdminAcademy from "./pages/admin/academy/AdminAcademy";
+import AdminInsights from "./pages/admin/insights/AdminInsights";
 
 // Brand pages
 import MotoTribe from "./pages/brands/MotoTribe";
@@ -97,7 +117,7 @@ function NotFound() {
       <h2>Page Not Found</h2>
 
       <p>
-        The page you are looking for doesn't exist.
+        The page you are looking for doesn&apos;t exist.
       </p>
 
       <a
@@ -126,6 +146,7 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <ScrollToTop />
+        <ScrollToTopComponent />
         <Routes>
           {/* =========================
               KAINDRA PUBLIC WEBSITE
@@ -231,6 +252,96 @@ function App() {
           />
 
           <Route
+            path="/businesses/modadrop/orders"
+            element={
+              <PublicLayout>
+                <ModaDropOrders />
+              </PublicLayout>
+            }
+          />
+
+          <Route
+            path="/businesses/modastudio"
+            element={
+              <PublicLayout>
+                <ModaStudio />
+              </PublicLayout>
+            }
+          />
+
+          <Route
+            path="/businesses/modamanufacture"
+            element={
+              <PublicLayout>
+                <ModaManufacture />
+              </PublicLayout>
+            }
+          />
+
+          <Route
+            path="/businesses/modamanufacture/track/:id"
+            element={
+              <PublicLayout>
+                <ManufactureTracking />
+              </PublicLayout>
+            }
+          />
+
+          <Route
+            path="/businesses/modalogix"
+            element={
+              <PublicLayout>
+                <ModaLogix />
+              </PublicLayout>
+            }
+          />
+
+          <Route
+            path="/businesses/modapay"
+            element={
+              <PublicLayout>
+                <ModaPay />
+              </PublicLayout>
+            }
+          />
+
+          <Route
+            path="/businesses/modainfluence"
+            element={
+              <PublicLayout>
+                <ModaInfluence />
+              </PublicLayout>
+            }
+          />
+
+          <Route
+            path="/businesses/modatales"
+            element={
+              <PublicLayout>
+                <ModaTales />
+              </PublicLayout>
+            }
+          />
+
+          <Route
+            path="/businesses/modaacademy"
+            element={
+              <PublicLayout>
+                <ModaAcademy />
+              </PublicLayout>
+            }
+          />
+
+          <Route
+            path="/businesses/modainsights"
+            element={
+              <PublicLayout>
+                <ModaInsights />
+              </PublicLayout>
+            }
+          />
+
+          <Route
             path="/communities"
             element={
               <PublicLayout>
@@ -276,15 +387,6 @@ function App() {
           />
 
           <Route
-            path="/businesses/modadrop/orders"
-            element={
-              <PublicLayout>
-                <ModaDropOrders />
-              </PublicLayout>
-            }
-          />
-
-          <Route
             path="/login"
             element={
               <PublicLayout>
@@ -307,23 +409,98 @@ function App() {
           ========================= */}
 
           <Route
+            path="/admin-login"
+            element={<AdminLogin />}
+          />
+
+          <Route
             path="/admin"
-            element={<AdminDashboard />}
+            element={
+              <ProtectedAdminRoute>
+                <AdminDashboard />
+              </ProtectedAdminRoute>
+            }
           />
 
           <Route
             path="/admin/careers"
-            element={<AdminCareers />}
+            element={
+              <ProtectedAdminRoute>
+                <AdminCareers />
+              </ProtectedAdminRoute>
+            }
           />
 
           <Route
             path="/admin/applications"
-            element={<AdminApplications />}
+            element={
+              <ProtectedAdminRoute>
+                <AdminApplications />
+              </ProtectedAdminRoute>
+            }
           />
 
           <Route
             path="/admin/community"
-            element={<AdminCommunity />}
+            element={
+              <ProtectedAdminRoute>
+                <AdminCommunity />
+              </ProtectedAdminRoute>
+            }
+          />
+
+          <Route
+            path="/admin/manufacture-requests"
+            element={
+              <ProtectedAdminRoute>
+                <AdminManufactureRequests />
+              </ProtectedAdminRoute>
+            }
+          />
+
+          <Route
+            path="/admin/payments"
+            element={
+              <ProtectedAdminRoute>
+                <AdminPayments />
+              </ProtectedAdminRoute>
+            }
+          />
+
+          <Route
+            path="/admin/influence"
+            element={
+              <ProtectedAdminRoute>
+                <AdminInfluence />
+              </ProtectedAdminRoute>
+            }
+          />
+
+          <Route
+            path="/admin/tales"
+            element={
+              <ProtectedAdminRoute>
+                <AdminTales />
+              </ProtectedAdminRoute>
+            }
+          />
+
+          <Route
+            path="/admin/academy"
+            element={
+              <ProtectedAdminRoute>
+                <AdminAcademy />
+              </ProtectedAdminRoute>
+            }
+          />
+
+          <Route
+            path="/admin/insights"
+            element={
+              <ProtectedAdminRoute>
+                <AdminInsights />
+              </ProtectedAdminRoute>
+            }
           />
 
           {/* =========================
