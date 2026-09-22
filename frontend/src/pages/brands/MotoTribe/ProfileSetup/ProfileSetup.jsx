@@ -82,8 +82,8 @@ function ProfileSetup() {
 
   // Pre-fill rider name from auth user if profile name is empty
   useEffect(() => {
-    if (isAuthenticated && user?.name && !profile.riderName.trim()) {
-      setProfile((prev) => ({ ...prev, riderName: user.name }));
+    if (isAuthenticated && user?.name) {
+      setProfile((prev) => (!prev.riderName.trim() ? { ...prev, riderName: user.name } : prev));
     }
   }, [isAuthenticated, user]);
 

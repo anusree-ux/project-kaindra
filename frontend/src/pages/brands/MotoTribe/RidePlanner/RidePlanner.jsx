@@ -99,7 +99,9 @@ function RidePlanner() {
               isDefault: !!v.isDefault,
             }));
           }
-        } catch (_) {}
+        } catch (err) {
+          /* ignore backend vehicles fetch error */
+        }
       }
 
       if (vehicles.length > 0) {
@@ -115,7 +117,9 @@ function RidePlanner() {
           if (profile.primaryBike) {
             setMotorcycle(profile.primaryBike.toUpperCase());
           }
-        } catch (_) {}
+        } catch (err) {
+          /* ignore local profile parse error */
+        }
       }
 
       // Riders Nearby & User Connections (if authenticated)
@@ -403,7 +407,9 @@ function RidePlanner() {
                   return { lon, lat };
                 }
               }
-            } catch (_) {}
+            } catch (err) {
+              /* ignore photon geocode error */
+            }
 
             // 2. Nominatim fallback with 2s timeout
             try {
@@ -425,7 +431,9 @@ function RidePlanner() {
                   };
                 }
               }
-            } catch (_) {}
+            } catch (err) {
+              /* ignore nominatim fallback error */
+            }
 
             return null;
           };
@@ -537,7 +545,9 @@ function RidePlanner() {
                     });
                   }
                 }
-              } catch (_) {}
+              } catch (err) {
+                /* ignore alternative route error */
+              }
 
               // Fallback ensure 2nd corridor if OSRM offset failed
               if (parsedApiOptions.length === 1) {
@@ -1014,7 +1024,9 @@ function RidePlanner() {
                   onClick={(e) => {
                     try {
                       e.target.showPicker?.();
-                    } catch (_) {}
+                    } catch (err) {
+                      /* ignore showPicker error */
+                    }
                   }}
                 />
               </label>
@@ -1029,7 +1041,9 @@ function RidePlanner() {
                   onClick={(e) => {
                     try {
                       e.target.showPicker?.();
-                    } catch (_) {}
+                    } catch (err) {
+                      /* ignore showPicker error */
+                    }
                   }}
                 />
               </label>

@@ -656,7 +656,9 @@ function Vehicles() {
                     onClick={(e) => {
                       try {
                         e.target.showPicker?.();
-                      } catch (_) {}
+                      } catch (err) {
+                        /* ignore showPicker error */
+                      }
                     }}
                   />
                 </div>
@@ -672,7 +674,9 @@ function Vehicles() {
                     onClick={(e) => {
                       try {
                         e.target.showPicker?.();
-                      } catch (_) {}
+                      } catch (err) {
+                        /* ignore showPicker error */
+                      }
                     }}
                   />
                 </div>

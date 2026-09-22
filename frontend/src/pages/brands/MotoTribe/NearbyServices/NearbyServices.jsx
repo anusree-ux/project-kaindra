@@ -187,7 +187,9 @@ function NearbyServices() {
             return;
           }
         }
-      } catch (_) {}
+      } catch (err) {
+        /* fallback to live location */
+      }
 
       // 2. Try browser live GPS detection
       detectLiveLocation();
@@ -351,7 +353,9 @@ function NearbyServices() {
           setLoading(false);
           return;
         }
-      } catch (_) {}
+      } catch (err) {
+        /* fallback to presets */
+      }
 
       // --- METHOD 3: Curated Regional Highway Services Fallback ---
       const fallbackList = REGIONAL_PRESETS[activeCategory] || REGIONAL_PRESETS.fuel;
