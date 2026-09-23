@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ShieldCheck } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import "./Navbar.css";
 
@@ -40,6 +40,8 @@ function Navbar() {
     setOpenDropdown(null);
     setMenuOpen(false);
   };
+
+  const isAdmin = isAuthenticated && user?.role === "admin";
 
   return (
     <nav className="navbar" ref={navbarRef}>
@@ -240,6 +242,25 @@ function Navbar() {
                 >
                   Login
                 </button>
+              ) : isAdmin ? (
+                <div className="mobile-user-area">
+                  <Link
+                    to="/admin"
+                    className="mobile-user-name"
+                    onClick={closeDropdown}
+                  >
+                    🛡️ Admin Panel
+                  </Link>
+                  <button
+                    className="mobile-logout-btn"
+                    onClick={() => {
+                      closeDropdown();
+                      logout();
+                    }}
+                  >
+                    Logout
+                  </button>
+                </div>
               ) : (
                 <div className="mobile-user-area">
                   <Link
@@ -273,6 +294,19 @@ function Navbar() {
             >
               Login
             </button>
+          ) : isAdmin ? (
+            <div className="navbar-user-area">
+              <Link
+                to="/admin"
+                className="navbar-user-name"
+                style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
+              >
+                <ShieldCheck size={16} /> Admin Panel
+              </Link>
+              <button className="navbar-logout-btn" onClick={logout}>
+                Logout
+              </button>
+            </div>
           ) : (
             <div className="navbar-user-area">
               <Link

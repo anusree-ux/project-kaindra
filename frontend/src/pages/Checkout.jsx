@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, CheckCircle, Lock, ShoppingBag } from "lucide-react";
-import products from "../data/products";
 import "./Checkout.css";
 
 function Checkout() {
@@ -412,54 +411,47 @@ function Checkout() {
 
             <div className="summary-products">
 
-              {cart.map((item) => (
-                <div
-                  className="summary-product"
-                  key={item.id}
-                >
-                  <div className="checkout-product-image">
-  <img
-    src={
-      item.image ||
-      item.images?.[0] ||
-      products.find(
-        (product) =>
-          String(product.id) === String(item.id)
-      )?.images?.[0]
-    }
-    alt={item.name}
-    onError={(event) => {
-      const product = products.find(
-        (productItem) =>
-          String(productItem.id) === String(item.id)
-      );
+              {cart.map((item) => {
+                const itemId = String(item._id || item.id);
+                const imageUrl =
+                  item.image ||
+                  item.images?.[0]?.url ||
+                  (typeof item.images?.[0] === "string"
+                    ? item.images[0]
+                    : "") ||
+                  "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&q=80";
 
-      const fallbackImage = product?.images?.[0];
+                return (
+                  <div
+                    className="summary-product"
+                    key={itemId}
+                  >
+                    <div className="checkout-product-image">
+                      <img
+                        src={imageUrl}
+                        alt={item.name}
+                        onError={(e) => {
+                          e.currentTarget.src =
+                            "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&q=80";
+                        }}
+                      />
+                    </div>
 
-      if (
-        fallbackImage &&
-        event.currentTarget.src !== fallbackImage
-      ) {
-        event.currentTarget.src = fallbackImage;
-      }
-    }}
-  />
-</div>
+                    <div>
+                      <strong>{item.name}</strong>
+                      <span>
+                        Qty: {item.quantity}
+                      </span>
+                    </div>
 
-                  <div>
-                    <strong>{item.name}</strong>
-                    <span>
-                      Qty: {item.quantity}
-                    </span>
+                    <strong>
+                      ₹{(
+                        (item.price || 0) * (item.quantity || 1)
+                      ).toLocaleString("en-IN")}
+                    </strong>
                   </div>
-
-                  <strong>
-                    ₹{(
-                      item.price * item.quantity
-                    ).toLocaleString("en-IN")}
-                  </strong>
-                </div>
-              ))}
+                );
+              })}
 
             </div>
 

@@ -406,3 +406,12 @@
   align-items: center;
   justify-content: center;
 }
+
+@keyframes skeletonShimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

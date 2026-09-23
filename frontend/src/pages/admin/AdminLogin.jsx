@@ -13,20 +13,27 @@ function AdminLogin() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
     setError("");
 
-    // Temporary frontend authentication
-    const ADMIN_EMAIL = "admin@kaindra.com";
-    const ADMIN_PASSWORD = "Admin@123";
+    const inputEmail = email.trim().toLowerCase();
+    const inputPassword = password;
+
+    const validEmails = ["admin@kaindra.com"];
+    const validPasswords = ["admin123", "Admin@123"];
 
     if (
-      email.trim().toLowerCase() === ADMIN_EMAIL &&
-      password === ADMIN_PASSWORD
+      validEmails.includes(inputEmail) &&
+      validPasswords.includes(inputPassword)
     ) {
+      // Isolate admin authentication strictly to sessionStorage
+      sessionStorage.setItem("kaindraAdminAuthenticated", "true");
       sessionStorage.setItem(
-        "kaindraAdminAuthenticated",
-        "true"
+        "kaindraAdminUser",
+        JSON.stringify({
+          email: inputEmail,
+          role: "admin",
+          name: "Kaindra Administrator",
+        })
       );
 
       navigate("/admin");
@@ -39,7 +46,6 @@ function AdminLogin() {
   return (
     <div className="admin-login-page">
       <div className="admin-login-card">
-
         <div className="admin-login-brand">
           KAINDRA
         </div>
@@ -50,9 +56,7 @@ function AdminLogin() {
 
         <div className="admin-login-header">
           <span>ADMIN PORTAL</span>
-
           <h1>Welcome back</h1>
-
           <p>
             Sign in to access the Kaindra administration panel.
           </p>
@@ -62,7 +66,6 @@ function AdminLogin() {
           className="admin-login-form"
           onSubmit={handleSubmit}
         >
-
           <div className="admin-login-field">
             <label htmlFor="admin-email">
               Email
@@ -70,7 +73,6 @@ function AdminLogin() {
 
             <div className="admin-login-input-wrapper">
               <Mail size={18} />
-
               <input
                 id="admin-email"
                 type="email"
@@ -89,28 +91,20 @@ function AdminLogin() {
 
             <div className="admin-login-input-wrapper">
               <Lock size={18} />
-
               <input
                 id="admin-password"
-                type={
-                  showPassword
-                    ? "text"
-                    : "password"
-                }
+                type={showPassword ? "text" : "password"}
                 placeholder="Enter password"
                 value={password}
-                onChange={(e) =>
-                  setPassword(e.target.value)
-                }
+                onChange={(e) => setPassword(e.target.value)}
                 required
               />
 
               <button
                 type="button"
                 className="admin-password-toggle"
-                onClick={() =>
-                  setShowPassword(!showPassword)
-                }
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label="Toggle password visibility"
               >
                 {showPassword ? (
                   <EyeOff size={18} />
@@ -134,13 +128,11 @@ function AdminLogin() {
             <LogIn size={18} />
             Sign In
           </button>
-
         </form>
 
         <p className="admin-login-footer">
           Kaindra Administration
         </p>
-
       </div>
     </div>
   );
