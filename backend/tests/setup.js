@@ -1,18 +1,12 @@
-const { MongoMemoryServer } = require("mongodb-memory-server");
 const mongoose = require("mongoose");
 const connectDB = require("../src/config/database");
 
 // 1. Mock External APIs
 
-// Mock AWS SNS Client
-jest.mock("@aws-sdk/client-sns", () => {
-  return {
-    SNSClient: jest.fn().mockImplementation(() => ({
-      send: jest.fn().mockImplementation(() => Promise.resolve({ MessageId: "mock-msg-id-12345" })),
-    })),
-    PublishCommand: jest.fn().mockImplementation((args) => args),
-  };
-});
+// Set MSG91 env vars for SMS service tests
+process.env.MSG91_AUTH_KEY = "test-msg91-auth-key";
+process.env.MSG91_OTP_TEMPLATE_ID = "test-otp-template-id";
+process.env.MSG91_SOS_TEMPLATE_ID = "test-sos-template-id";
 
 // Mock SendGrid Mail Client
 jest.mock("@sendgrid/mail", () => ({
@@ -41,10 +35,11 @@ jest.mock("cloudinary", () => ({
   },
 }));
 
-// Mock global fetch for OpenWeatherMap and Google Maps APIs
-global.fetch = jest.fn().mockImplementation((url) => {
-  if (typeof url === "string" && url.includes("openweathermap.org")) {
-    if (url.includes("/weather")) {
+// Mock global fetch for OpenWeatherMap, Google Maps, and MSG91 APIs
+const defaultFetchMock = (url) => {
+  const urlStr = typeof url === "string" ? url : url?.url || url?.toString() || "";
+  if (urlStr.includes("openweathermap.org")) {
+    if (urlStr.includes("/weather")) {
       return Promise.resolve({
         ok: true,
         status: 200,
@@ -56,7 +51,7 @@ global.fetch = jest.fn().mockImplementation((url) => {
           }),
       });
     }
-    if (url.includes("/forecast")) {
+    if (urlStr.includes("/forecast")) {
       return Promise.resolve({
         ok: true,
         status: 200,
@@ -73,25 +68,45 @@ global.fetch = jest.fn().mockImplementation((url) => {
       });
     }
   }
+  // Mock MSG91 Flow API
+  if (urlStr.includes("control.msg91.com")) {
+    return Promise.resolve({
+      ok: true,
+      status: 200,
+      json: () =>
+        Promise.resolve({
+          type: "success",
+          message: "mock-msg91-request-id-12345",
+        }),
+    });
+  }
   return Promise.resolve({
     ok: true,
     status: 200,
     json: () => Promise.resolve({ status: "OK", results: [] }),
   });
+};
+
+global.fetch = jest.fn().mockImplementation(defaultFetchMock);
+
+beforeEach(() => {
+  if (jest.isMockFunction(global.fetch)) {
+    global.fetch.mockImplementation(defaultFetchMock);
+  }
 });
 
-let mongoServer;
+process.env.NODE_ENV = "test";
 
 beforeAll(async () => {
-  mongoServer = await MongoMemoryServer.create();
-  const mongoUri = mongoServer.getUri();
-  process.env.DATABASE_URL = mongoUri;
+  const mongoUri = process.env.DATABASE_URL || process.env.MONGO_URI;
 
   if (mongoose.connection.readyState !== 0) {
     await mongoose.disconnect();
   }
 
-  await mongoose.connect(mongoUri);
+  if (mongoUri) {
+    await mongoose.connect(mongoUri);
+  }
 
   // Seed static Badge definitions
   const Badge = require("../src/models/mototribe/Badge");
@@ -144,10 +159,10 @@ beforeAll(async () => {
     await Badge.findOneAndUpdate(
       { key: b.key },
       { $set: b },
-      { upsert: true, new: true }
+      { upsert: true, returnDocument: "after" }
     );
   }
-}, 120000);
+}, 60000);
 
 afterEach(async () => {
   const collections = mongoose.connection.collections;
@@ -161,8 +176,5 @@ afterEach(async () => {
 afterAll(async () => {
   if (mongoose.connection.readyState !== 0) {
     await mongoose.disconnect();
-  }
-  if (mongoServer) {
-    await mongoServer.stop();
   }
 });

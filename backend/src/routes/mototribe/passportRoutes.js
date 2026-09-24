@@ -6,8 +6,8 @@ const { protect } = require("../../middleware/authMiddleware");
 
 const router = express.Router();
 
-// Protect all passport routes with JWT authentication
-router.use(protect);
+// Protect passport routes with JWT authentication
+router.use("/rider-profile", protect);
 
 // GET /api/mototribe/rider-profile/me/passport - Get user's ride passport and achievements
 router.get("/rider-profile/me/passport", getMyPassport);

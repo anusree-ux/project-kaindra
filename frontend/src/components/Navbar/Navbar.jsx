@@ -1,76 +1,292 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { ChevronDown } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 import "./Navbar.css";
 
 function Navbar() {
+  const [openDropdown, setOpenDropdown] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const navbarRef = useRef(null);
+  const { user, isAuthenticated, logout, openAuthModal, loading } = useAuth();
 
-  const closeMenu = () => {
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        navbarRef.current &&
+        !navbarRef.current.contains(event.target)
+      ) {
+        setOpenDropdown(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        handleClickOutside
+      );
+    };
+  }, []);
+
+  const toggleDropdown = (dropdown) => {
+    setOpenDropdown((current) =>
+      current === dropdown ? null : dropdown
+    );
+  };
+
+  const closeDropdown = () => {
+    setOpenDropdown(null);
     setMenuOpen(false);
   };
 
   return (
-    <header className="navbar">
-      <div className="navbar-inner">
+    <nav className="navbar" ref={navbarRef}>
+      <div className="navbar-container">
 
+        {/* LOGO */}
         <Link
           to="/"
           className="navbar-logo"
-          onClick={closeMenu}
+          onClick={closeDropdown}
         >
           KAINDRA
         </Link>
 
-        <nav className={`navbar-links ${menuOpen ? "active" : ""}`}>
+        <div className={`navbar-links ${menuOpen ? "navbar-links-mobile-open" : ""}`}>
+
+          {/* HOME */}
           <Link
-  to="/"
-  onClick={() => {
-    window.history.replaceState(null, "", "/");
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-  }}
->
-  Home
-</Link>
-
-          <Link to="/businesses" onClick={closeMenu}>
-            Businesses
+            to="/"
+            className="navbar-link"
+            onClick={closeDropdown}
+          >
+            Home
           </Link>
 
-          <Link to="/communities" onClick={closeMenu}>
-            Communities
+          {/* ABOUT */}
+          <div className="navbar-dropdown">
+            <button
+              type="button"
+              className="navbar-dropdown-button"
+              onClick={() => toggleDropdown("about")}
+            >
+              About
+              <ChevronDown
+                size={16}
+                className={
+                  openDropdown === "about"
+                    ? "dropdown-arrow open"
+                    : "dropdown-arrow"
+                }
+              />
+            </button>
+
+            {openDropdown === "about" && (
+              <div className="navbar-dropdown-menu">
+                <Link to="/about" onClick={closeDropdown}>
+                  About Kaindra
+                </Link>
+
+                <Link
+                  to="/businesses"
+                  onClick={closeDropdown}
+                >
+                  Businesses
+                </Link>
+
+                <Link
+                  to="/careers"
+                  onClick={closeDropdown}
+                >
+                  Careers
+                </Link>
+
+                <Link to="/news" onClick={closeDropdown}>
+                  News / Blogs
+                </Link>
+
+                <Link
+                  to="/communities"
+                  onClick={closeDropdown}
+                >
+                  Communities
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {/* MODAMART */}
+          <Link
+            to="/businesses/modamart"
+            className="navbar-link"
+            onClick={closeDropdown}
+          >
+            ModaMart
           </Link>
 
-          <Link to="/about" onClick={closeMenu}>
-            About
+          {/* MODADROP */}
+          <Link
+            to="/businesses/modadrop"
+            className="navbar-link"
+            onClick={closeDropdown}
+          >
+            ModaDrop
           </Link>
 
-          <Link to="/news" onClick={closeMenu}>
-            News
-          </Link>
+          {/* MODASPHERE */}
+          <div className="navbar-dropdown modasphere-dropdown">
 
-          <Link to="/careers" onClick={closeMenu}>
-            Careers
-          </Link>
+            <button
+              type="button"
+              className="navbar-dropdown-button"
+              onClick={() => toggleDropdown("modasphere")}
+            >
+              ModaSphere
 
-          <Link to="/contact" onClick={closeMenu}>
+              <ChevronDown
+                size={16}
+                className={
+                  openDropdown === "modasphere"
+                    ? "dropdown-arrow open"
+                    : "dropdown-arrow"
+                }
+              />
+            </button>
+
+            {openDropdown === "modasphere" && (
+              <div className="navbar-dropdown-menu modasphere-menu">
+
+                <Link
+                  to="/businesses/modastudio"
+                  onClick={closeDropdown}
+                >
+                  ModaStudio
+                </Link>
+
+                <Link
+                  to="/businesses/modamanufacture"
+                  onClick={closeDropdown}
+                >
+                  ModaManufacture
+                </Link>
+
+                <Link
+                  to="/businesses/modalogix"
+                  onClick={closeDropdown}
+                >
+                  ModaLogix
+                </Link>
+
+                <Link
+                  to="/businesses/modapay"
+                  onClick={closeDropdown}
+                >
+                  ModaPay
+                </Link>
+
+                <Link
+                  to="/businesses/modainfluence"
+                  onClick={closeDropdown}
+                >
+                  ModaInfluence
+                </Link>
+
+                <Link
+                  to="/businesses/modatales"
+                  onClick={closeDropdown}
+                >
+                  ModaTales
+                </Link>
+
+                <Link
+                  to="/businesses/modaacademy"
+                  onClick={closeDropdown}
+                >
+                  ModaAcademy
+                </Link>
+
+                <Link
+                  to="/businesses/modainsights"
+                  onClick={closeDropdown}
+                >
+                  ModaInsights
+                </Link>
+
+              </div>
+            )}
+          </div>
+
+          {/* CONTACT */}
+          <Link
+            to="/contact"
+            className="navbar-link"
+            onClick={closeDropdown}
+          >
             Contact
           </Link>
 
-          <Link
-            to="/login"
-            className="mobile-login"
-            onClick={closeMenu}
-          >
-            Login
-          </Link>
-        </nav>
+          {/* Mobile auth area */}
+          <div className="navbar-mobile-auth">
+            {!loading && (
+              !isAuthenticated ? (
+                <button
+                  className="mobile-login"
+                  onClick={() => {
+                    closeDropdown();
+                    openAuthModal("login");
+                  }}
+                >
+                  Login
+                </button>
+              ) : (
+                <div className="mobile-user-area">
+                  <Link
+                    to="/profile"
+                    className="mobile-user-name"
+                    onClick={closeDropdown}
+                  >
+                    👤 {user?.name || "User"}
+                  </Link>
+                  <button
+                    className="mobile-logout-btn"
+                    onClick={() => {
+                      closeDropdown();
+                      logout();
+                    }}
+                  >
+                    Logout
+                  </button>
+                </div>
+              )
+            )}
+          </div>
+        </div>
 
-        <Link to="/login" className="navbar-login">
-          Login
-        </Link>
+        {/* Desktop auth area */}
+        {!loading && (
+          !isAuthenticated ? (
+            <button
+              className="navbar-login"
+              onClick={() => openAuthModal("login")}
+            >
+              Login
+            </button>
+          ) : (
+            <div className="navbar-user-area">
+              <Link
+                to="/profile"
+                className="navbar-user-name"
+              >
+                👤 {user?.name || "User"}
+              </Link>
+              <button className="navbar-logout-btn" onClick={logout}>
+                Logout
+              </button>
+            </div>
+          )
+        )}
 
         <button
           type="button"
@@ -83,7 +299,7 @@ function Navbar() {
         </button>
 
       </div>
-    </header>
+    </nav>
   );
 }
 

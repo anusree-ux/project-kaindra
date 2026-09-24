@@ -232,6 +232,11 @@ const getRidersNearby = async (req, res, next) => {
 
       // 5. Fetch User name
       const user = await User.findById(targetUserId).select("name");
+      if (!user || !user.name) {
+        // Clean up orphaned presence record in the background
+        RiderPresence.deleteOne({ _id: presence._id }).catch(() => {});
+        continue;
+      }
 
       // 6. Calculate Trust Score
       const trustScore = await calculateTrustScore(targetUserId);

@@ -7,10 +7,8 @@ const { protect } = require("../../middleware/authMiddleware");
 
 const router = express.Router();
 
-// All route matching endpoints require authentication
-router.use(protect);
-
-router.get("/rides/route-stats", getRouteStatsController);
-router.get("/rides/route-matches", getRouteMatchesController);
+// Route matching endpoints
+router.get("/rides/route-stats", protect, getRouteStatsController);
+router.get("/rides/route-matches", protect, getRouteMatchesController);
 
 module.exports = router;

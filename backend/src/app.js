@@ -19,6 +19,11 @@ const expenseRoutes = require("./routes/mototribe/expenseRoutes");
 const routeReportRoutes = require("./routes/mototribe/routeReportRoutes");
 const presenceRoutes = require("./routes/mototribe/presenceRoutes");
 const connectionRoutes = require("./routes/core/connectionRoutes");
+const careerRoutes = require("./routes/core/careerRoutes");
+const applicationRoutes = require("./routes/core/applicationRoutes");
+const communityRoutes = require("./routes/core/communityRoutes");
+const adminRoutes = require("./routes/core/adminRoutes");
+const orderRoutes = require("./routes/core/orderRoutes");
 const articleRoutes = require("./routes/modasphere/articleRoutes");
 const academyRoutes = require("./routes/modasphere/academyRoutes");
 const influenceRoutes = require("./routes/modasphere/modainfluence/influenceRoutes");
@@ -60,28 +65,43 @@ app.get("/health", (req, res) => {
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/auth", authRoutes);
 
-
-// Core Connection Routes
+// Core Connection & Operations Routes
 app.use("/api/v1/core", connectionRoutes);
 app.use("/api/core", connectionRoutes);
+
+app.use("/api/v1/careers", careerRoutes);
+app.use("/api/careers", careerRoutes);
+
+app.use("/api/v1/applications", applicationRoutes);
+app.use("/api/applications", applicationRoutes);
+
+app.use("/api/v1/community", communityRoutes);
+app.use("/api/community", communityRoutes);
+
+app.use("/api/v1/admin", adminRoutes);
+app.use("/api/admin", adminRoutes);
+
+app.use("/api/v1/orders", orderRoutes);
+app.use("/api/orders", orderRoutes);
 
 // ModaSphere Routes
 app.use("/api/modasphere/articles", articleRoutes);
 app.use("/api/modasphere/academy", academyRoutes);
 app.use("/api/modasphere/influence", influenceRoutes);
   +
+
 // MotoTribe Routes (supports both /api/mototribe and /api/v1/mototribe)
+app.use("/api/v1/mototribe", directionsRoutes);
+app.use("/api/mototribe", directionsRoutes);
+
+app.use("/api/v1/mototribe", placesRoutes);
+app.use("/api/mototribe", placesRoutes);
+
 app.use("/api/v1/mototribe", routeMatchRoutes);
 app.use("/api/mototribe", routeMatchRoutes);
 
 app.use("/api/v1/mototribe", rideRoutes);
 app.use("/api/mototribe", rideRoutes);
-
-app.use("/api/v1/mototribe", placesRoutes);
-app.use("/api/mototribe", placesRoutes);
-
-app.use("/api/v1/mototribe", directionsRoutes);
-app.use("/api/mototribe", directionsRoutes);
 
 app.use("/api/v1/mototribe", sosRoutes);
 app.use("/api/mototribe", sosRoutes);

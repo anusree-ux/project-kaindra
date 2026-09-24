@@ -1,0 +1,272 @@
+.admin-influence-page {
+  min-height: 100vh;
+  background: #f7f5f1;
+  padding: 45px 30px;
+  color: #171717;
+}
+
+.admin-influence-container {
+  width: min(1250px, 100%);
+  margin: auto;
+}
+
+.admin-influence-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 30px;
+  margin-bottom: 35px;
+}
+
+.admin-influence-eyebrow {
+  color: #bd8b46;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+}
+
+.admin-influence-header h1 {
+  margin: 10px 0;
+  font-size: 34px;
+}
+
+.admin-influence-header p {
+  margin: 0;
+  color: #777;
+  font-size: 13px;
+}
+
+.admin-influence-count {
+  min-width: 130px;
+  padding: 18px;
+  background: #fff;
+  border: 1px solid #e5e0d8;
+}
+
+.admin-influence-count span {
+  display: block;
+  color: #888;
+  font-size: 10px;
+  margin-bottom: 8px;
+}
+
+.admin-influence-count strong {
+  font-size: 28px;
+  color: #bd8b46;
+}
+
+.admin-influence-card {
+  background: #fff;
+  border: 1px solid #e5e0d8;
+}
+
+.admin-influence-table-wrapper {
+  overflow-x: auto;
+}
+
+.admin-influence-table {
+  width: 100%;
+  min-width: 950px;
+  border-collapse: collapse;
+}
+
+.admin-influence-table th {
+  padding: 15px;
+  background: #faf9f7;
+  color: #888;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-align: left;
+  border-bottom: 1px solid #e5e0d8;
+}
+
+.admin-influence-table td {
+  padding: 17px 15px;
+  border-bottom: 1px solid #eeeae4;
+  color: #555;
+  font-size: 11px;
+  vertical-align: middle;
+}
+
+.admin-influence-table tbody tr:hover {
+  background: #fdfcf9;
+}
+
+.admin-influence-email,
+.admin-influence-type,
+.admin-influence-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.admin-influence-email svg,
+.admin-influence-type svg,
+.admin-influence-date svg {
+  color: #bd8b46;
+  flex-shrink: 0;
+}
+
+.admin-influence-message {
+  max-width: 220px;
+  color: #777;
+  line-height: 1.5;
+}
+
+.admin-influence-status {
+  display: inline-block;
+  padding: 5px 9px;
+  background: #f5ead8;
+  color: #9a6b2f;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.admin-influence-view-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 1px solid #ddd8cf;
+  background: #fff;
+  color: #555;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.admin-influence-view-button:hover {
+  border-color: #bd8b46;
+  color: #bd8b46;
+}
+
+.admin-influence-empty {
+  padding: 90px 20px;
+  background: #fff;
+  border: 1px solid #e5e0d8;
+  text-align: center;
+}
+
+.admin-influence-empty svg {
+  color: #bd8b46;
+}
+
+.admin-influence-empty h2 {
+  margin: 18px 0 8px;
+}
+
+.admin-influence-empty p {
+  margin: 0;
+  color: #888;
+  font-size: 13px;
+}
+
+/* MODAL */
+
+.admin-influence-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.admin-influence-modal {
+  width: min(600px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #fff;
+}
+
+.admin-influence-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 25px;
+  border-bottom: 1px solid #eeeae4;
+}
+
+.admin-influence-modal-header span {
+  color: #bd8b46;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+}
+
+.admin-influence-modal-header h2 {
+  margin: 8px 0 0;
+  font-size: 24px;
+}
+
+.admin-influence-modal-header button {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: #555;
+}
+
+.admin-influence-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: #eeeae4;
+}
+
+.admin-influence-details > div {
+  padding: 18px;
+  background: #fff;
+}
+
+.admin-influence-details span {
+  display: block;
+  margin-bottom: 7px;
+  color: #999;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.admin-influence-details strong {
+  color: #333;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.admin-influence-detail-message {
+  grid-column: 1 / -1;
+}
+
+.admin-influence-detail-message p {
+  margin: 0;
+  color: #666;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+@media (max-width: 700px) {
+  .admin-influence-page {
+    padding: 30px 15px;
+  }
+
+  .admin-influence-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .admin-influence-header h1 {
+    font-size: 27px;
+  }
+
+  .admin-influence-details {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-influence-detail-message {
+    grid-column: auto;
+  }
+}

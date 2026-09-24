@@ -25,8 +25,8 @@ const createRideValidationRules = [
     .trim()
     .notEmpty()
     .withMessage("Ride title is required")
-    .isLength({ min: 3, max: 100 })
-    .withMessage("Title must be between 3 and 100 characters"),
+    .isLength({ min: 3, max: 250 })
+    .withMessage("Title must be between 3 and 250 characters"),
   body("origin")
     .trim()
     .notEmpty()
@@ -41,8 +41,13 @@ const createRideValidationRules = [
     .isISO8601()
     .withMessage("Start date must be a valid ISO8601 date string")
     .custom((value) => {
-      if (new Date(value) <= new Date()) {
-        throw new Error("Start date must be a future date");
+      const rideTime = new Date(value).getTime();
+      if (isNaN(rideTime)) {
+        throw new Error("Invalid start date format");
+      }
+      // 10-minute buffer for local clock differences
+      if (rideTime < Date.now() - 10 * 60 * 1000) {
+        throw new Error("Start date and time must be in the future");
       }
       return true;
     }),

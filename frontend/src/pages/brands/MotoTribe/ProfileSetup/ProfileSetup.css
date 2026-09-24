@@ -70,7 +70,7 @@
   color: #d6a84f;
   border: 1px solid rgba(214, 168, 79, 0.4);
   padding: 7px 14px;
-  font-size: 9px;
+  font-size: 13px;
   letter-spacing: 2px;
   margin-bottom: 20px;
 }
@@ -104,7 +104,7 @@
 
 .progress-info span {
   color: #777;
-  font-size: 9px;
+  font-size: 13px;
   letter-spacing: 2px;
 }
 
@@ -180,7 +180,7 @@
 
 .profile-field label {
   color: #777;
-  font-size: 9px;
+  font-size: 13px;
   letter-spacing: 1.8px;
 }
 
@@ -218,7 +218,7 @@
   padding: 14px 10px;
   cursor: pointer;
   text-align: left;
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 1px;
   transition: 0.2s ease;
 }
@@ -263,7 +263,7 @@
 
 .contact-header span {
   color: #d6a84f;
-  font-size: 9px;
+  font-size: 13px;
   letter-spacing: 2px;
 }
 
@@ -271,7 +271,7 @@
   border: 0;
   background: transparent;
   color: #777;
-  font-size: 9px;
+  font-size: 13px;
   cursor: pointer;
   letter-spacing: 1px;
 }
@@ -286,7 +286,7 @@
   color: #888;
   padding: 15px;
   cursor: pointer;
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 1.5px;
 }
 
@@ -339,7 +339,7 @@
   text-align: center;
   margin-top: 25px;
   color: #4d4d4d;
-  font-size: 9px;
+  font-size: 13px;
   letter-spacing: 1.5px;
 }
 
