@@ -20,6 +20,7 @@ import News from "./pages/News";
 import ModaMart from "./pages/ModaMart";
 import ProductDetails from "./pages/ProductDetails";
 import Cart from "./pages/Cart";
+import Wishlist from "./pages/Wishlist";
 import Checkout from "./pages/Checkout";
 import Orders from "./pages/Orders";
 import ModaDrop from "./pages/ModaDrop";
@@ -214,6 +215,15 @@ function App() {
             element={
               <PublicLayout>
                 <Cart />
+              </PublicLayout>
+            }
+          />
+
+          <Route
+            path="/businesses/modamart/wishlist"
+            element={
+              <PublicLayout>
+                <Wishlist />
               </PublicLayout>
             }
           />

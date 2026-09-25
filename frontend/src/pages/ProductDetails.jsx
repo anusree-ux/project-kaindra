@@ -30,6 +30,16 @@ function ProductDetails() {
         if (isMounted) {
           setProduct(res.data?.data?.product || null);
         }
+
+        // Check wishlist status
+        try {
+          const checkRes = await apiClient.get(`/api/modasphere/wishlist/check/${productId}`);
+          if (isMounted) {
+            setIsWishlisted(!!checkRes.data?.data?.inWishlist);
+          }
+        } catch {
+          // User may not be logged in
+        }
       } catch (err) {
         if (isMounted) {
           console.error("Error loading product detail:", err);
@@ -50,6 +60,23 @@ function ProductDetails() {
       isMounted = false;
     };
   }, [productId]);
+
+  const toggleWishlist = async () => {
+    if (!productId) return;
+    const nextState = !isWishlisted;
+    setIsWishlisted(nextState);
+
+    try {
+      if (nextState) {
+        await apiClient.post(`/api/modasphere/wishlist/${productId}`);
+      } else {
+        await apiClient.delete(`/api/modasphere/wishlist/${productId}`);
+      }
+    } catch (err) {
+      console.error("Failed to toggle wishlist in details:", err);
+      setIsWishlisted(!nextState); // Rollback on error
+    }
+  };
 
   // Increase quantity
   const increaseQuantity = () => {
@@ -274,7 +301,7 @@ function ProductDetails() {
                 className={`wishlist-button ${
                   isWishlisted ? "active" : ""
                 }`}
-                onClick={() => setIsWishlisted((current) => !current)}
+                onClick={toggleWishlist}
                 aria-label="Add to wishlist"
               >
                 <Heart

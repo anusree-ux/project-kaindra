@@ -82,12 +82,55 @@ function ModaMart() {
     };
   }, [search, category]);
 
-  const toggleWishlist = (id) => {
+  // Fetch user wishlist on mount
+  useEffect(() => {
+    let isMounted = true;
+    const fetchUserWishlist = async () => {
+      try {
+        const res = await apiClient.get("/api/modasphere/wishlist");
+        if (isMounted) {
+          const items = res.data?.data?.wishlist || [];
+          const ids = items.map((p) => p._id || p.id).filter(Boolean);
+          setWishlist(ids);
+        }
+      } catch (err) {
+        // If not logged in or error, silent fail
+        console.debug("User not logged in or wishlist fetch skipped", err);
+      }
+    };
+
+    fetchUserWishlist();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const toggleWishlist = async (productId) => {
+    if (!productId) return;
+    const isCurrentlyWishlisted = wishlist.includes(productId);
+
+    // Optimistic UI update
     setWishlist((current) =>
-      current.includes(id)
-        ? current.filter((item) => item !== id)
-        : [...current, id]
+      isCurrentlyWishlisted
+        ? current.filter((item) => item !== productId)
+        : [...current, productId]
     );
+
+    try {
+      if (isCurrentlyWishlisted) {
+        await apiClient.delete(`/api/modasphere/wishlist/${productId}`);
+      } else {
+        await apiClient.post(`/api/modasphere/wishlist/${productId}`);
+      }
+    } catch (err) {
+      console.error("Failed to update wishlist:", err);
+      // Revert optimistic update on failure
+      setWishlist((current) =>
+        isCurrentlyWishlisted
+          ? [...current, productId]
+          : current.filter((item) => item !== productId)
+      );
+    }
   };
 
   const addToCart = (product) => {
@@ -188,10 +231,14 @@ function ModaMart() {
                 </span>
               </Link>
 
-              <button className="modamart-wishlist">
+              <Link
+                to="/businesses/modamart/wishlist"
+                className="modamart-wishlist"
+                title="View Saved Wishlist"
+              >
                 <Heart size={19} />
                 <span>{wishlist.length}</span>
-              </button>
+              </Link>
             </div>
           </div>
 
