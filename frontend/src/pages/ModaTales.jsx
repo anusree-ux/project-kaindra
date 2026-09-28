@@ -30,35 +30,39 @@ function ModaTales() {
   const [showForm, setShowForm] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = async (e) => {
+  e.preventDefault();
 
     const formData = new FormData(e.target);
 
     const story = {
-      id: `MT-${Date.now()}`,
       name: formData.get("name"),
       email: formData.get("email"),
       storyType: formData.get("storyType"),
       message: formData.get("message"),
-      submittedAt: new Date().toLocaleString(),
-      status: "New",
     };
 
-    const existingStories = JSON.parse(
-      localStorage.getItem("modaTalesSubmissions") || "[]"
-    );
+    try {
+      const response = await fetch("/api/modasphere/tales", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(story),
+      });
 
-    localStorage.setItem(
-      "modaTalesSubmissions",
-      JSON.stringify([...existingStories, story])
-    );
+      const data = await response.json();
 
-    window.dispatchEvent(
-      new Event("modaTalesSubmissionsUpdated")
-    );
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to submit story");
+      }
 
-    setSubmitted(true);
+      setSubmitted(true);
+      e.target.reset();
+    } catch (error) {
+      console.error("ModaTales submission error:", error);
+      alert(error.message || "Failed to submit story. Please try again.");
+    }
   };
 
   return (
