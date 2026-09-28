@@ -19,7 +19,7 @@ const expenseRoutes = require("./routes/mototribe/expenseRoutes");
 const routeReportRoutes = require("./routes/mototribe/routeReportRoutes");
 const presenceRoutes = require("./routes/mototribe/presenceRoutes");
 const connectionRoutes = require("./routes/core/connectionRoutes");
-const articleRoutes = require("./routes/modasphere/articleRoutes");
+const talesRoutes = require("./routes/modasphere/talesRoutes");
 const academyRoutes = require("./routes/modasphere/academyRoutes");
 const influenceRoutes = require("./routes/modasphere/modainfluence/influenceRoutes");
 const errorHandler = require("./middleware/errorHandler");
@@ -66,10 +66,10 @@ app.use("/api/v1/core", connectionRoutes);
 app.use("/api/core", connectionRoutes);
 
 // ModaSphere Routes
-app.use("/api/modasphere/articles", articleRoutes);
+app.use("/api/modasphere/tales", talesRoutes);
 app.use("/api/modasphere/academy", academyRoutes);
 app.use("/api/modasphere/influence", influenceRoutes);
-  +
+  
 // MotoTribe Routes (supports both /api/mototribe and /api/v1/mototribe)
 app.use("/api/v1/mototribe", routeMatchRoutes);
 app.use("/api/mototribe", routeMatchRoutes);
