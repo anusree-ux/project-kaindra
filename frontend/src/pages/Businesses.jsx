@@ -12,6 +12,8 @@ import {
   ArrowRight,
 } from "lucide-react";
 
+import { Link } from "react-router-dom";
+
 import "./Businesses.css";
 
 const businesses = [
@@ -24,6 +26,7 @@ const businesses = [
       "A connected marketplace where consumers, designers, brands and retailers discover, buy and sell fashion.",
     icon: ShoppingBag,
   },
+
   {
     id: "modadrop",
     name: "ModaDrop",
@@ -33,6 +36,7 @@ const businesses = [
       "A launch platform for limited collections, exclusive drops and pre-order based fashion businesses.",
     icon: Sparkles,
   },
+
   {
     id: "modastudio",
     name: "ModaStudio",
@@ -42,6 +46,7 @@ const businesses = [
       "A creative environment connecting designers, creators and fashion businesses from concept to product.",
     icon: Palette,
   },
+
   {
     id: "modamanufacture",
     name: "ModaManufacture",
@@ -51,6 +56,7 @@ const businesses = [
       "A production network connecting fashion businesses with manufacturers and suppliers.",
     icon: Factory,
   },
+
   {
     id: "modalogix",
     name: "ModaLogix",
@@ -60,6 +66,7 @@ const businesses = [
       "Infrastructure for inventory, warehousing, shipping, order fulfillment and returns.",
     icon: Truck,
   },
+
   {
     id: "modapay",
     name: "ModaPay",
@@ -69,6 +76,7 @@ const businesses = [
       "Payment infrastructure supporting transactions, settlements, refunds and financial flows across ModaSphere.",
     icon: CreditCard,
   },
+
   {
     id: "modainfluence",
     name: "ModaInfluence",
@@ -78,6 +86,7 @@ const businesses = [
       "A platform connecting brands, creators and influencers through campaigns and affiliate opportunities.",
     icon: Megaphone,
   },
+
   {
     id: "modatales",
     name: "ModaTales",
@@ -87,6 +96,7 @@ const businesses = [
       "A fashion storytelling network for articles, interviews, videos, podcasts and creator content.",
     icon: PlayCircle,
   },
+
   {
     id: "modaacademy",
     name: "ModaAcademy",
@@ -96,6 +106,7 @@ const businesses = [
       "Fashion education, courses, mentorship and skills development for creators and professionals.",
     icon: GraduationCap,
   },
+
   {
     id: "modainsights",
     name: "ModaInsights",
@@ -131,7 +142,10 @@ function Businesses() {
             intelligence together into one connected fashion ecosystem.
           </p>
 
-          <a href="#businesses-list" className="businesses-hero-button">
+          <a
+            href="#businesses-list"
+            className="businesses-hero-button"
+          >
             Explore Businesses
             <ArrowRight size={18} />
           </a>
@@ -145,6 +159,7 @@ function Businesses() {
 
           <div className="business-section-heading">
             <span>HOW MODASPHERE WORKS</span>
+
             <h2>
               From idea to impact.
             </h2>
@@ -213,7 +228,10 @@ function Businesses() {
         <div className="businesses-container">
 
           <div className="business-section-heading centered">
-            <span>OUR BUSINESS VERTICALS</span>
+
+            <span>
+              OUR BUSINESS VERTICALS
+            </span>
 
             <h2>
               Explore the ModaSphere businesses.
@@ -223,11 +241,13 @@ function Businesses() {
               Each business serves a specific part of the fashion
               value chain while remaining connected to the wider ecosystem.
             </p>
+
           </div>
 
           <div className="businesses-grid">
 
             {businesses.map((business, index) => {
+
               const Icon = business.icon;
 
               return (
@@ -243,7 +263,10 @@ function Businesses() {
                     </span>
 
                     <div className="business-icon">
-                      <Icon size={27} strokeWidth={1.5} />
+                      <Icon
+                        size={27}
+                        strokeWidth={1.5}
+                      />
                     </div>
 
                   </div>
@@ -254,21 +277,28 @@ function Businesses() {
                       {business.category}
                     </span>
 
-                    <h3>{business.name}</h3>
+                    <h3>
+                      {business.name}
+                    </h3>
 
-                    <h4>{business.title}</h4>
+                    <h4>
+                      {business.title}
+                    </h4>
 
-                    <p>{business.description}</p>
+                    <p>
+                      {business.description}
+                    </p>
 
                   </div>
 
-                  <a
-                    href={`/businesses/${business.id}`}
+                  {/* React Router navigation */}
+                  <Link
+                    to={`/businesses/${business.id}`}
                     className="business-card-link"
                   >
                     Explore {business.name}
                     <ArrowRight size={17} />
-                  </a>
+                  </Link>
 
                 </article>
               );
@@ -307,11 +337,17 @@ function Businesses() {
           <div className="connection-flow">
 
             <div>CREATE</div>
+
             <span>→</span>
+
             <div>PRODUCE</div>
+
             <span>→</span>
+
             <div>SELL</div>
+
             <span>→</span>
+
             <div>DELIVER</div>
 
           </div>

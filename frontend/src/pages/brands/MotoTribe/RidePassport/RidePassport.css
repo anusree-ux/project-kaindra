@@ -109,13 +109,13 @@
 
 .passport-card-top span {
   color: #c99b45;
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 2px;
 }
 
 .passport-card-top strong {
   color: #555;
-  font-size: 9px;
+  font-size: 13px;
   letter-spacing: 1px;
 }
 
@@ -167,7 +167,7 @@
 .rider-level span {
   display: block;
   color: #555;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 2px;
 }
 
@@ -184,7 +184,7 @@
   display: block;
   margin-top: 5px;
   color: #c99b45;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 1px;
 }
 
@@ -196,7 +196,7 @@
   display: flex;
   justify-content: space-between;
   color: #555;
-  font-size: 8px;
+  font-size: 12px;
 }
 
 .level-bar {
@@ -229,7 +229,7 @@
 
 .passport-stamp span {
   color: #c99b45;
-  font-size: 6px;
+  font-size: 11px;
   letter-spacing: 1px;
 }
 
@@ -263,7 +263,7 @@
 
 .passport-stat span {
   color: #555;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 1.5px;
 }
 
@@ -278,7 +278,7 @@
 
 .passport-stat small {
   color: #555;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 1px;
 }
 
@@ -299,7 +299,7 @@
 .achievement-heading span {
   display: block;
   color: #555;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 2px;
 }
 
@@ -314,7 +314,7 @@
 
 .achievement-heading small {
   color: #444;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 1px;
 }
 
@@ -351,7 +351,7 @@
 
 .achievement-number {
   color: #444;
-  font-size: 9px;
+  font-size: 13px;
 }
 
 .achievement-badge {
@@ -362,7 +362,7 @@
   border: 1px solid #444;
   color: #555;
   border-radius: 50%;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .achievement-badge.unlocked {
@@ -373,7 +373,7 @@
 .achievement-info small {
   display: block;
   color: #555;
-  font-size: 7px;
+  font-size: 11px;
   letter-spacing: 1px;
 }
 
@@ -381,14 +381,14 @@
   display: block;
   margin-top: 5px;
   color: #aaa;
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 1px;
   font-weight: 500;
 }
 
 .achievement-progress {
   color: #555;
-  font-size: 9px;
+  font-size: 13px;
   text-align: right;
 }
 
@@ -419,7 +419,7 @@
   top: 25px;
   right: 25px;
   color: #333;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .large-badge {
@@ -443,7 +443,7 @@
 .detail-category {
   display: block;
   color: #c99b45;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 2px;
   margin-top: 28px;
 }
@@ -474,13 +474,13 @@
 
 .progress-label span {
   color: #555;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 1px;
 }
 
 .progress-label strong {
   color: #aaa;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 1px;
 }
 
@@ -507,13 +507,13 @@
 
 .achievement-status span {
   color: #555;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 1px;
 }
 
 .achievement-status strong {
   color: #c99b45;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 1px;
 }
 
@@ -530,7 +530,7 @@
 .passport-footer > div:first-child span {
   display: block;
   color: #555;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 1.5px;
 }
 
@@ -548,7 +548,7 @@
   align-items: center;
   gap: 10px;
   color: #555;
-  font-size: 8px;
+  font-size: 12px;
 }
 
 .rank-progress > div {
@@ -566,7 +566,7 @@
 .passport-footer p {
   margin: 0;
   color: #555;
-  font-size: 9px;
+  font-size: 13px;
   line-height: 1.6;
 }
 

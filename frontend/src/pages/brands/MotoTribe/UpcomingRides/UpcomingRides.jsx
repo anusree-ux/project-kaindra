@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useAuth } from "../../../../context/AuthContext";
-import { motoRides } from "../../../../data/motoRides";
 import apiClient from "../../../../services/apiClient";
 import "./UpcomingRides.css";
 
@@ -23,7 +22,7 @@ function UpcomingRides() {
   const [now, setNow] = useState(new Date());
   const [loading, setLoading] = useState(false);
 
-  // 1. Fetch live upcoming rides from MongoDB database & combine with community rides
+  // 1. Fetch live upcoming rides from MongoDB database
   const fetchUpcomingRides = useCallback(async () => {
     if (!isAuthenticated) {
       setRides([]);
@@ -32,30 +31,6 @@ function UpcomingRides() {
     }
 
     setLoading(true);
-
-    const sampleFormatted = motoRides.map((r) => ({
-      id: r.id,
-      name: r.name,
-      start: r.start,
-      destination: r.destination,
-      date: r.date,
-      time: r.time,
-      type: r.type,
-      difficulty: r.difficulty,
-      organizer: r.organizer,
-      organizerType: r.organizerType,
-      riders: r.riders,
-      maxRiders: r.maxRiders,
-      requestRequired: r.requestRequired,
-      distance: r.distanceLabel || `${r.distance} KM`,
-      duration: r.duration,
-      route: r.route,
-      description: r.description,
-      requirements: r.requirements,
-      safety: r.safety,
-      status: "UPCOMING",
-      isUserRide: false,
-    }));
 
     try {
       const res = await apiClient.get("/api/mototribe/rides");
@@ -68,19 +43,31 @@ function UpcomingRides() {
         const dd = String(startDateObj.getDate()).padStart(2, "0");
         const timeStr = startDateObj.toTimeString().substring(0, 5);
 
+        let cleanTitle = r.title || `${r.origin} to ${r.destination}`;
+        const parenMatch = cleanTitle.match(/^([^(]+)\s*\(([^)]+)\)$/);
+        if (parenMatch) {
+          const mainPart = parenMatch[1].trim();
+          let insidePart = parenMatch[2].trim();
+          if (insidePart.toLowerCase().startsWith(mainPart.toLowerCase())) {
+            insidePart = insidePart.substring(mainPart.length).trim();
+          }
+          cleanTitle = insidePart ? `${mainPart} (${insidePart})` : mainPart;
+        }
+
         return {
           id: r._id,
-          name: r.title || `${r.origin} to ${r.destination}`,
+          name: cleanTitle,
           start: typeof r.origin === "object" ? r.origin.name : r.origin || "Origin",
           destination: typeof r.destination === "object" ? r.destination.name : r.destination || "Destination",
           date: `${yyyy}-${mm}-${dd}`,
           time: timeStr !== "00:00" ? timeStr : "06:00",
           type: "ADVENTURE",
           difficulty: (r.distanceKm || 150) > 300 ? "ADVANCED" : "INTERMEDIATE",
-          organizer: r.organizerId?.name || "You (Planned)",
+          organizer: r.organizerId?.name || (r.isOrganizer ? "You (Organizer)" : "Organizer"),
           organizerType: "COMMUNITY",
-          riders: 1,
-          maxRiders: 20,
+          riders: r.participantsCount || 1,
+          maxRiders: r.maxRiders || 1,
+          isOrganizer: !!r.isOrganizer,
           requestRequired: false,
           distance: `${r.distanceKm || 150} KM`,
           duration: `${Math.ceil((r.distanceKm || 150) / 120)} Days`,
@@ -97,13 +84,15 @@ function UpcomingRides() {
         };
       });
 
-      const combined = [...dbFormatted, ...sampleFormatted];
-      setRides(combined);
-      setSelectedRide(combined.length > 0 ? combined[0] : null);
+      setRides(dbFormatted);
+      setSelectedRide((prev) => {
+        if (!prev) return dbFormatted.length > 0 ? dbFormatted[0] : null;
+        return dbFormatted.find((item) => item.id === prev.id) || (dbFormatted.length > 0 ? dbFormatted[0] : null);
+      });
     } catch (err) {
       console.error("Error fetching live upcoming rides:", err);
-      setRides(sampleFormatted);
-      setSelectedRide(sampleFormatted.length > 0 ? sampleFormatted[0] : null);
+      setRides([]);
+      setSelectedRide(null);
     } finally {
       setLoading(false);
     }
@@ -270,6 +259,10 @@ function UpcomingRides() {
   const isRequested = (rideId) => requestedRides.includes(rideId);
 
   const getButtonLabel = (ride) => {
+    if (ride.isOrganizer) {
+      return "ORGANIZER • YOU CREATED THIS RIDE";
+    }
+
     if (isJoined(ride.id)) {
       return "LEAVE RIDE";
     }
@@ -282,6 +275,9 @@ function UpcomingRides() {
   };
 
   const handlePrimaryAction = (ride) => {
+    if (ride.isOrganizer) {
+      return; // Creator is already organizer and cannot join/leave
+    }
     if (ride.requestRequired) {
       handleRequest(ride);
     } else {
@@ -548,22 +544,22 @@ function UpcomingRides() {
                 {selectedRide.description}
               </p>
 
-              <div className="detail-route">
-                <div className="route-point">
-                  <span className="route-marker start"></span>
+              <div className="ur-detail-route">
+                <div className="ur-route-point">
+                  <span className="ur-route-marker start"></span>
 
-                  <div>
+                  <div className="ur-point-info">
                     <small>START</small>
                     <strong>{selectedRide.start}</strong>
                   </div>
                 </div>
 
-                <div className="route-line"></div>
+                <div className="ur-route-connector"></div>
 
-                <div className="route-point">
-                  <span className="route-marker destination"></span>
+                <div className="ur-route-point">
+                  <span className="ur-route-marker destination"></span>
 
-                  <div>
+                  <div className="ur-point-info">
                     <small>DESTINATION</small>
                     <strong>{selectedRide.destination}</strong>
                   </div>
@@ -690,17 +686,22 @@ function UpcomingRides() {
 
               <button
                 className={`primary-ride-action ${
-                  isJoined(selectedRide.id) ? "joined" : ""
+                  selectedRide.isOrganizer
+                    ? "organizer-badge"
+                    : isJoined(selectedRide.id)
+                    ? "joined"
+                    : ""
                 }`}
                 onClick={() => handlePrimaryAction(selectedRide)}
                 disabled={
-                  selectedRide.riders >= selectedRide.maxRiders &&
-                  !isJoined(selectedRide.id) &&
-                  !selectedRide.requestRequired
+                  selectedRide.isOrganizer ||
+                  (selectedRide.riders >= selectedRide.maxRiders &&
+                    !isJoined(selectedRide.id) &&
+                    !selectedRide.requestRequired)
                 }
               >
                 {getButtonLabel(selectedRide)}
-                <span>→</span>
+                {!selectedRide.isOrganizer && <span>→</span>}
               </button>
 
               {selectedRide.requestRequired &&

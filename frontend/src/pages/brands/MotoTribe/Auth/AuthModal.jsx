@@ -209,8 +209,7 @@ export default function AuthModal() {
 
         {/* Modal Branding Header */}
         <div className="auth-brand-header">
-          <span className="auth-brand-main">MOTO</span>
-          <span className="auth-brand-sub">TRIBE</span>
+          <span className="auth-brand-main">KAINDRA</span>
         </div>
 
         {/* Tab Navigation */}
@@ -265,7 +264,7 @@ export default function AuthModal() {
             </div>
 
             <button type="submit" className="auth-submit-btn" disabled={submitting}>
-              {submitting ? "LOGGING IN..." : "LOG IN TO MOTOTRIBE"}
+              {submitting ? "LOGGING IN..." : "LOG IN"}
             </button>
 
             <div className="auth-footer-toggle">

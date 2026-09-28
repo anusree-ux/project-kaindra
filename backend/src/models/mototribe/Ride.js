@@ -38,7 +38,7 @@ const rideSchema = new mongoose.Schema(
       required: [true, "Ride title is required"],
       trim: true,
       minlength: [3, "Title must be at least 3 characters"],
-      maxlength: [100, "Title cannot exceed 100 characters"],
+      maxlength: [250, "Title cannot exceed 250 characters"],
     },
     origin: {
       type: String,
@@ -72,6 +72,11 @@ const rideSchema = new mongoose.Schema(
       type: Number,
       default: 0,
       min: 0,
+    },
+    maxRiders: {
+      type: Number,
+      default: 1,
+      min: [1, "Max riders must be at least 1"],
     },
     status: {
       type: String,

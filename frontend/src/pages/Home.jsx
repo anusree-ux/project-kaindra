@@ -1,14 +1,12 @@
-import Hero from "../sections/Hero/Hero";
-import Market from "../sections/Market/Market";
-import Brands from "../sections/Brands/Brands";
+
+
 import Gallery from "../sections/Gallery/Gallery";
-import News from "../sections/News/News";
+
 import Timeline from "../sections/Timeline/Timeline";
 
 // ModaSphere sections
 
 import ModaHero from "./brands/ModaSphere/ModaHero/ModaHero";
-import VisionMission from "./brands/ModaSphere/VisionMission/VisionMission";
 import CorePillars from "./brands/ModaSphere/CorePillars/CorePillars";
 import ValueProposition from "./brands/ModaSphere/ValueProposition/ValueProposition";
 import Stakeholders from "./brands/ModaSphere/Stakeholders/Stakeholders";
@@ -18,14 +16,11 @@ import TechnologyFoundation from "./brands/ModaSphere/TechnologyFoundation/Techn
 import GoToMarket from "./brands/ModaSphere/GoToMarket/GoToMarket";
 import LongTermImpact from "./brands/ModaSphere/LongTermImpact/LongTermImpact";
 import SuccessMetrics from "./brands/ModaSphere/SuccessMetrics/SuccessMetrics";
+import Footer from "../components/Footer/Footer";
 
 function Home() {
   return (
     <>
-      {/* KAINDRA */}
-      <Hero />
-
-      <Market />
 
       {/* MODASPHERE */}
       <div id="modasphere">
@@ -33,7 +28,7 @@ function Home() {
 
         <ModaHero />
 
-        <VisionMission />
+
 
         <CorePillars />
 
@@ -55,13 +50,14 @@ function Home() {
       </div>
 
       {/* KAINDRA */}
-      <Brands />
+    
 
       <Gallery />
 
-      <News />
+
 
       <Timeline />
+      <Footer/>
     </>
   );
 }

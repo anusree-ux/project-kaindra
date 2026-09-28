@@ -8,8 +8,8 @@ const { protect } = require("../../middleware/authMiddleware");
 
 const router = express.Router();
 
-// Protect all SOS routes with JWT authentication
-router.use(protect);
+// Protect SOS routes with JWT authentication
+router.use("/rides", protect);
 
 // POST /api/mototribe/rides/:id/sos - Trigger SOS alert
 router.post("/rides/:id/sos", triggerSosAlert);

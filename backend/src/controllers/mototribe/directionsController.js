@@ -126,7 +126,44 @@ const getRideRoute = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc    Analyze route between origin, destination and stops (Google Directions API)
+ * @route   GET/POST /api/mototribe/directions/analyze
+ * @access  Public
+ */
+const analyzeRouteController = async (req, res, next) => {
+  try {
+    const origin = req.query.origin || req.body.origin;
+    const destination = req.query.destination || req.body.destination;
+    let waypoints = req.query.waypoints || req.body.waypoints || [];
+
+    if (!origin || !destination) {
+      return next(
+        new AppError("Origin and destination are required to analyze route.", 400)
+      );
+    }
+
+    if (typeof waypoints === "string") {
+      try {
+        waypoints = JSON.parse(waypoints);
+      } catch {
+        waypoints = waypoints.split(",").map((s) => s.trim()).filter(Boolean);
+      }
+    }
+
+    const analysis = await analyzeRoute(origin, destination, waypoints);
+
+    res.status(200).json({
+      status: "success",
+      data: analysis,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   computeRideRoute,
   getRideRoute,
+  analyzeRouteController,
 };

@@ -7,8 +7,8 @@ const { protect } = require("../../middleware/authMiddleware");
 
 const router = express.Router();
 
-// Protect all weather routes with JWT authentication
-router.use(protect);
+// Protect weather routes with JWT authentication
+router.use(["/weather", "/rides"], protect);
 
 // GET /api/mototribe/weather?lat=X&lng=Y - Standalone coordinate weather
 router.get("/weather", getWeatherByCoordinates);

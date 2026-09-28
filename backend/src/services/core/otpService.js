@@ -1,6 +1,6 @@
 const bcrypt = require("bcryptjs");
 const OtpVerification = require("../../models/core/OtpVerification");
-const { sendSms, formatIndianPhoneNumber } = require("../mototribe/smsService");
+const { sendSms } = require("../mototribe/smsService");
 
 /**
  * Generate a random 6-digit numeric OTP code
@@ -38,7 +38,6 @@ const verifyOtpHash = async (code, hash) => {
  * @returns {Promise<{success: boolean, expiresAt: Date, smsResult: Object}>}
  */
 const sendOtpToUser = async (userId, phoneNumber, resendCount = 0) => {
-  const formattedPhone = formatIndianPhoneNumber(phoneNumber);
   const otpCode = generateOtp();
   const hashedOtp = await hashOtp(otpCode);
 
@@ -56,8 +55,7 @@ const sendOtpToUser = async (userId, phoneNumber, resendCount = 0) => {
     resendCount,
   });
 
-  const message = `Your MotoTribe verification code is ${otpCode}, valid for 5 minutes.`;
-  const smsResult = await sendSms(formattedPhone, message);
+  const smsResult = await sendSms(phoneNumber, "otp", { otpCode });
 
   return {
     success: smsResult.success,

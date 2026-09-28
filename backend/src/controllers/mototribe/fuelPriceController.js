@@ -56,19 +56,12 @@ const getFuelPriceAverageController = async (req, res, next) => {
 
     const stats = await getCurrentAverage(state, fuelType);
 
-    // If fallback, attach national default price for response completeness
-    let responseData = { ...stats };
-    if (stats.isFallback) {
-      const fallbackPrice = stats.fuelType === "petrol" ? 105.0 : 95.0;
-      responseData.median = fallbackPrice;
-      responseData.note = `No community submissions in the last 7 days. Returning national default fallback price (₹${fallbackPrice}/L).`;
-    } else {
-      responseData.note = `Calculated using 7-day community median price from ${stats.count} submission(s).`;
-    }
-
     res.status(200).json({
       status: "success",
-      data: responseData,
+      data: {
+        ...stats,
+        note: stats.note || stats.source || `Price for ${stats.state}.`,
+      },
     });
   } catch (error) {
     next(error);

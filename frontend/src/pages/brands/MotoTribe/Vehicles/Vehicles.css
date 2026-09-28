@@ -70,7 +70,7 @@
   border: 1px solid rgba(214, 168, 79, 0.4);
   color: #d6a84f;
   padding: 7px 14px;
-  font-size: 9px;
+  font-size: 13px;
   letter-spacing: 2px;
   margin-bottom: 18px;
 }
@@ -127,7 +127,7 @@
 
 .vehicle-count-label {
   color: #777;
-  font-size: 9px;
+  font-size: 13px;
   letter-spacing: 2px;
 }
 
@@ -137,7 +137,7 @@
   background: #d6a84f;
   color: #080808;
   padding: 13px 18px;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 800;
   letter-spacing: 1.5px;
   cursor: pointer;
@@ -203,13 +203,13 @@
 
 .vehicle-type {
   color: #666;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 2px;
 }
 
 .default-badge {
   color: #d6a84f;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 1.5px;
 }
 
@@ -252,14 +252,14 @@
 .details-grid span {
   display: block;
   color: #666;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 1.3px;
   margin-bottom: 5px;
 }
 
 .vehicle-specs strong {
   color: #ccc;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .registration-box {
@@ -284,7 +284,7 @@
   background: transparent;
   color: #888;
   padding: 9px 10px;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 1px;
   cursor: pointer;
 }
@@ -310,7 +310,7 @@
   border: 0;
   color: #777;
   cursor: pointer;
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 1.5px;
 }
 
@@ -322,7 +322,7 @@
   text-align: center;
   margin-top: 35px;
   color: #484848;
-  font-size: 9px;
+  font-size: 13px;
   letter-spacing: 1.5px;
 }
 
@@ -361,7 +361,7 @@
 .modal-header span,
 .details-label {
   color: #d6a84f;
-  font-size: 9px;
+  font-size: 13px;
   letter-spacing: 2px;
 }
 
@@ -402,7 +402,7 @@
 
 .vehicle-field label {
   color: #777;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 1.6px;
 }
 
@@ -416,6 +416,23 @@
   padding: 13px;
   outline: none;
   font-size: 12px;
+}
+
+.vehicle-field input[type="date"] {
+  color-scheme: dark;
+  cursor: pointer;
+}
+
+.vehicle-field input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(0.8) brightness(1.2);
+  opacity: 0.85;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.vehicle-field input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+  transform: scale(1.15);
 }
 
 .vehicle-field input:focus,
@@ -435,7 +452,7 @@
   padding: 16px;
   margin-top: 22px;
   font-weight: 800;
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 2px;
   cursor: pointer;
 }
@@ -494,7 +511,7 @@
   border: 1px solid #d6a84f;
   padding: 14px;
   margin-top: 22px;
-  font-size: 9px;
+  font-size: 13px;
   letter-spacing: 1.5px;
   cursor: pointer;
 }

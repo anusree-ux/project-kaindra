@@ -2,15 +2,18 @@ const express = require("express");
 const {
   computeRideRoute,
   getRideRoute,
+  analyzeRouteController,
 } = require("../../controllers/mototribe/directionsController");
 const { protect } = require("../../middleware/authMiddleware");
 
 const router = express.Router();
 
-// All direction routes require authentication
-router.use(protect);
+// Public route analysis preview for planner
+router.get("/directions/analyze", analyzeRouteController);
+router.post("/directions/analyze", analyzeRouteController);
 
-router.post("/rides/:id/compute-route", computeRideRoute);
-router.get("/rides/:id/route", getRideRoute);
+// Authenticated ride routes
+router.post("/rides/:id/compute-route", protect, computeRideRoute);
+router.get("/rides/:id/route", protect, getRideRoute);
 
 module.exports = router;

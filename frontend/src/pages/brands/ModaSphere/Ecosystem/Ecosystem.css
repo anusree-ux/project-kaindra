@@ -160,7 +160,7 @@
 
 .ecosystem-center span:last-child {
   margin-top: 7px;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 2px;
 }
 
@@ -613,7 +613,7 @@
   }
 
   .ecosystem-label {
-    font-size: 10px;
+    font-size: 12px;
     letter-spacing: 2.5px;
   }
 
@@ -712,11 +712,11 @@
   }
 
   .ecosystem-node-text strong {
-    font-size: 10px;
+    font-size: 12px;
   }
 
   .ecosystem-node-text small {
-    font-size: 8px;
+    font-size: 12px;
   }
 
   /* =====================

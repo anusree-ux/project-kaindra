@@ -25,7 +25,7 @@ describe("Authentication & OTP Verification API", () => {
     expect(res.body.status).toBe("success");
     expect(res.body.accessToken).toBeUndefined(); // Token is NOT issued until OTP is verified
     expect(res.body.data.userId).toBeDefined();
-    expect(res.body.data.phoneNumber).toBe("+919876543210");
+    expect(res.body.data.phoneNumber).toBe("919876543210");
 
     const userInDb = await User.findOne({ email: userData.email });
     expect(userInDb).not.toBeNull();

@@ -1,0 +1,272 @@
+.admin-tales-page {
+  min-height: 100vh;
+  padding: 45px 30px;
+  background: #f7f5f1;
+  color: #171717;
+}
+
+.admin-tales-container {
+  width: min(1250px, 100%);
+  margin: auto;
+}
+
+.admin-tales-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 30px;
+  margin-bottom: 35px;
+}
+
+.admin-tales-eyebrow {
+  color: #bd8b46;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+}
+
+.admin-tales-header h1 {
+  margin: 10px 0;
+  font-size: 34px;
+}
+
+.admin-tales-header p {
+  margin: 0;
+  color: #777;
+  font-size: 13px;
+}
+
+.admin-tales-count {
+  min-width: 130px;
+  padding: 18px;
+  background: #fff;
+  border: 1px solid #e5e0d8;
+}
+
+.admin-tales-count span {
+  display: block;
+  margin-bottom: 8px;
+  color: #888;
+  font-size: 10px;
+}
+
+.admin-tales-count strong {
+  color: #bd8b46;
+  font-size: 28px;
+}
+
+.admin-tales-card {
+  background: #fff;
+  border: 1px solid #e5e0d8;
+}
+
+.admin-tales-table-wrapper {
+  overflow-x: auto;
+}
+
+.admin-tales-table {
+  width: 100%;
+  min-width: 950px;
+  border-collapse: collapse;
+}
+
+.admin-tales-table th {
+  padding: 15px;
+  background: #faf9f7;
+  color: #888;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-align: left;
+  border-bottom: 1px solid #e5e0d8;
+}
+
+.admin-tales-table td {
+  padding: 17px 15px;
+  border-bottom: 1px solid #eeeae4;
+  color: #555;
+  font-size: 11px;
+  vertical-align: middle;
+}
+
+.admin-tales-table tbody tr:hover {
+  background: #fdfcf9;
+}
+
+.admin-tales-email,
+.admin-tales-type,
+.admin-tales-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.admin-tales-email svg,
+.admin-tales-type svg,
+.admin-tales-date svg {
+  color: #bd8b46;
+  flex-shrink: 0;
+}
+
+.admin-tales-message {
+  max-width: 220px;
+  color: #777;
+  line-height: 1.5;
+}
+
+.admin-tales-status {
+  display: inline-block;
+  padding: 5px 9px;
+  background: #f5ead8;
+  color: #9a6b2f;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.admin-tales-view-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 1px solid #ddd8cf;
+  background: #fff;
+  color: #555;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.admin-tales-view-button:hover {
+  border-color: #bd8b46;
+  color: #bd8b46;
+}
+
+.admin-tales-empty {
+  padding: 90px 20px;
+  background: #fff;
+  border: 1px solid #e5e0d8;
+  text-align: center;
+}
+
+.admin-tales-empty svg {
+  color: #bd8b46;
+}
+
+.admin-tales-empty h2 {
+  margin: 18px 0 8px;
+}
+
+.admin-tales-empty p {
+  margin: 0;
+  color: #888;
+  font-size: 13px;
+}
+
+/* MODAL */
+
+.admin-tales-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.admin-tales-modal {
+  width: min(600px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #fff;
+}
+
+.admin-tales-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 25px;
+  border-bottom: 1px solid #eeeae4;
+}
+
+.admin-tales-modal-header span {
+  color: #bd8b46;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+}
+
+.admin-tales-modal-header h2 {
+  margin: 8px 0 0;
+  font-size: 24px;
+}
+
+.admin-tales-modal-header button {
+  border: 0;
+  background: transparent;
+  color: #555;
+  cursor: pointer;
+}
+
+.admin-tales-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: #eeeae4;
+}
+
+.admin-tales-details > div {
+  padding: 18px;
+  background: #fff;
+}
+
+.admin-tales-details span {
+  display: block;
+  margin-bottom: 7px;
+  color: #999;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.admin-tales-details strong {
+  color: #333;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.admin-tales-detail-message {
+  grid-column: 1 / -1;
+}
+
+.admin-tales-detail-message p {
+  margin: 0;
+  color: #666;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+@media (max-width: 700px) {
+  .admin-tales-page {
+    padding: 30px 15px;
+  }
+
+  .admin-tales-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .admin-tales-header h1 {
+    font-size: 27px;
+  }
+
+  .admin-tales-details {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-tales-detail-message {
+    grid-column: auto;
+  }
+}

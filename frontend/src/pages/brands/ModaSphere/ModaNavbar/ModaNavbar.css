@@ -76,7 +76,7 @@
 
   color: #777777;
 
-  font-size: 7px;
+  font-size: 11px;
   font-weight: 500;
 
   letter-spacing: 2px;
@@ -112,7 +112,7 @@
 
   font-family: Arial, sans-serif;
 
-  font-size: 9px;
+  font-size: 13px;
   font-weight: 500;
 
   letter-spacing: 1.3px;
@@ -185,7 +185,7 @@
   }
 
   .moda-nav-links a {
-    font-size: 8px;
+    font-size: 12px;
     letter-spacing: 1px;
   }
 
@@ -219,7 +219,7 @@
   }
 
   .moda-brand-tagline {
-    font-size: 6px;
+    font-size: 11px;
   }
 
   .moda-nav-links {
@@ -228,7 +228,7 @@
   }
 
   .moda-nav-links a {
-    font-size: 7px;
+    font-size: 11px;
     letter-spacing: 0.8px;
   }
 }
@@ -318,7 +318,7 @@
   text-decoration: none;
 
   font-family: Arial, sans-serif;
-  font-size: 9px;
+  font-size: 13px;
   font-weight: 500;
 
   letter-spacing: 1.3px;

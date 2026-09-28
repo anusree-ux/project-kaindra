@@ -18,7 +18,6 @@ function Footer() {
         <div className="footer-column">
           <h4>Businesses</h4>
           <Link to="/businesses">All Businesses</Link>
-          <Link to="/businesses/modasphere">ModaSphere</Link>
           <Link to="/businesses/mototribe">MotoTribe</Link>
         </div>
 
@@ -34,7 +33,6 @@ function Footer() {
           <h4>Community</h4>
           <Link to="/communities">Communities</Link>
           <Link to="/contact">Partner with us</Link>
-          <Link to="/signup">Join us</Link>
         </div>
 
       </div>

@@ -1,5 +1,4 @@
 import MotoNavbar from "./MotoNavbar/MotoNavbar";
-import AuthModal from "./Auth/AuthModal";
 import "./MotoTribe.css";
 
 import MotoHero from "./MotoHero/MotoHero";
@@ -35,7 +34,6 @@ function MotoTribe() {
   return (
     <div className="moto-tribe-page">
       <MotoNavbar />
-      <AuthModal />
 
       <main>
         {/* HERO */}

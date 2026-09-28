@@ -1,0 +1,282 @@
+/* =========================
+   ABOUT PAGE
+========================= */
+
+.about-page {
+  width: 100%;
+  background: #f7f5f2;
+  color: #111111;
+  overflow: hidden;
+}
+
+.about-container {
+  width: min(1150px, calc(100% - 40px));
+  margin: 0 auto;
+}
+
+.about-label {
+  display: block;
+  margin-bottom: 18px;
+
+  color: #b4864b;
+
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 3px;
+}
+
+/* =========================
+   HERO
+========================= */
+
+.about-hero {
+  padding: 95px 0 90px;
+  text-align: center;
+}
+
+.about-hero h1 {
+  max-width: 900px;
+  margin: 0 auto;
+
+  font-size: clamp(45px, 6vw, 72px);
+  line-height: 1.05;
+  letter-spacing: -2px;
+  font-weight: 700;
+}
+
+.about-hero p {
+  max-width: 720px;
+  margin: 28px auto 0;
+
+  color: #626262;
+
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+/* =========================
+   INTRODUCTION
+========================= */
+
+.about-introduction {
+  padding: 80px 0;
+  background: #ffffff;
+}
+
+.about-intro-grid {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 70px;
+  align-items: start;
+}
+
+.about-number {
+  color: #b4864b;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 2px;
+}
+
+.about-intro-content {
+  max-width: 760px;
+}
+
+.about-intro-content h2 {
+  margin: 0 0 25px;
+
+  font-size: clamp(32px, 4vw, 48px);
+  line-height: 1.15;
+  letter-spacing: -1px;
+}
+
+.about-intro-content p {
+  margin: 0 0 18px;
+
+  color: #666666;
+
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+/* =========================
+   VISION & MISSION
+========================= */
+
+.about-vision-mission {
+  padding: 85px 0;
+
+  background: #f7f5f2;
+}
+
+.about-vm-heading {
+  text-align: center;
+  margin-bottom: 45px;
+}
+
+.about-vm-heading h2 {
+  margin: 0;
+
+  font-size: clamp(35px, 5vw, 55px);
+  line-height: 1.1;
+  letter-spacing: -1.5px;
+}
+
+.about-vm-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.about-vm-card {
+  min-height: 280px;
+  padding: 42px;
+
+  border: 1px solid #dedbd7;
+}
+
+.about-vm-card > span {
+  display: block;
+  margin-bottom: 30px;
+
+  color: #b4864b;
+
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 3px;
+}
+
+.about-vm-card h3 {
+  margin: 0 0 18px;
+
+  font-size: 30px;
+  line-height: 1.2;
+}
+
+.about-vm-card p {
+  max-width: 500px;
+  margin: 0;
+
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+/* Vision */
+
+.vision-card {
+  background: #ffffff;
+  color: #111111;
+}
+
+.vision-card p {
+  color: #666666;
+}
+
+/* Mission */
+
+.mission-card {
+  background: #171717;
+  color: #ffffff;
+  border-color: #171717;
+}
+
+.mission-card p {
+  color: #bdbdbd;
+}
+
+/* =========================
+   APPROACH
+========================= */
+
+.about-approach {
+  padding: 90px 0;
+
+  background: #171717;
+  color: #ffffff;
+}
+
+.about-approach h2 {
+  max-width: 750px;
+  margin: 0 0 25px;
+
+  font-size: clamp(38px, 5vw, 58px);
+  line-height: 1.08;
+  letter-spacing: -1.5px;
+}
+
+.about-approach p {
+  max-width: 700px;
+  margin: 0;
+
+  color: #bdbdbd;
+
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+/* =========================
+   TABLET
+========================= */
+
+@media (max-width: 800px) {
+  .about-intro-grid {
+    grid-template-columns: 1fr;
+    gap: 25px;
+  }
+
+  .about-vm-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .about-vm-card {
+    min-height: auto;
+  }
+}
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 600px) {
+  .about-container {
+    width: calc(100% - 30px);
+  }
+
+  .about-hero {
+    padding: 70px 0;
+  }
+
+  .about-hero h1 {
+    font-size: 42px;
+    letter-spacing: -1px;
+  }
+
+  .about-hero p {
+    font-size: 15px;
+  }
+
+  .about-introduction,
+  .about-vision-mission,
+  .about-approach {
+    padding: 65px 0;
+  }
+
+  .about-intro-content h2 {
+    font-size: 34px;
+  }
+
+  .about-vm-heading {
+    margin-bottom: 30px;
+  }
+
+  .about-vm-card {
+    padding: 30px;
+  }
+
+  .about-vm-card h3 {
+    font-size: 26px;
+  }
+
+  .about-approach h2 {
+    font-size: 38px;
+  }
+}

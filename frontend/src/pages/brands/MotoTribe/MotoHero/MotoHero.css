@@ -215,7 +215,7 @@
 
 .location-dot {
   color: #d6a83e;
-  font-size: 8px;
+  font-size: 12px;
 
   animation: locationPulse 2s infinite;
 }
@@ -362,7 +362,7 @@
 
   color: #d6a83e;
 
-  font-size: 9px;
+  font-size: 13px;
   font-weight: 800;
   letter-spacing: 2px;
 }
@@ -383,7 +383,7 @@
 
   color: rgba(255, 255, 255, 0.55);
 
-  font-size: 9px;
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 1.5px;
 }
@@ -458,7 +458,7 @@
 
   color: rgba(255, 255, 255, 0.40);
 
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 1.5px;
 }
 
@@ -498,7 +498,7 @@
 
   color: rgba(255, 255, 255, 0.38);
 
-  font-size: 8px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 1.4px;
 }
@@ -516,7 +516,7 @@
 .ai-data small {
   color: #d6a83e;
 
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 1px;
 }
 
@@ -542,7 +542,7 @@
 
   color: rgba(255, 255, 255, 0.72);
 
-  font-size: 9px;
+  font-size: 13px;
   font-weight: 800;
   letter-spacing: 1.4px;
 
@@ -677,7 +677,7 @@
 
   color: rgba(255, 255, 255, 0.68);
 
-  font-size: 8px;
+  font-size: 12px;
   font-weight: 800;
   letter-spacing: 1.7px;
 
@@ -806,7 +806,7 @@
 .moto-impact-item span {
   color: rgba(255, 255, 255, 0.42);
 
-  font-size: 9px;
+  font-size: 13px;
   font-weight: 800;
   letter-spacing: 1.8px;
 }
@@ -843,14 +843,14 @@
 
   color: #ffffff;
 
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 1.5px;
 }
 
 .moto-impact-experience span {
   color: rgba(255, 255, 255, 0.38);
 
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 1.5px;
 }
 
@@ -984,7 +984,7 @@
   }
 
   .moto-hero-eyebrow {
-    font-size: 9px;
+    font-size: 13px;
 
     letter-spacing: 2px;
   }

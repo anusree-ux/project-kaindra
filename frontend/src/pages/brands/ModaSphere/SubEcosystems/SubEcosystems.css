@@ -27,7 +27,8 @@
 }
 
 .subecosystems-label {
-  margin-bottom: 13px;
+  display: block;
+  margin: 0 0 13px;
 
   color: #bd8b46;
 
@@ -50,7 +51,6 @@
 
 .subecosystems-heading p {
   max-width: 680px;
-
   margin: 17px auto 0;
 
   color: #626262;
@@ -65,14 +65,12 @@
 ========================================================= */
 
 .business-grid {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
 
-  grid-template-columns: repeat(4, 1fr);
+  width: 100%;
 
-  border-top: 1px solid #dedbd5;
-  border-left: 1px solid #dedbd5;
-
-  background: #ffffff;
+  background: transparent;
 }
 
 
@@ -81,18 +79,22 @@
 ========================================================= */
 
 .business-card {
-  min-height: 235px;
+  width: 33.333333%;
 
-  padding: 30px 25px;
+  min-height: 205px;
+
+  padding: 28px 25px;
 
   background: #ffffff;
 
+  border-top: 1px solid #dedbd5;
+  border-left: 1px solid #dedbd5;
   border-right: 1px solid #dedbd5;
   border-bottom: 1px solid #dedbd5;
 
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
 
   transition:
     background 0.25s ease,
@@ -109,10 +111,10 @@
 ========================================================= */
 
 .business-icon {
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
 
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 
   display: flex;
   align-items: center;
@@ -122,7 +124,6 @@
   border-radius: 50%;
 
   color: #bd8b46;
-
   background: #ffffff;
 
   transition:
@@ -143,13 +144,14 @@
 .business-name {
   display: block;
 
-  margin-bottom: 8px;
+  margin: 0 0 6px;
 
   color: #bd8b46;
 
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 1.5px;
+  line-height: 1.3;
 }
 
 
@@ -158,7 +160,7 @@
 ========================================================= */
 
 .business-card h3 {
-  margin: 0 0 9px;
+  margin: 0 0 8px;
 
   color: #151515;
 
@@ -166,6 +168,11 @@
   line-height: 1.3;
   font-weight: 600;
 }
+
+
+/* =========================================================
+   DESCRIPTION
+========================================================= */
 
 .business-card p {
   max-width: 240px;
@@ -175,7 +182,7 @@
   color: #666666;
 
   font-size: 13px;
-  line-height: 1.6;
+  line-height: 1.55;
 }
 
 
@@ -193,19 +200,23 @@
     width: min(800px, calc(100% - 40px));
   }
 
-  .business-grid {
-    grid-template-columns: repeat(3, 1fr);
+  .business-card {
+    width: 50%;
+    min-height: 200px;
+
+    padding: 25px 22px;
   }
 
-  .business-card {
-    min-height: 225px;
-    padding: 27px 22px;
+  .business-icon {
+    width: 44px;
+    height: 44px;
+    margin-bottom: 16px;
   }
 }
 
 
 /* =========================================================
-   MOBILE / TABLET
+   MOBILE
 ========================================================= */
 
 @media (max-width: 700px) {
@@ -231,23 +242,21 @@
     font-size: 14px;
   }
 
-  .business-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
   .business-card {
-    min-height: 215px;
-    padding: 25px 20px;
+    width: 50%;
+    min-height: 190px;
+
+    padding: 23px 20px;
   }
 
   .business-icon {
-    width: 44px;
-    height: 44px;
-    margin-bottom: 17px;
+    width: 42px;
+    height: 42px;
+    margin-bottom: 15px;
   }
 
   .business-name {
-    font-size: 10px;
+    font-size: 12px;
   }
 
   .business-card h3 {
@@ -255,6 +264,7 @@
   }
 
   .business-card p {
+    max-width: 100%;
     font-size: 12px;
   }
 }
@@ -278,18 +288,17 @@
     font-size: 13px;
   }
 
-  .business-grid {
-    grid-template-columns: 1fr;
-  }
-
   .business-card {
+    width: 100%;
     min-height: auto;
-    padding: 25px;
+
+    padding: 24px 22px;
   }
 
   .business-icon {
     width: 42px;
     height: 42px;
+    margin-bottom: 15px;
   }
 
   .business-card h3 {
@@ -301,3 +310,4 @@
     font-size: 13px;
   }
 }
+

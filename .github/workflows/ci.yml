@@ -60,8 +60,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Create temporary environment file
+        run: cp .env.example .env
+
       - name: Run tests
-        run: npm test      
+        run: npm test
 
       - name: Build Docker image (dev target)
         run: docker build --target dev -t kaindra-backend:ci-test .

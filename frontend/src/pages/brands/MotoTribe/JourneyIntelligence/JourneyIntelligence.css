@@ -87,14 +87,14 @@
 }
 
 .journey-heading-status strong {
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0.16em;
 }
 
 .journey-heading-status small {
   margin-top: 5px;
   color: #777;
-  font-size: 9px;
+  font-size: 13px;
   letter-spacing: 0.12em;
 }
 
@@ -132,7 +132,7 @@
 
 .map-topbar span {
   color: #777;
-  font-size: 9px;
+  font-size: 13px;
   letter-spacing: 0.18em;
 }
 
@@ -150,7 +150,7 @@
   padding: 10px 13px;
   background: transparent;
   color: #777;
-  font-size: 9px;
+  font-size: 13px;
   letter-spacing: 0.12em;
   cursor: pointer;
 }
@@ -278,7 +278,7 @@
 
 .route-node small {
   color: #8b8b8b;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 0.12em;
 }
 
@@ -340,7 +340,7 @@
   place-items: center;
   border: 1px solid rgba(201, 150, 74, 0.35);
   color: #c9964a;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .map-stop small,
@@ -351,20 +351,20 @@
 
 .map-stop small {
   color: #c9964a;
-  font-size: 7px;
+  font-size: 11px;
   letter-spacing: 0.15em;
 }
 
 .map-stop strong {
   margin-top: 2px;
-  font-size: 9px;
+  font-size: 13px;
   letter-spacing: 0.08em;
 }
 
 .map-stop p {
   margin: 3px 0 0;
   color: #666;
-  font-size: 8px;
+  font-size: 12px;
 }
 
 .map-rider {
@@ -381,12 +381,12 @@
 }
 
 .map-rider span {
-  font-size: 8px;
+  font-size: 12px;
 }
 
 .map-rider small {
   color: #888;
-  font-size: 7px;
+  font-size: 11px;
   letter-spacing: 0.1em;
 }
 
@@ -423,7 +423,7 @@
   border: 1px solid #c9964a;
   border-radius: 50%;
   color: #c9964a;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .map-warning strong,
@@ -433,14 +433,14 @@
 
 .map-warning strong {
   color: #c9964a;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 0.13em;
 }
 
 .map-warning small {
   margin-top: 4px;
   color: #777;
-  font-size: 8px;
+  font-size: 12px;
 }
 
 .map-analysis {
@@ -455,7 +455,7 @@
   background: rgba(4, 4, 4, 0.7);
   backdrop-filter: blur(7px);
   color: #c9964a;
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0.2em;
 }
 
@@ -490,7 +490,7 @@
 
 .map-stat span {
   color: #666;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 0.16em;
 }
 
@@ -517,7 +517,7 @@
 
 .panel-header span {
   color: #c9964a;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 0.18em;
 }
 
@@ -584,7 +584,7 @@
 
 .intelligence-item span {
   color: #777;
-  font-size: 7px;
+  font-size: 11px;
   letter-spacing: 0.14em;
 }
 
@@ -596,7 +596,7 @@
 .intelligence-item small {
   margin-top: 3px;
   color: #c9964a;
-  font-size: 7px;
+  font-size: 11px;
   letter-spacing: 0.08em;
 }
 
@@ -610,7 +610,7 @@
   display: flex;
   justify-content: space-between;
   color: #888;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 0.14em;
 }
 
@@ -635,7 +635,7 @@
   display: flex;
   justify-content: space-between;
   color: #666;
-  font-size: 7px;
+  font-size: 11px;
   letter-spacing: 0.14em;
 }
 
@@ -671,14 +671,14 @@
 
 .ai-recommendation span {
   color: #c9964a;
-  font-size: 7px;
+  font-size: 11px;
   letter-spacing: 0.16em;
 }
 
 .ai-recommendation p {
   margin: 7px 0 0;
   color: #888;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.6;
 }
 
@@ -692,7 +692,7 @@
 
 .data-sources > span {
   color: #555;
-  font-size: 7px;
+  font-size: 11px;
   letter-spacing: 0.16em;
 }
 
@@ -707,7 +707,7 @@
   padding: 6px 8px;
   border: 1px solid rgba(255, 255, 255, 0.07);
   color: #666;
-  font-size: 7px;
+  font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.08em;
 }
@@ -730,7 +730,7 @@
 
 .route-selector-heading > div > span {
   color: #c9964a;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 0.17em;
 }
 
@@ -742,7 +742,7 @@
 
 .route-count {
   color: #666;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 0.13em;
 }
 
@@ -776,13 +776,13 @@
 
 .route-option-top > span:first-child {
   color: #555;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 0.13em;
 }
 
 .selected-route {
   color: #c9964a;
-  font-size: 7px;
+  font-size: 11px;
   letter-spacing: 0.1em;
 }
 
@@ -802,7 +802,7 @@
   padding-right: 8px;
   border-right: 1px solid #292929;
   color: #999;
-  font-size: 8px;
+  font-size: 12px;
 }
 
 .route-option-stats span:last-child {
@@ -817,7 +817,7 @@
   padding-top: 13px;
   border-top: 1px solid rgba(255, 255, 255, 0.07);
   color: #555;
-  font-size: 7px;
+  font-size: 11px;
   letter-spacing: 0.06em;
 }
 
@@ -869,14 +869,14 @@
 }
 
 .analysis-status strong {
-  font-size: 9px;
+  font-size: 13px;
   letter-spacing: 0.12em;
 }
 
 .analysis-status small {
   margin-top: 4px;
   color: #666;
-  font-size: 9px;
+  font-size: 13px;
 }
 
 .analysis-status-right {
@@ -886,7 +886,7 @@
 .analysis-status-right span {
   display: block;
   color: #555;
-  font-size: 7px;
+  font-size: 11px;
   letter-spacing: 0.14em;
 }
 
@@ -1047,7 +1047,7 @@
 
   .map-toggle {
     padding: 8px;
-    font-size: 7px;
+    font-size: 11px;
   }
 
   .journey-map {
@@ -1055,7 +1055,7 @@
   }
 
   .route-node small {
-    font-size: 6px;
+    font-size: 11px;
   }
 
   .rider-one,
@@ -1126,7 +1126,7 @@
 
 .status-badge {
   padding: 3px 8px;
-  font-size: 9px;
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 1px;
   background: rgba(201, 150, 74, 0.15);
