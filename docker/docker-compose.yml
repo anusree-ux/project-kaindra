@@ -63,6 +63,9 @@ services:
       - ../frontend:/app
       - /app/node_modules
 
+    environment:
+      VITE_API_PROXY_TARGET: http://backend:5000
+
     depends_on:
       backend:
         condition: service_healthy

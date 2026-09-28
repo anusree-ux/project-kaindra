@@ -10,30 +10,70 @@ function AdminLogin() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     setError("");
+    setLoading(true);
 
-    // Temporary frontend authentication
-    const ADMIN_EMAIL = "admin@kaindra.com";
-    const ADMIN_PASSWORD = "Admin@123";
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          password,
+        }),
+      });
 
-    if (
-      email.trim().toLowerCase() === ADMIN_EMAIL &&
-      password === ADMIN_PASSWORD
-    ) {
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Invalid email or password.");
+      }
+
+      const user = data?.data?.user;
+      const accessToken = data?.accessToken;
+
+      if (!accessToken || !user) {
+        throw new Error("Invalid login response from server.");
+      }
+
+      if (user.role !== "admin") {
+        throw new Error(
+          "You are not authorized to access the admin panel."
+        );
+      }
+
+      sessionStorage.setItem(
+        "kaindraAdminAccessToken",
+        accessToken
+      );
+
       sessionStorage.setItem(
         "kaindraAdminAuthenticated",
         "true"
       );
 
-      navigate("/admin");
-      return;
-    }
+      sessionStorage.setItem(
+        "kaindraAdminUser",
+        JSON.stringify(user)
+      );
 
-    setError("Invalid admin email or password.");
+      navigate("/admin");
+    } catch (error) {
+      console.error("Admin login error:", error);
+
+      setError(
+        error.message || "Login failed. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -78,6 +118,7 @@ function AdminLogin() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={loading}
               />
             </div>
           </div>
@@ -92,17 +133,12 @@ function AdminLogin() {
 
               <input
                 id="admin-password"
-                type={
-                  showPassword
-                    ? "text"
-                    : "password"
-                }
+                type={showPassword ? "text" : "password"}
                 placeholder="Enter password"
                 value={password}
-                onChange={(e) =>
-                  setPassword(e.target.value)
-                }
+                onChange={(e) => setPassword(e.target.value)}
                 required
+                disabled={loading}
               />
 
               <button
@@ -111,6 +147,7 @@ function AdminLogin() {
                 onClick={() =>
                   setShowPassword(!showPassword)
                 }
+                disabled={loading}
               >
                 {showPassword ? (
                   <EyeOff size={18} />
@@ -130,9 +167,11 @@ function AdminLogin() {
           <button
             type="submit"
             className="admin-login-button"
+            disabled={loading}
           >
             <LogIn size={18} />
-            Sign In
+
+            {loading ? "Signing in..." : "Sign In"}
           </button>
 
         </form>
