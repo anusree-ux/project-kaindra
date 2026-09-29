@@ -110,20 +110,7 @@ function AdminDashboard() {
     }
   };
 
-  // =============================
-  // Load ModaTales Stories
-  // =============================
-  const getTalesStories = () => {
-    try {
-      const savedStories = localStorage.getItem("modaTalesSubmissions");
-      if (!savedStories) return [];
-      const stories = JSON.parse(savedStories);
-      return Array.isArray(stories) ? stories : [];
-    } catch (error) {
-      console.error("Unable to load ModaTales submissions:", error);
-      return [];
-    }
-  };
+
 
   // =============================
   // Load ModaAcademy Enrollments
@@ -162,7 +149,6 @@ function AdminDashboard() {
   const localCommunityMembers = getCommunityMembers();
   const productionRequests = getProductionRequests();
   const payments = getPayments();
-  const talesStories = getTalesStories();
   const academyEnrollments = getAcademyEnrollments();
   const influenceCampaigns = getInfluenceCampaigns();
 
@@ -233,7 +219,7 @@ function AdminDashboard() {
     },
     {
       title: "ModaTales",
-      value: talesStories.length,
+      value: statsData.modaTales,
       icon: BookOpen,
     },
     {
@@ -505,9 +491,9 @@ function AdminDashboard() {
                 <h3>
                   ModaTales
 
-                  {talesStories.length > 0 && (
+                  {statsData.modaTales > 0 && (
                     <span className="application-count">
-                      {talesStories.length}
+                      {statsData.modaTales}
                     </span>
                   )}
                 </h3>

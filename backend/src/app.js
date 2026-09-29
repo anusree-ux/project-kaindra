@@ -1,4 +1,4 @@
-const express = require("express");
+﻿const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const connectDB = require("./config/database");
@@ -24,8 +24,9 @@ const applicationRoutes = require("./routes/core/applicationRoutes");
 const communityRoutes = require("./routes/core/communityRoutes");
 const adminRoutes = require("./routes/core/adminRoutes");
 const orderRoutes = require("./routes/core/orderRoutes");
-const articleRoutes = require("./routes/modasphere/articleRoutes");
+const talesRoutes = require("./routes/modasphere/talesRoutes");
 const academyRoutes = require("./routes/modasphere/academyRoutes");
+const influenceRoutes = require("./routes/modasphere/modainfluence/influenceRoutes");
 const productRoutes = require("./routes/modasphere/productRoutes");
 const cartRoutes = require("./routes/modasphere/cartRoutes");
 const modasphereOrderRoutes = require("./routes/modasphere/orderRoutes");
@@ -90,22 +91,32 @@ app.use("/api/v1/orders", orderRoutes);
 app.use("/api/orders", orderRoutes);
 
 // ModaSphere Routes
-app.use("/api/modasphere/articles", articleRoutes);
+app.use("/api/modasphere/tales", talesRoutes);
+app.use("/api/v1/modasphere/tales", talesRoutes);
+
 app.use("/api/modasphere/academy", academyRoutes);
+app.use("/api/v1/modasphere/academy", academyRoutes);
+
+app.use("/api/modasphere/influence", influenceRoutes);
+app.use("/api/v1/modasphere/influence", influenceRoutes);
+
 app.use("/api/modasphere/products", productRoutes);
 app.use("/api/v1/modasphere/products", productRoutes);
+
 app.use("/api/modasphere/cart", cartRoutes);
 app.use("/api/v1/modasphere/cart", cartRoutes);
+
 app.use("/api/modasphere/orders", modasphereOrderRoutes);
 app.use("/api/v1/modasphere/orders", modasphereOrderRoutes);
+
 app.use("/api/modasphere/wishlist", wishlistRoutes);
 app.use("/api/v1/modasphere/wishlist", wishlistRoutes);
 
-app.use("/api/modasphere", reviewRoutes);
-app.use("/api/v1/modasphere", reviewRoutes);
-
 app.use("/api/modasphere/drops", dropRoutes);
 app.use("/api/v1/modasphere/drops", dropRoutes);
+
+app.use("/api/modasphere", reviewRoutes);
+app.use("/api/v1/modasphere", reviewRoutes);
 
 // MotoTribe Routes (supports both /api/mototribe and /api/v1/mototribe)
 app.use("/api/v1/mototribe", directionsRoutes);

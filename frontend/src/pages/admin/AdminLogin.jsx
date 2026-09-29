@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Lock, Mail, Eye, EyeOff, LogIn } from "lucide-react";
 import "./AdminLogin.css";
@@ -10,45 +10,59 @@ function AdminLogin() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setLoading(true);
 
-    const inputEmail = email.trim().toLowerCase();
-    const inputPassword = password;
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          password,
+        }),
+      });
 
-    const validEmails = ["admin@kaindra.com"];
-    const validPasswords = ["admin123", "Admin@123"];
+      const data = await response.json();
 
-    if (
-      validEmails.includes(inputEmail) &&
-      validPasswords.includes(inputPassword)
-    ) {
-      // Isolate admin authentication strictly to sessionStorage
+      if (!response.ok) {
+        throw new Error(data.message || "Invalid email or password.");
+      }
+
+      const user = data?.data?.user;
+      const accessToken = data?.accessToken;
+
+      if (!accessToken || !user) {
+        throw new Error("Invalid login response from server.");
+      }
+
+      if (user.role !== "admin") {
+        throw new Error("You are not authorized to access the admin panel.");
+      }
+
       sessionStorage.setItem("kaindraAdminAuthenticated", "true");
-      sessionStorage.setItem(
-        "kaindraAdminUser",
-        JSON.stringify({
-          email: inputEmail,
-          role: "admin",
-          name: "Kaindra Administrator",
-        })
-      );
+      sessionStorage.setItem("kaindraAdminAccessToken", accessToken);
+      sessionStorage.setItem("kaindraAdminUser", JSON.stringify(user));
 
       navigate("/admin");
-      return;
+    } catch (error) {
+      console.error("Admin login error:", error);
+      setError(error.message || "Login failed. Please try again.");
+    } finally {
+      setLoading(false);
     }
-
-    setError("Invalid admin email or password.");
   };
 
   return (
     <div className="admin-login-page">
       <div className="admin-login-card">
-        <div className="admin-login-brand">
-          KAINDRA
-        </div>
+        <div className="admin-login-brand">KAINDRA</div>
 
         <div className="admin-login-icon">
           <Lock size={24} />
@@ -57,19 +71,12 @@ function AdminLogin() {
         <div className="admin-login-header">
           <span>ADMIN PORTAL</span>
           <h1>Welcome back</h1>
-          <p>
-            Sign in to access the Kaindra administration panel.
-          </p>
+          <p>Sign in to access the Kaindra administration panel.</p>
         </div>
 
-        <form
-          className="admin-login-form"
-          onSubmit={handleSubmit}
-        >
+        <form className="admin-login-form" onSubmit={handleSubmit}>
           <div className="admin-login-field">
-            <label htmlFor="admin-email">
-              Email
-            </label>
+            <label htmlFor="admin-email">Email</label>
 
             <div className="admin-login-input-wrapper">
               <Mail size={18} />
@@ -80,14 +87,13 @@ function AdminLogin() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={loading}
               />
             </div>
           </div>
 
           <div className="admin-login-field">
-            <label htmlFor="admin-password">
-              Password
-            </label>
+            <label htmlFor="admin-password">Password</label>
 
             <div className="admin-login-input-wrapper">
               <Lock size={18} />
@@ -98,41 +104,34 @@ function AdminLogin() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                disabled={loading}
               />
 
               <button
                 type="button"
                 className="admin-password-toggle"
                 onClick={() => setShowPassword(!showPassword)}
+                disabled={loading}
                 aria-label="Toggle password visibility"
               >
-                {showPassword ? (
-                  <EyeOff size={18} />
-                ) : (
-                  <Eye size={18} />
-                )}
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
           </div>
 
-          {error && (
-            <div className="admin-login-error">
-              {error}
-            </div>
-          )}
+          {error && <div className="admin-login-error">{error}</div>}
 
           <button
             type="submit"
             className="admin-login-button"
+            disabled={loading}
           >
             <LogIn size={18} />
-            Sign In
+            {loading ? "Signing in..." : "Sign In"}
           </button>
         </form>
 
-        <p className="admin-login-footer">
-          Kaindra Administration
-        </p>
+        <p className="admin-login-footer">Kaindra Administration</p>
       </div>
     </div>
   );
