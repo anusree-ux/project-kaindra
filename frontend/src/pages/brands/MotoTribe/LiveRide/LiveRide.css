@@ -1,1027 +1,1261 @@
 /* =========================================================
-   MOTOTRIBE - LIVE RIDE DASHBOARD
-   ========================================================= */
+   LIVE RIDE PAGE
+========================================================= */
 
 .live-ride-page {
   min-height: 100vh;
-  background: #090a09;
-  color: #f1eee6;
-  padding: 0 0 70px;
-  font-family: inherit;
-}
-
-.live-ride-page *,
-.live-ride-page *::before,
-.live-ride-page *::after {
-  box-sizing: border-box;
+  background: #0a0a0a;
+  color: #f3f1eb;
+  padding-bottom: 60px;
 }
 
 /* =========================================================
-   TOP BAR
-   ========================================================= */
+   HEADER
+========================================================= */
 
-.live-ride-topbar {
-  width: min(1380px, calc(100% - 50px));
-  margin: 0 auto;
-  height: 72px;
-
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
+.live-ride-header {
+  min-height: 76px;
+  padding: 18px 5%;
+  display: flex;
   align-items: center;
-
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  justify-content: space-between;
+  gap: 20px;
+  border-bottom: 1px solid rgba(201, 164, 93, 0.18);
+  background: #0d0d0d;
 }
 
-.live-ride-back {
-  justify-self: start;
-
-  border: 0;
+.live-ride-header-back,
+.live-ride-expenses-button {
+  border: 1px solid rgba(201, 164, 93, 0.35);
   background: transparent;
-  color: #8d8e88;
-
-  cursor: pointer;
-
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-
-  transition: color 0.2s ease;
-}
-
-.live-ride-back:hover {
-  color: #c9a45d;
-}
-
-.live-ride-brand {
-  color: #c9a45d;
+  color: #d8d5cc;
+  padding: 11px 16px;
   font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.2em;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  cursor: pointer;
+  transition: 0.25s ease;
 }
 
-.live-ride-brand span {
-  color: #777872;
-  font-weight: 500;
-}
-
-.live-ride-status-badge {
-  justify-self: end;
-
-  min-width: 110px;
-  padding: 10px 14px;
-
-  border: 1px solid rgba(201,164,93,0.3);
-
+.live-ride-header-back:hover,
+.live-ride-expenses-button:hover {
   color: #c9a45d;
-
-  text-align: center;
-
-  font-size: 8px;
-  font-weight: 800;
-  letter-spacing: 0.15em;
+  border-color: #c9a45d;
+  background: rgba(201, 164, 93, 0.06);
 }
 
-.live-status-dot {
-  display: inline-block;
+.live-ride-header-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+}
 
-  width: 6px;
-  height: 6px;
+.live-ride-header-label {
+  color: #77736a;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
 
-  margin-right: 7px;
+.live-ride-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 11px;
+  border: 1px solid rgba(201, 164, 93, 0.25);
+  color: #c9a45d;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
 
+.live-ride-status-dot {
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
-  background: #75c987;
+  background: #77736a;
+}
+
+.live-ride-status.live .live-ride-status-dot {
+  background: #69c46b;
+  box-shadow: 0 0 10px rgba(105, 196, 107, 0.55);
+}
+
+.live-ride-status.starting .live-ride-status-dot {
+  background: #e1b75c;
+}
+
+.live-ride-status.completed .live-ride-status-dot {
+  background: #77736a;
 }
 
 /* =========================================================
    HERO
-   ========================================================= */
+========================================================= */
 
 .live-ride-hero {
-  width: min(1380px, calc(100% - 50px));
-  margin: 0 auto;
-
-  min-height: 250px;
-
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-
-  gap: 40px;
-
-  padding: 70px 0 50px;
+  padding: 70px 5%;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 50px;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background:
+    radial-gradient(
+      circle at 85% 30%,
+      rgba(201, 164, 93, 0.08),
+      transparent 30%
+    ),
+    #101010;
 }
 
-.live-ride-kicker {
-  display: block;
+.live-ride-hero-content {
+  max-width: 850px;
+}
 
+.live-ride-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   margin-bottom: 18px;
-
   color: #c9a45d;
-
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 800;
-  letter-spacing: 0.18em;
+  letter-spacing: 2px;
 }
 
 .live-ride-hero h1 {
-  max-width: 950px;
-
   margin: 0;
-
-  color: #f3f0e9;
-
-  font-size: clamp(38px, 5.3vw, 76px);
-  line-height: 0.94;
-
-  letter-spacing: -0.045em;
+  color: #f5f2eb;
+  font-size: clamp(38px, 6vw, 76px);
+  line-height: 0.95;
+  letter-spacing: -2px;
   text-transform: uppercase;
 }
 
-.live-ride-route-title {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-
-  margin-top: 24px;
-
-  color: #898a84;
-
-  font-size: 14px;
+.live-ride-route {
+  margin: 24px 0 10px;
+  color: #b7b3aa;
+  font-size: 16px;
+  letter-spacing: 0.4px;
 }
 
-.live-ride-route-title span {
-  color: #c9a45d;
-  font-size: 20px;
+.live-ride-organizer {
+  margin: 0;
+  color: #77736a;
+  font-size: 13px;
 }
 
-.live-ride-route-title strong {
-  color: #c8c6bf;
-  font-weight: 500;
+.live-ride-organizer strong {
+  color: #d5d1c8;
 }
 
-.live-ride-hero-side {
-  min-width: 190px;
-
-  padding-left: 25px;
-
-  border-left: 1px solid rgba(255,255,255,0.08);
+.live-ride-hero-status {
+  min-width: 270px;
+  padding: 28px;
+  border: 1px solid rgba(201, 164, 93, 0.28);
+  background: rgba(201, 164, 93, 0.04);
 }
 
-.live-ride-hero-side span {
+.live-ride-hero-status-label {
   display: block;
-
-  margin-bottom: 10px;
-
-  color: #62635e;
-
-  font-size: 7px;
+  margin-bottom: 12px;
+  color: #77736a;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.16em;
+  letter-spacing: 1.8px;
 }
 
-.live-ride-hero-side strong {
+.live-ride-hero-status strong {
   display: block;
-
-  color: #e1ded6;
-
+  color: #c9a45d;
   font-size: 18px;
+  letter-spacing: 1px;
 }
 
-.live-ride-hero-side small {
-  display: block;
-
-  margin-top: 6px;
-
-  color: #777873;
-
-  font-size: 8px;
-  letter-spacing: 0.1em;
+.live-ride-countdown {
+  margin-top: 15px;
+  color: #f3f1eb;
+  font-size: 25px;
+  font-weight: 700;
+  letter-spacing: 1px;
 }
 
 /* =========================================================
    STATS
-   ========================================================= */
+========================================================= */
 
 .live-ride-stats {
-  width: min(1380px, calc(100% - 50px));
-  margin: 0 auto 25px;
-
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-
-  border: 1px solid rgba(255,255,255,0.07);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: #0d0d0d;
 }
 
-.live-stat {
-  min-height: 90px;
-
-  padding: 22px 24px;
-
-  border-right: 1px solid rgba(255,255,255,0.07);
-  background: #101110;
-}
-
-.live-stat:last-child {
-  border-right: 0;
-}
-
-.live-stat span {
-  display: block;
-
-  margin-bottom: 10px;
-
-  color: #62635e;
-
-  font-size: 7px;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-}
-
-.live-stat strong {
-  color: #ddd9d1;
-  font-size: 17px;
-}
-
-.stat-status {
-  font-size: 11px !important;
-  letter-spacing: 0.08em;
-}
-
-.stat-live {
-  color: #75c987 !important;
-}
-
-.stat-starting {
-  color: #c9a45d !important;
-}
-
-.stat-upcoming {
-  color: #aaa8a0 !important;
-}
-
-.stat-completed {
-  color: #777873 !important;
-}
-
-/* =========================================================
-   DASHBOARD
-   ========================================================= */
-
-.live-dashboard {
-  width: min(1380px, calc(100% - 50px));
-  margin: 0 auto;
-
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 360px;
-
-  gap: 20px;
-}
-
-.live-dashboard-main {
-  min-width: 0;
-}
-
-.live-dashboard-sidebar {
-  min-width: 0;
-}
-
-.live-panel {
-  border: 1px solid rgba(255,255,255,0.08);
-  background: #0e0f0e;
-  padding: 30px;
-}
-
-.live-panel + .live-panel {
-  margin-top: 20px;
-}
-
-/* =========================================================
-   PANEL HEADING
-   ========================================================= */
-
-.panel-heading {
+.live-ride-stat {
+  min-height: 105px;
+  padding: 24px;
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-
-  gap: 20px;
-
-  padding-bottom: 22px;
-  margin-bottom: 25px;
-
-  border-bottom: 1px solid rgba(255,255,255,0.07);
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.panel-heading > div > span {
-  display: block;
-
-  margin-bottom: 9px;
-
-  color: #c9a45d;
-
-  font-size: 8px;
-  font-weight: 800;
-  letter-spacing: 0.15em;
+.live-ride-stat:last-child {
+  border-right: none;
 }
 
-.panel-heading h2 {
-  margin: 0;
-
-  color: #e6e3dc;
-
-  font-size: 22px;
-  font-weight: 600;
-}
-
-.tracking-state {
-  color: #6f716b;
-
-  font-size: 8px;
+.live-ride-stat-label {
+  color: #77736a;
+  font-size: 9px;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 1.7px;
 }
 
-.panel-count {
-  color: #777873;
+.live-ride-stat strong {
+  color: #e9e5dc;
+  font-size: 16px;
+  font-weight: 700;
+}
 
-  font-size: 8px;
-  letter-spacing: 0.12em;
+/* =========================================================
+   MAIN CONTENT
+========================================================= */
+
+.live-ride-content {
+  width: min(1400px, 90%);
+  margin: 50px auto 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 28px;
+}
+
+.live-ride-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* =========================================================
+   CARDS
+========================================================= */
+
+.live-ride-card {
+  padding: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: #111111;
+}
+
+.live-ride-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.live-ride-section-label {
+  display: block;
+  margin-bottom: 8px;
+  color: #c9a45d;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.live-ride-card h2 {
+  margin: 0;
+  color: #eeeae1;
+  font-size: 25px;
+  letter-spacing: -0.5px;
+}
+
+.live-ride-route-badge,
+.live-ride-count {
+  padding: 7px 11px;
+  border: 1px solid rgba(201, 164, 93, 0.25);
+  color: #c9a45d;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  white-space: nowrap;
 }
 
 /* =========================================================
    ROUTE
-   ========================================================= */
+========================================================= */
 
-.route-list {
+.live-ride-route-list {
   position: relative;
-  padding: 5px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding-left: 10px;
 }
 
-.route-list::before {
+.live-ride-route-list::before {
   content: "";
-
   position: absolute;
-
-  left: 14px;
-  top: 25px;
-  bottom: 25px;
-
+  left: 15px;
+  top: 16px;
+  bottom: 16px;
   width: 1px;
-
-  background: linear-gradient(
-    to bottom,
-    #c9a45d,
-    rgba(201,164,93,0.15)
-  );
+  background: rgba(201, 164, 93, 0.28);
 }
 
-.route-row {
+.live-ride-route-point {
   position: relative;
-
-  min-height: 62px;
-
-  display: grid;
-  grid-template-columns: 30px 1fr;
-
-  column-gap: 18px;
-
+  display: flex;
   align-items: center;
+  gap: 20px;
+  min-height: 78px;
 }
 
-.route-marker {
+.live-ride-route-marker {
   position: relative;
   z-index: 2;
-
-  width: 29px;
-  height: 29px;
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  border: 1px solid #8d7443;
-
+  width: 11px;
+  height: 11px;
+  flex: 0 0 11px;
+  border: 2px solid #c9a45d;
   border-radius: 50%;
-
-  background: #0e0f0e;
+  background: #111111;
 }
 
-.route-marker span {
-  width: 5px;
-  height: 5px;
-
-  border-radius: 50%;
-
+.live-ride-route-point.start .live-ride-route-marker,
+.live-ride-route-point.destination .live-ride-route-marker {
   background: #c9a45d;
 }
 
-.route-start {
-  border-color: #c9a45d;
+.live-ride-route-point.destination .live-ride-route-marker {
+  box-shadow: 0 0 0 5px rgba(201, 164, 93, 0.1);
 }
 
-.route-start span {
-  width: 7px;
-  height: 7px;
-}
-
-.route-end {
-  border-color: #75c987;
-}
-
-.route-end span {
-  background: #75c987;
-}
-
-.route-content {
-  padding: 8px 0;
-}
-
-.route-content span {
-  display: block;
-
-  margin-bottom: 4px;
-
-  color: #5f605b;
-
-  font-size: 7px;
-  font-weight: 700;
-  letter-spacing: 0.15em;
-}
-
-.route-content strong {
-  color: #d8d5ce;
-
-  font-size: 15px;
-  font-weight: 600;
-}
-
-.route-full-path {
-  margin-top: 30px;
-
-  padding-top: 22px;
-
-  border-top: 1px solid rgba(255,255,255,0.07);
-}
-
-.route-full-path span {
-  color: #62635e;
-
-  font-size: 7px;
-  font-weight: 700;
-  letter-spacing: 0.15em;
-}
-
-.route-full-path p {
-  margin: 10px 0 0;
-
-  color: #94958f;
-
-  font-size: 12px;
-  line-height: 1.8;
-}
-
-/* =========================================================
-   STATUS
-   ========================================================= */
-
-.status-panel {
-  padding: 28px;
-}
-
-.sidebar-label {
-  display: block;
-
-  margin-bottom: 20px;
-
-  color: #c9a45d;
-
-  font-size: 8px;
-  font-weight: 800;
-  letter-spacing: 0.15em;
-}
-
-.status-display {
+.live-ride-route-point div {
   display: flex;
-
-  gap: 17px;
-  align-items: center;
+  flex-direction: column;
+  gap: 5px;
 }
 
-.status-icon {
-  width: 58px;
-  height: 58px;
-
-  flex: 0 0 58px;
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  border: 1px solid rgba(201,164,93,0.5);
-
-  border-radius: 50%;
-
-  color: #c9a45d;
-
-  font-size: 18px;
+.live-ride-route-point div span {
+  color: #77736a;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
 }
 
-.status-live .status-icon {
-  border-color: rgba(117,201,135,0.6);
-  color: #75c987;
+.live-ride-route-point div strong {
+  color: #dedad1;
+  font-size: 14px;
 }
 
-.status-completed .status-icon {
-  border-color: rgba(255,255,255,0.2);
-  color: #888983;
+.live-ride-route-summary {
+  margin-top: 22px;
+  padding: 18px;
+  border-left: 2px solid #c9a45d;
+  background: rgba(255, 255, 255, 0.025);
 }
 
-.status-display strong {
+.live-ride-route-summary span {
   display: block;
-
-  margin-bottom: 6px;
-
-  color: #e5e2da;
-
-  font-size: 17px;
+  margin-bottom: 8px;
+  color: #77736a;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
 }
 
-.status-display p {
+.live-ride-route-summary p {
   margin: 0;
-
-  color: #7d7e78;
-
-  font-size: 11px;
+  color: #aaa69e;
+  font-size: 13px;
   line-height: 1.7;
 }
 
 /* =========================================================
-   COUNTDOWN
-   ========================================================= */
+   PARTICIPANTS
+========================================================= */
 
-.live-countdown {
-  margin-top: 28px;
-
-  padding-top: 22px;
-
-  border-top: 1px solid rgba(255,255,255,0.07);
+.live-ride-participants {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
 }
 
-.live-countdown > span {
-  color: #64655f;
-
-  font-size: 7px;
-  font-weight: 700;
-  letter-spacing: 0.15em;
-}
-
-.countdown-values {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-
-  gap: 8px;
-
-  margin-top: 12px;
-}
-
-.countdown-values div {
-  padding: 14px 8px;
-
-  background: #141514;
-
-  text-align: center;
-}
-
-.countdown-values strong {
-  display: block;
-
-  color: #c9a45d;
-
-  font-size: 22px;
-}
-
-.countdown-values small {
-  color: #62635e;
-
-  font-size: 6px;
-  letter-spacing: 0.1em;
-}
-
-/* =========================================================
-   INTELLIGENCE
-   ========================================================= */
-
-.sidebar-heading {
-  margin-bottom: 15px;
-}
-
-.intelligence-list {
-  display: grid;
-
-  grid-template-columns: repeat(2, 1fr);
-
-  border-top: 1px solid rgba(255,255,255,0.05);
-  border-left: 1px solid rgba(255,255,255,0.05);
-}
-
-.intelligence-list div {
-  min-height: 85px;
-
-  padding: 18px;
-
-  border-right: 1px solid rgba(255,255,255,0.05);
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-}
-
-.intelligence-list span {
-  display: block;
-
-  margin-bottom: 10px;
-
-  color: #62635e;
-
-  font-size: 6px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-}
-
-.intelligence-list strong {
-  color: #d5d2ca;
-
-  font-size: 22px;
-}
-
-/* =========================================================
-   RIDERS
-   ========================================================= */
-
-.riders-grid {
-  display: grid;
-
-  grid-template-columns: repeat(2, 1fr);
-
-  gap: 10px;
-}
-
-.ride-rider-card {
-  min-height: 68px;
-
+.live-ride-participant {
+  min-height: 70px;
+  padding: 12px 14px;
   display: flex;
   align-items: center;
-
-  gap: 12px;
-
-  padding: 12px;
-
-  border: 1px solid rgba(255,255,255,0.06);
-
-  background: #111211;
+  gap: 14px;
+  background: rgba(255, 255, 255, 0.025);
 }
 
-.rider-avatar {
-  width: 40px;
-  height: 40px;
-
-  flex: 0 0 40px;
-
+.live-ride-avatar {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
   display: flex;
+  align-items: center;
   justify-content: center;
-  align-items: center;
-
-  border: 1px solid rgba(201,164,93,0.35);
-
+  border: 1px solid rgba(201, 164, 93, 0.35);
+  border-radius: 50%;
   color: #c9a45d;
-
-  font-size: 15px;
+  font-size: 14px;
+  font-weight: 800;
 }
 
-.rider-info {
+.live-ride-participant-info {
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.rider-info strong {
-  display: block;
-
-  color: #d9d6ce;
-
-  font-size: 12px;
-
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.live-ride-participant-info strong {
+  color: #e5e1d8;
+  font-size: 13px;
 }
 
-.rider-info span {
-  display: block;
-
-  margin-top: 4px;
-
-  color: #656660;
-
-  font-size: 7px;
-
-  letter-spacing: 0.1em;
+.live-ride-participant-info span {
+  color: #77736a;
+  font-size: 11px;
 }
 
-.rider-state {
+.live-ride-participant-status {
   margin-left: auto;
+  color: #6dbb72;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
 
-  color: #75a87e;
+.live-ride-empty {
+  padding: 30px;
+  text-align: center;
+  color: #77736a;
+  font-size: 13px;
+}
 
-  font-size: 6px;
+/* =========================================================
+   JOURNEY INTELLIGENCE
+========================================================= */
+
+.live-ride-intelligence-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+}
+
+.live-ride-intelligence-item {
+  min-height: 100px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.live-ride-intelligence-item span {
+  color: #77736a;
+  font-size: 9px;
   font-weight: 700;
+  letter-spacing: 1.4px;
+}
 
-  letter-spacing: 0.08em;
+.live-ride-intelligence-item strong {
+  color: #dedad1;
+  font-size: 13px;
 }
 
 /* =========================================================
    VEHICLE
-   ========================================================= */
+========================================================= */
 
-.vehicle-panel h3 {
-  margin: 0 0 20px;
-
-  color: #e2dfd7;
-
-  font-size: 20px;
-  font-weight: 600;
-}
-
-.vehicle-details {
+.live-ride-vehicle {
   display: grid;
-
-  grid-template-columns: 1fr 1fr;
-
-  border-top: 1px solid rgba(255,255,255,0.06);
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
 }
 
-.vehicle-details div {
-  padding-top: 16px;
+.live-ride-vehicle > div {
+  padding: 18px;
+  background: rgba(255, 255, 255, 0.025);
 }
 
-.vehicle-details span {
+.live-ride-vehicle span {
   display: block;
-
-  margin-bottom: 7px;
-
-  color: #5f605b;
-
-  font-size: 7px;
-  letter-spacing: 0.12em;
+  margin-bottom: 8px;
+  color: #77736a;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
 }
 
-.vehicle-details strong {
-  color: #aaa9a3;
+.live-ride-vehicle strong {
+  color: #dedad1;
+  font-size: 13px;
+}
 
+/* =========================================================
+   SIDEBAR
+========================================================= */
+
+.live-ride-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.live-ride-status-panel,
+.live-ride-sidebar-card {
+  padding: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: #111111;
+}
+
+.live-ride-status-panel {
+  border-color: rgba(201, 164, 93, 0.25);
+}
+
+.live-ride-status-panel > strong {
+  display: block;
+  margin-bottom: 12px;
+  color: #c9a45d;
+  font-size: 20px;
+  letter-spacing: 1px;
+}
+
+.live-ride-sidebar-countdown {
+  margin-bottom: 15px;
+  color: #f0ede6;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.live-ride-status-panel p,
+.live-ride-sidebar-card p {
+  margin: 0;
+  color: #88847c;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.live-ride-sidebar-card > strong {
+  display: block;
+  color: #e4e0d7;
+  font-size: 15px;
+  margin-bottom: 6px;
+}
+
+.live-ride-sidebar-card > span:not(.live-ride-section-label) {
+  color: #77736a;
   font-size: 11px;
 }
 
 /* =========================================================
-   SAFETY BAR
-   ========================================================= */
+   LIVE RIDE GROUP CHAT
+========================================================= */
 
-.live-safety-bar {
-  width: min(1380px, calc(100% - 50px));
-  margin: 20px auto 0;
+.live-ride-chat-card {
+  margin-top: 0;
+}
 
+.live-ride-chat-header {
   display: flex;
+  align-items: flex-start;
   justify-content: space-between;
-  align-items: center;
-
-  gap: 30px;
-
-  padding: 25px 30px;
-
-  border: 1px solid rgba(201,164,93,0.16);
-
-  background: rgba(201,164,93,0.025);
+  gap: 20px;
 }
 
-.live-safety-bar span {
-  display: block;
-
-  margin-bottom: 8px;
-
-  color: #c9a45d;
-
-  font-size: 7px;
-  font-weight: 800;
-
-  letter-spacing: 0.15em;
+.live-ride-chat-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.live-safety-bar p {
-  max-width: 850px;
-
+.live-ride-chat-heading h2 {
   margin: 0;
-
-  color: #777873;
-
-  font-size: 10px;
-  line-height: 1.7;
 }
 
-.live-safety-bar button {
-  flex-shrink: 0;
+.live-ride-chat-heading small {
+  color: #888;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
 
-  padding: 13px 18px;
-
-  border: 1px solid rgba(201,164,93,0.45);
-
+.live-ride-chat-reset {
+  border: 1px solid rgba(201, 164, 93, 0.35);
   background: transparent;
-
   color: #c9a45d;
-
+  padding: 8px 14px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
   cursor: pointer;
-
-  font-size: 7px;
-  font-weight: 800;
-
-  letter-spacing: 0.12em;
-
   transition: all 0.2s ease;
 }
 
-.live-safety-bar button:hover {
+.live-ride-chat-reset:hover {
   background: #c9a45d;
-  color: #090a09;
+  color: #111;
+}
+
+.live-ride-chat-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin: 18px 0;
+  padding: 12px 15px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.live-ride-chat-online {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.live-ride-chat-online strong {
+  color: #ddd;
+  font-size: 11px;
+  letter-spacing: 0.8px;
+}
+
+.live-ride-chat-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #67c587;
+  box-shadow: 0 0 10px rgba(103, 197, 135, 0.5);
+}
+
+.live-ride-chat-status-text {
+  color: #777;
+  font-size: 11px;
+}
+
+.live-ride-chat-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 280px;
+  max-height: 480px;
+  overflow-y: auto;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: #111;
+}
+
+.live-ride-chat-messages::-webkit-scrollbar {
+  width: 5px;
+}
+
+.live-ride-chat-messages::-webkit-scrollbar-track {
+  background: #0b0b0b;
+}
+
+.live-ride-chat-messages::-webkit-scrollbar-thumb {
+  background: #3a3327;
+}
+
+.live-ride-chat-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: 82%;
+}
+
+.live-ride-chat-message.is-you {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.live-ride-chat-message.is-system {
+  align-self: center;
+  max-width: 90%;
+  justify-content: center;
+}
+
+.live-ride-chat-avatar {
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(201, 164, 93, 0.3);
+  border-radius: 50%;
+  background: #1b1915;
+  color: #c9a45d;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.live-ride-chat-message-body {
+  min-width: 0;
+}
+
+.live-ride-chat-message-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+
+.live-ride-chat-message-meta strong {
+  color: #ddd;
+  font-size: 11px;
+}
+
+.live-ride-chat-message-meta span {
+  color: #c9a45d;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.live-ride-chat-message-meta small {
+  color: #666;
+  font-size: 9px;
+}
+
+.live-ride-chat-bubble {
+  display: inline-block;
+  padding: 11px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: #1a1a1a;
+  color: #ccc;
+  font-size: 13px;
+  line-height: 1.55;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.live-ride-chat-message.is-you .live-ride-chat-bubble {
+  border-color: rgba(201, 164, 93, 0.25);
+  background: rgba(201, 164, 93, 0.1);
+  color: #eee;
+}
+
+.live-ride-chat-message.is-system .live-ride-chat-message-body {
+  text-align: center;
+}
+
+.live-ride-chat-message.is-system .live-ride-chat-bubble {
+  border-color: rgba(201, 164, 93, 0.15);
+  background: rgba(201, 164, 93, 0.05);
+  color: #9a9a9a;
+  font-size: 11px;
+  font-style: italic;
+}
+
+.live-ride-chat-system-time {
+  display: block;
+  margin-top: 5px;
+  color: #555;
+  font-size: 9px;
+}
+
+.live-ride-chat-empty {
+  min-height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+  text-align: center;
+}
+
+.live-ride-chat-empty strong {
+  color: #ccc;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+.live-ride-chat-empty span {
+  color: #666;
+  font-size: 11px;
+}
+
+.live-ride-chat-composer {
+  margin-top: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: #101010;
+}
+
+.live-ride-chat-composer textarea {
+  width: 100%;
+  min-height: 90px;
+  display: block;
+  resize: vertical;
+  border: 0;
+  outline: none;
+  padding: 14px;
+  background: transparent;
+  color: #eee;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  box-sizing: border-box;
+}
+
+.live-ride-chat-composer textarea::placeholder {
+  color: #555;
+}
+
+.live-ride-chat-composer textarea:focus {
+  box-shadow: inset 0 0 0 1px rgba(201, 164, 93, 0.3);
+}
+
+.live-ride-chat-composer-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 10px 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.live-ride-chat-composer-footer span {
+  color: #555;
+  font-size: 9px;
+  letter-spacing: 0.5px;
+}
+
+.live-ride-chat-composer-footer button {
+  border: 0;
+  background: #c9a45d;
+  color: #111;
+  padding: 10px 16px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.live-ride-chat-composer-footer button:hover:not(:disabled) {
+  background: #dfb96f;
+}
+
+.live-ride-chat-composer-footer button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.live-ride-chat-notice {
+  margin-top: 10px;
+  padding: 9px 12px;
+  border-left: 2px solid #c9a45d;
+  background: rgba(201, 164, 93, 0.07);
+  color: #c9a45d;
+  font-size: 10px;
+}
+
+/* =========================================================
+   SAFETY BAR
+========================================================= */
+
+.live-ride-safety-bar {
+  width: min(1400px, 90%);
+  margin: 28px auto 0;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 25px;
+  border: 1px solid rgba(201, 164, 93, 0.18);
+  background: #111111;
+}
+
+.live-ride-safety-bar > div {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.live-ride-safety-icon {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(201, 164, 93, 0.3);
+  color: #c9a45d;
+  font-weight: 900;
+}
+
+.live-ride-safety-bar strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #d8d4cb;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+}
+
+.live-ride-safety-bar p {
+  margin: 0;
+  color: #77736a;
+  font-size: 11px;
+}
+
+.live-ride-safety-bar button {
+  padding: 11px 16px;
+  border: 1px solid rgba(201, 164, 93, 0.3);
+  background: transparent;
+  color: #c9a45d;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: 0.25s ease;
+}
+
+.live-ride-safety-bar button:hover {
+  background: rgba(201, 164, 93, 0.08);
+  border-color: #c9a45d;
 }
 
 /* =========================================================
    NOT FOUND
-   ========================================================= */
+========================================================= */
 
 .live-ride-not-found {
-  min-height: 100vh;
-
-  display: flex;
-  flex-direction: column;
-
-  justify-content: center;
-  align-items: center;
-
+  width: min(650px, 90%);
+  margin: 100px auto;
+  padding: 50px;
   text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #111111;
 }
 
-.live-ride-not-found span {
+.live-ride-not-found-label {
   color: #c9a45d;
-
-  font-size: 8px;
-  letter-spacing: 0.15em;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 2px;
 }
 
 .live-ride-not-found h1 {
-  margin: 15px 0 25px;
-
-  color: #e5e2db;
-
+  margin: 20px 0 12px;
+  color: #eeeae1;
   font-size: 38px;
 }
 
-.live-ride-not-found button {
-  padding: 14px 20px;
+.live-ride-not-found p {
+  margin: 0 auto 25px;
+  max-width: 500px;
+  color: #77736a;
+  font-size: 13px;
+  line-height: 1.7;
+}
 
+.live-ride-back-button {
+  padding: 12px 18px;
   border: 1px solid #c9a45d;
-
   background: transparent;
-
   color: #c9a45d;
-
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
   cursor: pointer;
-
-  font-size: 8px;
-  font-weight: 700;
-
-  letter-spacing: 0.12em;
 }
 
 /* =========================================================
    RESPONSIVE
-   ========================================================= */
+========================================================= */
 
 @media (max-width: 1100px) {
-  .live-dashboard {
+  .live-ride-content {
     grid-template-columns: 1fr;
   }
 
-  .live-dashboard-sidebar {
+  .live-ride-sidebar {
     display: grid;
-
-    grid-template-columns: repeat(2, 1fr);
-
-    gap: 20px;
-  }
-
-  .live-dashboard-sidebar .live-panel + .live-panel {
-    margin-top: 0;
-  }
-
-  .live-ride-stats {
     grid-template-columns: repeat(3, 1fr);
   }
 
-  .live-stat:nth-child(3) {
-    border-right: 0;
-  }
-}
-
-@media (max-width: 750px) {
-  .live-ride-topbar {
-    width: calc(100% - 30px);
-
-    grid-template-columns: auto 1fr auto;
-  }
-
-  .live-ride-brand {
-    justify-self: center;
-    font-size: 9px;
-  }
-
-  .live-ride-hero {
-    width: calc(100% - 30px);
-
-    flex-direction: column;
-    align-items: flex-start;
-
-    padding-top: 45px;
-  }
-
-  .live-ride-hero-side {
-    width: 100%;
-
-    padding: 18px 0 0;
-
-    border-left: 0;
-    border-top: 1px solid rgba(255,255,255,0.08);
-  }
-
-  .live-ride-stats {
-    width: calc(100% - 30px);
-
+  .live-ride-intelligence-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .live-stat {
-    border-bottom: 1px solid rgba(255,255,255,0.07);
-  }
-
-  .live-dashboard {
-    width: calc(100% - 30px);
-  }
-
-  .live-dashboard-sidebar {
-    grid-template-columns: 1fr;
-  }
-
-  .live-safety-bar {
-    width: calc(100% - 30px);
-
-    flex-direction: column;
-    align-items: flex-start;
+  .live-ride-vehicle {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
-@media (max-width: 520px) {
-  .live-ride-brand span {
-    display: none;
+@media (max-width: 850px) {
+  .live-ride-hero {
+    grid-template-columns: 1fr;
+    padding: 50px 5%;
   }
 
-  .live-ride-back {
-    font-size: 7px;
+  .live-ride-hero-status {
+    width: 100%;
+    box-sizing: border-box;
   }
 
-  .live-ride-status-badge {
-    min-width: auto;
-    padding: 8px;
-    font-size: 7px;
+  .live-ride-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .live-ride-stat:nth-child(2),
+  .live-ride-stat:nth-child(4) {
+    border-right: none;
+  }
+
+  .live-ride-stat:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .live-ride-sidebar {
+    grid-template-columns: 1fr;
+  }
+
+  .live-ride-chat-status {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 768px) {
+  .live-ride-chat-header {
+    flex-direction: column;
+  }
+
+  .live-ride-chat-reset {
+    align-self: flex-start;
+  }
+
+  .live-ride-chat-messages {
+    max-height: 420px;
+    padding: 14px;
+  }
+
+  .live-ride-chat-message {
+    max-width: 92%;
+  }
+
+  .live-ride-chat-composer-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .live-ride-chat-composer-footer button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 650px) {
+  .live-ride-header {
+    padding: 14px 4%;
+    flex-wrap: wrap;
+  }
+
+  .live-ride-header-center {
+    order: -1;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .live-ride-header-label {
+    font-size: 8px;
+  }
+
+  .live-ride-header-back,
+  .live-ride-expenses-button {
+    flex: 1;
   }
 
   .live-ride-hero h1 {
-    font-size: 38px;
+    font-size: 42px;
   }
 
+  .live-ride-content,
+  .live-ride-safety-bar {
+    width: 92%;
+  }
+
+  .live-ride-card {
+    padding: 20px;
+  }
+
+  .live-ride-card-header {
+    flex-direction: column;
+  }
+
+  .live-ride-intelligence-grid,
+  .live-ride-vehicle {
+    grid-template-columns: 1fr;
+  }
+
+  .live-ride-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .live-ride-stat {
+    padding: 18px 14px;
+  }
+
+  .live-ride-safety-bar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .live-ride-safety-bar button {
+    width: 100%;
+  }
+
+  .live-ride-not-found {
+    padding: 35px 20px;
+  }
+
+  .live-ride-not-found h1 {
+    font-size: 30px;
+  }
+
+  .live-ride-chat-messages {
+    padding: 10px;
+  }
+
+  .live-ride-chat-message {
+    max-width: 96%;
+  }
+
+  .live-ride-chat-avatar {
+    width: 30px;
+    height: 30px;
+    flex-basis: 30px;
+  }
+
+  .live-ride-chat-bubble {
+    padding: 9px 11px;
+    font-size: 12px;
+  }
+
+  .live-ride-chat-message-meta {
+    gap: 5px;
+  }
+
+  .live-ride-chat-composer textarea {
+    min-height: 80px;
+  }
+}
+
+@media (max-width: 430px) {
   .live-ride-stats {
     grid-template-columns: 1fr;
   }
 
-  .live-stat {
-    border-right: 0;
+  .live-ride-stat,
+  .live-ride-stat:nth-child(2),
+  .live-ride-stat:nth-child(4) {
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   }
 
-  .live-panel {
-    padding: 20px;
+  .live-ride-stat:last-child {
+    grid-column: auto;
+    border-bottom: none;
   }
 
-  .panel-heading {
+  .live-ride-hero {
+    padding: 40px 4%;
+  }
+
+  .live-ride-hero h1 {
+    font-size: 35px;
+  }
+
+  .live-ride-countdown {
+    font-size: 19px;
+  }
+}
+/* ==================================================
+   COMPLETE RIDE ACTION
+   ================================================== */
+
+.live-ride-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.live-ride-complete-button {
+  border: 1px solid #c9a45d;
+  background: #c9a45d;
+  color: #090909;
+  padding: 10px 16px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.live-ride-complete-button:hover {
+  background: transparent;
+  color: #c9a45d;
+  transform: translateY(-1px);
+}
+
+.live-ride-bottom-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.live-ride-complete-bottom-button {
+  border: 1px solid #c9a45d !important;
+  background: #c9a45d !important;
+  color: #090909 !important;
+  padding: 11px 18px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.live-ride-complete-bottom-button:hover {
+  background: transparent !important;
+  color: #c9a45d !important;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+  .live-ride-header-actions {
+    gap: 6px;
+  }
+
+  .live-ride-complete-button {
+    padding: 9px 11px;
+    font-size: 9px;
+  }
+
+  .live-ride-bottom-actions {
+    width: 100%;
     flex-direction: column;
+    align-items: stretch;
   }
 
-  .riders-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .route-full-path p {
-    font-size: 10px;
+  .live-ride-bottom-actions button {
+    width: 100%;
   }
 }

@@ -19,6 +19,7 @@ import NearbyServices from "./NearbyServices/NearbyServices";
 import SafetyEmergency from "./SafetyEmergency/SafetyEmergency";
 import RidePassport from "./RidePassport/RidePassport";
 import TrustedTribe from "./TrustedTribe/TrustedTribe";
+import MotoAuthManager from "./Auth/MotoAuthManager";
 
 function MotoTribe() {
   return (
@@ -27,6 +28,7 @@ function MotoTribe() {
 
       <main>
         {/* HERO */}
+        <MotoAuthManager />
         <MotoHero />
 
         {/* CONNECT */}
@@ -57,6 +59,7 @@ function MotoTribe() {
 
         {/* RIDER IDENTITY */}
         <RidePassport />
+        
 
         {/* TRUST NETWORK */}
         <TrustedTribe />

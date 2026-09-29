@@ -1,720 +1,683 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import "./Vehicles.css";
 
-const emptyVehicle = {
+const EMPTY_VEHICLE = {
   name: "",
-  brand: "",
-  model: "",
-  year: "",
-  registration: "",
-  fuelType: "PETROL",
+  registrationNumber: "",
+  fuelType: "",
   mileage: "",
-  engine: "",
-  lastService: "",
-  serviceDue: "",
 };
 
-const fuelTypes = ["PETROL", "ELECTRIC", "HYBRID"];
+const FUEL_TYPES = ["Petrol", "Diesel", "Electric", "CNG"];
+
+function createVehicleId() {
+  return `vehicle-${Date.now()}-${Math.random()
+    .toString(36)
+    .slice(2, 8)}`;
+}
+
+function getInitialVehicles() {
+  try {
+    const savedVehicles = localStorage.getItem("mototribe_vehicles");
+
+    if (!savedVehicles) {
+      return [];
+    }
+
+    const parsedVehicles = JSON.parse(savedVehicles);
+
+    if (!Array.isArray(parsedVehicles)) {
+      return [];
+    }
+
+    return parsedVehicles.filter(
+      (vehicle) =>
+        vehicle &&
+        typeof vehicle === "object" &&
+        typeof vehicle.id === "string"
+    );
+  } catch (error) {
+    console.error("Error loading vehicles:", error);
+    return [];
+  }
+}
 
 function Vehicles() {
-  const navigate = useNavigate();
-
-  const [vehicles, setVehicles] = useState([]);
-  const [form, setForm] = useState(emptyVehicle);
+  const [vehicles, setVehicles] = useState(getInitialVehicles);
+  const [formData, setFormData] = useState({
+    ...EMPTY_VEHICLE,
+  });
   const [editingId, setEditingId] = useState(null);
   const [showForm, setShowForm] = useState(false);
-  const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  useEffect(() => {
-    const profile = localStorage.getItem("mototribeProfile");
-
-    if (!profile) {
-      navigate("/businesses/mototribe/profile-setup");
-      return;
-    }
-
-    const savedVehicles = localStorage.getItem(
-      "mototribeVehicles"
-    );
-
-    if (savedVehicles) {
-      setVehicles(JSON.parse(savedVehicles));
-    }
-  }, [navigate]);
-
   const saveVehicles = (updatedVehicles) => {
-    setVehicles(updatedVehicles);
+    try {
+      localStorage.setItem(
+        "mototribe_vehicles",
+        JSON.stringify(updatedVehicles)
+      );
 
-    localStorage.setItem(
-      "mototribeVehicles",
-      JSON.stringify(updatedVehicles)
-    );
+      setVehicles(updatedVehicles);
+      return true;
+    } catch (storageError) {
+      console.error("Error saving vehicles:", storageError);
+      setError(
+        "Unable to save vehicle information on this device."
+      );
+      return false;
+    }
   };
 
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-
-    setForm((previous) => ({
-      ...previous,
-      [name]: value,
-    }));
-
+  const clearMessages = () => {
     setError("");
+    setSuccess("");
   };
 
   const openAddForm = () => {
+    setFormData({
+      ...EMPTY_VEHICLE,
+    });
+
     setEditingId(null);
-    setForm(emptyVehicle);
+    clearMessages();
     setShowForm(true);
-    setError("");
-    setSuccess("");
   };
 
   const openEditForm = (vehicle) => {
-    setEditingId(vehicle.id);
-    setForm({
+    setFormData({
       name: vehicle.name || "",
-      brand: vehicle.brand || "",
-      model: vehicle.model || "",
-      year: vehicle.year || "",
-      registration: vehicle.registration || "",
-      fuelType: vehicle.fuelType || "PETROL",
-      mileage: vehicle.mileage || "",
-      engine: vehicle.engine || "",
-      lastService: vehicle.lastService || "",
-      serviceDue: vehicle.serviceDue || "",
+      registrationNumber: vehicle.registrationNumber || "",
+      fuelType: vehicle.fuelType || "",
+      mileage:
+        vehicle.mileage !== undefined && vehicle.mileage !== null
+          ? String(vehicle.mileage)
+          : "",
     });
 
+    setEditingId(vehicle.id);
+    clearMessages();
     setShowForm(true);
+  };
+
+  const closeForm = () => {
+    setFormData({
+      ...EMPTY_VEHICLE,
+    });
+
+    setEditingId(null);
+    setShowForm(false);
     setError("");
-    setSuccess("");
+  };
+
+  const handleInputChange = (event) => {
+    const { name, value } = event.target;
+
+    setFormData((previousData) => ({
+      ...previousData,
+      [name]: value,
+    }));
+  };
+
+  const validateVehicle = () => {
+    const vehicleName = formData.name.trim();
+    const registrationNumber =
+      formData.registrationNumber.trim();
+
+    if (!vehicleName) {
+      return "Please enter the vehicle name.";
+    }
+
+    if (vehicleName.length < 2) {
+      return "Vehicle name must contain at least 2 characters.";
+    }
+
+    if (!registrationNumber) {
+      return "Please enter the registration number.";
+    }
+
+    if (registrationNumber.length < 4) {
+      return "Please enter a valid registration number.";
+    }
+
+    if (!formData.fuelType) {
+      return "Please select the fuel type.";
+    }
+
+    if (!FUEL_TYPES.includes(formData.fuelType)) {
+      return "Please select a valid fuel type.";
+    }
+
+    if (!formData.mileage.trim()) {
+      return "Please enter the mileage.";
+    }
+
+    const mileageValue = Number(formData.mileage);
+
+    if (
+      !Number.isFinite(mileageValue) ||
+      mileageValue <= 0
+    ) {
+      return "Please enter a valid mileage greater than 0.";
+    }
+
+    if (mileageValue > 500) {
+      return "Please enter a realistic mileage value.";
+    }
+
+    return "";
   };
 
   const handleSubmit = (event) => {
     event.preventDefault();
 
-    if (!form.name.trim()) {
-      setError("Please enter a motorcycle name.");
-      return;
-    }
+    clearMessages();
 
-    if (!form.brand.trim()) {
-      setError("Please enter the motorcycle brand.");
-      return;
-    }
+    const validationMessage = validateVehicle();
 
-    if (!form.model.trim()) {
-      setError("Please enter the motorcycle model.");
-      return;
-    }
-
-    if (!form.registration.trim()) {
-      setError("Please enter the registration number.");
-      return;
-    }
-
-    if (!form.mileage || Number(form.mileage) <= 0) {
-      setError("Please enter a valid mileage.");
+    if (validationMessage) {
+      setError(validationMessage);
       return;
     }
 
     const vehicleData = {
-      ...form,
-      id: editingId || Date.now(),
-      createdAt:
-        editingId
-          ? vehicles.find((vehicle) => vehicle.id === editingId)
-              ?.createdAt || new Date().toISOString()
-          : new Date().toISOString(),
+      name: formData.name.trim(),
+      registrationNumber: formData.registrationNumber
+        .trim()
+        .toUpperCase()
+        .replace(/\s+/g, " "),
+      fuelType: formData.fuelType,
+      mileage: Number(formData.mileage),
     };
 
-    let updatedVehicles;
-
     if (editingId) {
-      updatedVehicles = vehicles.map((vehicle) =>
+      const vehicleExists = vehicles.some(
+        (vehicle) => vehicle.id === editingId
+      );
+
+      if (!vehicleExists) {
+        setError(
+          "The vehicle you are trying to update could not be found."
+        );
+        return;
+      }
+
+      const duplicateRegistration = vehicles.some(
+        (vehicle) =>
+          vehicle.id !== editingId &&
+          vehicle.registrationNumber?.toUpperCase() ===
+            vehicleData.registrationNumber
+      );
+
+      if (duplicateRegistration) {
+        setError(
+          "A vehicle with this registration number already exists."
+        );
+        return;
+      }
+
+      const updatedVehicles = vehicles.map((vehicle) =>
         vehicle.id === editingId
-          ? vehicleData
+          ? {
+              ...vehicle,
+              ...vehicleData,
+              updatedAt: new Date().toISOString(),
+            }
           : vehicle
       );
 
-      setSuccess("Motorcycle updated successfully.");
+      if (!saveVehicles(updatedVehicles)) {
+        return;
+      }
+
+      setSuccess("Vehicle updated successfully.");
     } else {
-      updatedVehicles = [
-        ...vehicles,
-        vehicleData,
-      ];
+      const duplicateRegistration = vehicles.some(
+        (vehicle) =>
+          vehicle.registrationNumber?.toUpperCase() ===
+          vehicleData.registrationNumber
+      );
 
-      setSuccess("Motorcycle added successfully.");
+      if (duplicateRegistration) {
+        setError(
+          "A vehicle with this registration number already exists."
+        );
+        return;
+      }
+
+      const newVehicle = {
+        id: createVehicleId(),
+        ...vehicleData,
+        isDefault: vehicles.length === 0,
+        createdAt: new Date().toISOString(),
+      };
+
+      if (
+        !saveVehicles([
+          ...vehicles,
+          newVehicle,
+        ])
+      ) {
+        return;
+      }
+
+      setSuccess("Vehicle added successfully.");
     }
 
-    saveVehicles(updatedVehicles);
+    setFormData({
+      ...EMPTY_VEHICLE,
+    });
 
-    setShowForm(false);
-    setForm(emptyVehicle);
     setEditingId(null);
+    setShowForm(false);
   };
 
-  const deleteVehicle = (id) => {
+  const handleDelete = (vehicleId) => {
     const vehicle = vehicles.find(
-      (item) => item.id === id
+      (item) => item.id === vehicleId
     );
 
-    if (!vehicle) return;
-
-    const confirmed = window.confirm(
-      `Remove ${vehicle.name} from your MotoTribe garage?`
-    );
-
-    if (!confirmed) return;
-
-    const updatedVehicles = vehicles.filter(
-      (item) => item.id !== id
-    );
-
-    saveVehicles(updatedVehicles);
-
-    if (selectedVehicle?.id === id) {
-      setSelectedVehicle(null);
+    if (!vehicle) {
+      return;
     }
 
-    setSuccess("Motorcycle removed successfully.");
+    const shouldDelete = window.confirm(
+      `Are you sure you want to delete "${vehicle.name}"?`
+    );
+
+    if (!shouldDelete) {
+      return;
+    }
+
+    let updatedVehicles = vehicles.filter(
+      (item) => item.id !== vehicleId
+    );
+
+    if (
+      vehicle.isDefault &&
+      updatedVehicles.length > 0
+    ) {
+      updatedVehicles = updatedVehicles.map(
+        (item, index) => ({
+          ...item,
+          isDefault: index === 0,
+        })
+      );
+    }
+
+    if (!saveVehicles(updatedVehicles)) {
+      return;
+    }
+
+    if (editingId === vehicleId) {
+      closeForm();
+    }
+
+    setSuccess("Vehicle deleted successfully.");
+    setError("");
   };
 
-  const setDefaultVehicle = (id) => {
-    const updatedVehicles = vehicles.map((vehicle) => ({
-      ...vehicle,
-      isDefault: vehicle.id === id,
-    }));
-
-    saveVehicles(updatedVehicles);
-
-    const vehicle = updatedVehicles.find(
-      (item) => item.id === id
+  const setDefaultVehicle = (vehicleId) => {
+    const vehicleExists = vehicles.some(
+      (vehicle) => vehicle.id === vehicleId
     );
 
-    setSelectedVehicle(vehicle);
-    setSuccess(
-      `${vehicle.name} is now your default motorcycle.`
+    if (!vehicleExists) {
+      return;
+    }
+
+    const updatedVehicles = vehicles.map(
+      (vehicle) => ({
+        ...vehicle,
+        isDefault: vehicle.id === vehicleId,
+      })
     );
+
+    if (!saveVehicles(updatedVehicles)) {
+      return;
+    }
+
+    setSuccess("Default vehicle updated.");
+    setError("");
   };
 
   return (
-    <div className="moto-vehicles-page">
-
-      <div className="vehicles-background">
-        <div className="vehicle-glow vehicle-glow-one"></div>
-        <div className="vehicle-glow vehicle-glow-two"></div>
-      </div>
-
-      <div className="moto-vehicles-container">
-
+    <main className="vehicles-page">
+      <div className="vehicles-container">
         <header className="vehicles-header">
+          <div className="vehicles-heading">
+            <span className="vehicles-eyebrow">
+              MOTOTRIBE / MY GARAGE
+            </span>
 
-          <div className="vehicles-brand">
-            <span>MOTO</span>
-            <strong>TRIBE</strong>
+            <h1>My Vehicles</h1>
+
+            <p>
+              Manage your motorcycles and vehicles for
+              your MotoTribe journeys.
+            </p>
           </div>
 
-          <div className="vehicles-step">
-            MY MOTOTRIBE
-          </div>
-
-          <h1>Your motorcycles</h1>
-
-          <p>
-            Add the motorcycles you ride. Your vehicle
-            information helps MotoTribe personalize
-            journeys, fuel estimates and ride records.
-          </p>
-
+          <button
+            type="button"
+            className="add-vehicle-button"
+            onClick={openAddForm}
+          >
+            + Add Vehicle
+          </button>
         </header>
 
         {success && (
-          <div className="vehicle-message success">
+          <div
+            className="vehicles-message success-message"
+            role="status"
+            aria-live="polite"
+          >
             {success}
           </div>
         )}
 
-        <div className="vehicle-topbar">
-
-          <div>
-            <span className="vehicle-count">
-              {vehicles.length}
-            </span>
-
-            <span className="vehicle-count-label">
-              MOTORCYCLE
-              {vehicles.length !== 1 ? "S" : ""}
-            </span>
-          </div>
-
-          <button
-            className="add-vehicle-button"
-            onClick={openAddForm}
+        {error && (
+          <div
+            className="vehicles-message error-message"
+            role="alert"
+            aria-live="assertive"
           >
-            + ADD MOTORCYCLE
-          </button>
-
-        </div>
-
-        {vehicles.length === 0 ? (
-          <div className="empty-vehicles">
-
-            <div className="empty-icon">
-              🏍
-            </div>
-
-            <h2>Your garage is empty</h2>
-
-            <p>
-              Add your first motorcycle to start building
-              your MotoTribe rider profile.
-            </p>
-
-            <button
-              className="add-first-button"
-              onClick={openAddForm}
-            >
-              ADD YOUR FIRST MOTORCYCLE
-            </button>
-
-          </div>
-        ) : (
-          <div className="vehicles-grid">
-
-            {vehicles.map((vehicle) => (
-              <article
-                className={`vehicle-card ${
-                  vehicle.isDefault
-                    ? "default-vehicle"
-                    : ""
-                }`}
-                key={vehicle.id}
-              >
-
-                <div className="vehicle-card-top">
-
-                  <span className="vehicle-type">
-                    MOTORCYCLE
-                  </span>
-
-                  {vehicle.isDefault && (
-                    <span className="default-badge">
-                      DEFAULT
-                    </span>
-                  )}
-
-                </div>
-
-                <div className="motorcycle-symbol">
-                  🏍
-                </div>
-
-                <h2>{vehicle.name}</h2>
-
-                <p className="vehicle-model">
-                  {vehicle.brand} {vehicle.model}
-                </p>
-
-                <div className="vehicle-specs">
-
-                  <div>
-                    <span>YEAR</span>
-                    <strong>
-                      {vehicle.year || "—"}
-                    </strong>
-                  </div>
-
-                  <div>
-                    <span>ENGINE</span>
-                    <strong>
-                      {vehicle.engine
-                        ? `${vehicle.engine} CC`
-                        : "—"}
-                    </strong>
-                  </div>
-
-                  <div>
-                    <span>FUEL</span>
-                    <strong>
-                      {vehicle.fuelType}
-                    </strong>
-                  </div>
-
-                  <div>
-                    <span>MILEAGE</span>
-                    <strong>
-                      {vehicle.mileage} KM/L
-                    </strong>
-                  </div>
-
-                </div>
-
-                <div className="registration-box">
-                  <span>REGISTRATION</span>
-                  <strong>
-                    {vehicle.registration}
-                  </strong>
-                </div>
-
-                <div className="vehicle-actions">
-
-                  <button
-                    onClick={() =>
-                      setSelectedVehicle(vehicle)
-                    }
-                  >
-                    VIEW
-                  </button>
-
-                  <button
-                    onClick={() =>
-                      openEditForm(vehicle)
-                    }
-                  >
-                    EDIT
-                  </button>
-
-                  {!vehicle.isDefault && (
-                    <button
-                      onClick={() =>
-                        setDefaultVehicle(vehicle.id)
-                      }
-                    >
-                      SET DEFAULT
-                    </button>
-                  )}
-
-                  <button
-                    className="delete-action"
-                    onClick={() =>
-                      deleteVehicle(vehicle.id)
-                    }
-                  >
-                    DELETE
-                  </button>
-
-                </div>
-
-              </article>
-            ))}
-
+            {error}
           </div>
         )}
 
-        <div className="vehicles-navigation">
-
-          <button
-            onClick={() =>
-              navigate("/businesses/mototribe/profile-setup")
-            }
+        {showForm && (
+          <section
+            className="vehicle-form-card"
+            aria-labelledby="vehicle-form-title"
           >
-            ← PROFILE
-          </button>
-
-          <button
-            onClick={() =>
-              navigate("/businesses/mototribe")
-            }
-          >
-            CONTINUE TO MOTOTRIBE →
-          </button>
-
-        </div>
-
-        <footer className="vehicles-footer">
-          FRONTEND PROTOTYPE • VEHICLE DATA STORED LOCALLY
-        </footer>
-
-      </div>
-
-      {/* ADD / EDIT MODAL */}
-
-      {showForm && (
-        <div className="vehicle-modal-overlay">
-
-          <div className="vehicle-modal">
-
-            <div className="modal-header">
-
+            <div className="vehicle-form-header">
               <div>
-                <span>
+                <span className="form-eyebrow">
                   {editingId
-                    ? "UPDATE VEHICLE"
+                    ? "EDIT VEHICLE"
                     : "ADD VEHICLE"}
                 </span>
 
-                <h2>
+                <h2 id="vehicle-form-title">
                   {editingId
-                    ? "Edit motorcycle"
-                    : "Add motorcycle"}
+                    ? "Update Vehicle"
+                    : "Add Your Vehicle"}
                 </h2>
               </div>
 
               <button
-                onClick={() => setShowForm(false)}
+                type="button"
+                className="close-form-button"
+                onClick={closeForm}
+                aria-label="Close vehicle form"
               >
                 ×
               </button>
-
             </div>
 
             <form onSubmit={handleSubmit}>
-
               <div className="vehicle-form-grid">
-
-                <div className="vehicle-field full">
-                  <label>MOTORCYCLE NAME *</label>
+                <div className="vehicle-field">
+                  <label htmlFor="vehicle-name">
+                    Vehicle Name
+                  </label>
 
                   <input
+                    id="vehicle-name"
                     name="name"
-                    value={form.name}
-                    onChange={handleChange}
-                    placeholder="e.g. Thunder"
+                    type="text"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    placeholder="Example: Royal Enfield Classic"
+                    autoComplete="off"
+                    maxLength={60}
+                    required
                   />
                 </div>
 
                 <div className="vehicle-field">
-                  <label>BRAND *</label>
+                  <label htmlFor="registration-number">
+                    Registration Number
+                  </label>
 
                   <input
-                    name="brand"
-                    value={form.brand}
-                    onChange={handleChange}
-                    placeholder="e.g. Royal Enfield"
+                    id="registration-number"
+                    name="registrationNumber"
+                    type="text"
+                    value={formData.registrationNumber}
+                    onChange={handleInputChange}
+                    placeholder="Example: AP 02 AB 1234"
+                    autoComplete="off"
+                    maxLength={20}
+                    required
                   />
+
+                  <small className="vehicle-field-note">
+                    Your registration number is stored only
+                    in this frontend prototype.
+                  </small>
                 </div>
 
                 <div className="vehicle-field">
-                  <label>MODEL *</label>
-
-                  <input
-                    name="model"
-                    value={form.model}
-                    onChange={handleChange}
-                    placeholder="e.g. Himalayan"
-                  />
-                </div>
-
-                <div className="vehicle-field">
-                  <label>YEAR</label>
-
-                  <input
-                    type="number"
-                    name="year"
-                    value={form.year}
-                    onChange={handleChange}
-                    placeholder="2026"
-                    min="1900"
-                    max="2100"
-                  />
-                </div>
-
-                <div className="vehicle-field">
-                  <label>ENGINE CC</label>
-
-                  <input
-                    type="number"
-                    name="engine"
-                    value={form.engine}
-                    onChange={handleChange}
-                    placeholder="450"
-                  />
-                </div>
-
-                <div className="vehicle-field full">
-                  <label>REGISTRATION NUMBER *</label>
-
-                  <input
-                    name="registration"
-                    value={form.registration}
-                    onChange={handleChange}
-                    placeholder="AP 00 XX 0000"
-                  />
-                </div>
-
-                <div className="vehicle-field">
-                  <label>FUEL TYPE</label>
+                  <label htmlFor="fuel-type">
+                    Fuel Type
+                  </label>
 
                   <select
+                    id="fuel-type"
                     name="fuelType"
-                    value={form.fuelType}
-                    onChange={handleChange}
+                    value={formData.fuelType}
+                    onChange={handleInputChange}
+                    required
                   >
-                    {fuelTypes.map((fuel) => (
+                    <option value="">
+                      Select fuel type
+                    </option>
+
+                    {FUEL_TYPES.map((fuelType) => (
                       <option
-                        key={fuel}
-                        value={fuel}
+                        key={fuelType}
+                        value={fuelType}
                       >
-                        {fuel}
+                        {fuelType}
                       </option>
                     ))}
                   </select>
                 </div>
 
                 <div className="vehicle-field">
-                  <label>MILEAGE KM/L *</label>
+                  <label htmlFor="mileage">
+                    Mileage
+                  </label>
 
-                  <input
-                    type="number"
-                    name="mileage"
-                    value={form.mileage}
-                    onChange={handleChange}
-                    placeholder="30"
-                    min="1"
-                    step="0.1"
-                  />
+                  <div className="mileage-wrapper">
+                    <input
+                      id="mileage"
+                      name="mileage"
+                      type="number"
+                      min="0.1"
+                      max="500"
+                      step="0.1"
+                      value={formData.mileage}
+                      onChange={handleInputChange}
+                      placeholder="Example: 40"
+                      inputMode="decimal"
+                      required
+                    />
+
+                    <span>km/l</span>
+                  </div>
                 </div>
-
-                <div className="vehicle-field">
-                  <label>LAST SERVICE</label>
-
-                  <input
-                    type="date"
-                    name="lastService"
-                    value={form.lastService}
-                    onChange={handleChange}
-                  />
-                </div>
-
-                <div className="vehicle-field">
-                  <label>NEXT SERVICE</label>
-
-                  <input
-                    type="date"
-                    name="serviceDue"
-                    value={form.serviceDue}
-                    onChange={handleChange}
-                  />
-                </div>
-
               </div>
 
-              {error && (
-                <div className="vehicle-message error">
-                  {error}
-                </div>
-              )}
+              <div className="vehicle-form-actions">
+                <button
+                  type="button"
+                  className="cancel-button"
+                  onClick={closeForm}
+                >
+                  Cancel
+                </button>
 
-              <button
-                className="save-vehicle-button"
-                type="submit"
-              >
-                {editingId
-                  ? "UPDATE MOTORCYCLE"
-                  : "ADD MOTORCYCLE"}
-              </button>
-
+                <button
+                  type="submit"
+                  className="save-vehicle-button"
+                >
+                  {editingId
+                    ? "Update Vehicle"
+                    : "Save Vehicle"}
+                </button>
+              </div>
             </form>
+          </section>
+        )}
 
+        <section
+          className="vehicles-section"
+          aria-labelledby="garage-title"
+        >
+          <div className="section-header">
+            <div>
+              <span className="section-eyebrow">
+                YOUR GARAGE
+              </span>
+
+              <h2 id="garage-title">
+                {vehicles.length === 0
+                  ? "No Vehicles"
+                  : vehicles.length === 1
+                    ? "1 Vehicle"
+                    : `${vehicles.length} Vehicles`}
+              </h2>
+            </div>
           </div>
 
-        </div>
-      )}
-
-      {/* VEHICLE DETAILS MODAL */}
-
-      {selectedVehicle && (
-        <div className="vehicle-modal-overlay">
-
-          <div className="vehicle-details-modal">
-
-            <button
-              className="details-close"
-              onClick={() =>
-                setSelectedVehicle(null)
-              }
-            >
-              ×
-            </button>
-
-            <span className="details-label">
-              RIDER VEHICLE
-            </span>
-
-            <div className="details-symbol">
-              🏍
-            </div>
-
-            <h2>{selectedVehicle.name}</h2>
-
-            <p>
-              {selectedVehicle.brand}{" "}
-              {selectedVehicle.model}
-            </p>
-
-            <div className="details-grid">
-
-              <div>
-                <span>REGISTRATION</span>
-                <strong>
-                  {selectedVehicle.registration}
-                </strong>
-              </div>
-
-              <div>
-                <span>FUEL</span>
-                <strong>
-                  {selectedVehicle.fuelType}
-                </strong>
-              </div>
-
-              <div>
-                <span>MILEAGE</span>
-                <strong>
-                  {selectedVehicle.mileage} KM/L
-                </strong>
-              </div>
-
-              <div>
-                <span>ENGINE</span>
-                <strong>
-                  {selectedVehicle.engine
-                    ? `${selectedVehicle.engine} CC`
-                    : "Not added"}
-                </strong>
-              </div>
-
-              <div>
-                <span>LAST SERVICE</span>
-                <strong>
-                  {selectedVehicle.lastService ||
-                    "Not added"}
-                </strong>
-              </div>
-
-              <div>
-                <span>NEXT SERVICE</span>
-                <strong>
-                  {selectedVehicle.serviceDue ||
-                    "Not added"}
-                </strong>
-              </div>
-
-            </div>
-
-            {!selectedVehicle.isDefault && (
-              <button
-                className="details-default-button"
-                onClick={() =>
-                  setDefaultVehicle(
-                    selectedVehicle.id
-                  )
-                }
+          {vehicles.length === 0 ? (
+            <div className="empty-vehicles">
+              <div
+                className="empty-vehicle-icon"
+                aria-hidden="true"
               >
-                SET AS DEFAULT MOTORCYCLE
+                🏍
+              </div>
+
+              <h3>Your garage is empty</h3>
+
+              <p>
+                Add your motorcycle or vehicle to start
+                managing your MotoTribe rides.
+              </p>
+
+              <button
+                type="button"
+                className="empty-add-button"
+                onClick={openAddForm}
+              >
+                + Add Your First Vehicle
               </button>
-            )}
+            </div>
+          ) : (
+            <div className="vehicles-grid">
+              {vehicles.map((vehicle) => (
+                <article
+                  className={`vehicle-card ${
+                    vehicle.isDefault
+                      ? "vehicle-card-default"
+                      : ""
+                  }`}
+                  key={vehicle.id}
+                >
+                  {vehicle.isDefault && (
+                    <div className="default-badge">
+                      DEFAULT
+                    </div>
+                  )}
 
-          </div>
+                  <div className="vehicle-card-top">
+                    <div
+                      className="vehicle-icon"
+                      aria-hidden="true"
+                    >
+                      🏍
+                    </div>
 
+                    <div className="vehicle-actions">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          openEditForm(vehicle)
+                        }
+                        aria-label={`Edit ${vehicle.name}`}
+                      >
+                        Edit
+                      </button>
+
+                      <button
+                        type="button"
+                        className="delete-button"
+                        onClick={() =>
+                          handleDelete(vehicle.id)
+                        }
+                        aria-label={`Delete ${vehicle.name}`}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="vehicle-information">
+                    <h3>{vehicle.name}</h3>
+
+                    <p className="vehicle-registration">
+                      {vehicle.registrationNumber}
+                    </p>
+                  </div>
+
+                  <div className="vehicle-details">
+                    <div className="vehicle-detail">
+                      <span>FUEL TYPE</span>
+
+                      <strong>
+                        {vehicle.fuelType}
+                      </strong>
+                    </div>
+
+                    <div className="vehicle-detail">
+                      <span>MILEAGE</span>
+
+                      <strong>
+                        {vehicle.mileage} km/l
+                      </strong>
+                    </div>
+                  </div>
+
+                  {!vehicle.isDefault && (
+                    <button
+                      type="button"
+                      className="default-button"
+                      onClick={() =>
+                        setDefaultVehicle(vehicle.id)
+                      }
+                    >
+                      Set as Default Vehicle
+                    </button>
+                  )}
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <div className="vehicles-note">
+          <span aria-hidden="true">✦</span>
+          Vehicle information is stored locally in this
+          frontend prototype.
         </div>
-      )}
-
-    </div>
+      </div>
+    </main>
   );
 }
 

@@ -1,0 +1,798 @@
+.mototribe-ride-call {
+  margin-top: 28px;
+  padding: 30px;
+  border: 1px solid #2d2a25;
+  border-radius: 16px;
+  background: #0d0d0d;
+  color: #f2eee6;
+}
+
+.mototribe-ride-call-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #292722;
+}
+
+.mototribe-ride-call-eyebrow {
+  display: block;
+  margin-bottom: 9px;
+  color: #c9a45d;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.8px;
+}
+
+.mototribe-ride-call-header h2 {
+  margin: 0 0 9px;
+  color: #f0ebe2;
+  font-size: 24px;
+}
+
+.mototribe-ride-call-header p {
+  margin: 0;
+  color: #807b73;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.mototribe-ride-call-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 100px;
+  padding: 10px 13px;
+  border: 1px solid #38342d;
+  border-radius: 7px;
+  color: #77736c;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.mototribe-ride-call-status span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #5d5952;
+}
+
+.mototribe-ride-call-status.connected {
+  border-color: #5a4930;
+  color: #c9a45d;
+}
+
+.mototribe-ride-call-status.connected span {
+  background: #c9a45d;
+  box-shadow: 0 0 0 5px rgba(201, 164, 93, 0.08);
+}
+
+.mototribe-ride-call-status.connecting {
+  border-color: #5a4930;
+  color: #c9a45d;
+}
+
+.mototribe-ride-call-status.connecting span {
+  background: #c9a45d;
+}
+
+.mototribe-ride-call-start {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-top: 20px;
+  padding: 22px;
+  border: 1px solid #373229;
+  background: #10100f;
+}
+
+.mototribe-ride-call-start-icon {
+  display: flex;
+  width: 65px;
+  height: 65px;
+  min-width: 65px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #5b4b32;
+  border-radius: 50%;
+  color: #c9a45d;
+  font-size: 25px;
+  background: #15130f;
+}
+
+.mototribe-ride-call-start-content {
+  flex: 1;
+}
+
+.mototribe-ride-call-start-content span {
+  display: block;
+  margin-bottom: 6px;
+  color: #68635c;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.mototribe-ride-call-start-content strong {
+  display: block;
+  margin-bottom: 7px;
+  color: #d8d1c8;
+  font-size: 14px;
+}
+
+.mototribe-ride-call-start-content p {
+  margin: 0;
+  color: #77736c;
+  font-size: 9px;
+  line-height: 1.6;
+}
+
+.mototribe-ride-call-start-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.mototribe-ride-call-start-actions button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 39px;
+  padding: 0 14px;
+  border: 1px solid #403a31;
+  border-radius: 6px;
+  background: transparent;
+  color: #aaa39a;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.7px;
+  cursor: pointer;
+}
+
+.mototribe-ride-call-start-actions button:hover {
+  border-color: #c9a45d;
+  color: #c9a45d;
+}
+
+.mototribe-ride-call-start-actions button.voice {
+  border-color: #c9a45d;
+  color: #c9a45d;
+}
+
+.mototribe-ride-call-start-actions button.video {
+  background: #17140f;
+}
+
+.mototribe-ride-call-connecting {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  margin-top: 20px;
+  padding: 55px 25px;
+  border: 1px solid #373229;
+  background: #10100f;
+  text-align: center;
+}
+
+.mototribe-ride-call-loader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 22px;
+}
+
+.mototribe-ride-call-loader span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #c9a45d;
+  animation: mototribeCallLoader 1s infinite ease-in-out;
+}
+
+.mototribe-ride-call-loader span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.mototribe-ride-call-loader span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes mototribeCallLoader {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+
+  40% {
+    opacity: 1;
+    transform: translateY(-6px);
+  }
+}
+
+.mototribe-ride-call-connecting > span {
+  margin-bottom: 8px;
+  color: #c9a45d;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 1.3px;
+}
+
+.mototribe-ride-call-connecting strong {
+  margin-bottom: 7px;
+  color: #d5cec4;
+  font-size: 15px;
+}
+
+.mototribe-ride-call-connecting p {
+  margin: 0 0 20px;
+  color: #706b63;
+  font-size: 9px;
+}
+
+.mototribe-ride-call-connecting button {
+  min-height: 35px;
+  padding: 0 16px;
+  border: 1px solid #4a443a;
+  border-radius: 6px;
+  background: transparent;
+  color: #827c73;
+  font-size: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mototribe-ride-call-connecting button:hover {
+  border-color: #a16e62;
+  color: #d0988d;
+}
+
+.mototribe-ride-call-active {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(260px, 0.8fr);
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.mototribe-ride-call-stage {
+  min-height: 480px;
+  border: 1px solid #373229;
+  background: #080808;
+}
+
+.mototribe-ride-call-stage-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 17px;
+  border-bottom: 1px solid #25231f;
+}
+
+.mototribe-ride-call-stage-top > div:first-child {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mototribe-ride-call-stage-top span {
+  color: #777169;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.mototribe-ride-call-stage-top strong {
+  color: #c9a45d;
+  font-size: 11px;
+}
+
+.mototribe-ride-call-stage-live {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #b78e83;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.mototribe-ride-call-stage-live span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #b8756a;
+}
+
+.mototribe-ride-call-video {
+  position: relative;
+  height: 355px;
+  background:
+    radial-gradient(
+      circle at center,
+      #22201c,
+      #0a0a0a 65%
+    );
+}
+
+.mototribe-ride-call-video-main {
+  display: flex;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 13px;
+}
+
+.mototribe-ride-call-video-main span {
+  color: #807970;
+  font-size: 8px;
+  letter-spacing: 0.8px;
+}
+
+.mototribe-ride-call-video-avatar {
+  display: flex;
+  width: 95px;
+  height: 95px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #5b4b32;
+  border-radius: 50%;
+  background: #15130f;
+  color: #c9a45d;
+  font-size: 30px;
+}
+
+.mototribe-ride-call-video-self {
+  position: absolute;
+  right: 15px;
+  bottom: 15px;
+  display: flex;
+  width: 105px;
+  height: 125px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 7px;
+  border: 1px solid #464038;
+  background: #161513;
+}
+
+.mototribe-ride-call-video-self-avatar {
+  display: flex;
+  width: 42px;
+  height: 42px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #5b4b32;
+  border-radius: 50%;
+  color: #c9a45d;
+  font-size: 14px;
+}
+
+.mototribe-ride-call-video-self strong {
+  color: #756f67;
+  font-size: 7px;
+  letter-spacing: 0.7px;
+}
+
+.mototribe-ride-call-video-self span {
+  color: #9a9389;
+  font-size: 7px;
+}
+
+.mototribe-ride-call-voice {
+  display: flex;
+  height: 355px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 9px;
+  background:
+    radial-gradient(
+      circle at center,
+      #211e19,
+      #090909 68%
+    );
+}
+
+.mototribe-ride-call-voice-avatar {
+  display: flex;
+  width: 105px;
+  height: 105px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #5b4b32;
+  border-radius: 50%;
+  background: #15130f;
+  color: #c9a45d;
+  font-size: 34px;
+  box-shadow: 0 0 45px rgba(201, 164, 93, 0.08);
+}
+
+.mototribe-ride-call-voice strong {
+  margin-top: 8px;
+  color: #d4cec5;
+  font-size: 13px;
+}
+
+.mototribe-ride-call-voice > span {
+  color: #716c64;
+  font-size: 8px;
+}
+
+.mototribe-ride-call-wave {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 25px;
+  margin-top: 8px;
+}
+
+.mototribe-ride-call-wave span {
+  width: 3px;
+  border-radius: 5px;
+  background: #c9a45d;
+  animation: mototribeCallWave 1s infinite ease-in-out;
+}
+
+.mototribe-ride-call-wave span:nth-child(1) {
+  height: 8px;
+}
+
+.mototribe-ride-call-wave span:nth-child(2) {
+  height: 15px;
+  animation-delay: 0.1s;
+}
+
+.mototribe-ride-call-wave span:nth-child(3) {
+  height: 22px;
+  animation-delay: 0.2s;
+}
+
+.mototribe-ride-call-wave span:nth-child(4) {
+  height: 13px;
+  animation-delay: 0.3s;
+}
+
+.mototribe-ride-call-wave span:nth-child(5) {
+  height: 20px;
+  animation-delay: 0.4s;
+}
+
+.mototribe-ride-call-wave span:nth-child(6) {
+  height: 11px;
+  animation-delay: 0.5s;
+}
+
+.mototribe-ride-call-wave span:nth-child(7) {
+  height: 18px;
+  animation-delay: 0.6s;
+}
+
+.mototribe-ride-call-wave span:nth-child(8) {
+  height: 8px;
+  animation-delay: 0.7s;
+}
+
+.mototribe-ride-call-wave span:nth-child(9) {
+  height: 14px;
+  animation-delay: 0.8s;
+}
+
+@keyframes mototribeCallWave {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scaleY(0.65);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+.mototribe-ride-call-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 14px;
+  border-top: 1px solid #25231f;
+}
+
+.mototribe-ride-call-controls button {
+  display: flex;
+  min-width: 65px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 35px;
+  padding: 0 9px;
+  border: 1px solid #39352e;
+  border-radius: 6px;
+  background: #11100f;
+  color: #817b72;
+  font-size: 7px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mototribe-ride-call-controls button:hover,
+.mototribe-ride-call-controls button.active {
+  border-color: #c9a45d;
+  color: #c9a45d;
+}
+
+.mototribe-ride-call-controls button.end {
+  border-color: #71463f;
+  color: #b77c72;
+}
+
+.mototribe-ride-call-controls button.end:hover {
+  border-color: #a16b60;
+  color: #d09a8f;
+}
+
+.mototribe-ride-call-controls button span {
+  font-size: 12px;
+}
+
+.mototribe-ride-call-participants {
+  padding: 20px;
+  border: 1px solid #373229;
+  background: #10100f;
+}
+
+.mototribe-ride-call-participants-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #292722;
+}
+
+.mototribe-ride-call-participants-heading > div {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.mototribe-ride-call-participants-heading span {
+  color: #c9a45d;
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.mototribe-ride-call-participants-heading h3 {
+  margin: 0;
+  color: #c8c1b8;
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+
+.mototribe-ride-call-participants-heading small {
+  color: #625e57;
+  font-size: 6px;
+}
+
+.mototribe-ride-call-participant-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 12px;
+}
+
+.mototribe-ride-call-participant {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 52px;
+  padding: 7px;
+  border: 1px solid #292722;
+  background: #0d0d0d;
+}
+
+.mototribe-ride-call-participant.you {
+  border-color: #4a3d2b;
+}
+
+.mototribe-ride-call-participant-avatar {
+  display: flex;
+  width: 31px;
+  height: 31px;
+  min-width: 31px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #403a31;
+  border-radius: 50%;
+  color: #a39c91;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.mototribe-ride-call-participant.online
+  .mototribe-ride-call-participant-avatar {
+  border-color: #5b4b32;
+  color: #c9a45d;
+}
+
+.mototribe-ride-call-participant > div:nth-child(2) {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mototribe-ride-call-participant strong {
+  overflow: hidden;
+  color: #aaa39a;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mototribe-ride-call-participant span {
+  color: #5f5b55;
+  font-size: 6px;
+}
+
+.mototribe-ride-call-participant > small {
+  color: #5f5b55;
+  font-size: 6px;
+  font-weight: 700;
+}
+
+.mototribe-ride-call-participant.online > small {
+  color: #819170;
+}
+
+.mototribe-ride-call-participant.offline {
+  opacity: 0.5;
+}
+
+.mototribe-ride-call-participant button {
+  padding: 4px 6px;
+  border: 0;
+  background: transparent;
+  color: #706b64;
+  font-size: 6px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mototribe-ride-call-participant button:hover:not(:disabled) {
+  color: #c9a45d;
+}
+
+.mototribe-ride-call-participant button:disabled {
+  cursor: default;
+}
+
+.mototribe-ride-call-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 10px 12px;
+  border: 1px solid rgba(201, 164, 93, 0.2);
+  background: rgba(201, 164, 93, 0.04);
+}
+
+.mototribe-ride-call-notice span {
+  color: #c9a45d;
+}
+
+.mototribe-ride-call-notice p {
+  margin: 0;
+  color: #948d83;
+  font-size: 8px;
+}
+
+.mototribe-ride-call-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #292722;
+}
+
+.mototribe-ride-call-footer span {
+  color: #c9a45d;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.mototribe-ride-call-footer p {
+  margin: 0;
+  color: #5f5b55;
+  font-size: 8px;
+  text-align: right;
+}
+
+@media (max-width: 900px) {
+  .mototribe-ride-call-active {
+    grid-template-columns: 1fr;
+  }
+
+  .mototribe-ride-call-stage {
+    min-height: auto;
+  }
+}
+
+@media (max-width: 700px) {
+  .mototribe-ride-call {
+    padding: 20px 16px;
+  }
+
+  .mototribe-ride-call-header {
+    flex-direction: column;
+  }
+
+  .mototribe-ride-call-status {
+    width: 100%;
+  }
+
+  .mototribe-ride-call-start {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .mototribe-ride-call-start-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .mototribe-ride-call-start-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .mototribe-ride-call-video,
+  .mototribe-ride-call-voice {
+    height: 300px;
+  }
+
+  .mototribe-ride-call-controls {
+    flex-wrap: wrap;
+  }
+
+  .mototribe-ride-call-controls button {
+    flex: 1;
+    min-width: 90px;
+  }
+
+  .mototribe-ride-call-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .mototribe-ride-call-footer p {
+    text-align: left;
+  }
+}
+
+@media (max-width: 450px) {
+  .mototribe-ride-call-header h2 {
+    font-size: 20px;
+  }
+
+  .mototribe-ride-call-current {
+    padding: 15px;
+  }
+
+  .mototribe-ride-call-stage-top {
+    padding: 12px;
+  }
+
+  .mototribe-ride-call-controls button {
+    min-width: 75px;
+    font-size: 6px;
+  }
+}

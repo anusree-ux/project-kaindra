@@ -22,7 +22,8 @@ const services = [
     distance: 4.8,
     rating: "4.7",
     status: "OPEN",
-    detail: "Motorcycle inspection, chain service, oil and brake checks.",
+    detail:
+      "Motorcycle inspection, chain service, oil and brake checks.",
   },
   {
     id: 3,
@@ -33,7 +34,8 @@ const services = [
     distance: 6.2,
     rating: "4.5",
     status: "OPEN",
-    detail: "Tyre puncture repair, replacement and wheel balancing.",
+    detail:
+      "Tyre puncture repair, replacement and wheel balancing.",
   },
   {
     id: 4,
@@ -44,7 +46,8 @@ const services = [
     distance: 7.5,
     rating: "4.8",
     status: "24/7",
-    detail: "Emergency medical assistance and ambulance support.",
+    detail:
+      "Emergency medical assistance and ambulance support.",
   },
   {
     id: 5,
@@ -55,7 +58,8 @@ const services = [
     distance: 9.1,
     rating: "4.4",
     status: "OPEN",
-    detail: "Quick meals, beverages and a comfortable rider rest area.",
+    detail:
+      "Quick meals, beverages and a comfortable rider rest area.",
   },
   {
     id: 6,
@@ -66,7 +70,8 @@ const services = [
     distance: 11.3,
     rating: "4.3",
     status: "OPEN",
-    detail: "Basic accommodation with motorcycle parking.",
+    detail:
+      "Basic accommodation with motorcycle parking.",
   },
   {
     id: 7,
@@ -77,7 +82,8 @@ const services = [
     distance: 14.6,
     rating: "4.5",
     status: "OPEN",
-    detail: "Petrol, diesel and basic vehicle assistance.",
+    detail:
+      "Petrol, diesel and basic vehicle assistance.",
   },
   {
     id: 8,
@@ -88,7 +94,8 @@ const services = [
     distance: 18.2,
     rating: "4.6",
     status: "OPEN",
-    detail: "Emergency motorcycle repairs and roadside support.",
+    detail:
+      "Emergency motorcycle repairs and roadside support.",
   },
 ];
 
@@ -108,7 +115,7 @@ function NearbyServices() {
   const [sortMode, setSortMode] = useState("DISTANCE");
 
   const filteredServices = useMemo(() => {
-    let result =
+    const result =
       activeFilter === "ALL"
         ? [...services]
         : services.filter(
@@ -121,81 +128,83 @@ function NearbyServices() {
 
     if (sortMode === "RATING") {
       result.sort(
-        (a, b) =>
-          Number(b.rating) - Number(a.rating)
+        (a, b) => Number(b.rating) - Number(a.rating)
       );
     }
 
     return result;
   }, [activeFilter, sortMode]);
 
+  const handleFilterChange = (filter) => {
+    setActiveFilter(filter);
+    setSelectedService(null);
+  };
+
   const handleNavigate = (service) => {
     const searchQuery = encodeURIComponent(
       `${service.name} ${service.location}`
     );
 
-    window.open(
-      `https://www.google.com/maps/search/?api=1&query=${searchQuery}`,
-      "_blank",
-      "noopener,noreferrer"
-    );
+    const mapUrl = `https://www.google.com/maps/search/?api=1&query=${searchQuery}`;
+
+    window.open(mapUrl, "_blank", "noopener,noreferrer");
   };
 
   return (
     <section
       className="nearby-services-section"
       id="nearby-services"
+      aria-labelledby="nearby-services-title"
     >
       <div className="nearby-services-container">
-
-        {/* HEADER */}
-
         <div className="nearby-services-header">
-
           <div>
             <span className="nearby-eyebrow">
               MOTOTRIBE / NEARBY SERVICES
             </span>
 
-            <h2>
+            <h2 id="nearby-services-title">
               Support
               <br />
               along the way.
             </h2>
 
             <p>
-              Find essential services around your
-              route and keep your journey moving.
+              Find essential services around your route and
+              keep your journey moving.
             </p>
           </div>
 
-          <div className="nearby-location-status">
-            <span className="location-indicator"></span>
+          <div
+            className="nearby-location-status"
+            aria-label="Rider location status"
+          >
+            <span
+              className="location-indicator"
+              aria-hidden="true"
+            />
 
             <div>
               <small>RIDER LOCATION</small>
               <strong>ROUTE AREA ACTIVE</strong>
             </div>
           </div>
-
         </div>
 
-        {/* FILTER BAR */}
-
         <div className="service-toolbar">
-
-          <div className="service-filters">
+          <div
+            className="service-filters"
+            aria-label="Service filters"
+          >
             {serviceFilters.map((filter) => (
               <button
                 key={filter}
+                type="button"
                 className={
-                  activeFilter === filter
-                    ? "active"
-                    : ""
+                  activeFilter === filter ? "active" : ""
                 }
-                onClick={() =>
-                  setActiveFilter(filter)
-                }
+                onClick={() => handleFilterChange(filter)}
+                aria-pressed={activeFilter === filter}
               >
                 {filter}
               </button>
@@ -203,68 +212,56 @@ function NearbyServices() {
           </div>
 
           <div className="service-sort">
-
-            <span>SORT</span>
+            <label htmlFor="service-sort-select">
+              SORT
+            </label>
 
             <select
+              id="service-sort-select"
               value={sortMode}
               onChange={(event) =>
                 setSortMode(event.target.value)
               }
             >
-              <option value="DISTANCE">
-                DISTANCE
-              </option>
-              <option value="RATING">
-                RATING
-              </option>
+              <option value="DISTANCE">DISTANCE</option>
+              <option value="RATING">RATING</option>
             </select>
-
           </div>
-
         </div>
 
-        {/* CONTENT */}
-
         <div className="nearby-services-layout">
-
-          {/* SERVICE LIST */}
-
           <div className="service-list">
-
             <div className="service-list-header">
-              <span>
-                AVAILABLE SERVICES
-              </span>
+              <span>AVAILABLE SERVICES</span>
 
               <strong>
-                {String(
-                  filteredServices.length
-                ).padStart(2, "0")}
+                {String(filteredServices.length).padStart(2, "0")}
               </strong>
             </div>
 
             {filteredServices.map((service) => (
               <button
                 key={service.id}
+                type="button"
                 className={`service-card ${
                   selectedService?.id === service.id
                     ? "selected"
                     : ""
                 }`}
-                onClick={() =>
-                  setSelectedService(service)
+                onClick={() => setSelectedService(service)}
+                aria-pressed={
+                  selectedService?.id === service.id
                 }
               >
-
-                <div className="service-icon">
+                <div
+                  className="service-icon"
+                  aria-hidden="true"
+                >
                   {service.icon}
                 </div>
 
                 <div className="service-main">
-
                   <div className="service-card-top">
-
                     <span className="service-type">
                       {service.type}
                     </span>
@@ -278,31 +275,24 @@ function NearbyServices() {
                     >
                       {service.status}
                     </span>
-
                   </div>
 
                   <h3>{service.name}</h3>
-
                   <p>{service.location}</p>
-
                 </div>
 
                 <div className="service-card-meta">
+                  <span>{service.distance} KM</span>
 
-                  <span>
-                    {service.distance} KM
-                  </span>
+                  <strong>★ {service.rating}</strong>
 
-                  <strong>
-                    ★ {service.rating}
-                  </strong>
-
-                  <span className="service-arrow">
+                  <span
+                    className="service-arrow"
+                    aria-hidden="true"
+                  >
                     →
                   </span>
-
                 </div>
-
               </button>
             ))}
 
@@ -311,20 +301,22 @@ function NearbyServices() {
                 No services available in this category.
               </div>
             )}
-
           </div>
 
-          {/* DETAIL PANEL */}
-
-          <aside className="service-detail-panel">
-
+          <aside
+            className="service-detail-panel"
+            aria-live="polite"
+          >
             {selectedService ? (
               <>
                 <span className="detail-eyebrow">
                   SELECTED SERVICE
                 </span>
 
-                <div className="detail-service-icon">
+                <div
+                  className="detail-service-icon"
+                  aria-hidden="true"
+                >
                   {selectedService.icon}
                 </div>
 
@@ -332,9 +324,7 @@ function NearbyServices() {
                   {selectedService.type}
                 </span>
 
-                <h3>
-                  {selectedService.name}
-                </h3>
+                <h3>{selectedService.name}</h3>
 
                 <p className="detail-location">
                   {selectedService.location}
@@ -345,9 +335,7 @@ function NearbyServices() {
                     ★ {selectedService.rating}
                   </strong>
 
-                  <span>
-                    Rider community rating
-                  </span>
+                  <span>Rider community rating</span>
                 </div>
 
                 <p className="detail-description">
@@ -355,9 +343,9 @@ function NearbyServices() {
                 </p>
 
                 <div className="detail-information">
-
                   <div>
                     <span>DISTANCE</span>
+
                     <strong>
                       {selectedService.distance} KM
                     </strong>
@@ -365,74 +353,67 @@ function NearbyServices() {
 
                   <div>
                     <span>STATUS</span>
+
                     <strong>
                       {selectedService.status}
                     </strong>
                   </div>
-
                 </div>
 
                 <button
+                  type="button"
                   className="open-map-button"
                   onClick={() =>
                     handleNavigate(selectedService)
                   }
                 >
                   OPEN IN MAP
-                  <span>↗</span>
+
+                  <span aria-hidden="true">↗</span>
                 </button>
 
                 <button
+                  type="button"
                   className="close-detail-button"
-                  onClick={() =>
-                    setSelectedService(null)
-                  }
+                  onClick={() => setSelectedService(null)}
                 >
                   CLOSE DETAILS
                 </button>
               </>
             ) : (
               <div className="service-detail-empty">
-
-                <div className="empty-detail-icon">
+                <div
+                  className="empty-detail-icon"
+                  aria-hidden="true"
+                >
                   +
                 </div>
 
-                <span>
-                  SELECT A SERVICE
-                </span>
+                <span>SELECT A SERVICE</span>
 
                 <p>
-                  Choose a service from the list
-                  to view details and navigation.
+                  Choose a service from the list to view
+                  details and navigation.
                 </p>
-
               </div>
             )}
-
           </aside>
-
         </div>
 
-        {/* FOOTER STRIP */}
-
         <div className="services-footer">
-
           <div>
             <span>FIELD SUPPORT</span>
+
             <strong>
-              SERVICES DISCOVERED THROUGH THE
-              RIDER NETWORK
+              SERVICES DISCOVERED THROUGH THE RIDER NETWORK
             </strong>
           </div>
 
           <p>
-            Always verify road conditions and
-            service availability before travelling.
+            Always verify road conditions and service
+            availability before travelling.
           </p>
-
         </div>
-
       </div>
     </section>
   );

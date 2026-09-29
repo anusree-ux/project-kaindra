@@ -1,0 +1,384 @@
+.post-ride-summary {
+  width: min(1180px, calc(100% - 32px));
+  margin: 40px auto;
+  padding: 34px;
+  box-sizing: border-box;
+  color: #f4f1e9;
+  background: #0d0d0d;
+  border: 1px solid #292724;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+}
+
+.post-ride-summary-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 28px;
+  align-items: flex-start;
+  padding-bottom: 28px;
+  border-bottom: 1px solid #292724;
+}
+
+.post-ride-eyebrow {
+  color: #c9a45d;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+}
+
+.post-ride-summary-header h1 {
+  margin: 10px 0;
+  font-size: clamp(28px, 4vw, 52px);
+  line-height: 1;
+}
+
+.post-ride-summary-header p {
+  max-width: 650px;
+  margin: 0;
+  color: #918d84;
+  line-height: 1.7;
+}
+
+.post-ride-status {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px 18px;
+  border: 1px solid #506b40;
+  color: #a7d48d;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.post-ride-status span {
+  display: grid;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background: #6d9f57;
+  color: #081008;
+}
+
+.post-ride-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 28px;
+  padding: 28px;
+  background: #121212;
+  border: 1px solid #302d28;
+}
+
+.post-ride-hero small {
+  color: #77736c;
+  font-size: 9px;
+  letter-spacing: 0.15em;
+}
+
+.post-ride-hero h2 {
+  margin: 8px 0;
+  font-size: 32px;
+}
+
+.post-ride-hero p {
+  margin: 0;
+  color: #a39e94;
+}
+
+.post-ride-distance {
+  text-align: right;
+}
+
+.post-ride-distance strong {
+  display: block;
+  color: #d4a03e;
+  font-size: 42px;
+}
+
+.post-ride-distance span {
+  color: #d4a03e;
+  font-size: 10px;
+}
+
+.post-ride-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin-top: 18px;
+  border: 1px solid #302d28;
+}
+
+.post-ride-stats div {
+  padding: 20px;
+  border-right: 1px solid #302d28;
+}
+
+.post-ride-stats div:last-child {
+  border-right: 0;
+}
+
+.post-ride-stats small {
+  display: block;
+  margin-bottom: 8px;
+  color: #77736c;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+}
+
+.post-ride-stats strong {
+  color: #f1eee6;
+  font-size: 17px;
+}
+
+.post-ride-grid {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.post-ride-card {
+  margin-top: 18px;
+  padding: 24px;
+  background: #121212;
+  border: 1px solid #302d28;
+}
+
+.post-ride-grid .post-ride-card {
+  margin-top: 0;
+}
+
+.post-ride-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.post-ride-heading span {
+  color: #c9a45d;
+  font-size: 10px;
+}
+
+.post-ride-heading h3 {
+  margin: 0;
+  font-size: 14px;
+  letter-spacing: 0.08em;
+}
+
+.post-ride-heading > strong {
+  margin-left: auto;
+  color: #d4a03e;
+}
+
+.post-ride-stars {
+  display: flex;
+  gap: 7px;
+}
+
+.post-ride-stars button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #45423d;
+  font-size: 34px;
+  cursor: pointer;
+}
+
+.post-ride-stars button.active {
+  color: #d4a03e;
+}
+
+.post-ride-card p {
+  color: #858078;
+  line-height: 1.6;
+}
+
+.post-ride-card textarea,
+.post-ride-card select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px;
+  border: 1px solid #34312c;
+  outline: none;
+  background: #0c0c0c;
+  color: #f2eee6;
+  font: inherit;
+}
+
+.post-ride-card textarea {
+  resize: vertical;
+}
+
+.post-ride-card textarea:focus,
+.post-ride-card select:focus {
+  border-color: #c9a45d;
+}
+
+.post-ride-sharing {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: 18px;
+}
+
+.post-ride-sharing label > span {
+  display: block;
+  margin-bottom: 8px;
+  color: #77736c;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+}
+
+.guide-checkbox {
+  display: flex;
+  gap: 12px;
+  padding: 15px;
+  border: 1px solid #302d28;
+}
+
+.guide-checkbox input {
+  accent-color: #c9a45d;
+}
+
+.guide-checkbox strong {
+  display: block;
+  color: #f2eee6;
+}
+
+.guide-checkbox small {
+  display: block;
+  margin-top: 5px;
+  color: #77736c;
+}
+
+.post-ride-expenses {
+  display: grid;
+}
+
+.post-ride-expenses > div {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 15px;
+  padding: 13px 0;
+  border-top: 1px solid #292724;
+}
+
+.post-ride-expenses span {
+  color: #d4a03e;
+  font-size: 11px;
+}
+
+.post-ride-expenses small {
+  color: #77736c;
+}
+
+.post-ride-expenses strong {
+  color: #f2eee6;
+}
+
+.post-ride-notice {
+  margin-top: 18px;
+  padding: 14px;
+  border: 1px solid #725e32;
+  background: rgba(201, 164, 93, 0.05);
+  color: #c9a45d;
+  font-size: 12px;
+}
+
+.post-ride-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.post-ride-actions button {
+  min-height: 46px;
+  padding: 0 22px;
+  border: 1px solid #c9a45d;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.post-ride-primary {
+  background: #c9a45d;
+  color: #111;
+}
+
+.post-ride-secondary {
+  background: transparent;
+  color: #c9a45d;
+}
+
+.post-ride-footer {
+  margin-top: 28px;
+  padding-top: 18px;
+  border-top: 1px solid #292724;
+  color: #c9a45d;
+  font-size: 9px;
+  letter-spacing: 0.15em;
+}
+
+@media (max-width: 820px) {
+  .post-ride-summary {
+    width: calc(100% - 20px);
+    padding: 20px;
+  }
+
+  .post-ride-summary-header,
+  .post-ride-hero {
+    flex-direction: column;
+  }
+
+  .post-ride-status {
+    width: 100%;
+    justify-content: center;
+    box-sizing: border-box;
+  }
+
+  .post-ride-distance {
+    text-align: left;
+  }
+
+  .post-ride-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .post-ride-stats div:nth-child(2) {
+    border-right: 0;
+  }
+
+  .post-ride-grid,
+  .post-ride-sharing {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .post-ride-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .post-ride-stats div {
+    border-right: 0;
+    border-bottom: 1px solid #302d28;
+  }
+
+  .post-ride-stats div:last-child {
+    border-bottom: 0;
+  }
+
+  .post-ride-expenses > div {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+
+  .post-ride-actions {
+    flex-direction: column;
+  }
+
+  .post-ride-actions button {
+    width: 100%;
+  }
+}

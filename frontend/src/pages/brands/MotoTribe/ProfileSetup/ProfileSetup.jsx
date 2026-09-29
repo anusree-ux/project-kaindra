@@ -2,76 +2,80 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./ProfileSetup.css";
 
-const experienceOptions = [
-  "BEGINNER",
-  "INTERMEDIATE",
-  "EXPERIENCED",
-  "PRO",
-];
+const MAX_CONTACTS = 3;
 
-const rideTypes = [
-  "ADVENTURE",
-  "TOURING",
-  "COMMUTER",
-  "LONG DISTANCE",
-  "CRUISER",
-];
+const createEmptyContact = () => ({
+  name: "",
+  phone: "",
+  relationship: "",
+});
 
-const interests = [
-  "MOUNTAINS",
-  "HIGHWAYS",
-  "OFF-ROAD",
-  "COASTAL RIDES",
-  "FOREST ROUTES",
-  "WEEKEND RIDES",
-];
+const createEmptyProfile = () => ({
+  name: "",
+  experience: "",
+  region: "",
+  contacts: [createEmptyContact()],
+});
+
+function getInitialProfile() {
+  try {
+    const savedProfile = localStorage.getItem("mototribe_rider_profile");
+
+    if (savedProfile) {
+      const parsedProfile = JSON.parse(savedProfile);
+
+      const savedContacts =
+        Array.isArray(parsedProfile.contacts) &&
+        parsedProfile.contacts.length > 0
+          ? parsedProfile.contacts
+              .slice(0, MAX_CONTACTS)
+              .map((contact) => ({
+                name: contact?.name || "",
+                phone: contact?.phone || "",
+                relationship: contact?.relationship || "",
+              }))
+          : [createEmptyContact()];
+
+      return {
+        name: parsedProfile.name || "",
+        experience: parsedProfile.experience || "",
+        region: parsedProfile.region || "",
+        contacts: savedContacts,
+      };
+    }
+
+    const signupData = localStorage.getItem("mototribe_verified_signup");
+
+    if (signupData) {
+      const parsedSignup = JSON.parse(signupData);
+
+      return {
+        ...createEmptyProfile(),
+        name: parsedSignup.name || "",
+      };
+    }
+  } catch (error) {
+    console.error("Unable to load rider profile:", error);
+  }
+
+  return createEmptyProfile();
+}
 
 function ProfileSetup() {
   const navigate = useNavigate();
 
-  const [profile, setProfile] = useState({
-    riderName: "",
-    experience: "",
-    city: "",
-    region: "",
-    rideTypes: [],
-    interests: [],
-    emergencyContacts: [
-      {
-        name: "",
-        phone: "",
-        relationship: "",
-      },
-    ],
-  });
-
+  const [profile, setProfile] = useState(getInitialProfile);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [saving, setSaving] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    const account = localStorage.getItem("mototribeSignupAccount");
+    return () => {
+      setIsSaving(false);
+    };
+  }, []);
 
-    if (!account) {
-      navigate("/businesses/mototribe/signup");
-      return;
-    }
-
-    const savedProfile = localStorage.getItem("mototribeProfile");
-
-    if (savedProfile) {
-      setProfile(JSON.parse(savedProfile));
-    } else {
-      const accountData = JSON.parse(account);
-
-      setProfile((previous) => ({
-        ...previous,
-        riderName: accountData.name || "",
-      }));
-    }
-  }, [navigate]);
-
-  const handleBasicChange = (event) => {
+  const handleProfileChange = (event) => {
     const { name, value } = event.target;
 
     setProfile((previous) => ({
@@ -80,506 +84,505 @@ function ProfileSetup() {
     }));
 
     setError("");
+    setSuccess("");
   };
 
-  const toggleOption = (field, value) => {
-    setProfile((previous) => {
-      const currentValues = previous[field];
+  const handleContactChange = (index, field, value) => {
+    let updatedValue = value;
 
-      if (currentValues.includes(value)) {
-        return {
-          ...previous,
-          [field]: currentValues.filter(
-            (item) => item !== value
-          ),
-        };
-      }
+    if (field === "phone") {
+      updatedValue = value.replace(/\D/g, "").slice(0, 10);
+    }
+
+    setProfile((previous) => {
+      const updatedContacts = [...previous.contacts];
+
+      updatedContacts[index] = {
+        ...updatedContacts[index],
+        [field]: updatedValue,
+      };
 
       return {
         ...previous,
-        [field]: [...currentValues, value],
+        contacts: updatedContacts,
       };
     });
 
     setError("");
+    setSuccess("");
   };
 
-  const handleContactChange = (index, field, value) => {
-    setProfile((previous) => {
-      const contacts = [...previous.emergencyContacts];
-
-      contacts[index] = {
-        ...contacts[index],
-        [field]: value,
-      };
-
-      return {
-        ...previous,
-        emergencyContacts: contacts,
-      };
-    });
-  };
-
-  const addEmergencyContact = () => {
-    if (profile.emergencyContacts.length >= 3) return;
+  const addContact = () => {
+    if (profile.contacts.length >= MAX_CONTACTS) {
+      setError("You can add a maximum of 3 emergency contacts.");
+      return;
+    }
 
     setProfile((previous) => ({
       ...previous,
-      emergencyContacts: [
-        ...previous.emergencyContacts,
-        {
-          name: "",
-          phone: "",
-          relationship: "",
-        },
-      ],
+      contacts: [...previous.contacts, createEmptyContact()],
     }));
+
+    setError("");
+    setSuccess("");
   };
 
-  const removeEmergencyContact = (index) => {
-    if (profile.emergencyContacts.length === 1) return;
+  const removeContact = (index) => {
+    if (profile.contacts.length === 1) {
+      setError("At least one emergency contact section must remain.");
+      return;
+    }
 
     setProfile((previous) => ({
       ...previous,
-      emergencyContacts: previous.emergencyContacts.filter(
+      contacts: previous.contacts.filter(
         (_, contactIndex) => contactIndex !== index
       ),
     }));
+
+    setError("");
+    setSuccess("");
   };
 
-  const calculateCompletion = () => {
-    let completed = 0;
-    let total = 6;
+  const validateProfile = () => {
+    const name = profile.name.trim();
+    const region = profile.region.trim();
 
-    if (profile.riderName.trim()) completed++;
-    if (profile.experience) completed++;
-    if (profile.city.trim()) completed++;
-    if (profile.region.trim()) completed++;
-    if (profile.rideTypes.length > 0) completed++;
-    if (profile.interests.length > 0) completed++;
+    if (!name) {
+      return "Please enter your full name.";
+    }
 
-    return Math.round((completed / total) * 100);
+    if (name.length < 2) {
+      return "Please enter a valid full name.";
+    }
+
+    if (!profile.experience) {
+      return "Please select your riding experience.";
+    }
+
+    if (!region) {
+      return "Please enter your riding region.";
+    }
+
+    if (region.length < 2) {
+      return "Please enter a valid riding region.";
+    }
+
+    const completedContacts = profile.contacts.filter(
+      (contact) =>
+        contact.name.trim() ||
+        contact.phone.trim() ||
+        contact.relationship.trim()
+    );
+
+    if (completedContacts.length === 0) {
+      return "Please add at least one emergency contact.";
+    }
+
+    for (let index = 0; index < profile.contacts.length; index += 1) {
+      const contact = profile.contacts[index];
+
+      const contactName = contact.name.trim();
+      const contactPhone = contact.phone.trim();
+      const relationship = contact.relationship.trim();
+
+      const hasAnyValue =
+        contactName || contactPhone || relationship;
+
+      if (!hasAnyValue) {
+        continue;
+      }
+
+      if (!contactName) {
+        return `Please enter the name for emergency contact ${
+          index + 1
+        }.`;
+      }
+
+      if (!contactPhone) {
+        return `Please enter the phone number for emergency contact ${
+          index + 1
+        }.`;
+      }
+
+      if (!/^\d{10}$/.test(contactPhone)) {
+        return `Please enter a valid 10-digit phone number for emergency contact ${
+          index + 1
+        }.`;
+      }
+
+      if (!relationship) {
+        return `Please enter the relationship for emergency contact ${
+          index + 1
+        }.`;
+      }
+    }
+
+    return "";
   };
 
-  const handleSubmit = (event) => {
+  const handleSave = (event) => {
     event.preventDefault();
+
+    if (isSaving) {
+      return;
+    }
 
     setError("");
     setSuccess("");
 
-    if (!profile.riderName.trim()) {
-      setError("Please enter your rider name.");
+    const validationError = validateProfile();
+
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
-    if (!profile.experience) {
-      setError("Please select your riding experience.");
-      return;
-    }
+    setIsSaving(true);
 
-    if (!profile.city.trim()) {
-      setError("Please enter your city.");
-      return;
-    }
+    const profileToSave = {
+      name: profile.name.trim(),
+      experience: profile.experience,
+      region: profile.region.trim(),
+      contacts: profile.contacts
+        .filter(
+          (contact) =>
+            contact.name.trim() ||
+            contact.phone.trim() ||
+            contact.relationship.trim()
+        )
+        .map((contact) => ({
+          name: contact.name.trim(),
+          phone: contact.phone.trim(),
+          relationship: contact.relationship.trim(),
+        })),
+      updatedAt: new Date().toISOString(),
+    };
 
-    if (!profile.region.trim()) {
-      setError("Please enter your region/state.");
-      return;
-    }
-
-    if (profile.rideTypes.length === 0) {
-      setError("Select at least one ride type.");
-      return;
-    }
-
-    if (profile.interests.length === 0) {
-      setError("Select at least one riding interest.");
-      return;
-    }
-
-    setSaving(true);
-
-    setTimeout(() => {
+    try {
       localStorage.setItem(
-        "mototribeProfile",
-        JSON.stringify(profile)
+        "mototribe_rider_profile",
+        JSON.stringify(profileToSave)
       );
 
-      localStorage.setItem(
-        "mototribeProfileCompleted",
-        "true"
-      );
+      const existingUser = localStorage.getItem("mototribe_user");
 
-      setSuccess("Rider profile saved successfully.");
-      setSaving(false);
+      if (existingUser) {
+        try {
+          const parsedUser = JSON.parse(existingUser);
 
-      setTimeout(() => {
+          localStorage.setItem(
+            "mototribe_user",
+            JSON.stringify({
+              ...parsedUser,
+              name: profileToSave.name,
+            })
+          );
+        } catch (error) {
+          console.error("Unable to update MotoTribe user:", error);
+        }
+      }
+
+      setSuccess("Profile saved successfully.");
+
+      window.setTimeout(() => {
         navigate("/businesses/mototribe/vehicles");
-      }, 1000);
-    }, 700);
+      }, 700);
+    } catch (storageError) {
+      console.error("Unable to save rider profile:", storageError);
+
+      setError(
+        "Unable to save your profile. Please try again."
+      );
+
+      setIsSaving(false);
+    }
   };
 
-  const completion = calculateCompletion();
+  const handleSkip = () => {
+    navigate("/businesses/mototribe/vehicles");
+  };
 
   return (
-    <div className="moto-profile-page">
+    <main className="profile-setup-page">
+      <div className="profile-setup-container">
+        <header className="profile-setup-header">
+          <span className="profile-eyebrow">
+            MOTOTRIBE RIDER PROFILE
+          </span>
 
-      <div className="moto-profile-bg">
-        <div className="profile-glow profile-glow-one"></div>
-        <div className="profile-glow profile-glow-two"></div>
-      </div>
-
-      <div className="moto-profile-container">
-
-        <div className="moto-profile-header">
-
-          <div className="moto-profile-brand">
-            <span>MOTO</span>
-            <strong>TRIBE</strong>
-          </div>
-
-          <div className="moto-profile-step">
-            RIDER PROFILE
-          </div>
-
-          <h1>Build your rider profile</h1>
+          <h1>Complete Your Rider Profile</h1>
 
           <p>
-            Tell the tribe who you are, where you ride,
-            and what kind of journeys you enjoy.
+            Add your riding details and emergency contacts to make
+            your MotoTribe experience more personalized and safer.
           </p>
+        </header>
 
-        </div>
-
-        <div className="profile-progress">
-
-          <div className="progress-info">
-            <span>PROFILE COMPLETION</span>
-            <strong>{completion}%</strong>
-          </div>
-
-          <div className="progress-track">
-            <div
-              className="progress-value"
-              style={{ width: `${completion}%` }}
-            ></div>
-          </div>
-
-        </div>
-
-        <form
-          className="moto-profile-form"
-          onSubmit={handleSubmit}
-        >
-
-          {/* BASIC INFORMATION */}
-
-          <section className="profile-section">
-
+        <form className="profile-card" onSubmit={handleSave}>
+          <section>
             <div className="section-heading">
-              <span>01</span>
               <div>
-                <h2>Rider identity</h2>
-                <p>Your basic rider information.</p>
+                <h2>Rider Information</h2>
+                <p>
+                  Tell us a little about your riding experience
+                  and region.
+                </p>
               </div>
+
+              <span>01</span>
             </div>
 
-            <div className="profile-grid">
-
-              <div className="profile-field full">
-                <label>RIDER NAME *</label>
+            <div className="form-grid">
+              <div className="form-group">
+                <label htmlFor="name">
+                  Full Name <span>*</span>
+                </label>
 
                 <input
+                  id="name"
+                  name="name"
                   type="text"
-                  name="riderName"
-                  value={profile.riderName}
-                  onChange={handleBasicChange}
-                  placeholder="Enter your rider name"
+                  value={profile.name}
+                  onChange={handleProfileChange}
+                  placeholder="Enter your full name"
+                  autoComplete="name"
+                  maxLength={80}
+                  required
+                  aria-invalid={Boolean(error)}
                 />
               </div>
 
-              <div className="profile-field">
-                <label>EXPERIENCE *</label>
+              <div className="form-group">
+                <label htmlFor="experience">
+                  Riding Experience <span>*</span>
+                </label>
 
                 <select
+                  id="experience"
                   name="experience"
                   value={profile.experience}
-                  onChange={handleBasicChange}
+                  onChange={handleProfileChange}
+                  required
                 >
                   <option value="">
                     Select experience
                   </option>
-
-                  {experienceOptions.map((option) => (
-                    <option
-                      key={option}
-                      value={option}
-                    >
-                      {option}
-                    </option>
-                  ))}
+                  <option value="Beginner">
+                    Beginner
+                  </option>
+                  <option value="Intermediate">
+                    Intermediate
+                  </option>
+                  <option value="Experienced">
+                    Experienced
+                  </option>
+                  <option value="Professional">
+                    Professional
+                  </option>
                 </select>
               </div>
 
-              <div className="profile-field">
-                <label>CITY *</label>
+              <div className="form-group full-width">
+                <label htmlFor="region">
+                  Riding Region <span>*</span>
+                </label>
 
                 <input
-                  type="text"
-                  name="city"
-                  value={profile.city}
-                  onChange={handleBasicChange}
-                  placeholder="e.g. Bengaluru"
-                />
-              </div>
-
-              <div className="profile-field full">
-                <label>REGION / STATE *</label>
-
-                <input
-                  type="text"
+                  id="region"
                   name="region"
+                  type="text"
                   value={profile.region}
-                  onChange={handleBasicChange}
-                  placeholder="e.g. Andhra Pradesh"
+                  onChange={handleProfileChange}
+                  placeholder="Example: Andhra Pradesh"
+                  autoComplete="address-level1"
+                  maxLength={100}
+                  required
                 />
               </div>
-
             </div>
-
           </section>
 
-          {/* RIDE TYPES */}
-
-          <section className="profile-section">
-
+          <section className="emergency-section">
             <div className="section-heading">
+              <div>
+                <h2>Emergency Contacts</h2>
+
+                <p>
+                  Add up to 3 people who can be contacted during
+                  emergencies.
+                </p>
+              </div>
+
               <span>02</span>
-              <div>
-                <h2>How you ride</h2>
-                <p>Select the journeys that match you.</p>
-              </div>
             </div>
 
-            <div className="option-grid">
-
-              {rideTypes.map((type) => (
-                <button
-                  type="button"
-                  key={type}
-                  className={`profile-option ${
-                    profile.rideTypes.includes(type)
-                      ? "selected"
-                      : ""
-                  }`}
-                  onClick={() =>
-                    toggleOption("rideTypes", type)
-                  }
+            <div className="contacts-list">
+              {profile.contacts.map((contact, index) => (
+                <article
+                  className="contact-card"
+                  key={`emergency-contact-${index}`}
                 >
-                  <span>
-                    {profile.rideTypes.includes(type)
-                      ? "✓"
-                      : "+"}
-                  </span>
+                  <div className="contact-card-header">
+                    <div>
+                      <h3>
+                        Emergency Contact {index + 1}
+                      </h3>
 
-                  {type}
-                </button>
-              ))}
-
-            </div>
-
-          </section>
-
-          {/* INTERESTS */}
-
-          <section className="profile-section">
-
-            <div className="section-heading">
-              <span>03</span>
-              <div>
-                <h2>Riding interests</h2>
-                <p>
-                  Help MotoTribe personalize future
-                  journeys.
-                </p>
-              </div>
-            </div>
-
-            <div className="option-grid">
-
-              {interests.map((interest) => (
-                <button
-                  type="button"
-                  key={interest}
-                  className={`profile-option ${
-                    profile.interests.includes(interest)
-                      ? "selected"
-                      : ""
-                  }`}
-                  onClick={() =>
-                    toggleOption("interests", interest)
-                  }
-                >
-                  <span>
-                    {profile.interests.includes(interest)
-                      ? "✓"
-                      : "+"}
-                  </span>
-
-                  {interest}
-                </button>
-              ))}
-
-            </div>
-
-          </section>
-
-          {/* EMERGENCY CONTACTS */}
-
-          <section className="profile-section">
-
-            <div className="section-heading">
-              <span>04</span>
-
-              <div>
-                <h2>Emergency contacts</h2>
-                <p>
-                  Add up to three people who can be
-                  contacted during an emergency.
-                </p>
-              </div>
-            </div>
-
-            <div className="contacts-wrapper">
-
-              {profile.emergencyContacts.map(
-                (contact, index) => (
-                  <div
-                    className="emergency-contact"
-                    key={index}
-                  >
-
-                    <div className="contact-header">
                       <span>
-                        CONTACT {index + 1}
+                        Contact {index + 1} of{" "}
+                        {profile.contacts.length}
                       </span>
-
-                      {index > 0 && (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            removeEmergencyContact(index)
-                          }
-                        >
-                          REMOVE
-                        </button>
-                      )}
                     </div>
 
-                    <div className="profile-grid">
-
-                      <div className="profile-field">
-                        <label>NAME</label>
-
-                        <input
-                          type="text"
-                          value={contact.name}
-                          onChange={(event) =>
-                            handleContactChange(
-                              index,
-                              "name",
-                              event.target.value
-                            )
-                          }
-                          placeholder="Contact name"
-                        />
-                      </div>
-
-                      <div className="profile-field">
-                        <label>PHONE</label>
-
-                        <input
-                          type="tel"
-                          value={contact.phone}
-                          onChange={(event) =>
-                            handleContactChange(
-                              index,
-                              "phone",
-                              event.target.value
-                            )
-                          }
-                          placeholder="Phone number"
-                        />
-                      </div>
-
-                      <div className="profile-field full">
-                        <label>RELATIONSHIP</label>
-
-                        <input
-                          type="text"
-                          value={contact.relationship}
-                          onChange={(event) =>
-                            handleContactChange(
-                              index,
-                              "relationship",
-                              event.target.value
-                            )
-                          }
-                          placeholder="e.g. Father, Mother, Friend"
-                        />
-                      </div>
-
-                    </div>
-
+                    {profile.contacts.length > 1 && (
+                      <button
+                        type="button"
+                        className="remove-contact"
+                        onClick={() => removeContact(index)}
+                        disabled={isSaving}
+                      >
+                        Remove
+                      </button>
+                    )}
                   </div>
-                )
-              )}
 
-              {profile.emergencyContacts.length < 3 && (
-                <button
-                  type="button"
-                  className="add-contact"
-                  onClick={addEmergencyContact}
-                >
-                  + ADD ANOTHER EMERGENCY CONTACT
-                </button>
-              )}
+                  <div className="form-grid contact-form-grid">
+                    <div className="form-group">
+                      <label
+                        htmlFor={`contact-name-${index}`}
+                      >
+                        Name <span>*</span>
+                      </label>
 
+                      <input
+                        id={`contact-name-${index}`}
+                        type="text"
+                        value={contact.name}
+                        onChange={(event) =>
+                          handleContactChange(
+                            index,
+                            "name",
+                            event.target.value
+                          )
+                        }
+                        placeholder="Contact name"
+                        autoComplete="name"
+                        maxLength={80}
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label
+                        htmlFor={`contact-phone-${index}`}
+                      >
+                        Phone <span>*</span>
+                      </label>
+
+                      <input
+                        id={`contact-phone-${index}`}
+                        type="tel"
+                        value={contact.phone}
+                        onChange={(event) =>
+                          handleContactChange(
+                            index,
+                            "phone",
+                            event.target.value
+                          )
+                        }
+                        placeholder="10-digit phone number"
+                        inputMode="numeric"
+                        autoComplete="tel"
+                        maxLength={10}
+                      />
+                    </div>
+
+                    <div className="form-group full-width">
+                      <label
+                        htmlFor={`contact-relationship-${index}`}
+                      >
+                        Relationship <span>*</span>
+                      </label>
+
+                      <input
+                        id={`contact-relationship-${index}`}
+                        type="text"
+                        value={contact.relationship}
+                        onChange={(event) =>
+                          handleContactChange(
+                            index,
+                            "relationship",
+                            event.target.value
+                          )
+                        }
+                        placeholder="Example: Father, Mother, Friend"
+                        maxLength={50}
+                      />
+                    </div>
+                  </div>
+                </article>
+              ))}
             </div>
 
+            {profile.contacts.length < MAX_CONTACTS && (
+              <button
+                type="button"
+                className="add-contact-button"
+                onClick={addContact}
+                disabled={isSaving}
+              >
+                + Add Emergency Contact
+              </button>
+            )}
+
+            {profile.contacts.length === MAX_CONTACTS && (
+              <p className="contact-limit-message">
+                Maximum of 3 emergency contacts reached.
+              </p>
+            )}
           </section>
 
           {error && (
-            <div className="profile-message error">
+            <div
+              className="profile-message error"
+              role="alert"
+            >
               {error}
             </div>
           )}
 
           {success && (
-            <div className="profile-message success">
+            <div
+              className="profile-message success"
+              role="status"
+            >
               {success}
             </div>
           )}
 
-          <button
-            type="submit"
-            className="save-profile-button"
-            disabled={saving}
-          >
-            {saving
-              ? "SAVING PROFILE..."
-              : "SAVE RIDER PROFILE →"}
-          </button>
+          <div className="profile-actions">
+            <button
+              type="button"
+              className="skip-button"
+              onClick={handleSkip}
+              disabled={isSaving}
+            >
+              Skip for Now
+            </button>
 
+            <button
+              type="submit"
+              className="save-profile-button"
+              disabled={isSaving}
+            >
+              {isSaving
+                ? "Saving Profile..."
+                : "Save & Continue"}
+            </button>
+          </div>
         </form>
-
-        <div className="profile-footer">
-          FRONTEND PROTOTYPE • PROFILE DATA STORED LOCALLY
-        </div>
-
       </div>
-
-    </div>
+    </main>
   );
 }
 

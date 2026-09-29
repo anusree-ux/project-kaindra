@@ -3,105 +3,99 @@ import "./LiveRiders.css";
 
 const riders = [
   {
-    id: 1,
+    id: "live-001",
     name: "Arjun",
     location: "Delhi",
-    distance: "2.4 KM",
     bike: "Royal Enfield Himalayan",
     style: "ADVENTURE",
     status: "ONLINE",
     experience: "ADVANCED",
-    rides: 42,
+    distance: 42,
   },
   {
-    id: 2,
+    id: "live-002",
     name: "Rahul",
     location: "Chandigarh",
-    distance: "5.8 KM",
     bike: "KTM Adventure 390",
     style: "ADVENTURE",
     status: "ONLINE",
     experience: "INTERMEDIATE",
-    rides: 27,
+    distance: 27,
   },
   {
-    id: 3,
+    id: "live-003",
     name: "Meera",
     location: "Bengaluru",
-    distance: "8.2 KM",
     bike: "Yamaha MT-15",
     style: "TOURING",
     status: "RIDING",
     experience: "INTERMEDIATE",
-    rides: 31,
+    distance: 31,
   },
   {
-    id: 4,
+    id: "live-004",
     name: "Vikram",
     location: "Visakhapatnam",
-    distance: "11.5 KM",
     bike: "Royal Enfield Classic 350",
     style: "CRUISER",
     status: "ONLINE",
     experience: "ADVANCED",
-    rides: 56,
+    distance: 56,
   },
   {
-    id: 5,
+    id: "live-005",
     name: "Kiran",
     location: "Hyderabad",
-    distance: "14.1 KM",
     bike: "Bajaj Dominar 400",
     style: "TOURING",
-    status: "ONLINE",
+    status: "RIDING",
     experience: "INTERMEDIATE",
-    rides: 19,
+    distance: 19,
   },
   {
-    id: 6,
+    id: "live-006",
     name: "Aditya",
     location: "Mysuru",
-    distance: "18.7 KM",
     bike: "KTM Duke 390",
     style: "SPORT",
     status: "RIDING",
     experience: "ADVANCED",
-    rides: 38,
+    distance: 38,
   },
 ];
 
+const ridingStyles = [
+  "ALL",
+  "ADVENTURE",
+  "TOURING",
+  "CRUISER",
+  "SPORT",
+];
+
 function LiveRiders() {
+  const [activeFilter, setActiveFilter] = useState("ALL");
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState("ALL");
   const [connectedRiders, setConnectedRiders] = useState([]);
 
   const filteredRiders = useMemo(() => {
+    const normalizedSearch = search.trim().toLowerCase();
+
     return riders.filter((rider) => {
       const matchesSearch =
-        rider.name
-          .toLowerCase()
-          .includes(search.toLowerCase()) ||
-        rider.location
-          .toLowerCase()
-          .includes(search.toLowerCase()) ||
-        rider.bike
-          .toLowerCase()
-          .includes(search.toLowerCase());
+        !normalizedSearch ||
+        rider.name.toLowerCase().includes(normalizedSearch) ||
+        rider.location.toLowerCase().includes(normalizedSearch) ||
+        rider.bike.toLowerCase().includes(normalizedSearch) ||
+        rider.style.toLowerCase().includes(normalizedSearch) ||
+        rider.experience.toLowerCase().includes(normalizedSearch);
 
-      const matchesFilter =
-        filter === "ALL" || rider.style === filter;
+      const matchesStyle =
+        activeFilter === "ALL" ||
+        rider.style === activeFilter;
 
-      return matchesSearch && matchesFilter;
+      return matchesSearch && matchesStyle;
     });
-  }, [search, filter]);
-
-  const toggleConnection = (riderId) => {
-    setConnectedRiders((current) =>
-      current.includes(riderId)
-        ? current.filter((id) => id !== riderId)
-        : [...current, riderId]
-    );
-  };
+  }, [activeFilter, search]);
 
   const onlineCount = riders.filter(
     (rider) => rider.status === "ONLINE"
@@ -111,163 +105,210 @@ function LiveRiders() {
     (rider) => rider.status === "RIDING"
   ).length;
 
+  const nearbyCount = riders.filter(
+    (rider) => rider.distance <= 30
+  ).length;
+
+  const toggleConnection = (riderId) => {
+    setConnectedRiders((current) => {
+      if (current.includes(riderId)) {
+        return current.filter((id) => id !== riderId);
+      }
+
+      return [...current, riderId];
+    });
+  };
+
+  const clearSearch = () => {
+    setSearch("");
+    setActiveFilter("ALL");
+  };
+
   return (
-    <section className="live-riders-section" id="live-riders">
+    <section className="live-riders">
       <div className="live-riders-container">
-
-        {/* HEADER */}
-
         <div className="live-riders-header">
-
           <div>
             <span className="live-riders-eyebrow">
-              MOTOTRIBE / RIDER NETWORK
+              LIVE RIDER NETWORK
             </span>
 
-            <h2>Riders in motion.</h2>
+            <h2>Live Riders</h2>
 
             <p>
-              Discover riders nearby, connect with your tribe
-              and find people who ride like you.
+              See riders currently active on the MotoTribe network
+              and discover people riding near your route.
             </p>
           </div>
 
-          <div className="live-riders-stats">
-
-            <div>
-              <strong>{onlineCount}</strong>
-              <span>ONLINE</span>
-            </div>
-
-            <div>
-              <strong>{ridingCount}</strong>
-              <span>RIDING NOW</span>
-            </div>
-
-            <div>
-              <strong>{riders.length}</strong>
-              <span>NEARBY</span>
-            </div>
-
+          <div className="live-status">
+            <span className="live-status-dot" />
+            LIVE NETWORK
           </div>
-
         </div>
 
-        {/* CONTROLS */}
+        <div className="live-rider-stats">
+          <div className="live-stat-card">
+            <span className="live-stat-number">
+              {onlineCount}
+            </span>
+            <span className="live-stat-label">ONLINE</span>
+          </div>
+
+          <div className="live-stat-card">
+            <span className="live-stat-number">
+              {ridingCount}
+            </span>
+            <span className="live-stat-label">RIDING NOW</span>
+          </div>
+
+          <div className="live-stat-card">
+            <span className="live-stat-number">
+              {nearbyCount}
+            </span>
+            <span className="live-stat-label">NEARBY</span>
+          </div>
+
+          <div className="live-stat-card">
+            <span className="live-stat-number">
+              {connectedRiders.length}
+            </span>
+            <span className="live-stat-label">CONNECTED</span>
+          </div>
+        </div>
 
         <div className="live-riders-controls">
+          <div className="live-rider-search">
+            <span className="live-search-icon">⌕</span>
 
-          <div className="rider-search">
             <input
-              type="text"
-              placeholder="Search riders, cities or motorcycles..."
+              type="search"
               value={search}
-              onChange={(event) =>
-                setSearch(event.target.value)
-              }
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search riders, bikes or locations..."
+              aria-label="Search live riders"
             />
+
+            {search && (
+              <button
+                type="button"
+                className="live-clear-search"
+                onClick={() => setSearch("")}
+                aria-label="Clear search"
+              >
+                ×
+              </button>
+            )}
           </div>
 
-          <div className="rider-filters">
-
-            {[
-              "ALL",
-              "ADVENTURE",
-              "TOURING",
-              "CRUISER",
-              "SPORT",
-            ].map((item) => (
+          <div className="live-rider-filters">
+            {ridingStyles.map((style) => (
               <button
-                key={item}
-                className={
-                  filter === item
-                    ? "active"
-                    : ""
-                }
-                onClick={() => setFilter(item)}
+                key={style}
+                type="button"
+                className={`live-filter-button ${
+                  activeFilter === style ? "active" : ""
+                }`}
+                onClick={() => setActiveFilter(style)}
+                aria-pressed={activeFilter === style}
               >
-                {item}
+                {style}
               </button>
             ))}
-
           </div>
-
         </div>
 
-        {/* RIDER GRID */}
+        <div className="live-riders-location-bar">
+          <div>
+            <span className="location-pulse" />
+            <span>
+              Showing active riders across the MotoTribe network
+            </span>
+          </div>
 
-        <div className="live-riders-grid">
+          <span>
+            {filteredRiders.length} RIDERS FOUND
+          </span>
+        </div>
 
-          {filteredRiders.length > 0 ? (
-            filteredRiders.map((rider) => {
-
-              const isConnected =
-                connectedRiders.includes(rider.id);
+        {filteredRiders.length > 0 ? (
+          <div className="live-riders-grid">
+            {filteredRiders.map((rider) => {
+              const isConnected = connectedRiders.includes(
+                rider.id
+              );
 
               return (
                 <article
-                  className="live-rider-profile"
+                  className="live-rider-card"
                   key={rider.id}
                 >
-
-                  <div className="rider-profile-top">
-
-                    <div className="rider-profile-avatar">
-                      {rider.name
-                        .charAt(0)
-                        .toUpperCase()}
+                  <div className="live-rider-card-header">
+                    <div className="live-rider-avatar">
+                      {rider.name.charAt(0)}
                     </div>
 
-                    <div
-                      className={`rider-status rider-status-${rider.status.toLowerCase()}`}
-                    >
-                      <span></span>
+                    <div className="live-rider-status">
+                      <span
+                        className={`status-dot ${
+                          rider.status === "RIDING"
+                            ? "riding"
+                            : "online"
+                        }`}
+                      />
+
                       {rider.status}
                     </div>
-
                   </div>
 
-                  <div className="rider-profile-content">
+                  <div className="live-rider-info">
+                    <div className="live-rider-name-row">
+                      <h3>{rider.name}</h3>
 
-                    <span className="rider-style">
-                      {rider.style}
-                    </span>
+                      <span
+                        className={`live-rider-style ${rider.style.toLowerCase()}`}
+                      >
+                        {rider.style}
+                      </span>
+                    </div>
 
-                    <h3>{rider.name}</h3>
-
-                    <p className="rider-location">
+                    <p className="live-rider-location">
+                      <span>⌖</span>
                       {rider.location}
-                      <span>•</span>
-                      {rider.distance}
                     </p>
 
-                    <div className="rider-bike">
-                      <span>MOTORCYCLE</span>
-                      <strong>{rider.bike}</strong>
+                    <p className="live-rider-bike">
+                      {rider.bike}
+                    </p>
+                  </div>
+
+                  <div className="live-rider-details">
+                    <div>
+                      <span>EXPERIENCE</span>
+                      <strong>{rider.experience}</strong>
                     </div>
 
-                    <div className="rider-profile-meta">
+                    <div>
+                      <span>DISTANCE</span>
+                      <strong>{rider.distance} km</strong>
+                    </div>
+                  </div>
 
-                      <div>
-                        <span>EXPERIENCE</span>
-                        <strong>
-                          {rider.experience}
-                        </strong>
-                      </div>
-
-                      <div>
-                        <span>RIDES</span>
-                        <strong>
-                          {rider.rides}
-                        </strong>
-                      </div>
-
+                  <div className="live-rider-route">
+                    <div className="route-line">
+                      <span className="route-point start" />
+                      <span className="route-track" />
+                      <span className="route-point end" />
                     </div>
 
+                    <span>
+                      ACTIVE ON NETWORK
+                    </span>
                   </div>
 
                   <button
-                    className={`connect-rider-button ${
+                    type="button"
+                    className={`live-connect-button ${
                       isConnected ? "connected" : ""
                     }`}
                     onClick={() =>
@@ -275,39 +316,46 @@ function LiveRiders() {
                     }
                   >
                     {isConnected
-                      ? "CONNECTED ✓"
-                      : "CONNECT RIDER"}
+                      ? "CONNECTED"
+                      : "CONNECT WITH RIDER"}
                   </button>
-
                 </article>
               );
-            })
-          ) : (
-            <div className="no-riders-found">
-              <span>NO RIDERS FOUND</span>
-              <h3>
-                Try another search or riding style.
-              </h3>
-            </div>
-          )}
+            })}
+          </div>
+        ) : (
+          <div className="live-riders-empty">
+            <div className="empty-rider-icon">⌁</div>
 
-        </div>
+            <h3>No active riders found</h3>
 
-        {/* FOOTER */}
+            <p>
+              Try another search or change the riding style
+              filter.
+            </p>
+
+            <button
+              type="button"
+              onClick={clearSearch}
+              className="reset-live-riders"
+            >
+              RESET FILTERS
+            </button>
+          </div>
+        )}
 
         <div className="live-riders-footer">
-
-          <span>
-            MOTOTRIBE COMMUNITY NETWORK
-          </span>
+          <div className="live-footer-line">
+            <span />
+            <strong>RIDE TOGETHER</strong>
+            <span />
+          </div>
 
           <p>
-            Rider availability and location are
-            approximate and may change in real time.
+            Connect with riders. Discover routes. Ride beyond
+            the ordinary.
           </p>
-
         </div>
-
       </div>
     </section>
   );

@@ -20,7 +20,7 @@ import MotoLogin from "./pages/brands/MotoTribe/Auth/Login";
 import RideDetails from "./pages/brands/MotoTribe/RideDetails/RideDetails";
 import Expenses from "./pages/brands/MotoTribe/Expenses/Expenses";
 import LiveRide from "./pages/brands/MotoTribe/LiveRide/LiveRide";
-
+import PostRideSummaryPage from "./pages/brands/MotoTribe/PostRideSummaryPage/PostRideSummaryPage";
 function App() {
   return (
     <BrowserRouter>
@@ -52,7 +52,7 @@ function App() {
         <Route path="/businesses/mototribe/ride/:rideId" element={<RideDetails />} />
         <Route path="/businesses/mototribe/ride/:rideId/live" element={<LiveRide />} />
         <Route path="/businesses/mototribe/ride/:rideId/expenses" element={<Expenses />} />
-
+        <Route path="/businesses/mototribe/ride/:rideId/complete" element={<PostRideSummaryPage />} />
       </Routes>
     </BrowserRouter>
   );

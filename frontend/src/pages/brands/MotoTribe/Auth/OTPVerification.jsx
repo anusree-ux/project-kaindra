@@ -3,76 +3,153 @@ import { useNavigate } from "react-router-dom";
 import "./OTPVerification.css";
 
 const OTP_LENGTH = 6;
-const OTP_EXPIRY_SECONDS = 120;
+const OTP_EXPIRY_SECONDS = 5 * 60;
 const RESEND_COOLDOWN_SECONDS = 30;
+const DEMO_OTP = "123456";
 
-function generateDemoOtp() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+function getPendingSignup() {
+  try {
+    const storedSignup = localStorage.getItem(
+      "mototribe_pending_signup"
+    );
+
+    if (!storedSignup) {
+      return null;
+    }
+
+    const parsedSignup = JSON.parse(storedSignup);
+
+    if (!parsedSignup || typeof parsedSignup !== "object") {
+      return null;
+    }
+
+    return parsedSignup;
+  } catch {
+    return null;
+  }
 }
 
 function OTPVerification() {
   const navigate = useNavigate();
 
-  const [otp, setOtp] = useState(Array(OTP_LENGTH).fill(""));
-  const [demoOtp, setDemoOtp] = useState("");
-  const [timeLeft, setTimeLeft] = useState(OTP_EXPIRY_SECONDS);
-  const [resendTime, setResendTime] = useState(
+  const [signupData] = useState(getPendingSignup);
+
+  const [otp, setOtp] = useState(
+    Array(OTP_LENGTH).fill("")
+  );
+
+  const [timeLeft, setTimeLeft] = useState(() => {
+    const signup = getPendingSignup();
+
+    if (!signup?.otpExpiresAt) {
+      return OTP_EXPIRY_SECONDS;
+    }
+
+    const remaining = Math.floor(
+      (signup.otpExpiresAt - Date.now()) / 1000
+    );
+
+    return Math.max(0, remaining);
+  });
+
+  const [resendCooldown, setResendCooldown] = useState(
     RESEND_COOLDOWN_SECONDS
   );
+
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
 
   const inputRefs = useRef([]);
 
+  /*
+   * Redirect when there is no pending signup.
+   *
+   * This effect performs navigation, not a synchronous
+   * local state update.
+   */
   useEffect(() => {
-    const account = localStorage.getItem("mototribeSignupAccount");
-
-    if (!account) {
-      navigate("/businesses/mototribe/signup");
+    if (!signupData) {
+      navigate("/businesses/mototribe/signup", {
+        replace: true,
+      });
       return;
     }
 
-    const newOtp = generateDemoOtp();
-    setDemoOtp(newOtp);
+    inputRefs.current[0]?.focus();
+  }, [signupData, navigate]);
 
-    setTimeout(() => {
-      inputRefs.current[0]?.focus();
-    }, 100);
-  }, [navigate]);
-
-  // OTP expiry timer
+  /*
+   * OTP expiry countdown.
+   */
   useEffect(() => {
-    if (timeLeft <= 0) return;
+    if (!signupData) {
+      return undefined;
+    }
 
-    const timer = setInterval(() => {
-      setTimeLeft((previous) => previous - 1);
+    if (timeLeft <= 0) {
+      return undefined;
+    }
+
+    const timer = window.setInterval(() => {
+      setTimeLeft((current) => {
+        if (current <= 1) {
+          window.clearInterval(timer);
+          return 0;
+        }
+
+        return current - 1;
+      });
     }, 1000);
 
-    return () => clearInterval(timer);
-  }, [timeLeft]);
+    return () => {
+      window.clearInterval(timer);
+    };
+  }, [signupData, timeLeft]);
 
-  // Resend cooldown timer
+  /*
+   * Resend cooldown.
+   */
   useEffect(() => {
-    if (resendTime <= 0) return;
+    if (resendCooldown <= 0) {
+      return undefined;
+    }
 
-    const timer = setInterval(() => {
-      setResendTime((previous) => previous - 1);
+    const timer = window.setInterval(() => {
+      setResendCooldown((current) =>
+        Math.max(0, current - 1)
+      );
     }, 1000);
 
-    return () => clearInterval(timer);
-  }, [resendTime]);
+    return () => {
+      window.clearInterval(timer);
+    };
+  }, [resendCooldown]);
+
+  const formatTime = (seconds) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+
+    return `${String(minutes).padStart(2, "0")}:${String(
+      remainingSeconds
+    ).padStart(2, "0")}`;
+  };
 
   const handleChange = (index, value) => {
-    if (!/^\d*$/.test(value)) return;
+    if (!/^\d*$/.test(value)) {
+      return;
+    }
 
     const digit = value.slice(-1);
 
-    const updatedOtp = [...otp];
-    updatedOtp[index] = digit;
-
-    setOtp(updatedOtp);
     setError("");
+    setSuccess("");
+
+    setOtp((current) => {
+      const updated = [...current];
+      updated[index] = digit;
+      return updated;
+    });
 
     if (digit && index < OTP_LENGTH - 1) {
       inputRefs.current[index + 1]?.focus();
@@ -111,29 +188,33 @@ function OTPVerification() {
       .replace(/\D/g, "")
       .slice(0, OTP_LENGTH);
 
-    if (!pastedValue) return;
+    if (!pastedValue) {
+      return;
+    }
 
-    const pastedOtp = Array(OTP_LENGTH).fill("");
+    const updatedOtp = Array(OTP_LENGTH).fill("");
 
-    pastedValue.split("").forEach((digit, index) => {
-      pastedOtp[index] = digit;
-    });
+    pastedValue
+      .split("")
+      .forEach((digit, index) => {
+        updatedOtp[index] = digit;
+      });
 
-    setOtp(pastedOtp);
+    setOtp(updatedOtp);
+    setError("");
 
-    const nextIndex = Math.min(
+    const focusIndex = Math.min(
       pastedValue.length,
       OTP_LENGTH - 1
     );
 
-    inputRefs.current[nextIndex]?.focus();
+    inputRefs.current[focusIndex]?.focus();
   };
 
-  const handleVerify = () => {
-    const enteredOtp = otp.join("");
+  const verifyOtp = (event) => {
+    event.preventDefault();
 
-    setError("");
-    setSuccess("");
+    const enteredOtp = otp.join("");
 
     if (enteredOtp.length !== OTP_LENGTH) {
       setError("Please enter the complete 6-digit OTP.");
@@ -141,180 +222,242 @@ function OTPVerification() {
     }
 
     if (timeLeft <= 0) {
-      setError("This OTP has expired. Please request a new OTP.");
+      setError(
+        "This OTP has expired. Please request a new OTP."
+      );
       return;
     }
 
-    setLoading(true);
+    setIsVerifying(true);
+    setError("");
 
-    setTimeout(() => {
-      if (enteredOtp !== demoOtp) {
-        setError("Invalid OTP. Please check the code and try again.");
-        setLoading(false);
-        return;
-      }
+    /*
+     * Demo OTP.
+     * Replace this comparison with backend verification later.
+     */
+    if (enteredOtp !== DEMO_OTP) {
+      setError("Invalid OTP. Please check and try again.");
+      setIsVerifying(false);
+      return;
+    }
 
-      const accountData = JSON.parse(
-        localStorage.getItem("mototribeSignupAccount")
+    try {
+      const verifiedUser = {
+        ...signupData,
+        phoneVerified: true,
+        verifiedAt: new Date().toISOString(),
+        createdAt:
+          signupData.createdAt ||
+          new Date().toISOString(),
+      };
+
+      /*
+       * Never store password or OTP after verification.
+       */
+      delete verifiedUser.password;
+      delete verifiedUser.otp;
+      delete verifiedUser.otpCode;
+      delete verifiedUser.otpExpiresAt;
+
+      localStorage.setItem(
+        "mototribe_verified_signup",
+        JSON.stringify(verifiedUser)
       );
 
-      const verifiedAccount = {
-        ...accountData,
-        verified: true,
+      localStorage.removeItem(
+        "mototribe_pending_signup"
+      );
+
+      setSuccess("Phone number verified successfully.");
+
+      window.setTimeout(() => {
+        navigate("/businesses/mototribe/profile-setup");
+      }, 700);
+    } catch {
+      setError(
+        "Unable to save verification details. Please try again."
+      );
+      setIsVerifying(false);
+    }
+  };
+
+  const resendOtp = () => {
+    if (resendCooldown > 0) {
+      return;
+    }
+
+    if (!signupData) {
+      navigate("/businesses/mototribe/signup", {
+        replace: true,
+      });
+      return;
+    }
+
+    try {
+      const newExpiry =
+        Date.now() + OTP_EXPIRY_SECONDS * 1000;
+
+      const updatedSignup = {
+        ...signupData,
+        otpCode: DEMO_OTP,
+        otpExpiresAt: newExpiry,
       };
 
       localStorage.setItem(
-        "mototribeSignupAccount",
-        JSON.stringify(verifiedAccount)
+        "mototribe_pending_signup",
+        JSON.stringify(updatedSignup)
       );
 
-      localStorage.setItem("mototribeOtpVerified", "true");
+      setOtp(Array(OTP_LENGTH).fill(""));
+      setTimeLeft(OTP_EXPIRY_SECONDS);
+      setResendCooldown(
+        RESEND_COOLDOWN_SECONDS
+      );
+      setError("");
+      setSuccess("A new OTP has been sent.");
 
-      setSuccess("Rider verified successfully.");
-      setLoading(false);
-
-      setTimeout(() => {
-        navigate("/businesses/mototribe/profile-setup");
-      }, 1000);
-    }, 700);
+      inputRefs.current[0]?.focus();
+    } catch {
+      setError(
+        "Unable to resend OTP. Please try again."
+      );
+    }
   };
 
-  const handleResend = () => {
-    if (resendTime > 0) return;
-
-    const newOtp = generateDemoOtp();
-
-    setDemoOtp(newOtp);
-    setOtp(Array(OTP_LENGTH).fill(""));
-    setTimeLeft(OTP_EXPIRY_SECONDS);
-    setResendTime(RESEND_COOLDOWN_SECONDS);
-    setError("");
-    setSuccess("");
-
-    inputRefs.current[0]?.focus();
-  };
-
-  const formatTime = (seconds) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-
-    return `${String(minutes).padStart(2, "0")}:${String(
-      remainingSeconds
-    ).padStart(2, "0")}`;
-  };
+  if (!signupData) {
+    return null;
+  }
 
   return (
-    <div className="moto-otp-page">
-      <div className="moto-otp-background">
-        <div className="moto-otp-glow glow-one"></div>
-        <div className="moto-otp-glow glow-two"></div>
-      </div>
-
-      <div className="moto-otp-card">
-
-        <div className="moto-otp-brand">
-          <span>MOTO</span>
-          <strong>TRIBE</strong>
-        </div>
-
-        <div className="moto-otp-badge">
-          VERIFY RIDER
-        </div>
-
-        <h1>Verify your number</h1>
-
-        <p className="moto-otp-description">
-          Enter the 6-digit verification code generated
-          for your MotoTribe rider account.
-        </p>
-
-        {/* Development-only demo OTP */}
-        <div className="moto-demo-otp">
-          <span>DEMO OTP</span>
-          <strong>{demoOtp || "------"}</strong>
-          <small>
-            Frontend prototype — no SMS service connected
-          </small>
-        </div>
-
-        <div className="moto-otp-inputs">
-          {otp.map((digit, index) => (
-            <input
-              key={index}
-              ref={(element) => {
-                inputRefs.current[index] = element;
-              }}
-              type="text"
-              inputMode="numeric"
-              maxLength="1"
-              value={digit}
-              onChange={(event) =>
-                handleChange(index, event.target.value)
-              }
-              onKeyDown={(event) =>
-                handleKeyDown(index, event)
-              }
-              onPaste={handlePaste}
-              aria-label={`OTP digit ${index + 1}`}
-            />
-          ))}
-        </div>
-
-        <div className="moto-otp-timer">
-          <span>
-            OTP expires in{" "}
-            <strong>{formatTime(timeLeft)}</strong>
-          </span>
-        </div>
-
-        {error && (
-          <div className="moto-otp-message error">
-            {error}
-          </div>
-        )}
-
-        {success && (
-          <div className="moto-otp-message success">
-            {success}
-          </div>
-        )}
-
-        <button
-          className="moto-verify-button"
-          onClick={handleVerify}
-          disabled={loading}
-        >
-          {loading ? "VERIFYING..." : "VERIFY RIDER"}
-        </button>
-
-        <div className="moto-resend">
-          {resendTime > 0 ? (
-            <span>
-              Resend OTP in{" "}
-              <strong>{resendTime}s</strong>
+    <section className="otp-verification-page">
+      <div className="otp-verification-container">
+        <div className="otp-verification-card">
+          <div className="otp-header">
+            <span className="otp-eyebrow">
+              MOTOTRIBE / VERIFICATION
             </span>
-          ) : (
-            <button onClick={handleResend}>
-              RESEND OTP
+
+            <h1>
+              VERIFY
+              <br />
+              YOUR RIDE.
+            </h1>
+
+            <p>
+              Enter the verification code sent to your
+              registered mobile number.
+            </p>
+          </div>
+
+          <div className="otp-contact">
+            <span>VERIFICATION TARGET</span>
+
+            <strong>
+              {signupData.phone || "Registered number"}
+            </strong>
+          </div>
+
+          <form onSubmit={verifyOtp}>
+            <div
+              className="otp-input-group"
+              onPaste={handlePaste}
+            >
+              {otp.map((digit, index) => (
+                <input
+                  key={index}
+                  ref={(element) => {
+                    inputRefs.current[index] = element;
+                  }}
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={1}
+                  value={digit}
+                  onChange={(event) =>
+                    handleChange(
+                      index,
+                      event.target.value
+                    )
+                  }
+                  onKeyDown={(event) =>
+                    handleKeyDown(index, event)
+                  }
+                  aria-label={`OTP digit ${index + 1}`}
+                  autoComplete={
+                    index === 0
+                      ? "one-time-code"
+                      : "off"
+                  }
+                />
+              ))}
+            </div>
+
+            <div className="otp-timer">
+              <span>CODE EXPIRES IN</span>
+
+              <strong
+                className={
+                  timeLeft <= 30
+                    ? "otp-expiring"
+                    : ""
+                }
+              >
+                {formatTime(timeLeft)}
+              </strong>
+            </div>
+
+            {error && (
+              <div
+                className="otp-message otp-error"
+                role="alert"
+              >
+                {error}
+              </div>
+            )}
+
+            {success && (
+              <div
+                className="otp-message otp-success"
+                role="status"
+              >
+                {success}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              className="verify-otp-button"
+              disabled={isVerifying || timeLeft <= 0}
+            >
+              {isVerifying
+                ? "VERIFYING..."
+                : "VERIFY OTP"}
             </button>
-          )}
+          </form>
+
+          <div className="otp-resend">
+            <span>HAVEN&apos;T RECEIVED THE CODE?</span>
+
+            <button
+              type="button"
+              onClick={resendOtp}
+              disabled={resendCooldown > 0}
+            >
+              {resendCooldown > 0
+                ? `RESEND IN ${resendCooldown}s`
+                : "RESEND OTP"}
+            </button>
+          </div>
+
+          <div className="otp-demo-note">
+            <span>DEMO MODE</span>
+
+            <p>
+              Test OTP: <strong>123456</strong>
+            </p>
+          </div>
         </div>
-
-        <button
-          className="moto-back-signup"
-          onClick={() =>
-            navigate("/businesses/mototribe/signup")
-          }
-        >
-          ← BACK TO SIGNUP
-        </button>
-
-        <div className="moto-otp-footer">
-          FRONTEND PROTOTYPE • OTP SIMULATED LOCALLY
-        </div>
-
       </div>
-    </div>
+    </section>
   );
 }
 

@@ -2,6 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import "./RidePassport.css";
 import { motoRides } from "../../../../data/motoRides";
 
+const PASSPORT_KEY = "mototribeRidePassport";
+const RECORDS_UPDATED_EVENT = "mototribeRideRecordsUpdated";
+
 const defaultPassport = {
   riderName: "MOTOTRIBE RIDER",
   riderId: "MT-2026-00421",
@@ -44,40 +47,107 @@ const milestones = [
   },
 ];
 
-function RidePassport() {
-  const [passport, setPassport] = useState(() => {
-    try {
-      return JSON.parse(
-        localStorage.getItem("mototribeRidePassport") ||
-          JSON.stringify(defaultPassport)
-      );
-    } catch {
+function readPassport() {
+  try {
+    const saved = localStorage.getItem(PASSPORT_KEY);
+
+    if (!saved) {
       return defaultPassport;
     }
-  });
+
+    const parsed = JSON.parse(saved);
+
+    return {
+      ...defaultPassport,
+      ...parsed,
+    };
+  } catch {
+    return defaultPassport;
+  }
+}
+
+function RidePassport() {
+  const [passport, setPassport] = useState(() =>
+    readPassport()
+  );
 
   const [activeMilestone, setActiveMilestone] =
     useState("first-ride");
 
   const [editingName, setEditingName] = useState(false);
+
   const [nameInput, setNameInput] = useState(
-    passport.riderName
+    () => readPassport().riderName
   );
 
+  /*
+   * Save passport changes.
+   */
   useEffect(() => {
     localStorage.setItem(
-      "mototribeRidePassport",
+      PASSPORT_KEY,
       JSON.stringify(passport)
     );
   }, [passport]);
 
+  /*
+   * Synchronize Ride Passport immediately when
+   * PostRideSummary completes a ride.
+   */
+  useEffect(() => {
+    const syncPassport = () => {
+      const latestPassport = readPassport();
+
+      setPassport(latestPassport);
+
+      setNameInput((currentName) => {
+        if (
+          document.activeElement?.tagName === "INPUT"
+        ) {
+          return currentName;
+        }
+
+        return latestPassport.riderName;
+      });
+    };
+
+    window.addEventListener(
+      RECORDS_UPDATED_EVENT,
+      syncPassport
+    );
+
+    window.addEventListener(
+      "storage",
+      syncPassport
+    );
+
+    return () => {
+      window.removeEventListener(
+        RECORDS_UPDATED_EVENT,
+        syncPassport
+      );
+
+      window.removeEventListener(
+        "storage",
+        syncPassport
+      );
+    };
+  }, []);
+
   const completedMilestones = useMemo(() => {
     return {
       "first-ride": passport.rides >= 1,
-      "distance-1000": passport.distance >= 1000,
-      explorer: passport.rides >= 10,
+
+      "distance-1000":
+        passport.distance >= 1000,
+
+      explorer:
+        passport.rides >= 10,
+
       "long-haul":
-        motoRides.some((ride) => ride.distance >= 500) ||
+        motoRides.some(
+          (ride) => ride.distance >= 500
+        ) ||
         passport.distance >= 500,
     };
   }, [passport]);
@@ -105,7 +175,8 @@ function RidePassport() {
   };
 
   const selectedMilestone = milestones.find(
-    (milestone) => milestone.id === activeMilestone
+    (milestone) =>
+      milestone.id === activeMilestone
   );
 
   return (
@@ -186,7 +257,9 @@ function RidePassport() {
                   <input
                     value={nameInput}
                     onChange={(event) =>
-                      setNameInput(event.target.value)
+                      setNameInput(
+                        event.target.value
+                      )
                     }
                     autoFocus
                   />
@@ -230,11 +303,14 @@ function RidePassport() {
 
             <div>
               <span>RIDES</span>
-              <strong>{passport.rides}</strong>
+              <strong>
+                {passport.rides}
+              </strong>
             </div>
 
             <div>
               <span>DISTANCE</span>
+
               <strong>
                 {passport.distance.toLocaleString()} KM
               </strong>
@@ -242,7 +318,10 @@ function RidePassport() {
 
             <div>
               <span>COMMUNITIES</span>
-              <strong>{passport.communities}</strong>
+
+              <strong>
+                {passport.communities}
+              </strong>
             </div>
 
             <div>
@@ -274,9 +353,11 @@ function RidePassport() {
 
             <div className="passport-stat">
               <span>01</span>
+
               <strong>
                 {passport.rides}
               </strong>
+
               <small>
                 RECORDED RIDES
               </small>
@@ -284,9 +365,11 @@ function RidePassport() {
 
             <div className="passport-stat">
               <span>02</span>
+
               <strong>
                 {passport.distance.toLocaleString()}
               </strong>
+
               <small>
                 TOTAL KM
               </small>
@@ -294,9 +377,11 @@ function RidePassport() {
 
             <div className="passport-stat">
               <span>03</span>
+
               <strong>
                 {passport.communities}
               </strong>
+
               <small>
                 COMMUNITIES
               </small>
@@ -304,9 +389,11 @@ function RidePassport() {
 
             <div className="passport-stat">
               <span>04</span>
+
               <strong>
                 {passport.countries}
               </strong>
+
               <small>
                 COUNTRIES
               </small>
@@ -338,13 +425,16 @@ function RidePassport() {
 
               {milestones.map((milestone) => {
                 const completed =
-                  completedMilestones[milestone.id];
+                  completedMilestones[
+                    milestone.id
+                  ];
 
                 return (
                   <button
                     key={milestone.id}
                     className={`milestone-item ${
-                      activeMilestone === milestone.id
+                      activeMilestone ===
+                      milestone.id
                         ? "active"
                         : ""
                     } ${
@@ -353,7 +443,9 @@ function RidePassport() {
                         : ""
                     }`}
                     onClick={() =>
-                      setActiveMilestone(milestone.id)
+                      setActiveMilestone(
+                        milestone.id
+                      )
                     }
                   >
 
@@ -439,45 +531,54 @@ function RidePassport() {
 
           <div className="passport-journey-list">
 
-            {motoRides.slice(0, 3).map((ride, index) => (
-              <div
-                className="passport-journey"
-                key={ride.id}
-              >
+            {motoRides
+              .slice(0, 3)
+              .map((ride, index) => (
 
-                <span className="journey-number">
-                  {String(index + 1).padStart(2, "0")}
-                </span>
+                <div
+                  className="passport-journey"
+                  key={ride.id}
+                >
 
-                <div className="journey-info">
-
-                  <span>
-                    {ride.type}
+                  <span className="journey-number">
+                    {String(index + 1).padStart(
+                      2,
+                      "0"
+                    )}
                   </span>
 
-                  <strong>
-                    {ride.name}
-                  </strong>
+                  <div className="journey-info">
 
-                  <small>
-                    {ride.start} →{" "}
-                    {ride.destination}
-                  </small>
+                    <span>
+                      {ride.type}
+                    </span>
+
+                    <strong>
+                      {ride.name}
+                    </strong>
+
+                    <small>
+                      {ride.start} →{" "}
+                      {ride.destination}
+                    </small>
+
+                  </div>
+
+                  <div className="journey-distance">
+
+                    <strong>
+                      {ride.distanceLabel}
+                    </strong>
+
+                    <span>
+                      {ride.duration}
+                    </span>
+
+                  </div>
 
                 </div>
 
-                <div className="journey-distance">
-                  <strong>
-                    {ride.distanceLabel}
-                  </strong>
-
-                  <span>
-                    {ride.duration}
-                  </span>
-                </div>
-
-              </div>
-            ))}
+              ))}
 
           </div>
 
