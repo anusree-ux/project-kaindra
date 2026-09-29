@@ -5,7 +5,8 @@ import {
 } from "./authSession";
 
 const API_BASE_URL =
-  import.meta.env.VITE_MOTOTRIBE_API_URL || "http://localhost:5000/api";
+  import.meta.env.VITE_MOTOTRIBE_API_URL ||
+  "http://localhost:5000/api";
 
 async function parseResponse(response) {
   const contentType = response.headers.get("content-type") || "";
@@ -40,7 +41,7 @@ async function request(endpoint, options = {}, retry = true) {
       ...options,
       headers,
     });
-  } catch (error) {
+  } catch {
     throw new Error(
       "Unable to connect to the MotoTribe server. Please try again."
     );
@@ -82,7 +83,10 @@ export async function apiPost(endpoint, body, options = {}) {
   return request(endpoint, {
     ...options,
     method: "POST",
-    body: body instanceof FormData ? body : JSON.stringify(body),
+    body:
+      body instanceof FormData
+        ? body
+        : JSON.stringify(body),
   });
 }
 
@@ -90,7 +94,10 @@ export async function apiPut(endpoint, body, options = {}) {
   return request(endpoint, {
     ...options,
     method: "PUT",
-    body: body instanceof FormData ? body : JSON.stringify(body),
+    body:
+      body instanceof FormData
+        ? body
+        : JSON.stringify(body),
   });
 }
 
@@ -98,7 +105,10 @@ export async function apiPatch(endpoint, body, options = {}) {
   return request(endpoint, {
     ...options,
     method: "PATCH",
-    body: body instanceof FormData ? body : JSON.stringify(body),
+    body:
+      body instanceof FormData
+        ? body
+        : JSON.stringify(body),
   });
 }
 
