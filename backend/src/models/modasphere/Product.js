@@ -61,6 +61,17 @@ const productSchema = new mongoose.Schema(
       default: "draft",
       index: true,
     },
+    averageRating: {
+      type: Number,
+      default: 0,
+      min: [0, "Rating cannot be negative"],
+      max: [5, "Rating cannot exceed 5"],
+    },
+    reviewCount: {
+      type: Number,
+      default: 0,
+      min: [0, "Review count cannot be negative"],
+    },
   },
   {
     timestamps: true,

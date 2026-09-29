@@ -1,6 +1,8 @@
 const Order = require("../../models/modasphere/Order");
 const Cart = require("../../models/modasphere/Cart");
 const Product = require("../../models/modasphere/Product");
+const Drop = require("../../models/modasphere/Drop");
+const { getUserPurchaseCountInDrop } = require("../../services/modasphere/dropService");
 const {
   createRazorpayOrder,
   verifyPaymentSignature,
@@ -39,6 +41,46 @@ const checkout = async (req, res, next) => {
       return next(
         new AppError("Your cart is empty. Add products before checking out.", 400)
       );
+    }
+
+    // 1. Validate ModaDrop restrictions (drop status and maxPerUser limit)
+    const cartProductIds = cart.items.map((i) => (i.productId && i.productId._id) ? i.productId._id : i.productId);
+    const relevantDrops = await Drop.find({ productIds: { $in: cartProductIds } });
+
+    if (relevantDrops.length > 0) {
+      for (const drop of relevantDrops) {
+        if (drop.status !== "live") {
+          return next(
+            new AppError(
+              `Cannot purchase items from drop "${drop.title}" because the drop is currently "${drop.status}". Purchases are only permitted during live drops.`,
+              400
+            )
+          );
+        }
+
+        const dropProductIds = drop.productIds.map((id) => id.toString());
+        let currentDropOrderQty = 0;
+        for (const item of cart.items) {
+          const pId = (item.productId && item.productId._id ? item.productId._id : item.productId).toString();
+          if (dropProductIds.includes(pId)) {
+            currentDropOrderQty += item.quantity;
+          }
+        }
+
+        const existingPurchasedCount = await getUserPurchaseCountInDrop(
+          req.user._id,
+          drop._id
+        );
+
+        if (existingPurchasedCount + currentDropOrderQty > drop.maxPerUser) {
+          return next(
+            new AppError(
+              `Purchase limit exceeded for drop "${drop.title}". Limit is ${drop.maxPerUser} per customer. You have already purchased ${existingPurchasedCount} and are attempting to checkout ${currentDropOrderQty}.`,
+              400
+            )
+          );
+        }
+      }
     }
 
     const orderItems = [];
