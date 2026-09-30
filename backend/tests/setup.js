@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+﻿const mongoose = require("mongoose");
 const connectDB = require("../src/config/database");
 
 // 1. Mock External APIs
@@ -7,6 +7,10 @@ const connectDB = require("../src/config/database");
 process.env.MSG91_AUTH_KEY = "test-msg91-auth-key";
 process.env.MSG91_OTP_TEMPLATE_ID = "test-otp-template-id";
 process.env.MSG91_SOS_TEMPLATE_ID = "test-sos-template-id";
+
+// Set Razorpay test credentials for order and drop checkout tests
+process.env.RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID || "rzp_test_mockKey123";
+process.env.RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET || "rzp_test_mockSecret789";
 
 // Mock SendGrid Mail Client
 jest.mock("@sendgrid/mail", () => ({

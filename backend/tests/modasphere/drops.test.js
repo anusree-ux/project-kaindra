@@ -43,6 +43,9 @@ describe("ModaSphere ModaDrop (Time-Limited Product Drops) API", () => {
   };
 
   beforeEach(async () => {
+    process.env.RAZORPAY_KEY_ID = "rzp_test_mockKey123";
+    process.env.RAZORPAY_KEY_SECRET = "rzp_test_mockSecret789";
+
     await DropWaitlist.deleteMany({});
     await Drop.deleteMany({});
     await Order.deleteMany({});
