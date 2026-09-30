@@ -1,139 +1,71 @@
 const express = require("express");
 
-const { protect } = require("../../../middleware/authMiddleware");
-
-const influencerValidator = require("../../../validators/modasphere/modainfluence/influencerValidator");
-const brandValidator = require("../../../validators/modasphere/modainfluence/brandValidator");
-const campaignValidator = require("../../../validators/modasphere/modainfluence/campaignValidator");
-const applicationValidator = require("../../../validators/modasphere/modainfluence/applicationValidator");
-const updateInfluencerValidator = require("../../../validators/modasphere/modainfluence/updateInfluencerValidator");
-const updateBrandValidator = require("../../../validators/modasphere/modainfluence/updateBrandValidator");
-
 const {
-  createInfluencerProfile,
-  getInfluencerProfile,
-  updateInfluencerProfile,
-} = require("../../../controllers/modasphere/modainfluence/influencerController");
-
-const {
-  createBrandProfile,
-  getBrandProfile,
-  updateBrandProfile,
-} = require("../../../controllers/modasphere/modainfluence/brandController");
+  protect,
+  authorize,
+} = require("../../../middleware/authMiddleware");
 
 const {
   createCampaign,
   getCampaigns,
   getCampaignById,
-  getMyCampaigns,
-} = require("../../../controllers/modasphere/modainfluence/campaignController");
+  updateCampaignStatus,
+  deleteCampaign,
+} = require(
+  "../../../controllers/modasphere/modainfluence/influenceCampaignController"
+);
 
-const {
-  applyToCampaign,
-  getMyApplications,
-  getCampaignApplications,
-  acceptApplication,
-  rejectApplication,
-} = require("../../../controllers/modasphere/modainfluence/applicationController");
+const influenceCampaignValidator = require(
+  "../../../validators/modasphere/modainfluence/influenceCampaignValidator"
+);
 
 const router = express.Router();
 
-// Influencer profile
-router.post(
-  "/influencer/profile",
-  protect,
-  influencerValidator,
-  createInfluencerProfile
-);
+// =====================================================
+// PUBLIC
+// =====================================================
 
-router.get(
-  "/influencer/profile",
-  protect,
-  getInfluencerProfile
-);
-
-router.patch(
-  "/influencer/profile",
-  protect,
-  updateInfluencerValidator,
-  updateInfluencerProfile
-);
-
-// Brand profile
-router.post(
-  "/brand/profile",
-  protect,
-  brandValidator,
-  createBrandProfile
-);
-
-router.get(
-  "/brand/profile",
-  protect,
-  getBrandProfile
-);
-
-router.patch(
-  "/brand/profile",
-  protect,
-  updateBrandValidator,
-  updateBrandProfile
-);
-
-// Campaigns
+// Submit campaign request
 router.post(
   "/campaigns",
-  protect,
-  campaignValidator,
+  influenceCampaignValidator,
   createCampaign
 );
 
+// =====================================================
+// ADMIN ONLY
+// =====================================================
+
+// Get all campaign requests
 router.get(
   "/campaigns",
+  protect,
+  authorize("admin"),
   getCampaigns
 );
 
+// Get single campaign request
 router.get(
   "/campaigns/:id",
+  protect,
+  authorize("admin"),
   getCampaignById
 );
 
-router.get(
-  "/my/campaigns",
-  protect,
-  getMyCampaigns
-);
-
-// Applications
-router.post(
-  "/campaigns/:id/apply",
-  protect,
-  applicationValidator,
-  applyToCampaign
-);
-
-router.get(
-  "/my/applications",
-  protect,
-  getMyApplications
-);
-
-router.get(
-  "/campaigns/:id/applications",
-  protect,
-  getCampaignApplications
-);
-
+// Update campaign status
 router.patch(
-  "/applications/:id/accept",
+  "/campaigns/:id/status",
   protect,
-  acceptApplication
+  authorize("admin"),
+  updateCampaignStatus
 );
 
-router.patch(
-  "/applications/:id/reject",
+// Delete campaign request
+router.delete(
+  "/campaigns/:id",
   protect,
-  rejectApplication
+  authorize("admin"),
+  deleteCampaign
 );
 
 module.exports = router;

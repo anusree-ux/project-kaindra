@@ -1,81 +1,128 @@
 .moto-login-page {
-  min-height: 100vh;
-  background:
-    radial-gradient(
-      circle at 20% 20%,
-      rgba(214, 168, 79, 0.1),
-      transparent 30%
-    ),
-    radial-gradient(
-      circle at 80% 80%,
-      rgba(214, 168, 79, 0.06),
-      transparent 30%
-    ),
-    #070707;
-
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 20px;
   position: relative;
+  min-height: 100vh;
   overflow: hidden;
+  background: #050708;
+  color: #f4f1e9;
+  font-family: Arial, Helvetica, sans-serif;
 }
+
+.moto-login-page *,
+.moto-login-page *::before,
+.moto-login-page *::after {
+  box-sizing: border-box;
+}
+
+/* =========================
+   BACKGROUND
+========================= */
 
 .moto-login-background {
   position: absolute;
   inset: 0;
+  overflow: hidden;
   pointer-events: none;
 }
 
-.login-glow {
+.moto-login-grid {
   position: absolute;
+  inset: 0;
+  opacity: 0.08;
+  background-image:
+    linear-gradient(
+      rgba(198, 161, 91, 0.4) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(198, 161, 91, 0.4) 1px,
+      transparent 1px
+    );
+  background-size: 70px 70px;
+  mask-image: linear-gradient(
+    to bottom,
+    black,
+    transparent 90%
+  );
+}
+
+.moto-login-glow {
+  position: absolute;
+  width: 500px;
+  height: 500px;
   border-radius: 50%;
-  filter: blur(110px);
+  filter: blur(120px);
+  opacity: 0.1;
 }
 
-.login-glow-one {
-  width: 350px;
-  height: 350px;
-  background: rgba(214, 168, 79, 0.07);
-  top: -120px;
-  left: -120px;
+.moto-login-glow-one {
+  top: -260px;
+  left: -180px;
+  background: #c6a15b;
 }
 
-.login-glow-two {
-  width: 350px;
-  height: 350px;
-  background: rgba(214, 168, 79, 0.05);
-  bottom: -150px;
-  right: -120px;
+.moto-login-glow-two {
+  right: -260px;
+  bottom: -280px;
+  background: #9b7738;
 }
 
-.moto-login-card {
-  width: min(480px, 100%);
-  background: rgba(14, 14, 14, 0.95);
-  border: 1px solid rgba(214, 168, 79, 0.3);
-  padding: 48px 42px;
+/* =========================
+   WRAPPER
+========================= */
+
+.moto-login-wrapper {
   position: relative;
   z-index: 2;
-  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.65);
-}
-
-.moto-login-brand {
+  width: min(500px, calc(100% - 32px));
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 40px 0;
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  gap: 8px;
-  letter-spacing: 5px;
-  margin-bottom: 22px;
 }
 
-.moto-login-brand span,
-.moto-login-brand strong {
-  font-size: 24px;
-  font-weight: 800;
+/* =========================
+   LOGO
+========================= */
+
+.moto-login-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 13px;
+  margin-bottom: 32px;
+  color: #f4f1e9;
+  text-decoration: none;
+}
+
+.moto-login-logo-mark {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(198, 161, 91, 0.7);
+  color: #c6a15b;
 }
 
 .moto-login-brand strong {
   color: #d6a84f;
+}
+
+.moto-login-logo-text {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 4px;
+}
+
+.moto-login-logo-text span {
+  color: #c6a15b;
+}
+
+.moto-login-logo:focus-visible {
+  outline: 1px solid #c6a15b;
+  outline-offset: 6px;
 }
 
 .moto-login-badge {
@@ -88,171 +135,461 @@
   letter-spacing: 2px;
 }
 
+/* =========================
+   CARD
+========================= */
+
+.moto-login-card {
+  width: 100%;
+  padding: 42px;
+  border: 1px solid rgba(198, 161, 91, 0.18);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(19, 21, 22, 0.98),
+      rgba(9, 11, 12, 0.98)
+    );
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+/* =========================
+   HEADER
+========================= */
+
+.moto-login-header {
+  margin-bottom: 30px;
+}
+
+.moto-login-eyebrow {
+  margin: 0 0 13px;
+  color: #c6a15b;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 3px;
+}
+
+.moto-login-header h1,
+.moto-login-card h1 {
+  margin: 0;
+  color: #f4f1e9;
+  font-size: 30px;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
 .moto-login-card h1 {
   text-align: center;
-  margin: 0;
   font-size: clamp(32px, 5vw, 43px);
   letter-spacing: -1.5px;
+}
+
+.moto-login-header p {
+  margin: 11px 0 0;
+  color: #777a7c;
+  font-size: 13px;
+  line-height: 1.6;
 }
 
 .moto-login-description {
   text-align: center;
   color: #858585;
   font-size: 13px;
-  line-height: 1.7;
-  margin: 14px auto 32px;
-  max-width: 390px;
+  line-height: 1.6;
 }
+
+/* =========================
+   FORM
+========================= */
 
 .moto-login-form {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 19px;
 }
 
+.moto-login-form-group,
 .moto-login-field {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
+.moto-login-form-group label,
 .moto-login-field label {
-  color: #777;
-  font-size: 13px;
-  letter-spacing: 1.7px;
+  color: #b7b4ac;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
 }
 
+.moto-login-form-group label span {
+  margin-left: 4px;
+  color: #c6a15b;
+}
+
+.moto-login-form-group input,
 .moto-login-field input {
   width: 100%;
-  box-sizing: border-box;
-  background: #090909;
-  border: 1px solid #303030;
-  color: #fff;
-  padding: 15px;
+  height: 48px;
+  padding: 0 14px;
+  border: 1px solid #282b2d;
   outline: none;
+  border-radius: 0;
+  background: #0c0e0f;
+  color: #f2efe7;
   font-size: 13px;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
+.moto-login-form-group input::placeholder,
+.moto-login-field input::placeholder {
+  color: #55585a;
+}
+
+.moto-login-form-group input:focus,
 .moto-login-field input:focus {
-  border-color: #d6a84f;
+  border-color: rgba(198, 161, 91, 0.8);
+  background: #0f1112;
+  box-shadow: 0 0 0 2px rgba(198, 161, 91, 0.08);
 }
 
-.login-password-wrapper {
+.moto-login-form-group input:focus-visible,
+.moto-login-field input:focus-visible {
+  outline: 1px solid rgba(198, 161, 91, 0.8);
+  outline-offset: 2px;
+}
+
+/* =========================
+   LABEL ROW
+========================= */
+
+.moto-login-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.moto-forgot-password,
+.forgot-password {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #777a7c;
+  cursor: pointer;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.moto-forgot-password:hover,
+.forgot-password:hover {
+  color: #c6a15b;
+}
+
+.moto-forgot-password:focus-visible,
+.forgot-password:focus-visible {
+  outline: 1px solid #c6a15b;
+  outline-offset: 3px;
+}
+
+/* =========================
+   PASSWORD
+========================= */
+
+.moto-login-password {
   position: relative;
 }
 
-.login-password-wrapper input {
-  padding-right: 70px;
+.moto-login-password input {
+  padding-right: 72px;
 }
 
-.login-password-wrapper button {
+.moto-login-password-toggle {
   position: absolute;
-  right: 12px;
   top: 50%;
+  right: 12px;
   transform: translateY(-50%);
+  padding: 5px;
   border: 0;
   background: transparent;
-  color: #777;
-  font-size: 13px;
-  letter-spacing: 1px;
+  color: #777a7c;
   cursor: pointer;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
 }
 
-.login-password-wrapper button:hover {
-  color: #d6a84f;
+.moto-login-password-toggle:hover {
+  color: #c6a15b;
 }
 
-.moto-login-options {
+.moto-login-password-toggle:focus-visible {
+  outline: 1px solid #c6a15b;
+  outline-offset: 3px;
+}
+
+/* =========================
+   REMEMBER ME
+========================= */
+
+.moto-remember-me,
+.remember-option {
+  position: relative;
   display: flex;
-  justify-content: space-between;
   align-items: center;
   gap: 10px;
+  width: fit-content;
+  color: #777a7c;
+  cursor: pointer;
+  font-size: 11px;
 }
 
-.remember-option {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  color: #777;
-  font-size: 13px;
-  letter-spacing: 1px;
-  cursor: pointer;
+.moto-remember-me input,
+.remember-option input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.moto-login-checkbox {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  border: 1px solid #373a3c;
+  background: #0b0d0e;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.moto-remember-me input:checked + .moto-login-checkbox {
+  border-color: #c6a15b;
+  background: #c6a15b;
+}
+
+.moto-remember-me input:checked + .moto-login-checkbox::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 5px;
+  height: 9px;
+  border-right: 2px solid #050708;
+  border-bottom: 2px solid #050708;
+  transform: rotate(45deg);
+}
+
+.moto-remember-me input:focus-visible + .moto-login-checkbox {
+  outline: 1px solid #c6a15b;
+  outline-offset: 3px;
 }
 
 .remember-option input {
   accent-color: #d6a84f;
 }
 
-.forgot-password {
-  border: 0;
-  background: transparent;
-  color: #777;
-  font-size: 13px;
-  letter-spacing: 1px;
-  cursor: pointer;
-}
+/* =========================
+   MESSAGES
+========================= */
 
-.forgot-password:hover {
-  color: #d6a84f;
-}
-
-.moto-login-error {
-  padding: 13px;
-  color: #ff8989;
-  background: rgba(255, 60, 60, 0.06);
-  border: 1px solid rgba(255, 60, 60, 0.2);
+.moto-login-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 11px 12px;
   font-size: 11px;
   line-height: 1.5;
 }
 
-.moto-login-button {
+.moto-login-message > span {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.moto-login-error {
+  padding: 13px;
+  border: 1px solid rgba(210, 90, 70, 0.35);
+  background: rgba(130, 40, 30, 0.1);
+  color: #d89a8e;
+}
+
+.moto-login-error > span {
+  border: 1px solid rgba(216, 154, 142, 0.6);
+}
+
+.moto-login-success {
+  border: 1px solid rgba(96, 153, 104, 0.35);
+  background: rgba(50, 110, 60, 0.08);
+  color: #9bc59e;
+}
+
+.moto-login-success > span {
+  border: 1px solid rgba(155, 197, 158, 0.6);
+}
+
+/* =========================
+   SUBMIT
+========================= */
+
+.moto-login-submit {
   width: 100%;
-  border: 0;
-  background: #d6a84f;
-  color: #080808;
-  padding: 17px;
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border: 1px solid #c6a15b;
+  background: #c6a15b;
+  color: #080909;
+  cursor: pointer;
   font-size: 11px;
   font-weight: 800;
-  letter-spacing: 2px;
-  cursor: pointer;
-  transition: 0.25s ease;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
-.moto-login-button:hover:not(:disabled) {
-  background: #efc86e;
-  transform: translateY(-2px);
-  box-shadow: 0 12px 30px rgba(214, 168, 79, 0.18);
+.moto-login-submit:hover:not(:disabled) {
+  border-color: #dfbd76;
+  background: #dfbd76;
+  box-shadow: 0 10px 30px rgba(198, 161, 91, 0.15);
+  transform: translateY(-1px);
 }
 
-.moto-login-button:disabled {
-  opacity: 0.6;
+.moto-login-submit:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.moto-login-submit:focus-visible {
+  outline: 2px solid #f4f1e9;
+  outline-offset: 3px;
+}
+
+.moto-login-submit:disabled {
+  opacity: 0.65;
   cursor: not-allowed;
 }
 
+.moto-login-submit > span:last-child {
+  font-size: 17px;
+}
+
+.moto-login-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(8, 9, 9, 0.25);
+  border-top-color: #080909;
+  border-radius: 50%;
+  animation: motoLoginSpin 0.7s linear infinite;
+}
+
+@keyframes motoLoginSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =========================
+   DIVIDER
+========================= */
+
+.moto-login-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 28px 0 18px;
+}
+
+.moto-login-divider::before,
+.moto-login-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #25282a;
+}
+
+.moto-login-divider span {
+  padding: 0 12px;
+  color: #55585a;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+/* =========================
+   CREATE ACCOUNT
+========================= */
+
 .moto-create-account {
-  border-top: 1px solid #222;
-  margin-top: 30px;
-  padding-top: 24px;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #c6a15b;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .moto-create-account span {
+  font-size: 16px;
+  transition: transform 0.2s ease;
+}
+
+.moto-create-account:hover {
+  color: #dfbd76;
+}
+
+.moto-create-account:hover span {
+  transform: translateX(3px);
+}
+
+.moto-create-account:focus-visible {
+  outline: 1px solid #c6a15b;
+  outline-offset: 4px;
+}
+
+/* =========================
+   BACK
+========================= */
+
+.moto-login-back {
   display: block;
-  color: #555;
-  font-size: 13px;
-  letter-spacing: 1.5px;
-  margin-bottom: 9px;
-}
-
-.moto-create-account a {
-  color: #d6a84f;
+  width: fit-content;
+  margin: 27px auto 0;
+  color: #55585a;
   text-decoration: none;
-  font-size: 12px;
-  letter-spacing: 1.5px;
+  font-size: 10px;
+  transition: color 0.2s ease;
 }
 
-.moto-create-account a:hover {
-  text-decoration: underline;
+.moto-login-back:hover {
+  color: #aaa7a0;
+}
+
+.moto-login-back:focus-visible {
+  outline: 1px solid #c6a15b;
+  outline-offset: 4px;
 }
 
 .moto-login-home {
@@ -267,30 +604,126 @@
 }
 
 .moto-login-home:hover {
-  color: #d6a84f;
+  color: #c6a15b;
 }
 
+/* =========================
+   STATS
+========================= */
+
+.moto-login-stats {
+  width: 100%;
+  margin-top: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+}
+
+.moto-login-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.moto-login-stat strong {
+  color: #c6a15b;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+}
+
+.moto-login-stat span {
+  color: #4f5254;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.moto-login-stat-divider {
+  width: 1px;
+  height: 25px;
+  background: #292c2e;
+}
+
+/* =========================
+   FOOTER
+========================= */
+
 .moto-login-footer {
-  text-align: center;
-  border-top: 1px solid #202020;
-  margin-top: 28px;
+  width: 100%;
+  margin: 22px 0 0;
   padding-top: 20px;
-  color: #484848;
-  font-size: 12px;
+  border-top: 1px solid #202020;
+  color: #414446;
+  font-size: 9px;
+  text-align: center;
   letter-spacing: 1.4px;
 }
 
-@media (max-width: 500px) {
-  .moto-login-page {
-    padding: 20px 14px;
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 600px) {
+  .moto-login-wrapper {
+    width: min(100% - 24px, 500px);
+    padding: 30px 0;
+  }
+
+  .moto-login-logo {
+    margin-bottom: 24px;
   }
 
   .moto-login-card {
-    padding: 35px 22px;
+    padding: 30px 20px;
   }
 
-  .moto-login-options {
-    align-items: flex-start;
-    flex-direction: column;
+  .moto-login-header h1 {
+    font-size: 26px;
+  }
+
+  .moto-login-card h1 {
+    font-size: 32px;
+  }
+
+  .moto-login-stats {
+    gap: 18px;
+  }
+}
+
+@media (max-width: 400px) {
+  .moto-login-wrapper {
+    width: calc(100% - 16px);
+  }
+
+  .moto-login-card {
+    padding: 26px 16px;
+  }
+
+  .moto-login-stats {
+    gap: 12px;
+  }
+
+  .moto-login-stat strong {
+    font-size: 9px;
+  }
+
+  .moto-login-stat span {
+    font-size: 7px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .moto-login-submit,
+  .moto-create-account span,
+  .moto-login-form-group input,
+  .moto-login-field input {
+    transition: none;
+  }
+
+  .moto-login-spinner {
+    animation: none;
   }
 }

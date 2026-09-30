@@ -636,3 +636,36 @@
     grid-template-columns: 55px 1fr 55px;
   }
 }
+/* =========================================================
+   COMPLETED RIDE PASSPORT INTEGRATION
+   ========================================================= */
+
+.passport-completed-ride {
+  display: block;
+  margin-top: 7px;
+  color: #c9a45d !important;
+  font-size: 7px !important;
+  letter-spacing: 0.12em;
+}
+
+.milestone-item.completed .milestone-status {
+  color: #c9a45d;
+}
+
+.milestone-item.completed .milestone-title {
+  color: #ddd;
+}
+
+.milestone-detail strong {
+  display: block;
+  margin-top: 14px;
+  color: #c9a45d;
+  font-size: 8px;
+  letter-spacing: 0.15em;
+}
+
+@media (max-width: 768px) {
+  .passport-completed-ride {
+    font-size: 6px !important;
+  }
+}

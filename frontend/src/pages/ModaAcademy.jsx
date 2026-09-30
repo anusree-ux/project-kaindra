@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   GraduationCap,
@@ -140,33 +140,10 @@ const learningAreas = [
 function ModaAcademy() {
   const [selectedCourse, setSelectedCourse] = useState(null);
 
-  const [showEnrollment, setShowEnrollment] =
-    useState(false);
+  const [showEnrollment, setShowEnrollment] = useState(false);
 
-  /*
-   * Load existing enrollments directly when state is created.
-   * No useEffect required.
-   */
-  const [enrollments, setEnrollments] = useState(() => {
-    try {
-      const savedEnrollments = JSON.parse(
-        localStorage.getItem(
-          "modaAcademyEnrollments"
-        ) || "[]"
-      );
-
-      return Array.isArray(savedEnrollments)
-        ? savedEnrollments
-        : [];
-    } catch (error) {
-      console.error(
-        "Unable to load ModaAcademy enrollments:",
-        error
-      );
-
-      return [];
-    }
-  });
+  const [enrollments, setEnrollments] = useState([]);
+  const [loadingEnrollments, setLoadingEnrollments] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -174,6 +151,64 @@ function ModaAcademy() {
     phone: "",
     experience: "Beginner",
   });
+
+  /*
+   * =========================================
+   * LOAD MY LEARNING
+   * =========================================
+   *
+   * My Learning is now protected.
+   *
+   * The frontend does NOT send an email.
+   * The backend identifies the logged-in user
+   * from the JWT access token.
+   */
+  useEffect(() => {
+    const fetchMyEnrollments = async () => {
+      const accessToken = localStorage.getItem("token");
+
+      // User is not logged in.
+      if (!accessToken) {
+        setEnrollments([]);
+        return;
+      }
+
+      try {
+        setLoadingEnrollments(true);
+
+        const response = await fetch(
+          "/api/modasphere/academy/enrollments/my",
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          throw new Error(
+            result.message || "Failed to fetch your enrollments"
+          );
+        }
+
+        setEnrollments(result.data || []);
+      } catch (error) {
+        console.error(
+          "Unable to load ModaAcademy enrollments:",
+          error
+        );
+
+        setEnrollments([]);
+      } finally {
+        setLoadingEnrollments(false);
+      }
+    };
+
+    fetchMyEnrollments();
+  }, []);
 
   /* =========================================
      OPEN ENROLLMENT
@@ -217,64 +252,72 @@ function ModaAcademy() {
      SUBMIT ENROLLMENT
   ========================================= */
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     if (!selectedCourse) {
       return;
     }
 
-    const enrollment = {
-      id: `MA-${Date.now()}`,
+    try {
+      const response = await fetch(
+        "/api/modasphere/academy/enrollments",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            courseId: selectedCourse.id,
+            courseName: selectedCourse.title,
+            category: selectedCourse.category,
+            level: selectedCourse.level,
+            duration: selectedCourse.duration,
+            instructor: selectedCourse.instructor,
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone,
+            experience: formData.experience,
+          }),
+        }
+      );
 
-      courseId: selectedCourse.id,
+      const result = await response.json();
 
-      courseName: selectedCourse.title,
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.message || "Failed to submit enrollment"
+        );
+      }
 
-      category: selectedCourse.category,
+      /*
+       * Do NOT store the student's email in localStorage.
+       *
+       * My Learning is now determined by the logged-in
+       * user's access token.
+       */
 
-      level: selectedCourse.level,
+      setEnrollments((current) => [
+        result.data,
+        ...current,
+      ]);
 
-      duration: selectedCourse.duration,
+      alert(
+        `Successfully enrolled in ${selectedCourse.title}`
+      );
 
-      instructor: selectedCourse.instructor,
+      closeEnrollment();
+    } catch (error) {
+      console.error(
+        "ModaAcademy enrollment error:",
+        error
+      );
 
-      name: formData.name,
-
-      email: formData.email,
-
-      phone: formData.phone,
-
-      experience: formData.experience,
-
-      enrolledAt: new Date().toLocaleString(),
-
-      status: "Enrolled",
-
-      progress: 0,
-    };
-
-    const updatedEnrollments = [
-      ...enrollments,
-      enrollment,
-    ];
-
-    setEnrollments(updatedEnrollments);
-
-    localStorage.setItem(
-      "modaAcademyEnrollments",
-      JSON.stringify(updatedEnrollments)
-    );
-
-    window.dispatchEvent(
-      new Event("modaAcademyEnrollmentsUpdated")
-    );
-
-    alert(
-      `Successfully enrolled in ${selectedCourse.title}`
-    );
-
-    closeEnrollment();
+      alert(
+        error.message ||
+          "Failed to submit enrollment. Please try again."
+      );
+    }
   };
 
   return (
@@ -519,7 +562,19 @@ function ModaAcademy() {
 
           </div>
 
-          {enrollments.length === 0 ? (
+          {loadingEnrollments ? (
+
+            <div className="modaacademy-no-learning">
+
+              <BookOpen size={40} />
+
+              <h3>
+                Loading your courses...
+              </h3>
+
+            </div>
+
+          ) : enrollments.length === 0 ? (
 
             <div className="modaacademy-no-learning">
 
@@ -549,7 +604,7 @@ function ModaAcademy() {
 
                 <article
                   className="modaacademy-learning-card"
-                  key={enrollment.id}
+                  key={enrollment._id}
                 >
 
                   <div className="learning-card-header">
@@ -557,7 +612,7 @@ function ModaAcademy() {
                     <div>
 
                       <span>
-                        {enrollment.id}
+                        {enrollment.enrollmentId}
                       </span>
 
                       <h3>
@@ -573,27 +628,33 @@ function ModaAcademy() {
                   <div className="learning-card-info">
 
                     <div>
+
                       <span>STUDENT</span>
 
                       <strong>
                         {enrollment.name}
                       </strong>
+
                     </div>
 
                     <div>
+
                       <span>LEVEL</span>
 
                       <strong>
                         {enrollment.experience}
                       </strong>
+
                     </div>
 
                     <div>
+
                       <span>STATUS</span>
 
                       <strong>
                         {enrollment.status}
                       </strong>
+
                     </div>
 
                   </div>

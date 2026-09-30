@@ -1,445 +1,704 @@
-import { useEffect, useMemo, useState, useCallback } from "react";
-import { useAuth } from "../../../../context/AuthContext";
-import apiClient from "../../../../services/apiClient";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+
 import "./LiveRide.css";
+import RideMap from "../RideMap/RideMap";
+import LiveLocation from "../LiveLocation/LiveLocation";
+import LiveRideChat from "../LiveRideChat/LiveRideChat";
+import SafetySOS from "../SafetySOS/SafetySOS";
+import Navigation from "../Navigation/Navigation";
+import RideCall from "../RideCall/RideCall";
+import {
+  getMotoRideById,
+  getMotoRideStatus,
+  getMotoRideCountdown,
+} from "../../../../data/motoRides";
 
 function LiveRide() {
-  const { isAuthenticated } = useAuth();
-  const [activeRide, setActiveRide] = useState(null);
-  const [liveLocations, setLiveLocations] = useState([]);
-  const [routeReports, setRouteReports] = useState([]);
-  const [fuelEstimate, setFuelEstimate] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("OVERVIEW");
-  const [showEmergencyModal, setShowEmergencyModal] = useState(false);
-  const [sosSubmitting, setSosSubmitting] = useState(false);
-  const [sosStatusMsg, setSosStatusMsg] = useState("");
+  const { rideId } = useParams();
+  const navigate = useNavigate();
 
-  // Select active ride deterministically
-  const fetchActiveRide = useCallback(async () => {
-    if (!isAuthenticated) {
-      setLoading(false);
-      return;
-    }
+  const [now, setNow] = useState(() => new Date());
 
-    try {
-      setLoading(true);
-      const res = await apiClient.get("/api/mototribe/rides");
-      const rides = res.data?.data?.rides || [];
-
-      const ongoingRides = rides
-        .filter((r) => r.status === "ongoing")
-        .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
-
-      const planningRides = rides
-        .filter((r) => r.status === "planning")
-        .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
-
-      const selected = ongoingRides[0] || planningRides[0] || null;
-      setActiveRide(selected);
-    } catch {
-      setActiveRide(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [isAuthenticated]);
-
+  // Keep the clock updated without setting ride-related state in an effect.
   useEffect(() => {
-    fetchActiveRide();
-  }, [fetchActiveRide]);
+    const timer = setInterval(() => {
+      setNow(new Date());
+    }, 1000);
 
-  // Fetch Live Locations, Route Reports & Fuel Estimate for active ride
-  useEffect(() => {
-    if (!activeRide?._id) return;
+    return () => clearInterval(timer);
+  }, []);
 
-    const fetchRideData = async () => {
-      // 1. Live Locations
-      try {
-        const locRes = await apiClient.get(`/api/mototribe/rides/${activeRide._id}/live-locations`);
-        setLiveLocations(locRes.data?.data?.locations || []);
-      } catch {
-        setLiveLocations([]);
-      }
+  // Derive ride directly from the route parameter.
+  const ride = getMotoRideById(rideId);
 
-      // 2. Route Reports
-      try {
-        const orig = typeof activeRide.origin === "object" ? activeRide.origin.name : activeRide.origin;
-        const dest = typeof activeRide.destination === "object" ? activeRide.destination.name : activeRide.destination;
+  // Derive status and countdown directly from ride + current time.
+  const status = ride
+    ? getMotoRideStatus(ride, now)
+    : "UPCOMING";
 
-        if (orig && dest) {
-          const repRes = await apiClient.get(`/api/mototribe/route-reports?origin=${encodeURIComponent(orig)}&destination=${encodeURIComponent(dest)}`);
-          setRouteReports(repRes.data?.data?.reports || []);
-        }
-      } catch {
-        setRouteReports([]);
-      }
+  const countdown = ride
+    ? getMotoRideCountdown(ride, now)
+    : {
+        totalSeconds: 0,
+        days: 0,
+        hours: 0,
+        minutes: 0,
+        seconds: 0,
+      };
 
-      // 3. Fuel Cost Estimate
-      try {
-        const fuelRes = await apiClient.get(`/api/mototribe/rides/${activeRide._id}/fuel-estimate`);
-        setFuelEstimate(fuelRes.data?.data || null);
-      } catch {
-        setFuelEstimate(null);
-      }
-    };
+  // --------------------------------------------------
+  // RIDE NOT FOUND
+  // --------------------------------------------------
 
-    fetchRideData();
-  }, [activeRide]);
+  if (!ride) {
+    return (
+      <section className="live-ride-page">
+        <div className="live-ride-not-found">
+          <span className="live-ride-not-found-label">
+            MOTOTRIBE / LIVE RIDE
+          </span>
 
-  // Format Origin / Destination names
-  const originName = useMemo(() => {
-    if (!activeRide) return "N/A";
-    return typeof activeRide.origin === "object" ? activeRide.origin.name : activeRide.origin;
-  }, [activeRide]);
+          <h1>Ride Not Found</h1>
 
-  const destName = useMemo(() => {
-    if (!activeRide) return "N/A";
-    return typeof activeRide.destination === "object" ? activeRide.destination.name : activeRide.destination;
-  }, [activeRide]);
+          <p>
+            The requested ride could not be found. Please return to the
+            MotoTribe rides and select a valid ride.
+          </p>
 
-  // SOS Trigger Handler with 2-Step Confirmation
-  const handleTriggerSos = async () => {
-    if (!activeRide?._id) return;
+          <button
+            type="button"
+            onClick={() =>
+              navigate("/businesses/mototribe")
+            }
+            className="live-ride-back-button"
+          >
+            ← BACK TO MOTOTRIBE
+          </button>
+        </div>
+      </section>
+    );
+  }
 
-    try {
-      setSosSubmitting(true);
-      setSosStatusMsg("");
+  // --------------------------------------------------
+  // HELPERS
+  // --------------------------------------------------
 
-      // Attempt to get browser coordinates or default to ride origin
-      let lat = activeRide.originLat || 12.9716;
-      let lng = activeRide.originLng || 77.5946;
-
-      if (navigator.geolocation) {
-        try {
-          const pos = await new Promise((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 3000 });
-          });
-          lat = pos.coords.latitude;
-          lng = pos.coords.longitude;
-        } catch {
-          // Fallback to ride coordinates
-        }
-      }
-
-      const res = await apiClient.post(`/api/mototribe/rides/${activeRide._id}/sos`, {
-        latitude: lat,
-        longitude: lng,
-      });
-
-      setSosStatusMsg(res.data?.message || "EMERGENCY SOS ALERT TRIGGERED! SMS notifications sent to emergency contacts.");
-    } catch (err) {
-      setSosStatusMsg(err.response?.data?.message || "Failed to trigger SOS. Ensure ride status is 'ongoing'.");
-    } finally {
-      setSosSubmitting(false);
+  const formatCountdown = () => {
+    if (status === "COMPLETED") {
+      return "RIDE COMPLETED";
     }
+
+    if (status === "LIVE") {
+      return "RIDE IN PROGRESS";
+    }
+
+    if (status === "STARTING") {
+      return "STARTING SOON";
+    }
+
+    if (countdown.days > 0) {
+      return `${countdown.days}D ${String(
+        countdown.hours
+      ).padStart(2, "0")}H ${String(
+        countdown.minutes
+      ).padStart(2, "0")}M`;
+    }
+
+    return `${String(
+      countdown.hours
+    ).padStart(2, "0")}:${String(
+      countdown.minutes
+    ).padStart(2, "0")}:${String(
+      countdown.seconds
+    ).padStart(2, "0")}`;
   };
 
-  return (
-    <section className="live-ride-section" id="live-ride">
-      <div className="live-ride-shell">
-        <div className="live-ride-header">
-          <div>
-            <span className="live-eyebrow">MOTOTRIBE / LIVE JOURNEY</span>
+  const statusClass = status.toLowerCase();
 
-            <h2>
-              LIVE
-              <span> RIDE</span>
-            </h2>
+  const handleBack = () => {
+    navigate(
+      `/businesses/mototribe/ride/${ride.id}`
+    );
+  };
+
+  const handleExpenses = () => {
+    navigate(
+      `/businesses/mototribe/ride/${ride.id}/expenses`
+    );
+  };
+
+  // --------------------------------------------------
+  // COMPLETE RIDE
+  // --------------------------------------------------
+
+  const handleCompleteRide = () => {
+    navigate(
+      `/businesses/mototribe/ride/${ride.id}/complete`
+    );
+  };
+
+  // --------------------------------------------------
+  // RENDER
+  // --------------------------------------------------
+
+  return (
+    <section className="live-ride-page">
+      {/* HEADER */}
+
+      <header className="live-ride-header">
+        <button
+          type="button"
+          className="live-ride-header-back"
+          onClick={handleBack}
+        >
+          ← BACK TO RIDE
+        </button>
+
+        <div className="live-ride-header-center">
+          <span className="live-ride-header-label">
+            MOTOTRIBE / LIVE RIDE
+          </span>
+
+          <span
+            className={`live-ride-status ${statusClass}`}
+          >
+            <span className="live-ride-status-dot" />
+            {status}
+          </span>
+        </div>
+
+        <div className="live-ride-header-actions">
+          <button
+            type="button"
+            className="live-ride-expenses-button"
+            onClick={handleExpenses}
+          >
+            EXPENSES
+          </button>
+
+          <button
+            type="button"
+            className="live-ride-complete-button"
+            onClick={handleCompleteRide}
+          >
+            COMPLETE RIDE
+          </button>
+        </div>
+      </header>
+
+      {/* HERO */}
+
+      <div className="live-ride-hero">
+        <div className="live-ride-hero-content">
+          <div className="live-ride-meta">
+            <span>{ride.type || "RIDE"}</span>
+            <span>•</span>
+            <span>
+              {ride.difficulty || "STANDARD"}
+            </span>
+          </div>
+
+          <h1>{ride.name}</h1>
+
+          <p className="live-ride-route">
+            {ride.start} → {ride.destination}
+          </p>
+
+          <p className="live-ride-organizer">
+            Organized by{" "}
+            <strong>{ride.organizer}</strong>
+          </p>
+        </div>
+
+        <div
+          className={`live-ride-hero-status ${statusClass}`}
+        >
+          <span className="live-ride-hero-status-label">
+            CURRENT STATUS
+          </span>
+
+          <strong>{status}</strong>
+
+          <div className="live-ride-countdown">
+            {formatCountdown()}
+          </div>
+        </div>
+      </div>
+
+      {/* STATS */}
+
+      <div className="live-ride-stats">
+        <div className="live-ride-stat">
+          <span className="live-ride-stat-label">
+            DISTANCE
+          </span>
+
+          <strong>
+            {ride.distanceLabel ||
+              `${ride.distance} km`}
+          </strong>
+        </div>
+
+        <div className="live-ride-stat">
+          <span className="live-ride-stat-label">
+            DURATION
+          </span>
+
+          <strong>
+            {ride.duration || "—"}
+          </strong>
+        </div>
+
+        <div className="live-ride-stat">
+          <span className="live-ride-stat-label">
+            RIDERS
+          </span>
+
+          <strong>
+            {ride.participants?.length ||
+              ride.riders ||
+              0}
+            /
+            {ride.maxRiders || "—"}
+          </strong>
+        </div>
+
+        <div className="live-ride-stat">
+          <span className="live-ride-stat-label">
+            BUDGET
+          </span>
+
+          <strong>
+            {ride.budget || "—"}
+          </strong>
+        </div>
+
+        <div className="live-ride-stat">
+          <span className="live-ride-stat-label">
+            STATUS
+          </span>
+
+          <strong>{status}</strong>
+        </div>
+      </div>
+
+      {/* MAIN CONTENT */}
+
+      <div className="live-ride-content">
+        <main className="live-ride-main">
+          {/* ROUTE */}
+
+          <section className="live-ride-card">
+            <div className="live-ride-card-header">
+              <div>
+                <span className="live-ride-section-label">
+                  JOURNEY ROUTE
+                </span>
+
+                <h2>Live Route</h2>
+              </div>
+
+              <span className="live-ride-route-badge">
+                {ride.distanceLabel ||
+                  `${ride.distance} km`}
+              </span>
+            </div>
+
+            <div className="live-ride-route-list">
+              <div className="live-ride-route-point start">
+                <span className="live-ride-route-marker" />
+
+                <div>
+                  <span>START</span>
+                  <strong>{ride.start}</strong>
+                </div>
+              </div>
+
+              {ride.stops?.map(
+                (stop, index) => (
+                  <div
+                    className="live-ride-route-point"
+                    key={`${stop}-${index}`}
+                  >
+                    <span className="live-ride-route-marker" />
+
+                    <div>
+                      <span>
+                        STOP {index + 1}
+                      </span>
+
+                      <strong>{stop}</strong>
+                    </div>
+                  </div>
+                )
+              )}
+
+              <div className="live-ride-route-point destination">
+                <span className="live-ride-route-marker" />
+
+                <div>
+                  <span>DESTINATION</span>
+                  <strong>
+                    {ride.destination}
+                  </strong>
+                </div>
+              </div>
+            </div>
+
+            {ride.route && (
+              <div className="live-ride-route-summary">
+                <span>FULL ROUTE</span>
+                <p>{ride.route}</p>
+              </div>
+            )}
+          </section>
+
+          {/* PARTICIPANTS */}
+
+          <section className="live-ride-card">
+            <div className="live-ride-card-header">
+              <div>
+                <span className="live-ride-section-label">
+                  RIDE GROUP
+                </span>
+
+                <h2>Confirmed Riders</h2>
+              </div>
+
+              <span className="live-ride-count">
+                {ride.participants?.length ||
+                  0}{" "}
+                RIDERS
+              </span>
+            </div>
+
+            <div className="live-ride-participants">
+              {ride.participants?.length > 0 ? (
+                ride.participants.map(
+                  (participant, index) => {
+                    const participantName =
+                      typeof participant ===
+                      "string"
+                        ? participant
+                        : participant.name ||
+                          `Rider ${
+                            index + 1
+                          }`;
+
+                    const participantBike =
+                      typeof participant ===
+                      "object"
+                        ? participant.vehicle ||
+                          participant.bike
+                        : null;
+
+                    return (
+                      <div
+                        className="live-ride-participant"
+                        key={`${participantName}-${index}`}
+                      >
+                        <div className="live-ride-avatar">
+                          {participantName
+                            .charAt(0)
+                            .toUpperCase()}
+                        </div>
+
+                        <div className="live-ride-participant-info">
+                          <strong>
+                            {participantName}
+                          </strong>
+
+                          {participantBike && (
+                            <span>
+                              {
+                                participantBike
+                              }
+                            </span>
+                          )}
+                        </div>
+
+                        <span className="live-ride-participant-status">
+                          CONFIRMED
+                        </span>
+                      </div>
+                    );
+                  }
+                )
+              ) : (
+                <div className="live-ride-empty">
+                  No participant details
+                  available yet.
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* JOURNEY INTELLIGENCE */}
+
+          {ride.journeyIntelligence && (
+            <section className="live-ride-card">
+              <div className="live-ride-card-header">
+                <div>
+                  <span className="live-ride-section-label">
+                    JOURNEY INTELLIGENCE
+                  </span>
+
+                  <h2>Ride Conditions</h2>
+                </div>
+              </div>
+
+              <div className="live-ride-intelligence-grid">
+                {ride.journeyIntelligence
+                  .weather && (
+                  <div className="live-ride-intelligence-item">
+                    <span>
+                      WEATHER
+                    </span>
+
+                    <strong>
+                      {
+                        ride
+                          .journeyIntelligence
+                          .weather
+                      }
+                    </strong>
+                  </div>
+                )}
+
+                {ride.journeyIntelligence
+                  .traffic && (
+                  <div className="live-ride-intelligence-item">
+                    <span>
+                      TRAFFIC
+                    </span>
+
+                    <strong>
+                      {
+                        ride
+                          .journeyIntelligence
+                          .traffic
+                      }
+                    </strong>
+                  </div>
+                )}
+
+                {ride.journeyIntelligence
+                  .fuel && (
+                  <div className="live-ride-intelligence-item">
+                    <span>FUEL</span>
+
+                    <strong>
+                      {
+                        ride
+                          .journeyIntelligence
+                          .fuel
+                      }
+                    </strong>
+                  </div>
+                )}
+
+                {ride.journeyIntelligence
+                  .roadCondition && (
+                  <div className="live-ride-intelligence-item">
+                    <span>
+                      ROAD CONDITION
+                    </span>
+
+                    <strong>
+                      {
+                        ride
+                          .journeyIntelligence
+                          .roadCondition
+                      }
+                    </strong>
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
+
+          {/* VEHICLE */}
+
+          {ride.vehicle && (
+            <section className="live-ride-card">
+              <div className="live-ride-card-header">
+                <div>
+                  <span className="live-ride-section-label">
+                    VEHICLE
+                  </span>
+
+                  <h2>Ride Vehicle</h2>
+                </div>
+              </div>
+
+              <div className="live-ride-vehicle">
+                <div>
+                  <span>MODEL</span>
+
+                  <strong>
+                    {ride.vehicle.name ||
+                      ride.vehicle.model ||
+                      "Ride Vehicle"}
+                  </strong>
+                </div>
+
+                {ride.vehicle
+                  .registrationNumber && (
+                  <div>
+                    <span>
+                      REGISTRATION
+                    </span>
+
+                    <strong>
+                      {
+                        ride.vehicle
+                          .registrationNumber
+                      }
+                    </strong>
+                  </div>
+                )}
+
+                {ride.vehicle.fuelType && (
+                  <div>
+                    <span>
+                      FUEL TYPE
+                    </span>
+
+                    <strong>
+                      {
+                        ride.vehicle
+                          .fuelType
+                      }
+                    </strong>
+                  </div>
+                )}
+
+                {ride.vehicle.mileage && (
+                  <div>
+                    <span>
+                      MILEAGE
+                    </span>
+
+                    <strong>
+                      {ride.vehicle.mileage}{" "}
+                      km/l
+                    </strong>
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
+
+          {/* LIVE RIDE FEATURES */}
+
+          <LiveLocation ride={ride} />
+
+          <RideMap ride={ride} />
+
+          <Navigation ride={ride} />
+
+          <RideCall ride={ride} />
+
+          <LiveRideChat ride={ride} />
+
+          <SafetySOS ride={ride} />
+        </main>
+
+        {/* SIDEBAR */}
+
+        <aside className="live-ride-sidebar">
+          <div
+            className={`live-ride-status-panel ${statusClass}`}
+          >
+            <span className="live-ride-section-label">
+              RIDE STATUS
+            </span>
+
+            <strong>{status}</strong>
+
+            <div className="live-ride-sidebar-countdown">
+              {formatCountdown()}
+            </div>
 
             <p>
-              Stay connected with your ride group, monitor live positions, and
-              access safety alerts while the journey is active.
+              {status === "LIVE"
+                ? "The ride is currently in progress."
+                : status === "STARTING"
+                ? "The ride is about to begin."
+                : status === "COMPLETED"
+                ? "This ride has been completed."
+                : "The ride is scheduled and waiting to start."}
             </p>
           </div>
 
-          <div className="live-status-box">
-            <span className="live-pulse"></span>
-            <div>
-              <small>EVENT STATUS</small>
-              <strong>{activeRide ? activeRide.status.toUpperCase() : "NO RIDE"}</strong>
+          <div className="live-ride-sidebar-card">
+            <span className="live-ride-section-label">
+              ORGANIZER
+            </span>
+
+            <strong>
+              {ride.organizer}
+            </strong>
+
+            {ride.organizerType && (
+              <span>
+                {ride.organizerType}
+              </span>
+            )}
+          </div>
+
+          {ride.safety && (
+            <div className="live-ride-sidebar-card">
+              <span className="live-ride-section-label">
+                SAFETY
+              </span>
+
+              <p>{ride.safety}</p>
             </div>
+          )}
+        </aside>
+      </div>
+
+      {/* SAFETY BAR */}
+
+      <div className="live-ride-safety-bar">
+        <div>
+          <span className="live-ride-safety-icon">
+            !
+          </span>
+
+          <div>
+            <strong>RIDE SAFE</strong>
+
+            <p>
+              Stay alert, follow the group
+              instructions and keep emergency
+              contacts accessible.
+            </p>
           </div>
         </div>
 
-        {!isAuthenticated ? (
-          <div className="live-ride-empty">
-            <h3>AUTHENTICATION REQUIRED</h3>
-            <p>Please log in to view live ride metrics and group tracking.</p>
-          </div>
-        ) : loading ? (
-          <div className="live-ride-empty">
-            <div className="empty-spinner"></div>
-            <h3>LOADING LIVE RIDE DATA...</h3>
-          </div>
-        ) : !activeRide ? (
-          <div className="live-ride-empty">
-            <h3>NO ACTIVE RIDE IN PROGRESS</h3>
-            <p>You have no ongoing or planned rides currently active.</p>
-          </div>
-        ) : (
-          <>
-            <div className="live-event-bar">
-              <div>
-                <span>RIDE</span>
-                <strong>{activeRide.title}</strong>
-              </div>
+        <div className="live-ride-bottom-actions">
+          <button
+            type="button"
+            onClick={() =>
+              navigate(
+                `/businesses/mototribe/ride/${ride.id}/expenses`
+              )
+            }
+          >
+            MANAGE EXPENSES →
+          </button>
 
-              <div>
-                <span>ROUTE</span>
-                <strong>{originName} → {destName}</strong>
-              </div>
-
-              <div>
-                <span>LIVE RIDERS</span>
-                <strong>{liveLocations.length} ACTIVE</strong>
-              </div>
-
-              <div>
-                <span>TRIP ESTIMATE</span>
-                <strong>{fuelEstimate?.estimatedCostInr ? `₹${fuelEstimate.estimatedCostInr}` : "COMPUTING"}</strong>
-              </div>
-            </div>
-
-            <div className="live-tabs">
-              {["OVERVIEW", "LIVE POSITIONS", "ROUTE REPORTS", "SAFETY & SOS"].map((tab) => (
-                <button
-                  key={tab}
-                  className={activeTab === tab ? "active" : ""}
-                  onClick={() => setActiveTab(tab)}
-                >
-                  {tab}
-                </button>
-              ))}
-            </div>
-
-            {activeTab === "OVERVIEW" && (
-              <div className="live-overview">
-                <div className="live-main-column">
-                  <div className="live-map-card">
-                    <div className="map-card-header">
-                      <div>
-                        <span>LIVE ROUTE</span>
-                        <strong>{originName} → {destName}</strong>
-                      </div>
-
-                      <div className="map-live-indicator">
-                        <span></span>
-                        LIVE TRACKING
-                      </div>
-                    </div>
-
-                    <div className="route-map">
-                      <div className="map-grid"></div>
-
-                      <div className="mountain-shape mountain-one"></div>
-                      <div className="mountain-shape mountain-two"></div>
-
-                      <div className="route-path">
-                        <span className="route-node route-start"></span>
-                        <span className="route-node route-current"></span>
-                        <span className="route-node route-end"></span>
-                      </div>
-
-                      <div className="current-location">
-                        <span className="current-location-pulse"></span>
-                        <span className="current-location-dot"></span>
-                      </div>
-
-                      <div className="map-label label-start">{originName}</div>
-                      <div className="map-label label-end">{destName}</div>
-                    </div>
-                  </div>
-
-                  <div className="live-stat-grid">
-                    <div className="live-stat-card">
-                      <span>DISTANCE</span>
-                      <strong>{activeRide.distanceKm ? `${activeRide.distanceKm} KM` : "--"}</strong>
-                      <small>PLANNED</small>
-                    </div>
-
-                    <div className="live-stat-card">
-                      <span>DURATION</span>
-                      <strong>{activeRide.durationDays ? `${activeRide.durationDays} DAYS` : "1 DAY"}</strong>
-                      <small>PLANNED DURATION</small>
-                    </div>
-
-                    <div className="live-stat-card">
-                      <span>ESTIMATED FUEL</span>
-                      <strong>{fuelEstimate?.litersNeeded ? `${fuelEstimate.litersNeeded} L` : "--"}</strong>
-                      <small>TOTAL LITERS NEEDED</small>
-                    </div>
-
-                    <div className="live-stat-card">
-                      <span>ESTIMATED COST</span>
-                      <strong>{fuelEstimate?.estimatedCostInr ? `₹${fuelEstimate.estimatedCostInr}` : "--"}</strong>
-                      <small>BASED ON STATE MEDIAN</small>
-                    </div>
-                  </div>
-                </div>
-
-                <aside className="live-side-column">
-                  <div className="participants-card">
-                    <div className="card-heading">
-                      <div>
-                        <span>COMMUNITY HAZARDS</span>
-                        <h3>ROUTE REPORTS</h3>
-                      </div>
-                      <strong>{routeReports.length}</strong>
-                    </div>
-
-                    <div className="participant-list">
-                      {routeReports.length === 0 ? (
-                        <p className="no-reports-msg">No community route reports for this route yet.</p>
-                      ) : (
-                        routeReports.map((report) => (
-                          <div className="live-participant" key={report._id}>
-                            <div className="rider-avatar">⚠️</div>
-                            <div className="rider-info">
-                              <strong>{report.reportType.toUpperCase()}</strong>
-                              <small>{report.content}</small>
-                            </div>
-                            <div className="rider-status">
-                              👍 {report.helpfulCount || 0}
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                </aside>
-              </div>
-            )}
-
-            {activeTab === "LIVE POSITIONS" && (
-              <div className="full-tab-panel">
-                <div className="panel-title">
-                  <span>LIVE TRACKING</span>
-                  <h3>RIDER POSITIONS</h3>
-                </div>
-
-                <div className="expanded-participants">
-                  {liveLocations.length === 0 ? (
-                    <p className="no-reports-msg">No live rider location updates yet.</p>
-                  ) : (
-                    liveLocations.map((loc) => (
-                      <div className="expanded-rider" key={loc._id}>
-                        <div className="expanded-rider-avatar">📍</div>
-                        <div className="expanded-rider-main">
-                          <strong>{loc.userId?.name || "Rider"}</strong>
-                          <span>Lat: {loc.latitude.toFixed(4)}, Lng: {loc.longitude.toFixed(4)}</span>
-                        </div>
-                        <div className="expanded-rider-distance">
-                          <small>LAST UPDATE</small>
-                          <strong>{new Date(loc.updatedAt).toLocaleTimeString()}</strong>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            )}
-
-            {activeTab === "ROUTE REPORTS" && (
-              <div className="full-tab-panel">
-                <div className="panel-title">
-                  <span>COMMUNITY ROAD KNOWLEDGE</span>
-                  <h3>ROUTE HAZARDS & TIPS</h3>
-                </div>
-
-                <div className="expanded-participants">
-                  {routeReports.length === 0 ? (
-                    <p className="no-reports-msg">No community route reports found for {originName} → {destName}.</p>
-                  ) : (
-                    routeReports.map((rep) => (
-                      <div className="expanded-rider" key={rep._id}>
-                        <div className="expanded-rider-avatar">💬</div>
-                        <div className="expanded-rider-main">
-                          <strong>{rep.reportType.replace("_", " ").toUpperCase()}</strong>
-                          <p>{rep.content}</p>
-                        </div>
-                        <div className="expanded-rider-distance">
-                          <small>HELPFUL</small>
-                          <strong>{rep.helpfulCount || 0} Votes</strong>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            )}
-
-            {activeTab === "SAFETY & SOS" && (
-              <div className="safety-dashboard">
-                <div className="safety-main">
-                  <span className="live-eyebrow">EMERGENCY SOS RESPONSE</span>
-                  <h3>RIDE SAFETY CENTER</h3>
-                  <p>
-                    Triggering an Emergency SOS dispatches real SMS alerts with live coordinates to your emergency contacts and broadcasts to all ride participants.
-                  </p>
-
-                  <div className="emergency-card">
-                    <span>EMERGENCY ACCESS</span>
-                    <button
-                      className="sos-confirm-trigger-btn"
-                      onClick={() => setShowEmergencyModal(true)}
-                    >
-                      TRIGGER EMERGENCY SOS
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* 2-Step SOS Confirmation Modal */}
-            {showEmergencyModal && (
-              <div className="emergency-overlay">
-                <div className="emergency-modal">
-                  <button
-                    className="close-emergency"
-                    onClick={() => {
-                      setShowEmergencyModal(false);
-                      setSosStatusMsg("");
-                    }}
-                  >
-                    ×
-                  </button>
-
-                  <span>SAFETY RESPONSE CONFIRMATION</span>
-                  <h3>ARE YOU SURE YOU WANT TO TRIGGER SOS?</h3>
-
-                  <p>
-                    This will send real SMS emergency alerts with your current coordinates to your configured emergency contacts and broadcast to the ride group.
-                  </p>
-
-                  {sosStatusMsg && (
-                    <div className={`sos-alert-status ${sosStatusMsg.includes("EMERGENCY") ? "success" : "error"}`}>
-                      {sosStatusMsg}
-                    </div>
-                  )}
-
-                  <div className="emergency-options">
-                    <button
-                      className="confirm-sos-btn"
-                      onClick={handleTriggerSos}
-                      disabled={sosSubmitting}
-                    >
-                      {sosSubmitting ? "TRIGGERING SOS..." : "YES, TRIGGER EMERGENCY SOS NOW"}
-                    </button>
-                    <button
-                      className="cancel-sos-btn"
-                      onClick={() => {
-                        setShowEmergencyModal(false);
-                        setSosStatusMsg("");
-                      }}
-                    >
-                      CANCEL
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </>
-        )}
+          <button
+            type="button"
+            className="live-ride-complete-bottom-button"
+            onClick={handleCompleteRide}
+          >
+            COMPLETE RIDE →
+          </button>
+        </div>
       </div>
     </section>
   );

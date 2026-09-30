@@ -1,0 +1,269 @@
+.ride-map-navigation {
+  margin-bottom: 16px;
+  padding: 17px;
+  border: 1px solid #302d28;
+  background: #10100f;
+}
+
+.ride-map-navigation-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 14px;
+}
+
+.ride-map-navigation-heading > div:first-child {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ride-map-navigation-heading span {
+  color: #68645e;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+}
+
+.ride-map-navigation-heading strong {
+  color: #c9a45d;
+  font-size: 15px;
+}
+
+.ride-map-navigation-actions button {
+  min-height: 34px;
+  padding: 0 13px;
+  border: 1px solid #c9a45d;
+  border-radius: 6px;
+  background: transparent;
+  color: #c9a45d;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  cursor: pointer;
+}
+
+.ride-map-navigation-actions button:hover {
+  background: #c9a45d;
+  color: #11100d;
+}
+
+.ride-map-navigation-actions button.stop {
+  border-color: #9a625a;
+  color: #d3978e;
+}
+
+.ride-map-navigation-actions button.stop:hover {
+  background: #9a625a;
+  color: #11100d;
+}
+
+.ride-map-progress {
+  width: 100%;
+  height: 5px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #27241f;
+}
+
+.ride-map-progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: #c9a45d;
+  box-shadow:
+    0 0 10px rgba(201, 164, 93, 0.35);
+  transition: width 0.5s ease;
+}
+
+.ride-map-navigation-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  margin-top: 14px;
+  background: #292722;
+}
+
+.ride-map-navigation-stats div {
+  padding: 11px;
+  background: #11110f;
+}
+
+.ride-map-navigation-stats span {
+  display: block;
+  margin-bottom: 6px;
+  color: #65615a;
+  font-size: 7px;
+  letter-spacing: 0.8px;
+}
+
+.ride-map-navigation-stats strong {
+  color: #bcb6ac;
+  font-size: 10px;
+}
+
+.ride-map-navigation-stats strong.navigation-active {
+  color: #c9a45d;
+}
+
+.ride-map-checkpoints {
+  margin-top: 16px;
+  padding: 18px;
+  border: 1px solid #302d28;
+  background: #10100f;
+}
+
+.ride-map-checkpoints-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.ride-map-checkpoints-heading > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ride-map-checkpoints-heading span {
+  color: #c9a45d;
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.ride-map-checkpoints-heading h3 {
+  margin: 0;
+  color: #d8d2c8;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+.ride-map-checkpoints-heading small {
+  color: #65615a;
+  font-size: 7px;
+}
+
+.ride-map-checkpoint-list {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.ride-map-checkpoint {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 65px;
+  padding: 10px;
+  border: 1px solid #292722;
+  background: #11110f;
+}
+
+.ride-map-checkpoint-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border: 1px solid #4a453d;
+  border-radius: 50%;
+  color: #69645d;
+  font-size: 9px;
+}
+
+.ride-map-checkpoint-info {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ride-map-checkpoint-info strong {
+  overflow: hidden;
+  color: #bcb6ac;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ride-map-checkpoint-info span {
+  color: #65615a;
+  font-size: 7px;
+}
+
+.ride-map-checkpoint > small {
+  font-size: 6px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+}
+
+.ride-map-checkpoint.completed {
+  border-color: #37382f;
+}
+
+.ride-map-checkpoint.completed
+  .ride-map-checkpoint-marker {
+  border-color: #84936f;
+  color: #9ba987;
+}
+
+.ride-map-checkpoint.completed > small {
+  color: #8b9f79;
+}
+
+.ride-map-checkpoint.current {
+  border-color: #57492f;
+  background: rgba(201, 164, 93, 0.045);
+}
+
+.ride-map-checkpoint.current
+  .ride-map-checkpoint-marker {
+  border-color: #c9a45d;
+  color: #c9a45d;
+}
+
+.ride-map-checkpoint.current > small {
+  color: #c9a45d;
+}
+
+.ride-map-checkpoint.upcoming
+  > small {
+  color: #55514b;
+}
+
+@media (max-width: 850px) {
+  .ride-map-navigation-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .ride-map-checkpoint-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .ride-map-navigation-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .ride-map-navigation-actions {
+    width: 100%;
+  }
+
+  .ride-map-navigation-actions button {
+    width: 100%;
+  }
+
+  .ride-map-navigation-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .ride-map-checkpoint-list {
+    grid-template-columns: 1fr;
+  }
+}

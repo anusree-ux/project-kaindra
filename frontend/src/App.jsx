@@ -1,14 +1,11 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useEffect } from "react";
+
 import { AuthProvider } from "./context/AuthContext";
-import ManufactureTracking from "./pages/ManufactureTracking";
-import ScrollToTopComponent from "./components/ScrollToTop";
-import AuthModal from "./pages/brands/MotoTribe/Auth/AuthModal";
 
 import Navbar from "./components/Navbar/Navbar";
-import Ecosystem from "./pages/brands/ModaSphere/Ecosystem/Ecosystem";
+import ScrollToTopComponent from "./components/ScrollToTop";
 
-// Public pages
 import Home from "./pages/Home";
 import About from "./pages/About";
 import Businesses from "./pages/Businesses";
@@ -17,6 +14,14 @@ import Communities from "./pages/Communities";
 import Contact from "./pages/Contact";
 import Careers from "./pages/Careers";
 import News from "./pages/News";
+
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import Profile from "./pages/Profile";
+
+import ModaSphere from "./pages/brands/ModaSphere";
+import Ecosystem from "./pages/brands/ModaSphere/Ecosystem/Ecosystem";
+
 import ModaMart from "./pages/ModaMart";
 import ProductDetails from "./pages/ProductDetails";
 import Cart from "./pages/Cart";
@@ -28,6 +33,7 @@ import DropDetails from "./pages/DropDetails";
 import ModaDropOrders from "./pages/ModaDropOrders";
 import ModaStudio from "./pages/ModaStudio";
 import ModaManufacture from "./pages/ModaManufacture";
+import ManufactureTracking from "./pages/ManufactureTracking";
 import ModaLogix from "./pages/ModaLogix";
 import ModaPay from "./pages/ModaPay";
 import ModaInfluence from "./pages/ModaInfluence";
@@ -35,12 +41,6 @@ import ModaTales from "./pages/ModaTales";
 import ModaAcademy from "./pages/ModaAcademy";
 import ModaInsights from "./pages/ModaInsights";
 
-// Auth pages
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
-import Profile from "./pages/Profile";
-
-// Admin
 import AdminLogin from "./pages/admin/AdminLogin";
 import ProtectedAdminRoute from "./pages/admin/ProtectedAdminRoute";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -54,21 +54,17 @@ import AdminTales from "./pages/admin/tales/AdminTales";
 import AdminAcademy from "./pages/admin/academy/AdminAcademy";
 import AdminInsights from "./pages/admin/insights/AdminInsights";
 
-// Brand pages
+import AuthModal from "./pages/brands/MotoTribe/Auth/AuthModal";
 import MotoTribe from "./pages/brands/MotoTribe";
-
-// MotoTribe sub-pages
 import MotoSignup from "./pages/brands/MotoTribe/Auth/Signup";
 import OTPVerification from "./pages/brands/MotoTribe/Auth/OTPVerification";
 import ProfileSetup from "./pages/brands/MotoTribe/ProfileSetup/ProfileSetup";
 import Vehicles from "./pages/brands/MotoTribe/Vehicles/Vehicles";
 import MotoLogin from "./pages/brands/MotoTribe/Auth/Login";
 import RideDetails from "./pages/brands/MotoTribe/RideDetails/RideDetails";
+import LiveRide from "./pages/brands/MotoTribe/LiveRide/LiveRide";
 import Expenses from "./pages/brands/MotoTribe/Expenses/Expenses";
-
-/* =========================
-   SCROLL TO TOP
-========================= */
+import PostRideSummaryPage from "./pages/brands/MotoTribe/PostRideSummaryPage/PostRideSummaryPage";
 
 function ScrollToTop() {
   useEffect(() => {
@@ -78,10 +74,6 @@ function ScrollToTop() {
   return null;
 }
 
-/* =========================
-   PUBLIC LAYOUT
-========================= */
-
 function PublicLayout({ children }) {
   return (
     <>
@@ -90,10 +82,6 @@ function PublicLayout({ children }) {
     </>
   );
 }
-
-/* =========================
-   404 PAGE
-========================= */
 
 function NotFound() {
   return (
@@ -119,9 +107,7 @@ function NotFound() {
 
       <h2>Page Not Found</h2>
 
-      <p>
-        The page you are looking for doesn&apos;t exist.
-      </p>
+      <p>The page you are looking for doesn't exist.</p>
 
       <a
         href="/"
@@ -140,17 +126,16 @@ function NotFound() {
   );
 }
 
-/* =========================
-   APP
-========================= */
-
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <AuthModal />
+
         <ScrollToTop />
+
         <ScrollToTopComponent />
+
         <Routes>
           {/* =========================
               KAINDRA PUBLIC WEBSITE
@@ -182,6 +167,24 @@ function App() {
               </PublicLayout>
             }
           />
+
+          {/* =========================
+              BRAND PAGES
+          ========================= */}
+
+          <Route
+            path="/businesses/modasphere"
+            element={<ModaSphere />}
+          />
+
+          <Route
+            path="/businesses/mototribe"
+            element={<MotoTribe />}
+          />
+
+          {/* =========================
+              MODAMART
+          ========================= */}
 
           <Route
             path="/businesses/modamart/shop"
@@ -246,6 +249,10 @@ function App() {
             }
           />
 
+          {/* =========================
+              MODADROP
+          ========================= */}
+
           <Route
             path="/businesses/modadrop"
             element={
@@ -272,6 +279,10 @@ function App() {
               </PublicLayout>
             }
           />
+
+          {/* =========================
+              MODA SERVICES
+          ========================= */}
 
           <Route
             path="/businesses/modastudio"
@@ -355,6 +366,19 @@ function App() {
           />
 
           <Route
+            path="/ecosystem"
+            element={
+              <PublicLayout>
+                <Ecosystem />
+              </PublicLayout>
+            }
+          />
+
+          {/* =========================
+              OTHER PUBLIC PAGES
+          ========================= */}
+
+          <Route
             path="/communities"
             element={
               <PublicLayout>
@@ -390,14 +414,9 @@ function App() {
             }
           />
 
-          <Route
-            path="/ecosystem"
-            element={
-              <PublicLayout>
-                <Ecosystem />
-              </PublicLayout>
-            }
-          />
+          {/* =========================
+              AUTH PAGES
+          ========================= */}
 
           <Route
             path="/login"
@@ -565,8 +584,18 @@ function App() {
           />
 
           <Route
+            path="/businesses/mototribe/ride/:rideId/live"
+            element={<LiveRide />}
+          />
+
+          <Route
             path="/businesses/mototribe/ride/:rideId/expenses"
             element={<Expenses />}
+          />
+
+          <Route
+            path="/businesses/mototribe/ride/:rideId/complete"
+            element={<PostRideSummaryPage />}
           />
 
           {/* =========================

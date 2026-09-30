@@ -1,3 +1,7 @@
+/* =========================================================
+   MOTOTRIBE - RIDE EXPENSES
+   ========================================================= */
+
 .moto-expenses {
   min-height: 100vh;
   padding: 120px 6% 80px;
@@ -5,331 +9,693 @@
   color: #f5f5f5;
 }
 
-.expenses-container {
-  max-width: 1250px;
-  margin: auto;
+.moto-expenses *,
+.moto-expenses *::before,
+.moto-expenses *::after {
+  box-sizing: border-box;
 }
 
-.expenses-header {
+.moto-expenses-container {
+  width: min(1250px, 100%);
+  margin: 0 auto;
+}
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.moto-expenses-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  gap: 30px;
+  gap: 35px;
   margin-bottom: 35px;
 }
 
-.expenses-header span {
+.moto-expenses-eyebrow {
+  display: block;
   color: #d99a42;
-  font-size: 12px;
+  font-size: 9px;
+  font-weight: 800;
   letter-spacing: 3px;
 }
 
-.expenses-header h1 {
-  font-size: clamp(40px, 6vw, 70px);
+.moto-expenses-header h1 {
   margin: 12px 0;
-  line-height: 1;
+  font-size: clamp(42px, 6vw, 72px);
+  line-height: 0.95;
+  letter-spacing: -0.04em;
 }
 
-.expenses-header p {
-  color: #777;
+.moto-expenses-header p {
   max-width: 650px;
+  margin: 0;
+  color: #777;
+  font-size: 13px;
   line-height: 1.7;
 }
 
-.add-expense-button,
-.save-expense-button {
+.moto-expenses-add-button,
+.moto-expenses-form-action button,
+.moto-expenses-empty button {
   border: 1px solid #d99a42;
   background: #d99a42;
   color: #08090b;
   padding: 14px 22px;
   cursor: pointer;
-  font-size: 12px;
+  font-family: inherit;
+  font-size: 9px;
+  font-weight: 800;
   letter-spacing: 1.5px;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
 }
 
-.add-expense-button:hover,
-.save-expense-button:hover {
+.moto-expenses-add-button:hover,
+.moto-expenses-form-action button:hover,
+.moto-expenses-empty button:hover {
   background: #efb15d;
+  border-color: #efb15d;
 }
 
-.expense-form {
-  display: grid;
-  grid-template-columns: 0.8fr 1.5fr 0.8fr auto;
-  gap: 15px;
-  align-items: end;
-  padding: 25px;
+.moto-expenses-add-button:active,
+.moto-expenses-form-action button:active,
+.moto-expenses-empty button:active {
+  transform: translateY(1px);
+}
+
+.moto-expenses-add-button:focus-visible,
+.moto-expenses-form-action button:focus-visible,
+.moto-expenses-empty button:focus-visible,
+.moto-expense-amount button:focus-visible {
+  outline: 2px solid #d99a42;
+  outline-offset: 3px;
+}
+
+/* =========================================================
+   MESSAGES
+   ========================================================= */
+
+.moto-expenses-message {
+  margin-bottom: 20px;
+  padding: 13px 16px;
+  border: 1px solid #292d35;
+  background: #0d1016;
+  font-size: 10px;
+  letter-spacing: 0.4px;
+}
+
+.moto-expenses-message.error {
+  border-color: #693c3c;
+  color: #e3a3a3;
+}
+
+.moto-expenses-message.success {
+  border-color: rgba(217, 154, 66, 0.35);
+  color: #d99a42;
+}
+
+/* =========================================================
+   FORM
+   ========================================================= */
+
+.moto-expenses-form-card {
   margin-bottom: 25px;
+  padding: 25px;
   border: 1px solid #292d35;
   background: #0d1016;
 }
 
-.form-field label {
-  display: block;
-  color: #777;
-  font-size: 13px;
-  letter-spacing: 2px;
-  margin-bottom: 8px;
+.moto-expenses-form-header {
+  margin-bottom: 22px;
 }
 
-.form-field input,
-.form-field select {
+.moto-expenses-form-header span {
+  display: block;
+  margin-bottom: 7px;
+  color: #d99a42;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.moto-expenses-form-header p {
+  margin: 0;
+  color: #666;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.moto-expenses-form-grid {
+  display: grid;
+  grid-template-columns: 0.8fr 1.5fr 0.8fr auto;
+  gap: 15px;
+  align-items: end;
+}
+
+.moto-expenses-field label {
+  display: block;
+  margin-bottom: 8px;
+  color: #777;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.moto-expenses-field input,
+.moto-expenses-field select {
   width: 100%;
-  box-sizing: border-box;
-  padding: 13px;
+  min-height: 44px;
+  padding: 12px 13px;
   border: 1px solid #333842;
   outline: none;
   background: #11141a;
   color: #ddd;
+  font-family: inherit;
+  font-size: 12px;
+  transition: border-color 0.2s ease;
 }
 
-.form-field input:focus,
-.form-field select:focus {
+.moto-expenses-field input::placeholder {
+  color: #555;
+}
+
+.moto-expenses-field input:focus,
+.moto-expenses-field select:focus {
   border-color: #d99a42;
 }
 
-.expense-summary {
-  display: grid;
-  grid-template-columns: 1.5fr repeat(4, 1fr);
-  border: 1px solid #292d35;
-  margin-bottom: 25px;
+.moto-expenses-field input:focus-visible,
+.moto-expenses-field select:focus-visible {
+  box-shadow: 0 0 0 1px rgba(217, 154, 66, 0.2);
 }
 
-.summary-card {
+.moto-expenses-field select {
+  cursor: pointer;
+}
+
+/* =========================================================
+   SUMMARY
+   ========================================================= */
+
+.moto-expenses-summary {
+  display: grid;
+  grid-template-columns: 1.5fr repeat(3, 1fr);
+  margin-bottom: 25px;
+  border: 1px solid #292d35;
+}
+
+.moto-expenses-summary-card {
+  min-height: 105px;
   padding: 25px 20px;
   border-right: 1px solid #292d35;
+  background: #0c0f14;
 }
 
-.summary-card:last-child {
+.moto-expenses-summary-card:last-child {
   border-right: 0;
 }
 
-.summary-card span {
-  display: block;
-  color: #666;
-  font-size: 13px;
-  letter-spacing: 2px;
-  margin-bottom: 10px;
-}
-
-.summary-card strong {
-  font-size: 21px;
-}
-
-.summary-card.total {
+.moto-expenses-summary-card.primary {
   background: #11141a;
 }
 
-.summary-card.total strong {
+.moto-expenses-summary-card span {
+  display: block;
+  margin-bottom: 11px;
+  color: #666;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.moto-expenses-summary-card strong {
+  display: block;
+  color: #eee;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.moto-expenses-summary-card.primary strong {
   color: #d99a42;
   font-size: 27px;
 }
 
-.expenses-content {
+.moto-expenses-summary-card small {
+  display: block;
+  margin-top: 8px;
+  color: #555;
+  font-size: 9px;
+}
+
+/* =========================================================
+   MAIN CONTENT
+   ========================================================= */
+
+.moto-expenses-content {
   display: grid;
   grid-template-columns: 1.5fr 0.8fr;
   gap: 20px;
 }
 
-.expenses-list-section,
-.expense-breakdown {
+.moto-expenses-list-section,
+.moto-expenses-breakdown {
   padding: 30px;
   border: 1px solid #292d35;
   background: #0c0f14;
 }
 
-.section-title {
+.moto-expenses-section-heading {
   display: flex;
   align-items: center;
   gap: 15px;
   margin-bottom: 25px;
 }
 
-.section-title span {
+.moto-expenses-section-heading span {
+  display: block;
+  margin-bottom: 6px;
   color: #d99a42;
-  font-size: 12px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
 }
 
-.section-title h2 {
+.moto-expenses-section-heading h2 {
   margin: 0;
-  font-size: 17px;
+  color: #eee;
+  font-size: 16px;
+  font-weight: 600;
   letter-spacing: 2px;
 }
 
-.expenses-list {
+/* =========================================================
+   EXPENSE LIST
+   ========================================================= */
+
+.moto-expenses-list {
   display: grid;
   gap: 10px;
 }
 
-.expense-row {
+.moto-expense-item {
   display: flex;
   align-items: center;
   gap: 15px;
+  min-height: 72px;
   padding: 15px;
-  background: #11141a;
   border: 1px solid transparent;
-  transition: 0.2s;
+  background: #11141a;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
 }
 
-.expense-row:hover {
+.moto-expense-item:hover {
   border-color: #343944;
+  background: #13161c;
 }
 
-.expense-icon {
-  width: 40px;
-  height: 40px;
+.moto-expense-icon {
   display: grid;
   place-items: center;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
   border: 1px solid #3a3e46;
   color: #d99a42;
   font-size: 12px;
+  font-weight: 800;
 }
 
-.expense-info {
+.moto-expense-info {
+  min-width: 0;
   flex: 1;
 }
 
-.expense-info strong {
-  display: block;
-  font-size: 13px;
+.moto-expense-topline {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   margin-bottom: 5px;
 }
 
-.expense-info span {
-  color: #666;
-  font-size: 12px;
-  letter-spacing: 0.5px;
+.moto-expense-category {
+  color: #d99a42;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
 }
 
-.expense-amount {
+.moto-expense-date {
+  color: #555;
+  font-size: 8px;
+}
+
+.moto-expense-info h3 {
+  overflow: hidden;
+  margin: 0;
+  color: #ddd;
+  font-size: 13px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.moto-expense-amount {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-shrink: 0;
+}
+
+.moto-expense-amount strong {
+  color: #eee;
   font-size: 14px;
+  font-weight: 600;
 }
 
-.delete-expense {
-  width: 28px;
-  height: 28px;
+.moto-expense-amount button {
+  padding: 7px 9px;
   border: 1px solid #333;
   background: transparent;
   color: #777;
   cursor: pointer;
-  font-size: 18px;
+  font-family: inherit;
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
 }
 
-.delete-expense:hover {
-  color: #d66;
+.moto-expense-amount button:hover {
   border-color: #d66;
+  background: rgba(214, 102, 102, 0.05);
+  color: #d66;
 }
 
-.empty-expenses {
-  padding: 50px 20px;
-  text-align: center;
+/* =========================================================
+   EMPTY STATE
+   ========================================================= */
+
+.moto-expenses-empty {
+  padding: 55px 20px;
   border: 1px dashed #333;
+  text-align: center;
 }
 
-.empty-expenses h3 {
-  font-size: 14px;
+.moto-expenses-empty-icon {
+  display: grid;
+  place-items: center;
+  width: 45px;
+  height: 45px;
+  margin: 0 auto 20px;
+  border: 1px solid #3a3e46;
+  color: #d99a42;
+  font-size: 15px;
+}
+
+.moto-expenses-empty h3 {
+  margin: 0;
+  color: #aaa;
+  font-size: 13px;
   letter-spacing: 2px;
 }
 
-.empty-expenses p {
+.moto-expenses-empty p {
+  max-width: 420px;
+  margin: 12px auto 20px;
   color: #666;
-  font-size: 12px;
+  font-size: 11px;
+  line-height: 1.7;
 }
 
-.breakdown-item {
-  margin-bottom: 25px;
+/* =========================================================
+   BREAKDOWN
+   ========================================================= */
+
+.moto-expenses-breakdown-list {
+  display: grid;
 }
 
-.breakdown-item > div:first-child {
+.moto-expense-breakdown-item {
+  margin-bottom: 24px;
+}
+
+.moto-expense-breakdown-top {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 8px;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 9px;
 }
 
-.breakdown-item span {
+.moto-expense-breakdown-top span {
   color: #777;
-  font-size: 12px;
+  font-size: 9px;
+  font-weight: 800;
   letter-spacing: 1.5px;
 }
 
-.breakdown-item strong {
-  font-size: 12px;
+.moto-expense-breakdown-top strong {
+  color: #ddd;
+  font-size: 11px;
+  font-weight: 500;
 }
 
-.breakdown-bar {
+.moto-expense-progress {
+  width: 100%;
   height: 4px;
+  overflow: hidden;
   background: #252a32;
 }
 
-.breakdown-bar div {
+.moto-expense-progress span {
+  display: block;
   height: 100%;
   background: #d99a42;
-  transition: width 0.3s ease;
+  transition: width 0.35s ease;
 }
 
-.expense-note {
+.moto-expense-breakdown-item small {
+  display: block;
+  margin-top: 7px;
+  color: #555;
+  font-size: 8px;
+}
+
+.moto-expenses-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 5px;
+  padding-top: 20px;
+  border-top: 1px solid #292d35;
+}
+
+.moto-expenses-total span {
+  color: #777;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.moto-expenses-total strong {
+  color: #d99a42;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* =========================================================
+   NOTE
+   ========================================================= */
+
+.moto-expenses-note {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
   margin-top: 20px;
   padding: 20px;
   border: 1px solid #252932;
   background: #0b0e13;
 }
 
-.expense-note span {
+.moto-expenses-note span {
   color: #d99a42;
-  font-size: 13px;
+  font-size: 8px;
+  font-weight: 800;
   letter-spacing: 2px;
 }
 
-.expense-note p {
-  margin: 8px 0 0;
+.moto-expenses-note strong {
+  overflow: hidden;
   color: #555;
-  font-size: 11px;
+  font-size: 9px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
+/* =========================================================
+   TABLET
+   ========================================================= */
+
 @media (max-width: 1000px) {
-  .expense-summary {
+  .moto-expenses-summary {
     grid-template-columns: repeat(3, 1fr);
   }
 
-  .summary-card {
+  .moto-expenses-summary-card {
+    border-right: 1px solid #292d35;
     border-bottom: 1px solid #292d35;
   }
 
-  .expense-form {
+  .moto-expenses-summary-card:nth-child(3) {
+    border-right: 0;
+  }
+
+  .moto-expenses-form-grid {
     grid-template-columns: 1fr 1fr;
   }
 
-  .expenses-content {
+  .moto-expenses-form-action button {
+    width: 100%;
+  }
+
+  .moto-expenses-content {
     grid-template-columns: 1fr;
   }
 }
 
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
 @media (max-width: 650px) {
   .moto-expenses {
-    padding: 100px 20px 50px;
+    padding: 100px 20px 55px;
   }
 
-  .expenses-header {
+  .moto-expenses-header {
     flex-direction: column;
     align-items: flex-start;
+    gap: 25px;
   }
 
-  .expense-form {
+  .moto-expenses-header h1 {
+    font-size: 45px;
+  }
+
+  .moto-expenses-add-button {
+    width: 100%;
+  }
+
+  .moto-expenses-form-grid {
     grid-template-columns: 1fr;
   }
 
-  .expense-summary {
+  .moto-expenses-form-card {
+    padding: 20px;
+  }
+
+  .moto-expenses-summary {
     grid-template-columns: 1fr 1fr;
   }
 
-  .summary-card {
+  .moto-expenses-summary-card {
     border-right: 0;
   }
 
-  .expense-row {
+  .moto-expenses-summary-card:nth-child(odd) {
+    border-right: 1px solid #292d35;
+  }
+
+  .moto-expenses-summary-card.primary {
+    grid-column: 1 / -1;
+    border-right: 0;
+  }
+
+  .moto-expenses-list-section,
+  .moto-expenses-breakdown {
+    padding: 22px 18px;
+  }
+
+  .moto-expense-item {
     flex-wrap: wrap;
   }
 
-  .expense-amount {
-    margin-left: auto;
+  .moto-expense-info {
+    flex-basis: calc(100% - 55px);
+  }
+
+  .moto-expense-amount {
+    width: 100%;
+    justify-content: flex-end;
+    padding-left: 55px;
+  }
+}
+
+/* =========================================================
+   SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 420px) {
+  .moto-expenses {
+    padding-right: 15px;
+    padding-left: 15px;
+  }
+
+  .moto-expenses-header h1 {
+    font-size: 38px;
+  }
+
+  .moto-expenses-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .moto-expenses-summary-card,
+  .moto-expenses-summary-card:nth-child(odd),
+  .moto-expenses-summary-card.primary {
+    grid-column: auto;
+    border-right: 0;
+    border-bottom: 1px solid #292d35;
+  }
+
+  .moto-expenses-summary-card:last-child {
+    border-bottom: 0;
+  }
+
+  .moto-expense-item {
+    gap: 10px;
+  }
+
+  .moto-expense-amount {
+    justify-content: space-between;
+    padding-left: 50px;
+  }
+
+  .moto-expense-topline {
+    flex-wrap: wrap;
+    gap: 6px 10px;
+  }
+}
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .moto-expenses *,
+  .moto-expenses *::before,
+  .moto-expenses *::after {
+    transition: none !important;
+    animation: none !important;
   }
 }

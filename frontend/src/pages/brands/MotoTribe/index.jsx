@@ -24,6 +24,7 @@ import SafetyEmergency from "./SafetyEmergency/SafetyEmergency";
 import RidePassport from "./RidePassport/RidePassport";
 
 import TrustedTribe from "./TrustedTribe/TrustedTribe";
+import MotoAuthManager from "./Auth/MotoAuthManager";
 
 import CommunityGuide from "./CommunityGuide/CommunityGuide";
 
@@ -37,6 +38,7 @@ function MotoTribe() {
 
       <main>
         {/* HERO */}
+        <MotoAuthManager />
         <MotoHero />
 
         {/* AI JOURNEY INTELLIGENCE */}
@@ -78,6 +80,7 @@ function MotoTribe() {
 
         {/* RIDER PASSPORT / ACHIEVEMENTS */}
         <RidePassport />
+        
 
         {/* TRUSTED TRIBE */}
         <TrustedTribe />
