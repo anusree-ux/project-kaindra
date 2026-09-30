@@ -1,49 +1,71 @@
+import { Users, CheckCircle } from "lucide-react";
 import "./Stakeholders.css";
 
 const stakeholders = [
-  {
-    title: "Designers",
-    text: "Build visibility and find new collaboration opportunities."
-  },
-  {
-    title: "Manufacturers",
-    text: "Find clients and increase production opportunities."
-  },
-  {
-    title: "Brands",
-    text: "Discover talent, products and business partners."
-  },
-  {
-    title: "Retailers",
-    text: "Access innovative products and fashion businesses."
-  },
-  {
-    title: "Influencers",
-    text: "Create partnerships and monetize influence."
-  },
-  {
-    title: "Consumers",
-    text: "Discover and experience the future of fashion."
-  }
+  "Designers & Creators",
+  "Brands & Retailers",
+  "Manufacturers & Suppliers",
+  "Influencers & Content Creators",
+  "Consumers & Fashion Enthusiasts",
+  "Investors & Business Partners",
 ];
 
 export default function Stakeholders() {
   return (
-    <section className="stakeholders">
-      <div className="stake-container">
-        <p>06 — TARGET STAKEHOLDERS</p>
+    <section
+      className="stakeholders-section"
+      id="stakeholders"
+    >
+      <div className="stakeholders-container">
 
-        <h2>Built for the<br />entire fashion chain.</h2>
+        {/* HEADING */}
+        <div className="stakeholders-heading">
 
-        <div className="stake-grid">
-          {stakeholders.map((item) => (
-            <article key={item.title}>
-              <div className="stake-icon">✦</div>
-              <h3>{item.title}</h3>
-              <p>{item.text}</p>
-            </article>
-          ))}
+          <div className="stakeholders-label">
+            TARGET STAKEHOLDERS
+          </div>
+
+          <h2>
+            Built for everyone
+            <br />
+            in the fashion ecosystem.
+          </h2>
+
+          <p>
+            ModaSphere brings together the people and businesses
+            that shape, create, distribute, and experience fashion.
+          </p>
+
         </div>
+
+
+        {/* ICON */}
+        <div className="stakeholders-icon">
+          <Users size={30} strokeWidth={1.5} />
+        </div>
+
+
+        {/* STAKEHOLDER GRID */}
+        <div className="stakeholders-grid">
+
+          {stakeholders.map((item) => (
+            <div
+              className="stakeholder-card"
+              key={item}
+            >
+              <div className="stakeholder-check">
+                <CheckCircle
+                  size={18}
+                  strokeWidth={1.6}
+                />
+              </div>
+
+              <span>{item}</span>
+            </div>
+          ))}
+
+        </div>
+
       </div>
     </section>
   );

@@ -180,6 +180,16 @@
   letter-spacing: 3px;
 }
 
+.moto-otp-badge {
+  display: inline-block;
+  padding: 7px 14px;
+  margin-bottom: 22px;
+  border: 1px solid rgba(214, 168, 79, 0.45);
+  color: #d6a84f;
+  font-size: 12px;
+  letter-spacing: 2px;
+}
+
 .moto-otp-header h1 {
   margin: 0;
   color: #f4f1e9;
@@ -253,6 +263,33 @@
 
 .moto-otp-input-error {
   border-color: rgba(210, 90, 70, 0.7);
+}
+
+/* =========================
+   DEMO OTP
+========================= */
+
+.moto-demo-otp span {
+  display: block;
+  margin-bottom: 5px;
+  color: #a9a9a9;
+  font-size: 13px;
+  letter-spacing: 2px;
+}
+
+.moto-demo-otp strong {
+  display: block;
+  margin-left: 8px;
+  color: #d6a84f;
+  font-size: 27px;
+  letter-spacing: 8px;
+}
+
+.moto-demo-otp small {
+  display: block;
+  margin-top: 7px;
+  color: #666;
+  font-size: 12px;
 }
 
 /* =========================
@@ -498,6 +535,8 @@
 
 .moto-otp-footer {
   margin: 25px 0 0;
+  padding-top: 20px;
+  border-top: 1px solid #202020;
   color: #414446;
   font-size: 9px;
   letter-spacing: 0.5px;

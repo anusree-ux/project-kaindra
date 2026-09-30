@@ -258,12 +258,21 @@
   gap: 8px;
 }
 
-.moto-form-group label {
+.moto-form-group label,
+.signup-field label {
+  display: block;
   color: #b7b4ac;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 1px;
   text-transform: uppercase;
+}
+
+.signup-field label {
+  color: #a7a7a7;
+  font-size: 12px;
+  letter-spacing: 2px;
+  margin-bottom: 9px;
 }
 
 .moto-form-group label span {
@@ -376,6 +385,37 @@
 .moto-password-toggle:focus-visible {
   outline: 1px solid #c6a15b;
   outline-offset: 3px;
+}
+
+.password-strength {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.password-strength span {
+  height: 3px;
+  flex: 1;
+  background: #282828;
+}
+
+.password-strength.weak span:first-child {
+  background: #9c6969;
+}
+
+.password-strength.medium span:nth-child(-n + 2) {
+  background: #b89554;
+}
+
+.password-strength.strong span {
+  background: #d6a84f;
+}
+
+.password-strength small {
+  color: #777;
+  margin-left: 8px;
+  font-size: 13px;
 }
 
 .moto-field-hint {
@@ -570,6 +610,14 @@
   letter-spacing: 1.5px;
 }
 
+.signup-note {
+  text-align: center;
+  margin-top: 25px;
+  color: #454545;
+  font-size: 12px;
+  letter-spacing: 2px;
+}
+
 /* =========================
    LOGIN LINK
 ========================= */
@@ -633,7 +681,9 @@
 
 @media (max-width: 1000px) {
   .moto-signup-wrapper {
-    grid-template-columns: minmax(0, 1fr) minmax(380px, 470px);
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(380px, 470px);
     gap: 45px;
   }
 

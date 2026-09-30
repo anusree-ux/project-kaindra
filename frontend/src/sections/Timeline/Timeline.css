@@ -1,71 +1,224 @@
+/* =========================
+   TIMELINE / OUR JOURNEY
+========================= */
+
 .timeline {
+  width: 100%;
   padding: 95px 0;
+  background: #ffffff;
 }
 
-.timeline-heading {
-  margin-bottom: 65px;
+.timeline-container {
+  width: min(1000px, calc(100% - 40px));
+  margin: 0 auto;
 }
+
+/* =========================
+   HEADER
+========================= */
+
+.timeline-header {
+  text-align: center;
+  margin-bottom: 70px;
+}
+
+.timeline-header p {
+  margin: 0 0 14px;
+  color: #b4864b;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 3px;
+}
+
+.timeline-header h2 {
+  margin: 0;
+  color: #111111;
+  font-size: clamp(38px, 5vw, 56px);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -1.5px;
+}
+
+/* =========================
+   TIMELINE LIST
+========================= */
+
+.timeline-list {
+  width: 100%;
+}
+
+/* =========================
+   TIMELINE ITEM
+========================= */
 
 .timeline-item {
   display: grid;
-  grid-template-columns: 120px 30px 1fr;
-  min-height: 150px;
+  grid-template-columns: 1fr 40px 1fr;
+  min-height: 180px;
+  position: relative;
 }
+
+/* =========================
+   YEAR
+========================= */
 
 .timeline-year {
-  font-weight: 700;
+  padding: 2px 45px 0 0;
+  text-align: right;
+
+  color: #b4864b;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 1px;
 }
 
-.timeline-marker {
+/* =========================
+   CENTER LINE
+========================= */
+
+.timeline-line {
   position: relative;
   display: flex;
   justify-content: center;
+  align-items: flex-start;
 }
 
-.timeline-marker span {
-  width: 11px;
-  height: 11px;
+/* Vertical line */
+
+.timeline-connector {
+  position: absolute;
+  top: 12px;
+  bottom: 0;
+  width: 1px;
+  background: #d9d9d9;
+}
+
+/* =========================
+   DOT
+========================= */
+
+.timeline-dot {
+  position: relative;
+  width: 12px;
+  height: 12px;
+  margin-top: 1px;
+
+  background: #b4864b;
+  border: 3px solid #ffffff;
   border-radius: 50%;
-  background: #111;
+
+  box-shadow: 0 0 0 1px #b4864b;
+
   z-index: 2;
 }
 
-.timeline-marker::after {
-  content: "";
-  position: absolute;
-  top: 11px;
-  bottom: 0;
-  width: 1px;
-  background: #ddd;
-}
-
-.timeline-item:last-child .timeline-marker::after {
-  display: none;
-}
+/* =========================
+   CONTENT
+========================= */
 
 .timeline-content {
-  padding-left: 30px;
-  padding-bottom: 45px;
+  padding: 0 0 55px 45px;
 }
 
 .timeline-content h3 {
-  font-size: 22px;
-  margin-bottom: 10px;
+  margin: 0 0 14px;
+
+  color: #111111;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.2;
 }
 
 .timeline-content p {
-  max-width: 550px;
-  font-size: 15px;
-  line-height: 1.6;
-  color: #666;
+  max-width: 520px;
+  margin: 0;
+
+  color: #666666;
+  font-size: 16px;
+  line-height: 1.7;
 }
 
-@media (max-width: 600px) {
+/* =========================
+   LAST ITEM
+========================= */
+
+.timeline-item:last-child {
+  min-height: auto;
+}
+
+.timeline-item:last-child .timeline-content {
+  padding-bottom: 0;
+}
+
+/* =========================
+   TABLET
+========================= */
+
+@media (max-width: 800px) {
+  .timeline-container {
+    width: calc(100% - 40px);
+  }
+
   .timeline-item {
-    grid-template-columns: 70px 25px 1fr;
+    grid-template-columns: 90px 35px 1fr;
+  }
+
+  .timeline-year {
+    padding-right: 25px;
   }
 
   .timeline-content {
-    padding-left: 18px;
+    padding-left: 30px;
+  }
+}
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 600px) {
+  .timeline {
+    padding: 70px 0;
+  }
+
+  .timeline-container {
+    width: calc(100% - 30px);
+  }
+
+  .timeline-header {
+    margin-bottom: 50px;
+  }
+
+  .timeline-header h2 {
+    font-size: 38px;
+  }
+
+  .timeline-item {
+    grid-template-columns: 65px 25px 1fr;
+    min-height: 165px;
+  }
+
+  .timeline-year {
+    padding-right: 15px;
+    font-size: 13px;
+  }
+
+  .timeline-content {
+    padding-left: 20px;
+    padding-bottom: 45px;
+  }
+
+  .timeline-content h3 {
+    font-size: 23px;
+  }
+
+  .timeline-content p {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .timeline-dot {
+    width: 10px;
+    height: 10px;
   }
 }

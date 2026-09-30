@@ -9,9 +9,7 @@ const DEMO_OTP = "123456";
 
 function getPendingSignup() {
   try {
-    const storedSignup = localStorage.getItem(
-      "mototribe_pending_signup"
-    );
+    const storedSignup = localStorage.getItem("mototribe_pending_signup");
 
     if (!storedSignup) {
       return null;
@@ -64,15 +62,13 @@ function OTPVerification() {
 
   /*
    * Redirect when there is no pending signup.
-   *
-   * This effect performs navigation, not a synchronous
-   * local state update.
    */
   useEffect(() => {
     if (!signupData) {
       navigate("/businesses/mototribe/signup", {
         replace: true,
       });
+
       return;
     }
 
@@ -83,11 +79,7 @@ function OTPVerification() {
    * OTP expiry countdown.
    */
   useEffect(() => {
-    if (!signupData) {
-      return undefined;
-    }
-
-    if (timeLeft <= 0) {
+    if (!signupData || timeLeft <= 0) {
       return undefined;
     }
 
@@ -194,14 +186,13 @@ function OTPVerification() {
 
     const updatedOtp = Array(OTP_LENGTH).fill("");
 
-    pastedValue
-      .split("")
-      .forEach((digit, index) => {
-        updatedOtp[index] = digit;
-      });
+    pastedValue.split("").forEach((digit, index) => {
+      updatedOtp[index] = digit;
+    });
 
     setOtp(updatedOtp);
     setError("");
+    setSuccess("");
 
     const focusIndex = Math.min(
       pastedValue.length,
@@ -230,6 +221,7 @@ function OTPVerification() {
 
     setIsVerifying(true);
     setError("");
+    setSuccess("");
 
     /*
      * Demo OTP.
@@ -268,7 +260,9 @@ function OTPVerification() {
         "mototribe_pending_signup"
       );
 
-      setSuccess("Phone number verified successfully.");
+      setSuccess(
+        "Phone number verified successfully."
+      );
 
       window.setTimeout(() => {
         navigate("/businesses/mototribe/profile-setup");
@@ -277,6 +271,7 @@ function OTPVerification() {
       setError(
         "Unable to save verification details. Please try again."
       );
+
       setIsVerifying(false);
     }
   };
@@ -290,6 +285,7 @@ function OTPVerification() {
       navigate("/businesses/mototribe/signup", {
         replace: true,
       });
+
       return;
     }
 
@@ -310,9 +306,7 @@ function OTPVerification() {
 
       setOtp(Array(OTP_LENGTH).fill(""));
       setTimeLeft(OTP_EXPIRY_SECONDS);
-      setResendCooldown(
-        RESEND_COOLDOWN_SECONDS
-      );
+      setResendCooldown(RESEND_COOLDOWN_SECONDS);
       setError("");
       setSuccess("A new OTP has been sent.");
 
@@ -329,13 +323,36 @@ function OTPVerification() {
   }
 
   return (
-    <section className="otp-verification-page">
-      <div className="otp-verification-container">
-        <div className="otp-verification-card">
-          <div className="otp-header">
-            <span className="otp-eyebrow">
+    <section className="moto-otp-page">
+      <div className="moto-otp-background">
+        <div className="moto-otp-grid" />
+        <div className="moto-otp-glow moto-otp-glow-one" />
+        <div className="moto-otp-glow moto-otp-glow-two" />
+      </div>
+
+      <div className="moto-otp-wrapper">
+        <a
+          href="/businesses/mototribe"
+          className="moto-otp-logo"
+        >
+          <span className="moto-otp-logo-mark">
+            MT
+          </span>
+
+          <span className="moto-otp-logo-text">
+            MOTO<span>TRIBE</span>
+          </span>
+        </a>
+
+        <div className="moto-otp-card">
+          <div className="moto-otp-icon">
+            <span>✓</span>
+          </div>
+
+          <div className="moto-otp-header">
+            <p className="moto-otp-eyebrow">
               MOTOTRIBE / VERIFICATION
-            </span>
+            </p>
 
             <h1>
               VERIFY
@@ -347,19 +364,18 @@ function OTPVerification() {
               Enter the verification code sent to your
               registered mobile number.
             </p>
-          </div>
-
-          <div className="otp-contact">
-            <span>VERIFICATION TARGET</span>
 
             <strong>
               {signupData.phone || "Registered number"}
             </strong>
           </div>
 
-          <form onSubmit={verifyOtp}>
+          <form
+            className="moto-otp-form"
+            onSubmit={verifyOtp}
+          >
             <div
-              className="otp-input-group"
+              className="moto-otp-inputs"
               onPaste={handlePaste}
             >
               {otp.map((digit, index) => (
@@ -368,6 +384,11 @@ function OTPVerification() {
                   ref={(element) => {
                     inputRefs.current[index] = element;
                   }}
+                  className={
+                    error
+                      ? "moto-otp-input moto-otp-input-error"
+                      : "moto-otp-input"
+                  }
                   type="text"
                   inputMode="numeric"
                   maxLength={1}
@@ -391,51 +412,72 @@ function OTPVerification() {
               ))}
             </div>
 
-            <div className="otp-timer">
-              <span>CODE EXPIRES IN</span>
+            <div className="moto-otp-status">
+              {timeLeft > 0 ? (
+                <div className="moto-otp-timer">
+                  <span className="moto-otp-timer-dot" />
 
-              <strong
-                className={
-                  timeLeft <= 30
-                    ? "otp-expiring"
-                    : ""
-                }
-              >
-                {formatTime(timeLeft)}
-              </strong>
+                  <span>
+                    CODE EXPIRES IN
+                  </span>
+
+                  <strong>
+                    {formatTime(timeLeft)}
+                  </strong>
+                </div>
+              ) : (
+                <span className="moto-otp-expired">
+                  OTP EXPIRED
+                </span>
+              )}
             </div>
 
             {error && (
               <div
-                className="otp-message otp-error"
+                className="moto-otp-message moto-otp-message-error"
                 role="alert"
               >
-                {error}
+                <span>!</span>
+                <div>{error}</div>
               </div>
             )}
 
             {success && (
               <div
-                className="otp-message otp-success"
+                className="moto-otp-message moto-otp-message-success"
                 role="status"
               >
-                {success}
+                <span>✓</span>
+                <div>{success}</div>
               </div>
             )}
 
             <button
               type="submit"
-              className="verify-otp-button"
-              disabled={isVerifying || timeLeft <= 0}
+              className="moto-otp-verify"
+              disabled={
+                isVerifying ||
+                timeLeft <= 0
+              }
             >
-              {isVerifying
-                ? "VERIFYING..."
-                : "VERIFY OTP"}
+              {isVerifying ? (
+                <>
+                  <span className="moto-otp-spinner" />
+                  <span>VERIFYING...</span>
+                </>
+              ) : (
+                <>
+                  <span>VERIFY OTP</span>
+                  <span>→</span>
+                </>
+              )}
             </button>
           </form>
 
-          <div className="otp-resend">
-            <span>HAVEN&apos;T RECEIVED THE CODE?</span>
+          <div className="moto-otp-resend">
+            <span>
+              HAVEN&apos;T RECEIVED THE CODE?
+            </span>
 
             <button
               type="button"
@@ -448,13 +490,22 @@ function OTPVerification() {
             </button>
           </div>
 
-          <div className="otp-demo-note">
-            <span>DEMO MODE</span>
+          <div className="moto-otp-help">
+            <p>DEMO MODE</p>
 
-            <p>
-              Test OTP: <strong>123456</strong>
-            </p>
+            <strong>{DEMO_OTP}</strong>
           </div>
+
+          <a
+            href="/businesses/mototribe/signup"
+            className="moto-otp-back"
+          >
+            ← BACK TO SIGN UP
+          </a>
+        </div>
+
+        <div className="moto-otp-footer">
+          MOTOTRIBE / RIDE TOGETHER
         </div>
       </div>
     </section>

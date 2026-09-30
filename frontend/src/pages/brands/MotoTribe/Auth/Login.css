@@ -104,9 +104,10 @@
   place-items: center;
   border: 1px solid rgba(198, 161, 91, 0.7);
   color: #c6a15b;
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 1px;
+}
+
+.moto-login-brand strong {
+  color: #d6a84f;
 }
 
 .moto-login-logo-text {
@@ -122,6 +123,16 @@
 .moto-login-logo:focus-visible {
   outline: 1px solid #c6a15b;
   outline-offset: 6px;
+}
+
+.moto-login-badge {
+  width: fit-content;
+  margin: 0 auto 20px;
+  padding: 7px 14px;
+  border: 1px solid rgba(214, 168, 79, 0.4);
+  color: #d6a84f;
+  font-size: 13px;
+  letter-spacing: 2px;
 }
 
 /* =========================
@@ -159,7 +170,8 @@
   letter-spacing: 3px;
 }
 
-.moto-login-header h1 {
+.moto-login-header h1,
+.moto-login-card h1 {
   margin: 0;
   color: #f4f1e9;
   font-size: 30px;
@@ -167,9 +179,22 @@
   font-weight: 700;
 }
 
+.moto-login-card h1 {
+  text-align: center;
+  font-size: clamp(32px, 5vw, 43px);
+  letter-spacing: -1.5px;
+}
+
 .moto-login-header p {
   margin: 11px 0 0;
   color: #777a7c;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.moto-login-description {
+  text-align: center;
+  color: #858585;
   font-size: 13px;
   line-height: 1.6;
 }
@@ -184,13 +209,15 @@
   gap: 19px;
 }
 
-.moto-login-form-group {
+.moto-login-form-group,
+.moto-login-field {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.moto-login-form-group label {
+.moto-login-form-group label,
+.moto-login-field label {
   color: #b7b4ac;
   font-size: 11px;
   font-weight: 700;
@@ -203,7 +230,8 @@
   color: #c6a15b;
 }
 
-.moto-login-form-group input {
+.moto-login-form-group input,
+.moto-login-field input {
   width: 100%;
   height: 48px;
   padding: 0 14px;
@@ -219,17 +247,20 @@
     box-shadow 0.2s ease;
 }
 
-.moto-login-form-group input::placeholder {
+.moto-login-form-group input::placeholder,
+.moto-login-field input::placeholder {
   color: #55585a;
 }
 
-.moto-login-form-group input:focus {
+.moto-login-form-group input:focus,
+.moto-login-field input:focus {
   border-color: rgba(198, 161, 91, 0.8);
   background: #0f1112;
   box-shadow: 0 0 0 2px rgba(198, 161, 91, 0.08);
 }
 
-.moto-login-form-group input:focus-visible {
+.moto-login-form-group input:focus-visible,
+.moto-login-field input:focus-visible {
   outline: 1px solid rgba(198, 161, 91, 0.8);
   outline-offset: 2px;
 }
@@ -245,7 +276,8 @@
   gap: 15px;
 }
 
-.moto-forgot-password {
+.moto-forgot-password,
+.forgot-password {
   padding: 0;
   border: 0;
   background: transparent;
@@ -256,11 +288,13 @@
   letter-spacing: 0.5px;
 }
 
-.moto-forgot-password:hover {
+.moto-forgot-password:hover,
+.forgot-password:hover {
   color: #c6a15b;
 }
 
-.moto-forgot-password:focus-visible {
+.moto-forgot-password:focus-visible,
+.forgot-password:focus-visible {
   outline: 1px solid #c6a15b;
   outline-offset: 3px;
 }
@@ -305,7 +339,8 @@
    REMEMBER ME
 ========================= */
 
-.moto-remember-me {
+.moto-remember-me,
+.remember-option {
   position: relative;
   display: flex;
   align-items: center;
@@ -316,7 +351,8 @@
   font-size: 11px;
 }
 
-.moto-remember-me input {
+.moto-remember-me input,
+.remember-option input {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -358,6 +394,10 @@
   outline-offset: 3px;
 }
 
+.remember-option input {
+  accent-color: #d6a84f;
+}
+
 /* =========================
    MESSAGES
 ========================= */
@@ -383,6 +423,7 @@
 }
 
 .moto-login-error {
+  padding: 13px;
   border: 1px solid rgba(210, 90, 70, 0.35);
   background: rgba(130, 40, 30, 0.1);
   color: #d89a8e;
@@ -551,6 +592,21 @@
   outline-offset: 4px;
 }
 
+.moto-login-home {
+  display: block;
+  margin: 25px auto 0;
+  border: 0;
+  background: transparent;
+  color: #666;
+  font-size: 12px;
+  letter-spacing: 1.3px;
+  cursor: pointer;
+}
+
+.moto-login-home:hover {
+  color: #c6a15b;
+}
+
 /* =========================
    STATS
 ========================= */
@@ -596,10 +652,14 @@
 ========================= */
 
 .moto-login-footer {
+  width: 100%;
   margin: 22px 0 0;
+  padding-top: 20px;
+  border-top: 1px solid #202020;
   color: #414446;
   font-size: 9px;
   text-align: center;
+  letter-spacing: 1.4px;
 }
 
 /* =========================
@@ -622,6 +682,10 @@
 
   .moto-login-header h1 {
     font-size: 26px;
+  }
+
+  .moto-login-card h1 {
+    font-size: 32px;
   }
 
   .moto-login-stats {
@@ -654,7 +718,8 @@
 @media (prefers-reduced-motion: reduce) {
   .moto-login-submit,
   .moto-create-account span,
-  .moto-login-form-group input {
+  .moto-login-form-group input,
+  .moto-login-field input {
     transition: none;
   }
 

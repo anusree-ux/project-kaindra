@@ -1,14 +1,730 @@
+/* =========================================================
+   MODASPHERE — COMMON DESIGN
+   ========================================================= */
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+:root {
+  --ms-black: #151515;
+  --ms-white: #ffffff;
+  --ms-bg: #f7f6f3;
+  --ms-text: #171717;
+  --ms-muted: #5f6670;
+  --ms-gold: #c5964b;
+  --ms-border: #deddd9;
+}
+
+/* ---------- RESET ---------- */
+
+.moda-page {
+  width: 100%;
+  min-height: 100vh;
+  background: var(--ms-bg);
+  color: var(--ms-text);
+  font-family: "Inter", Arial, sans-serif;
+}
+
+.moda-page *,
+.moda-page *::before,
+.moda-page *::after {
+  box-sizing: border-box;
+}
+
+.moda-page h1,
+.moda-page h2,
+.moda-page h3,
+.moda-page h4,
+.moda-page p {
+  margin-top: 0;
+}
+
+.moda-page img {
+  max-width: 100%;
+  display: block;
+}
+
+/* =========================================================
+   COMMON CONTAINER
+   ========================================================= */
+
+.moda-container {
+  width: min(1180px, calc(100% - 48px));
+  margin: 0 auto;
+}
+
+/* =========================================================
+   COMMON PAGE SECTION
+   ========================================================= */
+
+.moda-section {
+  padding: 72px 0;
+}
+
+.moda-section--small {
+  padding: 55px 0;
+}
+
+/* =========================================================
+   PAGE HEADER
+   ========================================================= */
+
+.moda-page-header {
+  width: min(900px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 72px 0 48px;
+  text-align: center;
+}
+
+.moda-eyebrow {
+  margin-bottom: 14px;
+  color: var(--ms-gold);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+}
+
+.moda-page-header h1 {
+  margin: 0 auto 18px;
+  max-width: 850px;
+  font-size: clamp(42px, 5vw, 68px);
+  line-height: 1.05;
+  letter-spacing: -2.5px;
+  font-weight: 700;
+}
+
+.moda-page-header p {
+  max-width: 720px;
+  margin: 0 auto;
+  color: var(--ms-muted);
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+/* =========================================================
+   COMMON SECTION TITLE
+   ========================================================= */
+
+.moda-section-title {
+  max-width: 850px;
+  margin: 0 auto 42px;
+  text-align: center;
+}
+
+.moda-section-title h2 {
+  margin-bottom: 14px;
+  font-size: clamp(32px, 4vw, 48px);
+  line-height: 1.1;
+  letter-spacing: -1.5px;
+}
+
+.moda-section-title p {
+  max-width: 680px;
+  margin: 0 auto;
+  color: var(--ms-muted);
+  line-height: 1.7;
+}
+
+/* =========================================================
+   COMMON GRID
+   ========================================================= */
+
+.moda-grid {
+  display: grid;
+  gap: 24px;
+}
+
+.moda-grid-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.moda-grid-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.moda-grid-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+/* =========================================================
+   COMMON CARD
+   ========================================================= */
+
+.moda-card {
+  background: #fff;
+  border: 1px solid var(--ms-border);
+  padding: 32px;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.moda-card:hover {
+  transform: translateY(-4px);
+  border-color: #c9c7c2;
+  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.07);
+}
+
+.moda-card h3 {
+  margin-bottom: 12px;
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.moda-card p {
+  margin-bottom: 0;
+  color: var(--ms-muted);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+/* =========================================================
+   DARK CARD
+   ========================================================= */
+
+.moda-card-dark {
+  background: var(--ms-black);
+  color: white;
+  border-color: var(--ms-black);
+}
+
+.moda-card-dark p {
+  color: #d1d1d1;
+}
+
+/* =========================================================
+   IMAGES
+   ========================================================= */
+
+.moda-image {
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
+}
+
+.moda-image-small {
+  height: 220px;
+}
+
+/* =========================================================
+   ICON
+   ========================================================= */
+
+.moda-icon {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid var(--ms-gold);
+  border-radius: 50%;
+
+  color: var(--ms-gold);
+}
+
+/* =========================================================
+   LIST
+   ========================================================= */
+
+.moda-list {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.moda-list li {
+  position: relative;
+  padding: 10px 0 10px 22px;
+  color: var(--ms-muted);
+  line-height: 1.6;
+}
+
+.moda-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 18px;
+
+  width: 7px;
+  height: 7px;
+
+  border-radius: 50%;
+  background: var(--ms-gold);
+}
+
+/* =========================================================
+   REMOVE NUMBER LABELS
+   ========================================================= */
+
+.moda-number,
+.section-number,
+.number,
+[class*="number"] {
+  display: none !important;
+}
+
+/* =========================================================
+   HERO
+   ========================================================= */
+
+.moda-hero {
+  padding: 70px 0 75px;
+}
+
+.moda-hero-inner {
+  width: min(1180px, calc(100% - 48px));
+  margin: 0 auto;
+  text-align: center;
+}
+
+.moda-hero h1 {
+  max-width: 950px;
+  margin: 0 auto 20px;
+
+  font-size: clamp(48px, 7vw, 82px);
+  line-height: 0.98;
+  letter-spacing: -4px;
+}
+
+.moda-hero p {
+  max-width: 720px;
+  margin: 0 auto;
+
+  color: var(--ms-muted);
+  font-size: 18px;
+  line-height: 1.7;
+}
+
+/* =========================================================
+   VISION / MISSION
+   ========================================================= */
+
+.moda-vision-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.moda-vision-card {
+  min-height: 280px;
+  padding: 46px;
+  background: white;
+  border: 1px solid var(--ms-border);
+}
+
+.moda-vision-card.dark {
+  background: var(--ms-black);
+  color: white;
+  border-color: var(--ms-black);
+}
+
+.moda-vision-card .label {
+  margin-bottom: 35px;
+  color: var(--ms-gold);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+}
+
+.moda-vision-card h2 {
+  margin-bottom: 18px;
+  font-size: 34px;
+  line-height: 1.15;
+}
+
+.moda-vision-card p {
+  max-width: 580px;
+  margin: 0;
+  color: var(--ms-muted);
+  line-height: 1.7;
+}
+
+.moda-vision-card.dark p {
+  color: #d4d4d4;
+}
+
+/* =========================================================
+   ECOSYSTEM
+   ========================================================= */
+
+.moda-ecosystem {
+  padding: 70px 0;
+}
+
+.moda-ecosystem-content {
+  max-width: 1050px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.moda-ecosystem-content h2 {
+  margin-bottom: 18px;
+  font-size: clamp(38px, 5vw, 58px);
+  letter-spacing: -2px;
+}
+
+.moda-ecosystem-content > p {
+  max-width: 700px;
+  margin: 0 auto 45px;
+  color: var(--ms-muted);
+  line-height: 1.7;
+}
+
+/* =========================================================
+   PILLARS
+   ========================================================= */
+
+.moda-pillars-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border: 1px solid var(--ms-border);
+  background: white;
+}
+
+.moda-pillar {
+  min-height: 230px;
+  padding: 34px;
+  border-right: 1px solid var(--ms-border);
+  border-bottom: 1px solid var(--ms-border);
+}
+
+.moda-pillar:nth-child(even) {
+  border-right: none;
+}
+
+.moda-pillar:nth-last-child(-n + 2) {
+  border-bottom: none;
+}
+
+.moda-pillar h3 {
+  margin-bottom: 12px;
+  font-size: 25px;
+}
+
+.moda-pillar p {
+  color: var(--ms-muted);
+  line-height: 1.7;
+}
+
+/* =========================================================
+   VALUE PROPOSITION
+   ========================================================= */
+
+.moda-value-grid {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: 24px;
+}
+
+.moda-value-main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 350px;
+  padding: 40px;
+
+  background: var(--ms-black);
+  color: white;
+  text-align: center;
+}
+
+.moda-value-main h2 {
+  margin: 0;
+  font-size: 42px;
+  line-height: 1.1;
+}
+
+.moda-value-list {
+  padding: 35px;
+  background: white;
+  border: 1px solid var(--ms-border);
+}
+
+/* =========================================================
+   SUB ECOSYSTEMS / VERTICALS
+   ========================================================= */
+
+.moda-vertical-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.moda-vertical {
+  padding: 28px;
+  background: white;
+  border: 1px solid var(--ms-border);
+}
+
+.moda-vertical h3 {
+  margin-bottom: 10px;
+  font-size: 21px;
+}
+
+.moda-vertical p {
+  margin: 0;
+  color: var(--ms-muted);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+/* =========================================================
+   STAKEHOLDERS
+   ========================================================= */
+
+.moda-stakeholder-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.moda-stakeholder {
+  padding: 28px;
+  background: white;
+  border: 1px solid var(--ms-border);
+}
+
+.moda-stakeholder h3 {
+  font-size: 20px;
+}
+
+/* =========================================================
+   REVENUE
+   ========================================================= */
+
+.moda-revenue-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.moda-revenue-item {
+  padding: 28px;
+  background: white;
+  border: 1px solid var(--ms-border);
+}
+
+.moda-revenue-item h3 {
+  margin-bottom: 8px;
+  font-size: 21px;
+}
+
+.moda-revenue-item p {
+  margin: 0;
+  color: var(--ms-muted);
+  line-height: 1.65;
+}
+
+/* =========================================================
+   TECHNOLOGY
+   ========================================================= */
+
+.moda-tech-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.moda-tech-item {
+  padding: 25px;
+  background: white;
+  border: 1px solid var(--ms-border);
+}
+
+.moda-tech-item h3 {
+  font-size: 19px;
+  margin-bottom: 8px;
+}
+
+.moda-tech-item p {
+  color: var(--ms-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* =========================================================
+   GO TO MARKET
+   ========================================================= */
+
+.moda-goto-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.moda-goto-item {
+  padding: 28px;
+  background: white;
+  border: 1px solid var(--ms-border);
+}
+
+.moda-goto-item h3 {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.moda-goto-item p {
+  color: var(--ms-muted);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+/* =========================================================
+   LONG TERM IMPACT
+   ========================================================= */
+
+.moda-impact {
+  background: var(--ms-black);
+  color: white;
+}
+
+.moda-impact .moda-section-title p {
+  color: #d0d0d0;
+}
+
+.moda-impact-content {
+  max-width: 850px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.moda-impact-content h2 {
+  font-size: clamp(38px, 5vw, 58px);
+  line-height: 1.1;
+  letter-spacing: -2px;
+}
+
+.moda-impact-content p {
+  color: #d0d0d0;
+  font-size: 18px;
+  line-height: 1.8;
+}
+
+/* =========================================================
+   SUCCESS METRICS
+   ========================================================= */
+
+.moda-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.moda-metric {
+  padding: 28px;
+  text-align: center;
+  background: white;
+  border: 1px solid var(--ms-border);
+}
+
+.moda-metric h3 {
+  margin-bottom: 8px;
+  font-size: 22px;
+}
+
+.moda-metric p {
+  margin: 0;
+  color: var(--ms-muted);
+  font-size: 14px;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+  .moda-grid-3,
+  .moda-grid-4,
+  .moda-vertical-grid,
+  .moda-stakeholder-grid,
+  .moda-tech-grid,
+  .moda-goto-grid,
+  .moda-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .moda-value-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+
+  .moda-container,
+  .moda-hero-inner,
+  .moda-page-header {
+    width: min(100% - 32px, 1180px);
+  }
+
+  .moda-section {
+    padding: 55px 0;
+  }
+
+  .moda-hero {
+    padding: 55px 0;
+  }
+
+  .moda-hero h1 {
+    font-size: 46px;
+    letter-spacing: -2px;
+  }
+
+  .moda-page-header {
+    padding: 55px 0 35px;
+  }
+
+  .moda-page-header h1 {
+    font-size: 42px;
+    letter-spacing: -1.5px;
+  }
+
+  .moda-vision-grid,
+  .moda-pillars-grid,
+  .moda-revenue-grid,
+  .moda-grid-2,
+  .moda-grid-3,
+  .moda-grid-4,
+  .moda-vertical-grid,
+  .moda-stakeholder-grid,
+  .moda-tech-grid,
+  .moda-goto-grid,
+  .moda-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .moda-pillar {
+    border-right: none;
+  }
+
+  .moda-pillar:nth-last-child(-n + 2) {
+    border-bottom: 1px solid var(--ms-border);
+  }
+
+  .moda-pillar:last-child {
+    border-bottom: none;
+  }
+
+  .moda-vision-card {
+    padding: 32px;
+    min-height: auto;
+  }
+
+  .moda-section-title {
+    margin-bottom: 30px;
+  }
+}
+/* ModaSphere global reset */
 .modasphere-page {
   width: 100%;
   overflow-x: hidden;
-  background: #ffffff;
-  color: #171717;
 }
 
-.modasphere-page section {
-  width: 100%;
-}
-
-* {
+.modasphere-page * {
   box-sizing: border-box;
 }

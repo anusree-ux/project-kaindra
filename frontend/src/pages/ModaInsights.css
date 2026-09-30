@@ -1,0 +1,723 @@
+.modainsights-page {
+  background: #f7f5f1;
+  color: #171717;
+  min-height: 100vh;
+}
+
+.modainsights-container {
+  width: min(1180px, calc(100% - 48px));
+  margin: 0 auto;
+}
+
+/* HERO */
+
+.modainsights-hero {
+  background: #171717;
+  color: white;
+  min-height: 680px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.modainsights-hero .modainsights-container {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 60px;
+  align-items: center;
+}
+
+.modainsights-label,
+.modainsights-section-heading span,
+.modainsights-ai-box > span,
+.modainsights-cta > .modainsights-container > span,
+.global-content > span {
+  color: #bd8b46;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.modainsights-hero h1 {
+  margin: 20px 0;
+  max-width: 700px;
+  font-size: clamp(48px, 6vw, 82px);
+  line-height: 0.98;
+  font-weight: 500;
+  letter-spacing: -3px;
+}
+
+.modainsights-hero-content p {
+  max-width: 650px;
+  color: #bdbdbd;
+  font-size: 17px;
+  line-height: 1.8;
+}
+
+.modainsights-hero-actions {
+  display: flex;
+  gap: 14px;
+  margin-top: 35px;
+}
+
+.modainsights-primary-button,
+.modainsights-secondary-button,
+.modainsights-cta-button,
+.modainsights-ai-button {
+  border: 0;
+  text-decoration: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 14px 21px;
+  font-weight: 600;
+  transition: 0.25s ease;
+}
+
+.modainsights-primary-button,
+.modainsights-cta-button {
+  background: #bd8b46;
+  color: white;
+}
+
+.modainsights-primary-button:hover,
+.modainsights-cta-button:hover {
+  transform: translateY(-2px);
+}
+
+.modainsights-secondary-button {
+  background: transparent;
+  color: white;
+  border: 1px solid #555;
+}
+
+/* HERO VISUAL */
+
+.modainsights-hero-visual {
+  position: relative;
+  width: 430px;
+  height: 430px;
+  margin: auto;
+}
+
+.insights-orbit {
+  position: absolute;
+  border: 1px solid #4a4a4a;
+  border-radius: 50%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.insights-orbit span {
+  background: #171717;
+  color: #bd8b46;
+  padding: 5px 10px;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+}
+
+.insights-orbit-one {
+  width: 420px;
+  height: 420px;
+  top: 5px;
+  left: 5px;
+}
+
+.insights-orbit-two {
+  width: 310px;
+  height: 310px;
+  top: 60px;
+  left: 60px;
+}
+
+.insights-orbit-three {
+  width: 205px;
+  height: 205px;
+  top: 112px;
+  left: 112px;
+}
+
+.insights-center {
+  position: absolute;
+  width: 145px;
+  height: 145px;
+  top: 142px;
+  left: 142px;
+  border-radius: 50%;
+  background: #bd8b46;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.insights-center span {
+  font-size: 10px;
+  letter-spacing: 2px;
+  margin-top: 8px;
+}
+
+.insights-center strong {
+  font-size: 17px;
+  letter-spacing: 2px;
+}
+
+/* GENERAL SECTIONS */
+
+.modainsights-dashboard,
+.modainsights-customers,
+.modainsights-trends {
+  padding: 110px 0;
+}
+
+.modainsights-section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 50px;
+  margin-bottom: 50px;
+}
+
+.modainsights-section-heading.centered {
+  display: block;
+  text-align: center;
+}
+
+.modainsights-section-heading h2 {
+  margin: 15px 0 0;
+  font-size: clamp(38px, 5vw, 60px);
+  line-height: 1;
+  font-weight: 500;
+  letter-spacing: -2px;
+}
+
+.modainsights-section-heading p {
+  max-width: 470px;
+  color: #666;
+  line-height: 1.7;
+}
+
+/* TOOLBAR */
+
+.modainsights-toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.modainsights-filter,
+.modainsights-search {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #ddd;
+  background: white;
+  padding: 0 14px;
+}
+
+.modainsights-filter select,
+.modainsights-search input {
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-size: 14px;
+  color: #171717;
+}
+
+.modainsights-search {
+  width: 260px;
+}
+
+.modainsights-search input {
+  width: 100%;
+}
+
+/* METRICS */
+
+.modainsights-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.modainsights-metric-card {
+  background: white;
+  border: 1px solid #e3e0da;
+  padding: 28px;
+}
+
+.metric-icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  background: #f3eee7;
+  color: #bd8b46;
+  margin-bottom: 28px;
+}
+
+.modainsights-metric-card > span {
+  display: block;
+  color: #777;
+  font-size: 11px;
+  letter-spacing: 1.4px;
+}
+
+.modainsights-metric-card strong {
+  display: block;
+  font-size: 35px;
+  margin: 8px 0;
+  font-weight: 500;
+}
+
+.modainsights-metric-card small {
+  color: #888;
+}
+
+/* TRENDS */
+
+.modainsights-trends {
+  background: white;
+}
+
+.modainsights-trend-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+}
+
+.modainsights-trend-card {
+  border: 1px solid #ddd;
+  padding: 28px;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+}
+
+.trend-card-top {
+  display: flex;
+  justify-content: space-between;
+  color: #bd8b46;
+}
+
+.trend-card-top span {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  font-weight: 700;
+}
+
+.modainsights-trend-card h3 {
+  font-size: 24px;
+  font-weight: 500;
+  margin: 45px 0 15px;
+}
+
+.modainsights-trend-card p {
+  color: #666;
+  line-height: 1.7;
+}
+
+.trend-growth {
+  margin-top: auto;
+  border-top: 1px solid #ddd;
+  padding-top: 18px;
+}
+
+.trend-growth strong {
+  font-size: 25px;
+  color: #bd8b46;
+}
+
+.trend-growth span {
+  display: block;
+  color: #888;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.modainsights-no-results {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 70px;
+  border: 1px solid #ddd;
+}
+
+/* CUSTOMERS */
+
+.modainsights-customer-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.modainsights-customer-card {
+  background: white;
+  border: 1px solid #e1ddd7;
+  padding: 28px;
+}
+
+.customer-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.customer-card-header span {
+  font-size: 10px;
+  color: #bd8b46;
+  letter-spacing: 1.5px;
+}
+
+.customer-card-header h3 {
+  margin: 8px 0 0;
+  font-size: 23px;
+  font-weight: 500;
+}
+
+.customer-card-header svg {
+  color: #bd8b46;
+}
+
+.modainsights-customer-card p {
+  color: #666;
+  line-height: 1.6;
+}
+
+.customer-progress-top {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 25px;
+  font-size: 13px;
+}
+
+.customer-progress-top strong {
+  color: #bd8b46;
+}
+
+.customer-progress {
+  height: 6px;
+  background: #e8e5df;
+  margin-top: 10px;
+  overflow: hidden;
+}
+
+.customer-progress span {
+  height: 100%;
+  display: block;
+  background: #bd8b46;
+}
+
+/* AI */
+
+.modainsights-ai {
+  padding: 100px 0;
+  background: #171717;
+  color: white;
+}
+
+.modainsights-ai-box {
+  max-width: 850px;
+  margin: auto;
+  text-align: center;
+}
+
+.ai-icon {
+  width: 55px;
+  height: 55px;
+  margin: 0 auto 25px;
+  display: grid;
+  place-items: center;
+  background: #bd8b46;
+}
+
+.modainsights-ai-box h2 {
+  font-size: clamp(40px, 5vw, 64px);
+  line-height: 1;
+  font-weight: 500;
+  margin: 18px 0;
+}
+
+.modainsights-ai-box p {
+  color: #aaa;
+  line-height: 1.8;
+  max-width: 680px;
+  margin: auto;
+}
+
+.modainsights-ai-button {
+  margin-top: 30px;
+  background: white;
+  color: #171717;
+}
+
+/* GLOBAL */
+
+.modainsights-global {
+  padding: 110px 0;
+}
+
+.modainsights-global .modainsights-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 50px;
+}
+
+.global-content h2 {
+  font-size: clamp(40px, 5vw, 65px);
+  line-height: 1;
+  font-weight: 500;
+  margin: 20px 0;
+}
+
+.global-content p {
+  color: #666;
+  line-height: 1.7;
+  max-width: 600px;
+}
+
+.global-icon {
+  color: #bd8b46;
+}
+
+/* CTA */
+
+.modainsights-cta {
+  background: #bd8b46;
+  color: white;
+  padding: 110px 0;
+  text-align: center;
+}
+
+.modainsights-cta h2 {
+  font-size: clamp(40px, 5vw, 65px);
+  line-height: 1;
+  font-weight: 500;
+  margin: 20px 0;
+}
+
+.modainsights-cta p {
+  margin-bottom: 30px;
+}
+
+.modainsights-cta-button {
+  background: #171717;
+}
+
+/* MODAL */
+
+.modainsights-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modainsights-modal {
+  width: min(650px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  background: white;
+  padding: 30px;
+}
+
+.modainsights-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 30px;
+}
+
+.modainsights-modal-header span {
+  font-size: 10px;
+  color: #bd8b46;
+  letter-spacing: 1.5px;
+}
+
+.modainsights-modal-header h2 {
+  margin: 8px 0 0;
+  font-size: 30px;
+  font-weight: 500;
+}
+
+.modainsights-modal-header button {
+  border: 0;
+  background: #f1efeb;
+  width: 38px;
+  height: 38px;
+  cursor: pointer;
+}
+
+.modainsights-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.modainsights-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.modainsights-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.modainsights-form-group label {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.modainsights-form-group input,
+.modainsights-form-group select,
+.modainsights-form-group textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #ddd;
+  padding: 13px;
+  outline: none;
+  font-family: inherit;
+  background: white;
+}
+
+.modainsights-form-group input:focus,
+.modainsights-form-group select:focus,
+.modainsights-form-group textarea:focus {
+  border-color: #bd8b46;
+}
+
+.modainsights-form-group textarea {
+  resize: vertical;
+}
+
+.modainsights-submit-button {
+  border: 0;
+  background: #171717;
+  color: white;
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1000px) {
+  .modainsights-hero .modainsights-container {
+    grid-template-columns: 1fr;
+  }
+
+  .modainsights-hero {
+    padding: 90px 0;
+  }
+
+  .modainsights-hero-visual {
+    width: 360px;
+    height: 360px;
+  }
+
+  .insights-orbit-one {
+    width: 350px;
+    height: 350px;
+  }
+
+  .insights-orbit-two {
+    width: 260px;
+    height: 260px;
+    top: 50px;
+    left: 50px;
+  }
+
+  .insights-orbit-three {
+    width: 175px;
+    height: 175px;
+    top: 87px;
+    left: 87px;
+  }
+
+  .insights-center {
+    top: 117px;
+    left: 117px;
+  }
+
+  .modainsights-metrics,
+  .modainsights-trend-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .modainsights-container {
+    width: min(100% - 30px, 1180px);
+  }
+
+  .modainsights-hero h1 {
+    font-size: 48px;
+    letter-spacing: -2px;
+  }
+
+  .modainsights-hero-actions,
+  .modainsights-toolbar {
+    flex-direction: column;
+  }
+
+  .modainsights-secondary-button,
+  .modainsights-primary-button {
+    width: 100%;
+  }
+
+  .modainsights-search {
+    width: auto;
+  }
+
+  .modainsights-section-heading,
+  .modainsights-global .modainsights-container {
+    display: block;
+  }
+
+  .modainsights-section-heading h2 {
+    font-size: 42px;
+  }
+
+  .modainsights-metrics,
+  .modainsights-trend-grid,
+  .modainsights-customer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .modainsights-dashboard,
+  .modainsights-customers,
+  .modainsights-trends,
+  .modainsights-global {
+    padding: 75px 0;
+  }
+
+  .modainsights-hero-visual {
+    transform: scale(0.8);
+    margin: -30px auto;
+  }
+
+  .modainsights-form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .modainsights-modal {
+    padding: 22px;
+  }
+}

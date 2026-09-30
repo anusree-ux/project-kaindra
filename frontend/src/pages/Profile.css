@@ -1,0 +1,683 @@
+/* =====================================
+   KAINDRA ACCOUNT PROFILE (NAMESPACED)
+===================================== */
+
+.kp-page {
+  min-height: calc(100vh - 72px);
+  background-color: #f8fafc;
+  padding: 48px 24px 80px;
+  color: #0f172a;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+}
+
+.kp-container {
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* ---------------- Loading State ---------------- */
+.kp-loading-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 80px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.kp-spinner {
+  width: 42px;
+  height: 42px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #0f172a;
+  border-radius: 50%;
+  animation: kpSpin 0.8s linear infinite;
+}
+
+@keyframes kpSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.kp-loading-card p {
+  color: #64748b;
+  font-size: 15px;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* ---------------- Unauthenticated State ---------------- */
+.kp-unauth-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 60px 36px;
+  text-align: center;
+  max-width: 500px;
+  margin: 40px auto;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+}
+
+.kp-unauth-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.kp-unauth-card h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 12px;
+}
+
+.kp-unauth-card p {
+  color: #64748b;
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0 0 28px;
+}
+
+.kp-unauth-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.kp-btn-primary {
+  background: #0f172a;
+  color: #ffffff;
+  padding: 13px 24px;
+  border-radius: 8px;
+  border: none;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.kp-btn-primary:hover {
+  background: #1e293b;
+  transform: translateY(-1px);
+}
+
+.kp-btn-secondary {
+  background: transparent;
+  color: #475569;
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.2s ease;
+}
+
+.kp-btn-secondary:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+/* ---------------- Main Header Banner ---------------- */
+.kp-header-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 32px 36px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  gap: 24px;
+}
+
+.kp-header-left {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.kp-avatar {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
+}
+
+.kp-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #64748b;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.kp-user-name {
+  font-size: 26px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 10px;
+  letter-spacing: -0.5px;
+}
+
+.kp-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.kp-badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+.kp-badge-role {
+  background: #f1f5f9;
+  color: #334155;
+  border: 1px solid #e2e8f0;
+}
+
+.kp-badge-verified {
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+}
+
+.kp-badge-unverified {
+  background: #fffbeb;
+  color: #d97706;
+  border: 1px solid #fde68a;
+}
+
+.kp-logout-button {
+  background: #ffffff;
+  color: #dc2626;
+  border: 1px solid #fca5a5;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.kp-logout-button:hover {
+  background: #fef2f2;
+  border-color: #ef4444;
+  color: #b91c1c;
+}
+
+/* ---------------- Sections ---------------- */
+.kp-section-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 32px 36px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.kp-section-header {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.kp-orders-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.kp-section-header h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 4px;
+}
+
+.kp-section-subtitle {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+}
+
+.kp-order-count-chip {
+  background: #0f172a;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+/* ---------------- Account Details Field Cards ---------------- */
+.kp-fields-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.kp-field-item {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  background: #f8fafc !important;
+  padding: 18px 22px !important;
+  border-radius: 12px !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+.kp-field-label {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: #64748b !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1.2px !important;
+  margin: 0 !important;
+}
+
+.kp-field-value {
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  color: #0f172a !important;
+  word-break: break-all !important;
+  margin: 0 !important;
+}
+
+/* ---------------- Order History Table ---------------- */
+.kp-table-wrapper {
+  overflow-x: auto;
+  margin-top: 10px;
+}
+
+.kp-orders-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 14px;
+}
+
+.kp-orders-table th {
+  padding: 14px 16px;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  border-bottom: 2px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.kp-orders-table td {
+  padding: 18px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+  vertical-align: middle;
+}
+
+.kp-orders-table tbody tr {
+  transition: background 0.15s ease;
+}
+
+.kp-orders-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.kp-order-id-cell strong {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.kp-items-cell {
+  max-width: 260px;
+}
+
+.kp-items-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #1e293b;
+}
+
+.kp-date-cell {
+  color: #64748b;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+.kp-total-cell strong {
+  color: #0f172a;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+/* Brand Pills */
+.kp-brand-pill {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 3px 10px;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+.kp-brand-modamart {
+  background: #eef2ff;
+  color: #4338ca;
+  border: 1px solid #c7d2fe;
+}
+
+.kp-brand-modadrop {
+  background: #fdf2f8;
+  color: #be185d;
+  border: 1px solid #fbcfe8;
+}
+
+.kp-brand-mototribe {
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.kp-brand-kaindra {
+  background: #f1f5f9;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+}
+
+/* Status Badges */
+.kp-status-badge {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.kp-status-delivered {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.kp-status-shipped {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+.kp-status-processing,
+.kp-status-confirmed {
+  background: #fefce8;
+  color: #a16207;
+  border: 1px solid #fef08a;
+}
+
+.kp-status-cancelled {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+/* Order Empty & Loading States */
+.kp-orders-loading {
+  padding: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.kp-spinner-small {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #e2e8f0;
+  border-top-color: #0f172a;
+  border-radius: 50%;
+  animation: kpSpin 0.8s linear infinite;
+}
+
+.kp-orders-empty {
+  padding: 48px 24px;
+  text-align: center;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  margin-top: 10px;
+}
+
+.kp-empty-icon {
+  font-size: 40px;
+  margin-bottom: 12px;
+}
+
+.kp-orders-empty h3 {
+  font-size: 17px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 6px;
+}
+
+.kp-orders-empty p {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0 0 20px;
+}
+
+.kp-shop-btn {
+  display: inline-block;
+  background: #0f172a;
+  color: #ffffff;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.kp-shop-btn:hover {
+  background: #1e293b;
+  transform: translateY(-1px);
+}
+
+/* ---------------- Ecosystem Connected Cards ---------------- */
+.kp-ecosystem-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.kp-ecosystem-card {
+  border-radius: 14px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 20px;
+  transition: all 0.25s ease;
+}
+
+.kp-ecosystem-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.kp-card-mototribe {
+  background: #0d0f12;
+  border: 1px solid rgba(212, 160, 62, 0.35);
+  color: #ffffff;
+}
+
+.kp-card-mototribe .kp-ecosystem-tag {
+  color: #d4a03e;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.kp-card-mototribe h3 {
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+
+.kp-card-mototribe p {
+  color: #94a3b8;
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.kp-btn-mototribe {
+  background: rgba(212, 160, 62, 0.12);
+  color: #d4a03e;
+  border: 1px solid rgba(212, 160, 62, 0.4);
+  padding: 11px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  text-align: center;
+  transition: all 0.2s ease;
+  display: block;
+}
+
+.kp-btn-mototribe:hover {
+  background: #d4a03e;
+  color: #0d0f12;
+}
+
+.kp-card-modasphere {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #0f172a;
+}
+
+.kp-card-modasphere .kp-ecosystem-tag {
+  color: #4f46e5;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.kp-card-modasphere h3 {
+  color: #0f172a;
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+
+.kp-card-modasphere p {
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.kp-btn-modasphere {
+  background: #f8fafc;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  padding: 11px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  text-align: center;
+  transition: all 0.2s ease;
+  display: block;
+}
+
+.kp-btn-modasphere:hover {
+  background: #0f172a;
+  color: #ffffff;
+  border-color: #0f172a;
+}
+
+/* ---------------- Responsive ---------------- */
+@media (max-width: 768px) {
+  .kp-page {
+    padding: 24px 16px 60px;
+  }
+
+  .kp-header-card {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 24px;
+    gap: 20px;
+  }
+
+  .kp-header-left {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .kp-badge-row {
+    justify-content: center;
+  }
+
+  .kp-logout-button {
+    width: 100%;
+    text-align: center;
+  }
+
+  .kp-section-card {
+    padding: 24px 20px;
+  }
+
+  .kp-fields-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .kp-ecosystem-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .kp-orders-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

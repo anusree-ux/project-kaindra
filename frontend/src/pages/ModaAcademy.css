@@ -1,0 +1,864 @@
+/* =========================================
+   MODAACADEMY
+========================================= */
+
+.modaacademy-page {
+  background: #f7f5f1;
+  color: #171717;
+  overflow: hidden;
+}
+
+.modaacademy-container {
+  width: min(1180px, calc(100% - 48px));
+  margin: 0 auto;
+}
+
+/* =========================================
+   HERO
+========================================= */
+
+.modaacademy-hero {
+  min-height: 720px;
+  padding: 110px 0;
+  background: #171717;
+  color: white;
+  display: flex;
+  align-items: center;
+}
+
+.modaacademy-hero .modaacademy-container {
+  display: grid;
+  grid-template-columns: 1fr 0.8fr;
+  gap: 70px;
+  align-items: center;
+}
+
+.modaacademy-label {
+  display: block;
+  color: #bd8b46;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  margin-bottom: 24px;
+}
+
+.modaacademy-hero h1 {
+  margin: 0;
+  max-width: 700px;
+  font-size: clamp(52px, 7vw, 88px);
+  line-height: 0.98;
+  font-weight: 500;
+  letter-spacing: -4px;
+}
+
+.modaacademy-hero-content > p {
+  max-width: 600px;
+  margin: 32px 0 0;
+  color: rgba(255,255,255,0.65);
+  font-size: 17px;
+  line-height: 1.8;
+}
+
+.modaacademy-hero-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 35px;
+}
+
+.modaacademy-primary-button,
+.modaacademy-secondary-button {
+  min-height: 50px;
+  padding: 0 21px;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  transition: 0.25s ease;
+}
+
+.modaacademy-primary-button {
+  background: #bd8b46;
+  color: white;
+}
+
+.modaacademy-primary-button:hover {
+  background: #d19b54;
+  transform: translateY(-2px);
+}
+
+.modaacademy-secondary-button {
+  border: 1px solid rgba(255,255,255,0.25);
+  color: white;
+}
+
+.modaacademy-secondary-button:hover {
+  border-color: #bd8b46;
+  color: #bd8b46;
+}
+
+/* =========================================
+   HERO VISUAL
+========================================= */
+
+.modaacademy-hero-visual {
+  width: min(430px, 100%);
+  aspect-ratio: 1;
+  margin: auto;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.academy-orbit {
+  position: absolute;
+  border: 1px solid rgba(189,139,70,0.35);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  padding-top: 13px;
+  color: rgba(255,255,255,0.5);
+  font-size: 8px;
+  letter-spacing: 2px;
+}
+
+.academy-orbit-one {
+  width: 95%;
+  height: 95%;
+}
+
+.academy-orbit-two {
+  width: 72%;
+  height: 72%;
+}
+
+.academy-orbit-three {
+  width: 50%;
+  height: 50%;
+}
+
+.academy-center {
+  width: 175px;
+  height: 175px;
+  border-radius: 50%;
+  background: #bd8b46;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  box-shadow: 0 0 80px rgba(189,139,70,0.25);
+}
+
+.academy-center span {
+  margin-top: 12px;
+  font-size: 10px;
+  letter-spacing: 4px;
+}
+
+.academy-center strong {
+  margin-top: 5px;
+  font-size: 17px;
+  letter-spacing: 2px;
+}
+
+/* =========================================
+   SECTION HEADINGS
+========================================= */
+
+.modaacademy-section-heading > span {
+  display: block;
+  margin-bottom: 20px;
+  color: #bd8b46;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+}
+
+.modaacademy-section-heading h2 {
+  margin: 0;
+  font-size: clamp(38px, 5vw, 58px);
+  line-height: 1.08;
+  font-weight: 500;
+  letter-spacing: -2px;
+}
+
+.modaacademy-section-heading.centered {
+  max-width: 750px;
+  margin: 0 auto 65px;
+  text-align: center;
+}
+
+.modaacademy-section-heading.centered p {
+  margin: 20px auto 0;
+  max-width: 600px;
+  color: #777;
+  line-height: 1.7;
+}
+
+/* =========================================
+   INTRO
+========================================= */
+
+.modaacademy-intro {
+  padding: 120px 0;
+}
+
+.modaacademy-intro .modaacademy-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 90px;
+}
+
+.modaacademy-intro-text p {
+  margin: 0 0 22px;
+  color: #666;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+/* =========================================
+   COURSES
+========================================= */
+
+.modaacademy-courses {
+  padding: 120px 0;
+  background: white;
+}
+
+.modaacademy-course-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.modaacademy-course-card {
+  padding: 34px;
+  border: 1px solid #ddd9d2;
+  background: #fff;
+  transition: 0.3s ease;
+}
+
+.modaacademy-course-card:hover {
+  border-color: #bd8b46;
+  transform: translateY(-4px);
+}
+
+.modaacademy-course-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modaacademy-course-top > span {
+  color: #bd8b46;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.modaacademy-course-icon {
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #bd8b46;
+  border: 1px solid rgba(189,139,70,0.4);
+}
+
+.modaacademy-course-card h3 {
+  margin: 35px 0 14px;
+  font-size: 26px;
+  font-weight: 500;
+}
+
+.modaacademy-course-card > p {
+  margin: 0;
+  color: #707070;
+  line-height: 1.7;
+  font-size: 14px;
+}
+
+.modaacademy-course-meta {
+  display: flex;
+  gap: 20px;
+  margin-top: 25px;
+  color: #555;
+  font-size: 13px;
+}
+
+.modaacademy-course-meta span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.modaacademy-course-meta svg {
+  color: #bd8b46;
+}
+
+.modaacademy-course-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 25px;
+}
+
+.modaacademy-course-skills span {
+  padding: 7px 10px;
+  background: #f7f5f1;
+  color: #666;
+  font-size: 11px;
+}
+
+.modaacademy-enroll-button {
+  width: 100%;
+  margin-top: 30px;
+  min-height: 48px;
+  border: 0;
+  background: #171717;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.25s ease;
+}
+
+.modaacademy-enroll-button:hover {
+  background: #bd8b46;
+}
+
+/* =========================================
+   MY LEARNING
+========================================= */
+
+.modaacademy-my-learning {
+  padding: 120px 0;
+  background: #f7f5f1;
+}
+
+.modaacademy-no-learning {
+  padding: 70px 30px;
+  background: white;
+  border: 1px solid #ddd9d2;
+  text-align: center;
+}
+
+.modaacademy-no-learning svg {
+  color: #bd8b46;
+}
+
+.modaacademy-no-learning h3 {
+  margin: 20px 0 10px;
+  font-size: 22px;
+}
+
+.modaacademy-no-learning p {
+  margin: 0 auto 25px;
+  color: #777;
+}
+
+.modaacademy-no-learning a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #bd8b46;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.modaacademy-learning-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.modaacademy-learning-card {
+  padding: 30px;
+  background: white;
+  border: 1px solid #ddd9d2;
+}
+
+.learning-card-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.learning-card-header > div > span {
+  color: #bd8b46;
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+
+.learning-card-header h3 {
+  margin: 12px 0 0;
+  font-size: 21px;
+  font-weight: 600;
+}
+
+.learning-card-header > svg {
+  color: #bd8b46;
+  flex-shrink: 0;
+}
+
+.learning-card-info {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-top: 30px;
+}
+
+.learning-card-info div {
+  padding-top: 14px;
+  border-top: 1px solid #e5e1db;
+}
+
+.learning-card-info span {
+  display: block;
+  margin-bottom: 7px;
+  color: #999;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+}
+
+.learning-card-info strong {
+  font-size: 13px;
+}
+
+.learning-progress {
+  margin-top: 30px;
+}
+
+.learning-progress-top {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 9px;
+  font-size: 12px;
+}
+
+.learning-progress-bar {
+  height: 7px;
+  background: #e5e1db;
+  overflow: hidden;
+}
+
+.learning-progress-bar span {
+  display: block;
+  height: 100%;
+  background: #bd8b46;
+}
+
+/* =========================================
+   LEARNING AREAS
+========================================= */
+
+.modaacademy-areas {
+  padding: 120px 0;
+  background: white;
+}
+
+.modaacademy-areas-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: #ddd9d2;
+  border: 1px solid #ddd9d2;
+}
+
+.modaacademy-area-card {
+  padding: 34px;
+  background: white;
+  min-height: 220px;
+}
+
+.modaacademy-area-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #bd8b46;
+  border: 1px solid rgba(189,139,70,0.35);
+}
+
+.modaacademy-area-card h3 {
+  margin: 25px 0 12px;
+  font-size: 20px;
+}
+
+.modaacademy-area-card p {
+  margin: 0;
+  color: #707070;
+  line-height: 1.7;
+  font-size: 14px;
+}
+
+/* =========================================
+   PRACTICAL
+========================================= */
+
+.modaacademy-practical {
+  padding: 120px 0;
+  background: #171717;
+  color: white;
+}
+
+.modaacademy-practical
+  .modaacademy-section-heading
+  h2 {
+  color: white;
+}
+
+.modaacademy-practical
+  .modaacademy-section-heading
+  > span {
+  color: #bd8b46;
+}
+
+.modaacademy-practical
+  .modaacademy-section-heading
+  p {
+  color: rgba(255,255,255,0.6);
+}
+
+.modaacademy-practical-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+}
+
+.practical-card {
+  padding: 30px;
+  min-height: 260px;
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+.practical-card > span {
+  display: block;
+  margin-bottom: 35px;
+  color: #bd8b46;
+  font-size: 11px;
+  letter-spacing: 2px;
+}
+
+.practical-card svg {
+  color: #bd8b46;
+}
+
+.practical-card h3 {
+  margin: 20px 0 10px;
+  font-size: 22px;
+}
+
+.practical-card p {
+  margin: 0;
+  color: rgba(255,255,255,0.58);
+  line-height: 1.7;
+  font-size: 14px;
+}
+
+/* =========================================
+   CTA
+========================================= */
+
+.modaacademy-cta {
+  padding: 130px 0;
+  background: #bd8b46;
+  color: white;
+  text-align: center;
+}
+
+.modaacademy-cta > .modaacademy-container > span {
+  font-size: 11px;
+  letter-spacing: 3px;
+  font-weight: 700;
+}
+
+.modaacademy-cta h2 {
+  margin: 22px 0;
+  font-size: clamp(42px, 6vw, 70px);
+  line-height: 1;
+  font-weight: 500;
+  letter-spacing: -3px;
+}
+
+.modaacademy-cta p {
+  margin: 0 auto;
+  max-width: 550px;
+  color: rgba(255,255,255,0.8);
+}
+
+.modaacademy-cta-button {
+  margin-top: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 50px;
+  padding: 0 23px;
+  background: #171717;
+  color: white;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* =========================================
+   MODAL
+========================================= */
+
+.modaacademy-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  padding: 30px;
+  background: rgba(0,0,0,0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+}
+
+.modaacademy-modal {
+  width: min(560px, 100%);
+  background: white;
+  padding: 32px;
+  position: relative;
+}
+
+.modaacademy-modal-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 25px;
+  border-bottom: 1px solid #e1ddd6;
+}
+
+.modaacademy-modal-header > div > span {
+  color: #bd8b46;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.modaacademy-modal-header h2 {
+  margin: 12px 0 0;
+  font-size: 25px;
+  line-height: 1.2;
+}
+
+.modaacademy-modal-close {
+  width: 38px;
+  height: 38px;
+  border: 1px solid #ddd9d2;
+  background: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modaacademy-selected-course {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin: 22px 0;
+  padding: 16px;
+  background: #f7f5f1;
+}
+
+.modaacademy-selected-course svg {
+  color: #bd8b46;
+}
+
+.modaacademy-selected-course strong {
+  display: block;
+  font-size: 14px;
+}
+
+.modaacademy-selected-course span {
+  display: block;
+  margin-top: 4px;
+  color: #777;
+  font-size: 12px;
+}
+
+.modaacademy-form {
+  display: grid;
+  gap: 17px;
+}
+
+.modaacademy-form-group label {
+  display: block;
+  margin-bottom: 7px;
+  color: #444;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.modaacademy-form-group input,
+.modaacademy-form-group select {
+  width: 100%;
+  height: 46px;
+  padding: 0 13px;
+  border: 1px solid #d8d4cd;
+  background: white;
+  outline: none;
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.modaacademy-form-group input:focus,
+.modaacademy-form-group select:focus {
+  border-color: #bd8b46;
+}
+
+.modaacademy-input-wrapper {
+  position: relative;
+}
+
+.modaacademy-input-wrapper svg {
+  position: absolute;
+  left: 13px;
+  top: 14px;
+  color: #999;
+}
+
+.modaacademy-input-wrapper input {
+  padding-left: 40px;
+}
+
+.modaacademy-submit-button {
+  height: 50px;
+  margin-top: 5px;
+  border: 0;
+  background: #171717;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.modaacademy-submit-button:hover {
+  background: #bd8b46;
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 1000px) {
+  .modaacademy-hero .modaacademy-container {
+    grid-template-columns: 1fr;
+  }
+
+  .modaacademy-hero-visual {
+    max-width: 380px;
+  }
+
+  .modaacademy-intro .modaacademy-container {
+    gap: 50px;
+  }
+
+  .modaacademy-areas-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .modaacademy-practical-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .modaacademy-container {
+    width: min(100% - 32px, 600px);
+  }
+
+  .modaacademy-hero {
+    padding: 85px 0;
+  }
+
+  .modaacademy-hero h1 {
+    font-size: 48px;
+    letter-spacing: -2px;
+  }
+
+  .modaacademy-hero-actions {
+    flex-direction: column;
+  }
+
+  .modaacademy-primary-button,
+  .modaacademy-secondary-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .modaacademy-hero-visual {
+    max-width: 320px;
+  }
+
+  .academy-center {
+    width: 140px;
+    height: 140px;
+  }
+
+  .modaacademy-intro,
+  .modaacademy-courses,
+  .modaacademy-my-learning,
+  .modaacademy-areas,
+  .modaacademy-practical {
+    padding: 85px 0;
+  }
+
+  .modaacademy-intro .modaacademy-container {
+    grid-template-columns: 1fr;
+  }
+
+  .modaacademy-section-heading h2 {
+    font-size: 38px;
+  }
+
+  .modaacademy-course-grid,
+  .modaacademy-learning-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .modaacademy-areas-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .modaacademy-practical-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .learning-card-info {
+    grid-template-columns: 1fr;
+  }
+
+  .modaacademy-modal-overlay {
+    padding: 15px;
+  }
+
+  .modaacademy-modal {
+    padding: 24px;
+  }
+
+  .modaacademy-cta {
+    padding: 90px 0;
+  }
+
+  .modaacademy-cta h2 {
+    font-size: 43px;
+    letter-spacing: -2px;
+  }
+}

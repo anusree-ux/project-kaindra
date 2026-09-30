@@ -4,43 +4,62 @@ import "./Hero.css";
 const slides = [
   {
     image:
-      "https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&w=2000&q=85",
-  },
-  {
-    image:
-      "https://images.unsplash.com/photo-1525160354320-d8e92641c563?auto=format&fit=crop&w=2000&q=85",
-  },
-  {
-    image:
-      "https://images.unsplash.com/photo-1502744688674-c619d1586c9e?auto=format&fit=crop&w=2000&q=85",
-  },
-  {
-    image:
-      "https://images.unsplash.com/photo-1558980394-0c6f9f5f4b4f?auto=format&fit=crop&w=2000&q=85",
+      "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=2200&q=90",
+    category: "HAUTE COUTURE",
   },
 
-  // Business
   {
     image:
-      "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=2000&q=85",
+      "https://images.unsplash.com/photo-1523398002811-999ca8dec234?auto=format&fit=crop&w=2200&q=90",
+    category: "STREETWEAR & URBAN",
   },
 
-  // Community / people
   {
     image:
-      "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=2000&q=85",
+      "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=2200&q=90",
+    category: "ETHNIC & CULTURAL",
   },
 
-  // Business / teamwork
   {
     image:
-      "https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=2000&q=85",
+      "https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=2200&q=90",
+    category: "FAST FASHION",
   },
 
-  // Travel / community
   {
     image:
-      "https://images.unsplash.com/photo-1527529482837-4698179dc6ce?auto=format&fit=crop&w=2000&q=85",
+      "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=2200&q=90",
+    category: "SUSTAINABLE & ETHICAL",
+  },
+
+  {
+    image:
+      "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=2200&q=90",
+    category: "LUXURY & DESIGNER",
+  },
+
+  {
+    image:
+      "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=2200&q=90",
+    category: "TECH-INTEGRATED FASHION",
+  },
+
+  {
+    image:
+      "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=2200&q=90",
+    category: "ACTIVEWEAR & ATHLEISURE",
+  },
+
+  {
+    image:
+      "https://images.unsplash.com/photo-1537832816519-689ad163238b?auto=format&fit=crop&w=2200&q=90",
+    category: "AVANT-GARDE",
+  },
+
+  {
+    image:
+      "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=2200&q=90",
+    category: "GLOBAL FASHION ECOSYSTEM",
   },
 ];
 
@@ -48,84 +67,124 @@ function Hero() {
   const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    const sliderTimer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length);
-    }, 1200);
+    }, 5000);
 
-    return () => clearInterval(interval);
+    return () => clearInterval(sliderTimer);
   }, []);
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % slides.length);
+  };
+
+  const previousSlide = () => {
+    setCurrentSlide(
+      (prev) => (prev - 1 + slides.length) % slides.length
+    );
+  };
 
   return (
     <section className="hero">
 
-      <div className="hero-slides">
+      {/* BACKGROUND SLIDER */}
+      <div className="hero-background">
         {slides.map((slide, index) => (
           <div
             key={index}
             className={`hero-slide ${
               index === currentSlide ? "active" : ""
             }`}
-            style={{
-              backgroundImage: `url(${slide.image})`,
-            }}
-          />
+          >
+            <img
+              src={slide.image}
+              alt={`${slide.category} fashion`}
+            />
+          </div>
         ))}
+
+        <div className="hero-overlay"></div>
+        <div className="hero-gradient"></div>
       </div>
 
-      <div className="hero-overlay"></div>
-
+      {/* HERO CONTENT */}
       <div className="container hero-content">
-
-        <p className="hero-label">
-          KAINDRA
-        </p>
+        <p className="hero-label">KAINDRA PRESENTS</p>
 
         <h1>
-          Ride beyond
+          The Future of
           <br />
-          the ordinary.
+          <span>Fashion.</span>
         </h1>
 
         <p className="hero-text">
-          Discover journeys, businesses and experiences
-          built around the freedom to explore.
+          ModaSphere brings fashion, culture, technology,
+          sustainability, and innovation together in one
+          connected global ecosystem.
         </p>
 
         <div className="hero-buttons">
-
-          <a
-            href="#businesses"
-            className="hero-primary"
-          >
-            Explore Businesses
+          <a href="#modasphere" className="hero-primary">
+            Explore ModaSphere
           </a>
 
-          <a
-            href="#about"
-            className="hero-secondary"
-          >
-            Discover KAINDRA
+          <a href="#about" className="hero-secondary">
+            Discover Kaindra
           </a>
+        </div>
+      </div>
 
+      {/* SLIDER CONTROLS */}
+      <div className="hero-slider">
+        <button
+          type="button"
+          className="hero-arrow"
+          onClick={previousSlide}
+          aria-label="Previous slide"
+        >
+          ←
+        </button>
+
+        <div className="hero-dots">
+          {slides.map((slide, index) => (
+            <button
+              key={index}
+              type="button"
+              className={`hero-dot ${
+                index === currentSlide ? "active" : ""
+              }`}
+              onClick={() => setCurrentSlide(index)}
+              aria-label={`Go to ${slide.category} slide`}
+            />
+          ))}
         </div>
 
+        <button
+          type="button"
+          className="hero-arrow"
+          onClick={nextSlide}
+          aria-label="Next slide"
+        >
+          →
+        </button>
       </div>
 
-      <div className="hero-indicators">
+      {/* CURRENT SLIDE CATEGORY */}
+      <div className="hero-slide-info">
+        <span>
+          {String(currentSlide + 1).padStart(2, "0")}
+        </span>
 
-        {slides.map((_, index) => (
-          <button
-            key={index}
-            className={
-              index === currentSlide ? "active" : ""
-            }
-            onClick={() => setCurrentSlide(index)}
-            aria-label={`Go to slide ${index + 1}`}
-          />
-        ))}
+        <i></i>
 
+        <p>{slides[currentSlide].category}</p>
       </div>
 
+      {/* SCROLL */}
+      <div className="hero-scroll">
+        <span></span>
+        <p>Scroll to explore</p>
+      </div>
     </section>
   );
 }
