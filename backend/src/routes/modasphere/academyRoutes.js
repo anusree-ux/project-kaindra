@@ -70,6 +70,7 @@ router.post(
 // Public - Get student's enrollments by email
 router.get(
   "/enrollments/my",
+  protect,
   getAcademyMyEnrollments
 );
 

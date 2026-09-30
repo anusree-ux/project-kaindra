@@ -1,12 +1,16 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContextObject";
 
 function Login() {
   const navigate = useNavigate();
+  const { login } = useAuth();
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -15,46 +19,33 @@ function Login() {
       ...formData,
       [e.target.name]: e.target.value,
     });
+
     setError("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     setLoading(true);
     setError("");
 
     try {
-      const apiBase = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api/";
-      const endpoint = apiBase.endsWith("/")
-        ? `${apiBase}v1/auth/login`
-        : `${apiBase}/v1/auth/login`;
+      const result = await login(
+        formData.email,
+        formData.password
+      );
 
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Login failed. Please check your credentials.");
+      if (!result.success) {
+        setError(result.message || "Login failed.");
+        return;
       }
 
-      // Store tokens
-      if (data.accessToken) {
-        localStorage.setItem("token", data.accessToken);
-        localStorage.setItem("user", JSON.stringify(data.data.user));
-      }
+      console.log("LOGIN SUCCESS");
 
       navigate("/");
     } catch (err) {
-      setError(err.message);
+      console.error("LOGIN ERROR:", err);
+      setError(err.message || "Login failed.");
     } finally {
       setLoading(false);
     }
@@ -125,12 +116,21 @@ function Login() {
             style={inputStyle}
           />
 
-          <button type="submit" disabled={loading} style={buttonStyle}>
+          <button
+            type="submit"
+            disabled={loading}
+            style={buttonStyle}
+          >
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 
-        <p style={{ marginTop: "20px", fontSize: "14px" }}>
+        <p
+          style={{
+            marginTop: "20px",
+            fontSize: "14px",
+          }}
+        >
           Don&apos;t have an account?{" "}
           <Link to="/signup">Sign up</Link>
         </p>

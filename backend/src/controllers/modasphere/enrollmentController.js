@@ -67,33 +67,21 @@ const createEnrollment = async (req, res) => {
 };
 
 // Student - Get enrollments using email
-const getMyEnrollments = async (req, res) => {
+const getMyEnrollments = async (req, res, next) => {
   try {
-    const { email } = req.query;
-
-    if (!email) {
-      return res.status(400).json({
-        success: false,
-        message: "Email is required",
-      });
-    }
-
     const enrollments = await ModaAcademyEnrollment.find({
-      email: email.toLowerCase(),
-    }).sort({ enrolledAt: -1 });
+      email: req.user.email,
+    }).sort({
+      enrolledAt: -1,
+    });
 
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       count: enrollments.length,
       data: enrollments,
     });
   } catch (error) {
-    console.error("Get academy enrollments error:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Failed to fetch enrollments",
-    });
+    next(error);
   }
 };
 
