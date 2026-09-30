@@ -26,7 +26,9 @@ const adminRoutes = require("./routes/core/adminRoutes");
 const orderRoutes = require("./routes/core/orderRoutes");
 const talesRoutes = require("./routes/modasphere/talesRoutes");
 const academyRoutes = require("./routes/modasphere/academyRoutes");
-const influenceRoutes = require("./routes/modasphere/modainfluence/influenceRoutes");
+const influenceRoutes = require(
+  "./routes/modasphere/modainfluence/influenceRoutes"
+);
 const errorHandler = require("./middleware/errorHandler");
 
 const app = express();

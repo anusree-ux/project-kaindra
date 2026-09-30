@@ -128,21 +128,6 @@ function AdminDashboard() {
   };
 
   // =============================
-  // Load ModaInfluence Campaigns
-  // =============================
-  const getInfluenceCampaigns = () => {
-    try {
-      const savedCampaigns = localStorage.getItem("modaInfluenceCampaigns");
-      if (!savedCampaigns) return [];
-      const campaigns = JSON.parse(savedCampaigns);
-      return Array.isArray(campaigns) ? campaigns : [];
-    } catch (error) {
-      console.error("Unable to load ModaInfluence campaigns:", error);
-      return [];
-    }
-  };
-
-  // =============================
   // Get Dashboard Data
   // =============================
   const localApplications = getApplications();
@@ -150,7 +135,7 @@ function AdminDashboard() {
   const productionRequests = getProductionRequests();
   const payments = getPayments();
   const academyEnrollments = getAcademyEnrollments();
-  const influenceCampaigns = getInfluenceCampaigns();
+  const influenceCampaignsCount = statsData.modaInfluence || 0;
 
   const totalApplications = statsData.applications || localApplications.length;
   const totalCommunity = statsData.communityMembers || localCommunityMembers.length;
@@ -229,7 +214,7 @@ function AdminDashboard() {
     },
     {
       title: "ModaInfluence",
-      value: influenceCampaigns.length,
+      value: influenceCampaignsCount,
       icon: Megaphone,
     },
   ];
@@ -559,9 +544,9 @@ function AdminDashboard() {
                 <h3>
                   ModaInfluence
 
-                  {influenceCampaigns.length > 0 && (
+                  {influenceCampaignsCount > 0 && (
                     <span className="application-count">
-                      {influenceCampaigns.length}
+                      {influenceCampaignsCount}
                     </span>
                   )}
                 </h3>
