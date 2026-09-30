@@ -18,6 +18,70 @@ function AdminInfluence() {
     useState(null);
   const [updatingStatus, setUpdatingStatus] = useState(false);
 
+  const handleDeleteCampaign = async (campaignId) => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      alert("You are not logged in.");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this campaign request?"
+    );
+
+    if (!confirmed) return;
+
+    const apiBase =
+      import.meta.env.VITE_API_BASE_URL ||
+      "http://localhost:5000/api/";
+
+    const endpoint = apiBase.endsWith("/")
+      ? `${apiBase}modasphere/influence/campaigns/${campaignId}`
+      : `${apiBase}/modasphere/influence/campaigns/${campaignId}`;
+
+    try {
+      const response = await fetch(endpoint, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(
+          data.message ||
+            "Failed to delete campaign request"
+        );
+      }
+
+      setCampaigns((currentCampaigns) =>
+        currentCampaigns.filter(
+          (campaign) => campaign._id !== campaignId
+        )
+      );
+
+      if (
+        selectedCampaign &&
+        selectedCampaign._id === campaignId
+      ) {
+        setSelectedCampaign(null);
+      }
+    } catch (error) {
+      console.error(
+        "Delete campaign error:",
+        error
+      );
+
+      alert(
+        error.message ||
+          "Failed to delete campaign request"
+      );
+    }
+  };
+
   const handleStatusChange = async (newStatus) => {
     if (!selectedCampaign) return;
 
@@ -353,6 +417,18 @@ function AdminInfluence() {
                 <p>
                   {selectedCampaign.message || "—"}
                 </p>
+              </div>
+
+              <div className="admin-influence-delete-section">
+                <button
+                  type="button"
+                  className="admin-influence-delete-button"
+                  onClick={() =>
+                    handleDeleteCampaign(selectedCampaign._id)
+                  }
+                >
+                  Delete Campaign
+                </button>
               </div>
 
             </div>

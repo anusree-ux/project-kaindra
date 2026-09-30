@@ -10,6 +10,7 @@ const {
   getCampaigns,
   getCampaignById,
   updateCampaignStatus,
+  deleteCampaign,
 } = require(
   "../../../controllers/modasphere/modainfluence/influenceCampaignController"
 );
@@ -57,6 +58,14 @@ router.patch(
   protect,
   authorize("admin"),
   updateCampaignStatus
+);
+
+// Delete campaign request
+router.delete(
+  "/campaigns/:id",
+  protect,
+  authorize("admin"),
+  deleteCampaign
 );
 
 module.exports = router;

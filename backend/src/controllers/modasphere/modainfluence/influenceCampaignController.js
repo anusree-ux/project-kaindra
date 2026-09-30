@@ -139,9 +139,44 @@ const updateCampaignStatus = async (req, res) => {
   }
 };
 
+// =========================================
+// DELETE CAMPAIGN REQUEST
+// =========================================
+const deleteCampaign = async (req, res) => {
+  try {
+    const campaign = await InfluenceCampaign.findByIdAndDelete(
+      req.params.id
+    );
+
+    if (!campaign) {
+      return res.status(404).json({
+        success: false,
+        message: "Campaign request not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Campaign request deleted successfully",
+      data: campaign,
+    });
+  } catch (error) {
+    console.error(
+      "Delete influence campaign error:",
+      error
+    );
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete campaign request",
+    });
+  }
+};
+
 module.exports = {
   createCampaign,
   getCampaigns,
   getCampaignById,
   updateCampaignStatus,
+  deleteCampaign,
 };
