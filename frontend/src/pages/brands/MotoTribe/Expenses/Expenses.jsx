@@ -2,419 +2,627 @@ import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import "./Expenses.css";
 
-const defaultExpenses = [
+const EXPENSE_CATEGORIES = [
+  "FUEL",
+  "FOOD",
+  "STAY",
+  "SERVICE",
+  "TOLL",
+  "OTHER",
+];
+
+const CATEGORY_LABELS = {
+  FUEL: "Fuel",
+  FOOD: "Food",
+  STAY: "Stay",
+  SERVICE: "Service",
+  TOLL: "Toll",
+  OTHER: "Other",
+};
+
+const CATEGORY_ICONS = {
+  FUEL: "⛽",
+  FOOD: "🍴",
+  STAY: "⌂",
+  SERVICE: "⚙",
+  TOLL: "▣",
+  OTHER: "₹",
+};
+
+const DEFAULT_EXPENSES = [
   {
-    id: 1,
+    id: "expense-demo-1",
     category: "FUEL",
     description: "Fuel refill",
     amount: 1250,
-    date: "20 Sep 2026",
+    createdAt: new Date().toISOString(),
   },
   {
-    id: 2,
+    id: "expense-demo-2",
     category: "FOOD",
-    description: "Lunch stop",
+    description: "Roadside meal",
     amount: 450,
-    date: "20 Sep 2026",
+    createdAt: new Date().toISOString(),
   },
   {
-    id: 3,
+    id: "expense-demo-3",
     category: "STAY",
-    description: "Hotel",
+    description: "Hotel stay",
     amount: 1800,
-    date: "20 Sep 2026",
+    createdAt: new Date().toISOString(),
   },
 ];
+
+function createEmptyForm() {
+  return {
+    category: "FUEL",
+    description: "",
+    amount: "",
+  };
+}
+
+function getSafeExpenses(storageKey) {
+  try {
+    const storedExpenses = localStorage.getItem(storageKey);
+
+    if (!storedExpenses) {
+      return DEFAULT_EXPENSES;
+    }
+
+    const parsedExpenses = JSON.parse(storedExpenses);
+
+    if (!Array.isArray(parsedExpenses)) {
+      return DEFAULT_EXPENSES;
+    }
+
+    return parsedExpenses.filter(
+      (expense) =>
+        expense &&
+        typeof expense === "object" &&
+        typeof expense.id === "string" &&
+        typeof expense.category === "string" &&
+        EXPENSE_CATEGORIES.includes(expense.category) &&
+        typeof expense.amount === "number" &&
+        Number.isFinite(expense.amount) &&
+        expense.amount >= 0
+    );
+  } catch {
+    return DEFAULT_EXPENSES;
+  }
+}
 
 function Expenses() {
   const { rideId } = useParams();
 
-  const storageKey = `mototribeExpenses_${rideId}`;
+  const storageKey = `mototribeExpenses_${
+    rideId || "default"
+  }`;
 
-  const [expenses, setExpenses] = useState(() => {
-    try {
-      const savedExpenses = localStorage.getItem(storageKey);
-      if (savedExpenses) {
-        return JSON.parse(savedExpenses);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-    return defaultExpenses;
-  });
+  const [expenses, setExpenses] = useState(() =>
+    getSafeExpenses(storageKey)
+  );
+
   const [showForm, setShowForm] = useState(false);
-
-  const [form, setForm] = useState({
-    category: "FUEL",
-    description: "",
-    amount: "",
-  });
-
-  const saveExpenses = (updatedExpenses) => {
-    setExpenses(updatedExpenses);
-
-    localStorage.setItem(
-      storageKey,
-      JSON.stringify(updatedExpenses)
-    );
-  };
-
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-
-    setForm((previous) => ({
-      ...previous,
-      [name]: value,
-    }));
-  };
-
-  const addExpense = (event) => {
-    event.preventDefault();
-
-    if (!form.description.trim() || !form.amount) {
-      return;
-    }
-
-    const newExpense = {
-      id: Date.now(),
-      category: form.category,
-      description: form.description,
-      amount: Number(form.amount),
-      date: new Date().toLocaleDateString("en-IN", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      }),
-    };
-
-    saveExpenses([newExpense, ...expenses]);
-
-    setForm({
-      category: "FUEL",
-      description: "",
-      amount: "",
-    });
-
-    setShowForm(false);
-  };
-
-  const deleteExpense = (id) => {
-    const updatedExpenses = expenses.filter(
-      (expense) => expense.id !== id
-    );
-
-    saveExpenses(updatedExpenses);
-  };
+  const [form, setForm] = useState(createEmptyForm);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const totalExpense = useMemo(() => {
     return expenses.reduce(
-      (total, expense) => total + Number(expense.amount),
+      (total, expense) =>
+        total + Number(expense.amount || 0),
       0
     );
   }, [expenses]);
 
-  const fuelTotal = useMemo(() => {
-    return expenses
-      .filter((expense) => expense.category === "FUEL")
-      .reduce(
-        (total, expense) => total + Number(expense.amount),
-        0
-      );
+  const categoryTotals = useMemo(() => {
+    const totals = {};
+
+    EXPENSE_CATEGORIES.forEach((category) => {
+      totals[category] = 0;
+    });
+
+    expenses.forEach((expense) => {
+      if (totals[expense.category] !== undefined) {
+        totals[expense.category] += Number(
+          expense.amount || 0
+        );
+      }
+    });
+
+    return totals;
   }, [expenses]);
 
-  const foodTotal = useMemo(() => {
-    return expenses
-      .filter((expense) => expense.category === "FOOD")
-      .reduce(
-        (total, expense) => total + Number(expense.amount),
-        0
+  const saveExpenses = (updatedExpenses) => {
+    try {
+      localStorage.setItem(
+        storageKey,
+        JSON.stringify(updatedExpenses)
       );
-  }, [expenses]);
 
-  const stayTotal = useMemo(() => {
-    return expenses
-      .filter((expense) => expense.category === "STAY")
-      .reduce(
-        (total, expense) => total + Number(expense.amount),
-        0
-      );
-  }, [expenses]);
+      setExpenses(updatedExpenses);
 
-  const serviceTotal = useMemo(() => {
-    return expenses
-      .filter((expense) => expense.category === "SERVICE")
-      .reduce(
-        (total, expense) => total + Number(expense.amount),
-        0
+      return true;
+    } catch {
+      setError(
+        "Unable to save expenses. Please try again."
       );
-  }, [expenses]);
+
+      return false;
+    }
+  };
+
+  const handleInputChange = (event) => {
+    const { name, value } = event.target;
+
+    setForm((current) => ({
+      ...current,
+      [name]: value,
+    }));
+
+    setError("");
+    setSuccess("");
+  };
+
+  const handleAddExpense = (event) => {
+    event.preventDefault();
+
+    const description = form.description.trim();
+    const amount = Number(form.amount);
+
+    if (!description) {
+      setError("Please enter an expense description.");
+      return;
+    }
+
+    if (!form.amount || Number.isNaN(amount)) {
+      setError("Please enter a valid amount.");
+      return;
+    }
+
+    if (amount <= 0) {
+      setError(
+        "Expense amount must be greater than zero."
+      );
+      return;
+    }
+
+    if (amount > 1000000) {
+      setError(
+        "Please enter an amount below ₹10,00,000."
+      );
+      return;
+    }
+
+    const newExpense = {
+      id: `expense-${Date.now()}-${Math.random()
+        .toString(36)
+        .slice(2, 8)}`,
+      category: form.category,
+      description,
+      amount,
+      createdAt: new Date().toISOString(),
+    };
+
+    const updatedExpenses = [
+      newExpense,
+      ...expenses,
+    ];
+
+    const saved = saveExpenses(updatedExpenses);
+
+    if (!saved) {
+      return;
+    }
+
+    setForm(createEmptyForm());
+    setShowForm(false);
+    setSuccess("Expense added successfully.");
+  };
+
+  const handleDeleteExpense = (expenseId) => {
+    const shouldDelete = window.confirm(
+      "Are you sure you want to delete this expense?"
+    );
+
+    if (!shouldDelete) {
+      return;
+    }
+
+    const updatedExpenses = expenses.filter(
+      (expense) => expense.id !== expenseId
+    );
+
+    const saved = saveExpenses(updatedExpenses);
+
+    if (!saved) {
+      return;
+    }
+
+    setSuccess("Expense deleted successfully.");
+  };
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) {
+      return "Unknown date";
+    }
+
+    const date = new Date(dateString);
+
+    if (Number.isNaN(date.getTime())) {
+      return "Unknown date";
+    }
+
+    return date.toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  const getCategoryPercentage = (category) => {
+    if (!totalExpense) {
+      return 0;
+    }
+
+    return Math.round(
+      (categoryTotals[category] / totalExpense) * 100
+    );
+  };
+
+  const handleToggleForm = () => {
+    setShowForm((current) => !current);
+    setError("");
+    setSuccess("");
+  };
 
   return (
     <section className="moto-expenses">
-
-      <div className="expenses-container">
-
-        <div className="expenses-header">
+      <div className="moto-expenses-container">
+        {/* HEADER */}
+        <header className="moto-expenses-header">
           <div>
-            <span>RIDE JOURNAL</span>
+            <span className="moto-expenses-eyebrow">
+              MOTOTRIBE / RIDE EXPENSES
+            </span>
 
             <h1>RIDE EXPENSES</h1>
 
             <p>
-              Track fuel, food, accommodation and service
-              expenses for every journey.
+              Track fuel, food, stays, services, tolls,
+              and other ride-related expenses.
             </p>
           </div>
 
           <button
-            className="add-expense-button"
-            onClick={() => setShowForm(!showForm)}
+            type="button"
+            className="moto-expenses-add-button"
+            onClick={handleToggleForm}
           >
-            {showForm ? "CLOSE" : "+ ADD EXPENSE"}
+            {showForm ? "CLOSE FORM" : "+ ADD EXPENSE"}
           </button>
-        </div>
+        </header>
 
-        {showForm && (
-          <form
-            className="expense-form"
-            onSubmit={addExpense}
+        {/* MESSAGES */}
+        {error && (
+          <div
+            className="moto-expenses-message error"
+            role="alert"
           >
-
-            <div className="form-field">
-              <label>CATEGORY</label>
-
-              <select
-                name="category"
-                value={form.category}
-                onChange={handleChange}
-              >
-                <option value="FUEL">FUEL</option>
-                <option value="FOOD">FOOD</option>
-                <option value="STAY">STAY</option>
-                <option value="SERVICE">SERVICE</option>
-                <option value="OTHER">OTHER</option>
-              </select>
-            </div>
-
-            <div className="form-field">
-              <label>DESCRIPTION</label>
-
-              <input
-                type="text"
-                name="description"
-                placeholder="Example: Petrol refill"
-                value={form.description}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="form-field">
-              <label>AMOUNT</label>
-
-              <input
-                type="number"
-                name="amount"
-                placeholder="₹ Amount"
-                min="1"
-                value={form.amount}
-                onChange={handleChange}
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="save-expense-button"
-            >
-              SAVE EXPENSE
-            </button>
-
-          </form>
+            {error}
+          </div>
         )}
 
-        <div className="expense-summary">
+        {success && (
+          <div
+            className="moto-expenses-message success"
+            role="status"
+          >
+            {success}
+          </div>
+        )}
 
-          <div className="summary-card total">
+        {/* ADD FORM */}
+        {showForm && (
+          <div className="moto-expenses-form-card">
+            <div className="moto-expenses-form-header">
+              <span>NEW EXPENSE</span>
+
+              <p>
+                Add the expense details for this ride.
+              </p>
+            </div>
+
+            <form onSubmit={handleAddExpense}>
+              <div className="moto-expenses-form-grid">
+                <div className="moto-expenses-field">
+                  <label htmlFor="category">
+                    CATEGORY
+                  </label>
+
+                  <select
+                    id="category"
+                    name="category"
+                    value={form.category}
+                    onChange={handleInputChange}
+                  >
+                    {EXPENSE_CATEGORIES.map(
+                      (category) => (
+                        <option
+                          key={category}
+                          value={category}
+                        >
+                          {CATEGORY_LABELS[category]}
+                        </option>
+                      )
+                    )}
+                  </select>
+                </div>
+
+                <div className="moto-expenses-field">
+                  <label htmlFor="description">
+                    DESCRIPTION
+                  </label>
+
+                  <input
+                    id="description"
+                    name="description"
+                    type="text"
+                    value={form.description}
+                    onChange={handleInputChange}
+                    placeholder="Example: Fuel refill"
+                    maxLength={100}
+                    autoComplete="off"
+                  />
+                </div>
+
+                <div className="moto-expenses-field">
+                  <label htmlFor="amount">
+                    AMOUNT
+                  </label>
+
+                  <input
+                    id="amount"
+                    name="amount"
+                    type="number"
+                    value={form.amount}
+                    onChange={handleInputChange}
+                    placeholder="₹ 0"
+                    min="1"
+                    max="1000000"
+                    step="1"
+                    inputMode="numeric"
+                  />
+                </div>
+
+                <div className="moto-expenses-form-action">
+                  <button type="submit">
+                    SAVE EXPENSE
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* SUMMARY */}
+        <div className="moto-expenses-summary">
+          <div className="moto-expenses-summary-card primary">
             <span>TOTAL EXPENSE</span>
-            <strong>₹{totalExpense.toLocaleString("en-IN")}</strong>
+
+            <strong>
+              {formatCurrency(totalExpense)}
+            </strong>
+
+            <small>
+              {expenses.length} expense
+              {expenses.length === 1 ? "" : "s"} recorded
+            </small>
           </div>
 
-          <div className="summary-card">
+          <div className="moto-expenses-summary-card">
             <span>FUEL</span>
-            <strong>₹{fuelTotal.toLocaleString("en-IN")}</strong>
+
+            <strong>
+              {formatCurrency(categoryTotals.FUEL)}
+            </strong>
           </div>
 
-          <div className="summary-card">
+          <div className="moto-expenses-summary-card">
             <span>FOOD</span>
-            <strong>₹{foodTotal.toLocaleString("en-IN")}</strong>
+
+            <strong>
+              {formatCurrency(categoryTotals.FOOD)}
+            </strong>
           </div>
 
-          <div className="summary-card">
+          <div className="moto-expenses-summary-card">
             <span>STAY</span>
-            <strong>₹{stayTotal.toLocaleString("en-IN")}</strong>
-          </div>
 
-          <div className="summary-card">
-            <span>SERVICE</span>
-            <strong>₹{serviceTotal.toLocaleString("en-IN")}</strong>
+            <strong>
+              {formatCurrency(categoryTotals.STAY)}
+            </strong>
           </div>
-
         </div>
 
-        <div className="expenses-content">
-
-          <div className="expenses-list-section">
-
-            <div className="section-title">
-              <span>01</span>
-              <h2>EXPENSE HISTORY</h2>
+        {/* MAIN CONTENT */}
+        <div className="moto-expenses-content">
+          {/* EXPENSE LIST */}
+          <div className="moto-expenses-list-section">
+            <div className="moto-expenses-section-heading">
+              <div>
+                <span>TRANSACTION HISTORY</span>
+                <h2>EXPENSES</h2>
+              </div>
             </div>
 
             {expenses.length === 0 ? (
-              <div className="empty-expenses">
-                <h3>NO EXPENSES RECORDED</h3>
+              <div className="moto-expenses-empty">
+                <div className="moto-expenses-empty-icon">
+                  ₹
+                </div>
+
+                <h3>No expenses recorded</h3>
+
                 <p>
-                  Add your first expense to start building
-                  this ride's financial record.
+                  Add your first ride expense to start
+                  tracking your trip spending.
                 </p>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowForm(true);
+                    setError("");
+                    setSuccess("");
+                  }}
+                >
+                  ADD FIRST EXPENSE
+                </button>
               </div>
             ) : (
-              <div className="expenses-list">
-
+              <div className="moto-expenses-list">
                 {expenses.map((expense) => (
-                  <div
-                    className="expense-row"
+                  <article
+                    className="moto-expense-item"
                     key={expense.id}
                   >
-
-                    <div className="expense-icon">
-                      {expense.category.charAt(0)}
+                    <div className="moto-expense-icon">
+                      {CATEGORY_ICONS[
+                        expense.category
+                      ] || "₹"}
                     </div>
 
-                    <div className="expense-info">
+                    <div className="moto-expense-info">
+                      <div className="moto-expense-topline">
+                        <span className="moto-expense-category">
+                          {
+                            CATEGORY_LABELS[
+                              expense.category
+                            ]
+                          }
+                        </span>
+
+                        <span className="moto-expense-date">
+                          {formatDate(
+                            expense.createdAt
+                          )}
+                        </span>
+                      </div>
+
+                      <h3>
+                        {expense.description ||
+                          "Ride expense"}
+                      </h3>
+                    </div>
+
+                    <div className="moto-expense-amount">
                       <strong>
-                        {expense.description}
+                        {formatCurrency(
+                          expense.amount
+                        )}
                       </strong>
 
-                      <span>
-                        {expense.category} · {expense.date}
-                      </span>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleDeleteExpense(
+                            expense.id
+                          )
+                        }
+                        aria-label={`Delete ${
+                          expense.description ||
+                          "expense"
+                        }`}
+                      >
+                        DELETE
+                      </button>
                     </div>
-
-                    <strong className="expense-amount">
-                      ₹{Number(expense.amount).toLocaleString("en-IN")}
-                    </strong>
-
-                    <button
-                      className="delete-expense"
-                      onClick={() =>
-                        deleteExpense(expense.id)
-                      }
-                    >
-                      ×
-                    </button>
-
-                  </div>
+                  </article>
                 ))}
-
               </div>
             )}
-
           </div>
 
-          <aside className="expense-breakdown">
-
-            <div className="section-title">
-              <span>02</span>
-              <h2>BREAKDOWN</h2>
-            </div>
-
-            <div className="breakdown-item">
+          {/* BREAKDOWN */}
+          <aside className="moto-expenses-breakdown">
+            <div className="moto-expenses-section-heading">
               <div>
-                <span>FUEL</span>
-                <strong>₹{fuelTotal}</strong>
-              </div>
-
-              <div className="breakdown-bar">
-                <div
-                  style={{
-                    width:
-                      totalExpense > 0
-                        ? `${(fuelTotal / totalExpense) * 100}%`
-                        : "0%",
-                  }}
-                />
+                <span>SPENDING ANALYSIS</span>
+                <h2>BREAKDOWN</h2>
               </div>
             </div>
 
-            <div className="breakdown-item">
-              <div>
-                <span>FOOD</span>
-                <strong>₹{foodTotal}</strong>
-              </div>
+            <div className="moto-expenses-breakdown-list">
+              {EXPENSE_CATEGORIES.map((category) => {
+                const amount =
+                  categoryTotals[category];
 
-              <div className="breakdown-bar">
-                <div
-                  style={{
-                    width:
-                      totalExpense > 0
-                        ? `${(foodTotal / totalExpense) * 100}%`
-                        : "0%",
-                  }}
-                />
-              </div>
+                const percentage =
+                  getCategoryPercentage(category);
+
+                return (
+                  <div
+                    className="moto-expense-breakdown-item"
+                    key={category}
+                  >
+                    <div className="moto-expense-breakdown-top">
+                      <span>
+                        {CATEGORY_LABELS[category]}
+                      </span>
+
+                      <strong>
+                        {formatCurrency(amount)}
+                      </strong>
+                    </div>
+
+                    <div
+                      className="moto-expense-progress"
+                      aria-label={`${CATEGORY_LABELS[category]} ${
+                        percentage
+                      } percent of total`}
+                    >
+                      <span
+                        style={{
+                          width: `${percentage}%`,
+                        }}
+                      />
+                    </div>
+
+                    <small>
+                      {percentage}% of total
+                    </small>
+                  </div>
+                );
+              })}
             </div>
 
-            <div className="breakdown-item">
-              <div>
-                <span>STAY</span>
-                <strong>₹{stayTotal}</strong>
-              </div>
+            <div className="moto-expenses-total">
+              <span>TOTAL</span>
 
-              <div className="breakdown-bar">
-                <div
-                  style={{
-                    width:
-                      totalExpense > 0
-                        ? `${(stayTotal / totalExpense) * 100}%`
-                        : "0%",
-                  }}
-                />
-              </div>
+              <strong>
+                {formatCurrency(totalExpense)}
+              </strong>
             </div>
 
-            <div className="breakdown-item">
-              <div>
-                <span>SERVICE</span>
-                <strong>₹{serviceTotal}</strong>
-              </div>
+            <div className="moto-expenses-note">
+              <span>RIDE ID</span>
 
-              <div className="breakdown-bar">
-                <div
-                  style={{
-                    width:
-                      totalExpense > 0
-                        ? `${(serviceTotal / totalExpense) * 100}%`
-                        : "0%",
-                  }}
-                />
-              </div>
+              <strong>
+                {rideId || "DEFAULT"}
+              </strong>
             </div>
-
           </aside>
-
         </div>
-
-        <div className="expense-note">
-          <span>DEMO MODE</span>
-          <p>
-            Expenses are currently stored locally in the
-            browser. Backend synchronization will be added
-            later.
-          </p>
-        </div>
-
       </div>
-
     </section>
   );
 }

@@ -1,0 +1,814 @@
+/* =========================================================
+   MOTOTRIBE - RIDE GROUP CHAT
+   ========================================================= */
+
+.ride-chat-section {
+  width: 100%;
+  padding: 14px 0;
+  color: #f2f0e9;
+}
+
+.ride-chat-container {
+  width: 100%;
+}
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.ride-chat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 25px;
+  margin-bottom: 14px;
+  padding: 28px 32px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.ride-chat-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.ride-chat-heading-number {
+  color: #c9a45d;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  padding-top: 4px;
+}
+
+.ride-chat-eyebrow {
+  display: block;
+  margin-bottom: 7px;
+  color: #686963;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 0.17em;
+}
+
+.ride-chat-heading h2 {
+  margin: 0;
+  color: #dedcd5;
+  font-size: 17px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+}
+
+.ride-chat-heading p {
+  margin: 9px 0 0;
+  color: #777873;
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+.ride-chat-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ride-chat-connection,
+.ride-chat-participants-button {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: transparent;
+  color: #858681;
+  font-family: inherit;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.ride-chat-connection.online {
+  border-color: rgba(125, 204, 139, 0.3);
+  color: #7dcc8b;
+}
+
+.ride-chat-connection.offline {
+  border-color: rgba(180, 90, 90, 0.3);
+  color: #b98282;
+}
+
+.ride-chat-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.ride-chat-participants-button {
+  cursor: pointer;
+}
+
+.ride-chat-participants-button:hover {
+  border-color: rgba(201, 164, 93, 0.45);
+  color: #c9a45d;
+}
+
+/* =========================================================
+   PARTICIPANTS
+   ========================================================= */
+
+.ride-chat-participants-panel {
+  margin-bottom: 14px;
+  padding: 22px;
+  border: 1px solid rgba(201, 164, 93, 0.2);
+  background: rgba(201, 164, 93, 0.035);
+}
+
+.ride-chat-participants-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 18px;
+}
+
+.ride-chat-participants-top div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.ride-chat-participants-top span {
+  color: #686963;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+.ride-chat-participants-top strong {
+  color: #d0cec7;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.ride-chat-participants-top button {
+  width: 30px;
+  height: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: transparent;
+  color: #777873;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.ride-chat-participants-top button:hover {
+  border-color: #c9a45d;
+  color: #c9a45d;
+}
+
+.ride-chat-participants-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.ride-chat-participant {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.ride-chat-participant-avatar {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(201, 164, 93, 0.4);
+  color: #c9a45d;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.ride-chat-participant-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ride-chat-participant-info strong {
+  overflow: hidden;
+  color: #c9c7c0;
+  font-size: 9px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ride-chat-participant-info span {
+  color: #686963;
+  font-size: 6px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.ride-chat-participant-status {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: auto;
+  color: #686963;
+  font-size: 6px;
+  font-weight: 700;
+}
+
+.ride-chat-participant-status span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.ride-chat-participant-status.online {
+  color: #7dcc8b;
+}
+
+.ride-chat-participant-status.offline {
+  color: #686963;
+}
+
+/* =========================================================
+   CHAT CARD
+   ========================================================= */
+
+.ride-chat-card {
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #0d0e0e;
+}
+
+/* =========================================================
+   CHAT TOOLBAR
+   ========================================================= */
+
+.ride-chat-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  min-height: 65px;
+  padding: 0 22px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  background: #101110;
+}
+
+.ride-chat-toolbar-info {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.ride-chat-live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #7dcc8b;
+  box-shadow: 0 0 0 4px rgba(125, 204, 139, 0.08);
+}
+
+.ride-chat-toolbar-info div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ride-chat-toolbar-info strong {
+  color: #d5d3cc;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+}
+
+.ride-chat-toolbar-info small {
+  color: #555650;
+  font-size: 6px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.ride-chat-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.ride-chat-toolbar-actions button {
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: transparent;
+  color: #656660;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 6px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.ride-chat-toolbar-actions button:hover {
+  border-color: rgba(201, 164, 93, 0.35);
+  color: #c9a45d;
+}
+
+/* =========================================================
+   MESSAGES
+   ========================================================= */
+
+.ride-chat-messages {
+  min-height: 390px;
+  max-height: 540px;
+  overflow-y: auto;
+  padding: 25px;
+  background:
+    radial-gradient(
+      circle at 20% 10%,
+      rgba(201, 164, 93, 0.025),
+      transparent 30%
+    ),
+    #0b0c0c;
+}
+
+.ride-chat-messages::-webkit-scrollbar {
+  width: 5px;
+}
+
+.ride-chat-messages::-webkit-scrollbar-track {
+  background: #0b0c0c;
+}
+
+.ride-chat-messages::-webkit-scrollbar-thumb {
+  background: rgba(201, 164, 93, 0.25);
+}
+
+/* =========================================================
+   SYSTEM MESSAGE
+   ========================================================= */
+
+.ride-chat-system-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 12px 0 20px;
+  color: #555650;
+  font-size: 7px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+
+.ride-chat-system-message::before,
+.ride-chat-system-message::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.ride-chat-system-message small {
+  color: #444540;
+  font-size: 6px;
+}
+
+/* =========================================================
+   MESSAGE ROW
+   ========================================================= */
+
+.ride-chat-message-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 9px;
+  margin-bottom: 17px;
+}
+
+.ride-chat-message-row.current-user {
+  justify-content: flex-end;
+}
+
+.ride-chat-message-avatar {
+  width: 31px;
+  height: 31px;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(201, 164, 93, 0.3);
+  background: rgba(201, 164, 93, 0.04);
+  color: #c9a45d;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.ride-chat-message-avatar.current {
+  border-color: rgba(201, 164, 93, 0.55);
+  background: rgba(201, 164, 93, 0.08);
+}
+
+.ride-chat-message-content {
+  max-width: min(70%, 600px);
+}
+
+.ride-chat-message-row.current-user
+  .ride-chat-message-content {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.ride-chat-message-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 6px 2px;
+}
+
+.ride-chat-message-meta strong {
+  color: #aaa9a3;
+  font-size: 8px;
+  font-weight: 600;
+}
+
+.ride-chat-organizer-badge {
+  padding: 3px 5px;
+  border: 1px solid rgba(201, 164, 93, 0.35);
+  color: #c9a45d;
+  font-size: 5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.ride-chat-online-label {
+  color: #6ca978;
+  font-size: 5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.ride-chat-bubble {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: #131515;
+}
+
+.ride-chat-message-row.current-user
+  .ride-chat-bubble {
+  border-color: rgba(201, 164, 93, 0.25);
+  background: rgba(201, 164, 93, 0.075);
+}
+
+.ride-chat-bubble p {
+  margin: 0;
+  color: #b8b7b0;
+  font-size: 10px;
+  line-height: 1.65;
+}
+
+.ride-chat-message-row.current-user
+  .ride-chat-bubble p {
+  color: #d0cec6;
+}
+
+.ride-chat-bubble time {
+  flex: 0 0 auto;
+  color: #53544f;
+  font-size: 6px;
+  font-weight: 600;
+}
+
+/* =========================================================
+   EMPTY STATE
+   ========================================================= */
+
+.ride-chat-empty {
+  min-height: 340px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.ride-chat-empty-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 17px;
+  border: 1px solid rgba(201, 164, 93, 0.35);
+  color: #c9a45d;
+  font-size: 22px;
+  font-weight: 300;
+}
+
+.ride-chat-empty strong {
+  color: #bdbbb4;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.ride-chat-empty p {
+  max-width: 300px;
+  margin: 9px 0 0;
+  color: #62635e;
+  font-size: 9px;
+  line-height: 1.6;
+}
+
+/* =========================================================
+   COMPOSER
+   ========================================================= */
+
+.ride-chat-composer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  background: #101110;
+}
+
+.ride-chat-composer-avatar {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(201, 164, 93, 0.4);
+  color: #c9a45d;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.ride-chat-composer textarea {
+  flex: 1;
+  min-height: 38px;
+  max-height: 100px;
+  resize: none;
+  padding: 11px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  outline: none;
+  background: #0b0c0c;
+  color: #d0cec7;
+  font-family: inherit;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.ride-chat-composer textarea::placeholder {
+  color: #4f504b;
+}
+
+.ride-chat-composer textarea:focus {
+  border-color: rgba(201, 164, 93, 0.45);
+}
+
+.ride-chat-composer button {
+  min-width: 70px;
+  min-height: 38px;
+  padding: 0 13px;
+  border: 1px solid #c9a45d;
+  background: #c9a45d;
+  color: #0b0c0c;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.ride-chat-composer button:hover:not(:disabled) {
+  border-color: #dfbd79;
+  background: #dfbd79;
+}
+
+.ride-chat-composer button:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+}
+
+.ride-chat-composer-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 0 15px 13px 57px;
+  background: #101110;
+  color: #454641;
+  font-size: 6px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+/* =========================================================
+   STATUS
+   ========================================================= */
+
+.ride-chat-status-message {
+  margin-top: 9px;
+  padding: 10px 14px;
+  border: 1px solid rgba(201, 164, 93, 0.25);
+  background: rgba(201, 164, 93, 0.04);
+  color: #c9a45d;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-align: center;
+}
+
+/* =========================================================
+   NOTE
+   ========================================================= */
+
+.ride-chat-note {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  color: #555650;
+}
+
+.ride-chat-note span {
+  flex: 0 0 auto;
+  color: #c9a45d;
+  font-size: 6px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.ride-chat-note p {
+  margin: 0;
+  font-size: 7px;
+  line-height: 1.5;
+}
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 900px) {
+  .ride-chat-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .ride-chat-header-actions {
+    width: 100%;
+  }
+
+  .ride-chat-connection,
+  .ride-chat-participants-button {
+    flex: 1;
+  }
+
+  .ride-chat-participants-list {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 600px) {
+  .ride-chat-header {
+    padding: 22px 18px;
+  }
+
+  .ride-chat-heading {
+    gap: 10px;
+  }
+
+  .ride-chat-heading h2 {
+    font-size: 14px;
+  }
+
+  .ride-chat-heading p {
+    font-size: 9px;
+  }
+
+  .ride-chat-header-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ride-chat-connection,
+  .ride-chat-participants-button {
+    width: 100%;
+  }
+
+  .ride-chat-toolbar {
+    min-height: auto;
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 15px;
+  }
+
+  .ride-chat-toolbar-actions {
+    width: 100%;
+  }
+
+  .ride-chat-toolbar-actions button {
+    flex: 1;
+  }
+
+  .ride-chat-messages {
+    min-height: 350px;
+    max-height: 500px;
+    padding: 17px 12px;
+  }
+
+  .ride-chat-message-content {
+    max-width: 78%;
+  }
+
+  .ride-chat-bubble {
+    gap: 8px;
+    padding: 10px 11px;
+  }
+
+  .ride-chat-bubble p {
+    font-size: 9px;
+  }
+
+  .ride-chat-composer {
+    align-items: flex-end;
+  }
+
+  .ride-chat-composer-avatar {
+    display: none;
+  }
+
+  .ride-chat-composer-footer {
+    padding-left: 15px;
+  }
+
+  .ride-chat-note {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .ride-chat-participants-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================================================
+   SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 420px) {
+  .ride-chat-section {
+    padding: 8px 0;
+  }
+
+  .ride-chat-heading-number {
+    display: none;
+  }
+
+  .ride-chat-heading h2 {
+    font-size: 13px;
+  }
+
+  .ride-chat-toolbar-info small {
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ride-chat-message-content {
+    max-width: 82%;
+  }
+
+  .ride-chat-composer button {
+    min-width: 58px;
+    padding: 0 9px;
+  }
+
+  .ride-chat-composer-footer {
+    font-size: 5px;
+  }
+}

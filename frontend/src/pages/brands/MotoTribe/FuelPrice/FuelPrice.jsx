@@ -1,143 +1,137 @@
-import { useMemo, useState, useEffect, useCallback } from "react";
-import apiClient from "../../../../services/apiClient";
+import { useEffect, useMemo, useState } from "react";
 import "./FuelPrice.css";
 
-const INDIAN_STATES = [
-  "Andhra Pradesh",
-  "Arunachal Pradesh",
-  "Assam",
-  "Bihar",
-  "Chhattisgarh",
-  "Goa",
-  "Gujarat",
-  "Haryana",
-  "Himachal Pradesh",
-  "Jharkhand",
-  "Karnataka",
-  "Kerala",
-  "Madhya Pradesh",
-  "Maharashtra",
-  "Manipur",
-  "Meghalaya",
-  "Mizoram",
-  "Nagaland",
-  "Odisha",
-  "Punjab",
-  "Rajasthan",
-  "Sikkim",
-  "Tamil Nadu",
-  "Telangana",
-  "Tripura",
-  "Uttar Pradesh",
-  "Uttarakhand",
-  "West Bengal",
-  "Andaman and Nicobar Islands",
-  "Chandigarh",
-  "Dadra and Nagar Haveli and Daman and Diu",
-  "Delhi",
-  "Jammu and Kashmir",
-  "Ladakh",
-  "Lakshadweep",
-  "Puducherry",
+const STORAGE_KEY = "mototribeFuelPrices";
+
+const defaultPrices = [
+  {
+    id: 1,
+    station: "IndianOil Highway Station",
+    location: "Bengaluru - Hyderabad Highway",
+    fuelType: "Petrol",
+    price: 103.45,
+    state: "Andhra Pradesh",
+    submittedBy: "Verified Rider",
+    time: "Today",
+  },
+  {
+    id: 2,
+    station: "HP Fuel Point",
+    location: "Kurnool",
+    fuelType: "Petrol",
+    price: 102.85,
+    state: "Andhra Pradesh",
+    submittedBy: "Rider Community",
+    time: "Today",
+  },
+  {
+    id: 3,
+    station: "Bharat Petroleum",
+    location: "Hyderabad",
+    fuelType: "Diesel",
+    price: 94.72,
+    state: "Telangana",
+    submittedBy: "Verified Rider",
+    time: "Yesterday",
+  },
 ];
 
+const initialForm = {
+  state: "Andhra Pradesh",
+  city: "",
+  station: "",
+  fuelType: "Petrol",
+  price: "",
+};
+
+const getStoredPrices = () => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+
+    if (!stored) {
+      return defaultPrices;
+    }
+
+    const parsed = JSON.parse(stored);
+
+    if (!Array.isArray(parsed)) {
+      return defaultPrices;
+    }
+
+    return parsed;
+  } catch {
+    return defaultPrices;
+  }
+};
+
 function FuelPrice() {
-  const [prices, setPrices] = useState([]);
-  const [loadingSubmissions, setLoadingSubmissions] = useState(true);
-  const [selectedStateStats, setSelectedStateStats] = useState({
-    state: "Karnataka",
-    petrol: { median: 105.0, count: 0, isFallback: true, note: "" },
-    diesel: { median: 95.0, count: 0, isFallback: true, note: "" },
-  });
-  const [loadingStats, setLoadingStats] = useState(false);
-
-  const [form, setForm] = useState({
-    state: "Karnataka",
-    city: "",
-    station: "",
-    fuelType: "Petrol",
-    price: "",
-  });
-
+  const [prices, setPrices] = useState(getStoredPrices);
+  const [form, setForm] = useState(initialForm);
   const [filter, setFilter] = useState("ALL");
   const [search, setSearch] = useState("");
   const [message, setMessage] = useState("");
-  const [isErrorMsg, setIsErrorMsg] = useState(false);
-
-  // 1. Fetch recent community fuel price submissions directly from DB
-  const fetchRecentSubmissions = useCallback(async () => {
-    setLoadingSubmissions(true);
-    try {
-      const res = await apiClient.get("/api/mototribe/fuel-prices/submissions");
-      const dbSubmissions = res.data.data?.submissions || [];
-
-      const formatted = dbSubmissions.map((sub) => ({
-        id: sub._id,
-        station: sub.station || "Fuel Station",
-        location: sub.location || sub.state,
-        state: sub.state,
-        fuelType: sub.fuelType === "petrol" ? "Petrol" : "Diesel",
-        price: sub.pricePerLiter,
-        submittedBy: sub.userId?.name || "Verified Rider",
-        time: new Date(sub.submittedAt || sub.createdAt).toLocaleDateString(),
-      }));
-
-      setPrices(formatted);
-    } catch (err) {
-      console.error("Failed to fetch fuel submissions:", err);
-      setPrices([]);
-    } finally {
-      setLoadingSubmissions(false);
-    }
-  }, []);
-
-  // 2. Fetch state fuel price 7-day median averages directly from DB
-  const fetchStateFuelPrices = useCallback(async (stateName) => {
-    setLoadingStats(true);
-    try {
-      const [petrolRes, dieselRes] = await Promise.allSettled([
-        apiClient.get(`/api/mototribe/fuel-prices?state=${encodeURIComponent(stateName)}&fuelType=petrol`),
-        apiClient.get(`/api/mototribe/fuel-prices?state=${encodeURIComponent(stateName)}&fuelType=diesel`),
-      ]);
-
-      const petrolData = petrolRes.status === "fulfilled" ? petrolRes.value.data?.data : null;
-      const dieselData = dieselRes.status === "fulfilled" ? dieselRes.value.data?.data : null;
-
-      setSelectedStateStats({
-        state: stateName,
-        petrol: petrolData || { median: 102.86, count: 0, isFallback: true, source: "Official IOCL Database" },
-        diesel: dieselData || { median: 88.94, count: 0, isFallback: true, source: "Official IOCL Database" },
-      });
-    } catch (err) {
-      console.error("Failed to fetch state fuel prices:", err);
-    } finally {
-      setLoadingStats(false);
-    }
-  }, []);
+  const [messageType, setMessageType] = useState("info");
 
   useEffect(() => {
-    fetchRecentSubmissions();
-  }, [fetchRecentSubmissions]);
-
-  useEffect(() => {
-    fetchStateFuelPrices(form.state);
-  }, [form.state, fetchStateFuelPrices]);
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(prices));
+    } catch {
+      // Storage may be unavailable in private or restricted browser contexts.
+    }
+  }, [prices]);
 
   const filteredPrices = useMemo(() => {
+    const searchText = search.trim().toLowerCase();
+
     return prices.filter((item) => {
       const matchesFuel =
         filter === "ALL" || item.fuelType === filter;
 
-      const searchText = search.toLowerCase();
-
       const matchesSearch =
+        !searchText ||
         item.station.toLowerCase().includes(searchText) ||
         item.location.toLowerCase().includes(searchText) ||
-        item.state.toLowerCase().includes(searchText);
+        item.state.toLowerCase().includes(searchText) ||
+        item.fuelType.toLowerCase().includes(searchText);
 
       return matchesFuel && matchesSearch;
     });
   }, [prices, filter, search]);
+
+  const statistics = useMemo(() => {
+    const petrol = prices.filter(
+      (item) => item.fuelType === "Petrol"
+    );
+
+    const diesel = prices.filter(
+      (item) => item.fuelType === "Diesel"
+    );
+
+    const calculateStats = (items) => {
+      if (!items.length) {
+        return {
+          average: 0,
+          lowest: 0,
+          highest: 0,
+        };
+      }
+
+      const values = items.map((item) => Number(item.price));
+
+      return {
+        average:
+          values.reduce((sum, value) => sum + value, 0) /
+          values.length,
+        lowest: Math.min(...values),
+        highest: Math.max(...values),
+      };
+    };
+
+    return {
+      petrol: calculateStats(petrol),
+      diesel: calculateStats(diesel),
+    };
+  }, [prices]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -146,74 +140,95 @@ function FuelPrice() {
       ...previous,
       [name]: value,
     }));
+
+    if (message) {
+      setMessage("");
+    }
   };
 
-  const handleSubmit = async (event) => {
+  const showMessage = (text, type = "info") => {
+    setMessage(text);
+    setMessageType(type);
+  };
+
+  const handleSubmit = (event) => {
     event.preventDefault();
 
-    if (
-      !form.city.trim() ||
-      !form.station.trim() ||
-      !form.price
-    ) {
-      setIsErrorMsg(true);
-      setMessage("Please fill in all required fields.");
-      return;
-    }
-
+    const city = form.city.trim();
+    const station = form.station.trim();
     const numericPrice = Number(form.price);
 
-    if (numericPrice <= 0) {
-      setIsErrorMsg(true);
-      setMessage("Please enter a valid fuel price.");
+    if (!city || !station || !form.price) {
+      showMessage(
+        "Please fill in all required fields.",
+        "error"
+      );
       return;
     }
 
-    try {
-      setMessage("Submitting fuel price to backend...");
-      setIsErrorMsg(false);
-
-      const response = await apiClient.post("/api/mototribe/fuel-prices", {
-        state: form.state,
-        fuelType: form.fuelType.toLowerCase(),
-        pricePerLiter: numericPrice,
-        station: form.station.trim(),
-        location: form.city.trim(),
-      });
-
-      const backendData = response.data;
-      const updatedMedian = backendData.data?.updatedMedian;
-
-      // Re-fetch backend state averages & live submissions
-      fetchStateFuelPrices(form.state);
-      fetchRecentSubmissions();
-
-      setForm((prev) => ({
-        ...prev,
-        city: "",
-        station: "",
-        price: "",
-      }));
-
-      setIsErrorMsg(false);
-      setMessage(
-        `Fuel price recorded! Updated ${form.state} ${form.fuelType} 7-day median: ₹${updatedMedian || numericPrice}/L`
+    if (!Number.isFinite(numericPrice) || numericPrice <= 0) {
+      showMessage(
+        "Please enter a valid fuel price.",
+        "error"
       );
-
-      setTimeout(() => {
-        setMessage("");
-      }, 5000);
-    } catch (err) {
-      setIsErrorMsg(true);
-      const backendError = err.response?.data?.message || err.message;
-      setMessage(`Submission rejected: ${backendError}`);
+      return;
     }
+
+    if (numericPrice > 300) {
+      showMessage(
+        "Please check the entered fuel price.",
+        "error"
+      );
+      return;
+    }
+
+    const newPrice = {
+      id: `fuel-${Date.now()}-${Math.random()
+        .toString(36)
+        .slice(2, 7)}`,
+      station,
+      location: city,
+      fuelType: form.fuelType,
+      price: numericPrice,
+      state: form.state,
+      submittedBy: "You",
+      time: "Just now",
+    };
+
+    setPrices((previous) => [newPrice, ...previous]);
+
+    setForm({
+      ...initialForm,
+    });
+
+    showMessage(
+      "Fuel price submitted successfully.",
+      "success"
+    );
+
+    window.setTimeout(() => {
+      setMessage("");
+    }, 3000);
+  };
+
+  const resetPrices = () => {
+    setPrices(defaultPrices);
+    setFilter("ALL");
+    setSearch("");
+
+    showMessage(
+      "Community fuel prices reset.",
+      "success"
+    );
   };
 
   return (
-    <section className="fuel-price-section" id="fuel-price">
+    <section
+      className="fuel-price-section"
+      id="fuel-price"
+      aria-labelledby="fuel-price-title"
+    >
       <div className="fuel-price-container">
-
         {/* HEADER */}
         <div className="fuel-price-header">
           <div>
@@ -221,85 +236,92 @@ function FuelPrice() {
               COMMUNITY INTELLIGENCE
             </span>
 
-            <h2>
+            <h2 id="fuel-price-title">
               FUEL <span>PRICE</span>
             </h2>
 
             <p>
               Help fellow riders plan better journeys with
-              7-day median fuel prices reported by the tribe across Indian states.
+              current fuel prices reported by the tribe.
             </p>
           </div>
 
-          <div className="fuel-live-indicator">
-            <span className="fuel-live-dot"></span>
-            DATABASE CONNECTED
+          <div
+            className="fuel-live-indicator"
+            aria-label="Community fuel price updates are active"
+          >
+            <span
+              className="fuel-live-dot"
+              aria-hidden="true"
+            />
+
+            COMMUNITY UPDATED
           </div>
         </div>
 
         {/* PRICE OVERVIEW */}
         <div className="fuel-overview-grid">
-
           <div className="fuel-stat-card">
             <span className="fuel-stat-label">
-              {form.state.toUpperCase()} PETROL MEDIAN
+              PETROL AVERAGE
             </span>
 
             <strong>
-              {loadingStats ? "..." : `₹${Number(selectedStateStats.petrol.median || 105).toFixed(2)}`}
+              ₹{statistics.petrol.average.toFixed(2)}
             </strong>
 
             <small>
-              {selectedStateStats.petrol.source || (selectedStateStats.petrol.count > 0 ? `${selectedStateStats.petrol.count} report(s) in last 7 days` : "Official State Database")}
+              Lowest ₹{statistics.petrol.lowest.toFixed(2)}
             </small>
           </div>
 
           <div className="fuel-stat-card">
             <span className="fuel-stat-label">
-              {form.state.toUpperCase()} DIESEL MEDIAN
+              PETROL RANGE
             </span>
 
             <strong>
-              {loadingStats ? "..." : `₹${Number(selectedStateStats.diesel.median || 95).toFixed(2)}`}
+              ₹{statistics.petrol.lowest.toFixed(2)}
+              {" - "}
+              ₹{statistics.petrol.highest.toFixed(2)}
             </strong>
 
             <small>
-              {selectedStateStats.diesel.source || (selectedStateStats.diesel.count > 0 ? `${selectedStateStats.diesel.count} report(s) in last 7 days` : "Official State Database")}
+              Based on rider reports
             </small>
           </div>
 
           <div className="fuel-stat-card">
             <span className="fuel-stat-label">
-              SUBMISSION POLICY
+              DIESEL AVERAGE
             </span>
 
-            <strong>20% MAX DEVIATION</strong>
+            <strong>
+              ₹{statistics.diesel.average.toFixed(2)}
+            </strong>
 
             <small>
-              Outliers automatically rejected
+              Lowest ₹{statistics.diesel.lowest.toFixed(2)}
             </small>
           </div>
 
           <div className="fuel-stat-card">
             <span className="fuel-stat-label">
-              COMMUNITY REPORTS
+              REPORTS
             </span>
 
             <strong>{prices.length}</strong>
 
             <small>
-              Total backend database submissions
+              Community submissions
             </small>
           </div>
-
         </div>
 
         {/* MAIN CONTENT */}
         <div className="fuel-main-grid">
-
           {/* SUBMISSION FORM */}
           <div className="fuel-form-card">
-
             <div className="fuel-card-heading">
               <div>
                 <span>01</span>
@@ -307,93 +329,131 @@ function FuelPrice() {
               </div>
 
               <p>
-                Share verified fuel rates from your ride.
+                Share what you found on your ride.
               </p>
             </div>
 
             <form onSubmit={handleSubmit}>
-
               <div className="fuel-form-row">
-
                 <div className="fuel-field">
-                  <label>STATE (INDIAN STATE / UT) *</label>
+                  <label htmlFor="fuel-state">
+                    STATE
+                  </label>
 
                   <select
+                    id="fuel-state"
                     name="state"
                     value={form.state}
                     onChange={handleChange}
                   >
-                    {INDIAN_STATES.map((st) => (
-                      <option key={st} value={st}>
-                        {st}
-                      </option>
-                    ))}
+                    <option value="Andhra Pradesh">
+                      Andhra Pradesh
+                    </option>
+                    <option value="Telangana">
+                      Telangana
+                    </option>
+                    <option value="Karnataka">
+                      Karnataka
+                    </option>
+                    <option value="Tamil Nadu">
+                      Tamil Nadu
+                    </option>
+                    <option value="Maharashtra">
+                      Maharashtra
+                    </option>
+                    <option value="Kerala">
+                      Kerala
+                    </option>
                   </select>
                 </div>
 
                 <div className="fuel-field">
-                  <label>CITY / AREA *</label>
+                  <label htmlFor="fuel-city">
+                    CITY / AREA *
+                  </label>
 
                   <input
+                    id="fuel-city"
                     type="text"
                     name="city"
                     value={form.city}
                     onChange={handleChange}
                     placeholder="e.g. Kurnool"
+                    autoComplete="address-level2"
+                    maxLength={80}
+                    required
                   />
                 </div>
-
               </div>
 
               <div className="fuel-field">
-                <label>FUEL STATION *</label>
+                <label htmlFor="fuel-station">
+                  FUEL STATION *
+                </label>
 
                 <input
+                  id="fuel-station"
                   type="text"
                   name="station"
                   value={form.station}
                   onChange={handleChange}
                   placeholder="Enter station name"
+                  maxLength={100}
+                  required
                 />
               </div>
 
               <div className="fuel-form-row">
-
                 <div className="fuel-field">
-                  <label>FUEL TYPE</label>
+                  <label htmlFor="fuel-type">
+                    FUEL TYPE
+                  </label>
 
                   <select
+                    id="fuel-type"
                     name="fuelType"
                     value={form.fuelType}
                     onChange={handleChange}
                   >
-                    <option value="Petrol">Petrol</option>
-                    <option value="Diesel">Diesel</option>
+                    <option value="Petrol">
+                      Petrol
+                    </option>
+                    <option value="Diesel">
+                      Diesel
+                    </option>
                   </select>
                 </div>
 
                 <div className="fuel-field">
-                  <label>PRICE / LITRE *</label>
+                  <label htmlFor="fuel-price">
+                    PRICE / LITRE *
+                  </label>
 
                   <div className="fuel-price-input">
-                    <span>₹</span>
+                    <span aria-hidden="true">₹</span>
 
                     <input
+                      id="fuel-price"
                       type="number"
                       name="price"
                       value={form.price}
                       onChange={handleChange}
                       placeholder="0.00"
                       min="1"
+                      max="300"
                       step="0.01"
+                      inputMode="decimal"
+                      required
                     />
                   </div>
                 </div>
-
               </div>
 
               {message && (
-                <div className={`fuel-message ${isErrorMsg ? "fuel-message-error" : ""}`} style={{ color: isErrorMsg ? "#ff4d4d" : "#00e676", marginBottom: "1rem" }}>
+                <div
+                  className={`fuel-message ${messageType}`}
+                  role="alert"
+                >
                   {message}
                 </div>
               )}
@@ -403,16 +463,13 @@ function FuelPrice() {
                 className="fuel-submit-btn"
               >
                 SUBMIT PRICE
-                <span>→</span>
+                <span aria-hidden="true">→</span>
               </button>
-
             </form>
-
           </div>
 
           {/* COMMUNITY INFO */}
           <div className="fuel-info-card">
-
             <span className="fuel-card-number">
               02
             </span>
@@ -424,110 +481,121 @@ function FuelPrice() {
             </h3>
 
             <p>
-              Fuel prices can change across state borders.
-              Rider reports provide 7-day median prices to accurately calculate trip fuel budgets.
+              Fuel prices can change across locations.
+              Rider reports help the community estimate
+              travel costs before starting a journey.
             </p>
 
             <div className="fuel-info-list">
-
               <div>
                 <span>01</span>
-                <p>Compare prices along your route</p>
+                <p>
+                  Compare prices along your route
+                </p>
               </div>
 
               <div>
                 <span>02</span>
-                <p>Estimate trip fuel consumption & cost</p>
+                <p>
+                  Estimate your fuel budget
+                </p>
               </div>
 
               <div>
                 <span>03</span>
-                <p>Help other riders plan better</p>
+                <p>
+                  Help other riders plan better
+                </p>
               </div>
-
             </div>
 
             <div className="fuel-disclaimer">
-              <span>ⓘ</span>
-              Prices use 7-day median calculations with 20% outlier rejection to ensure accurate data.
+              <span aria-hidden="true">ⓘ</span>
+
+              Prices are community reports and may
+              change at any time.
             </div>
-
           </div>
-
         </div>
 
         {/* REPORT LIST */}
         <div className="fuel-reports">
-
           <div className="fuel-reports-header">
-
             <div>
               <span className="fuel-price-eyebrow">
                 RIDER REPORTS
               </span>
 
-              <h3>
-                RECENT FUEL PRICES
-              </h3>
+              <h3>RECENT FUEL PRICES</h3>
             </div>
 
+            <button
+              type="button"
+              className="fuel-reset-btn"
+              onClick={resetPrices}
+            >
+              RESET DEMO DATA
+            </button>
           </div>
 
           {/* FILTERS */}
           <div className="fuel-toolbar">
-
-            <div className="fuel-filters">
-
-              {["ALL", "Petrol", "Diesel"].map(
-                (type) => (
-                  <button
-                    key={type}
-                    className={
-                      filter === type
-                        ? "active"
-                        : ""
-                    }
-                    onClick={() => setFilter(type)}
-                  >
-                    {type}
-                  </button>
-                )
-              )}
-
+            <div
+              className="fuel-filters"
+              aria-label="Fuel type filters"
+            >
+              {["ALL", "Petrol", "Diesel"].map((type) => (
+                <button
+                  key={type}
+                  type="button"
+                  className={
+                    filter === type ? "active" : ""
+                  }
+                  onClick={() => setFilter(type)}
+                  aria-pressed={filter === type}
+                >
+                  {type}
+                </button>
+              ))}
             </div>
 
-            <input
-              className="fuel-search"
-              type="text"
-              placeholder="Search station or location..."
-              value={search}
-              onChange={(event) =>
-                setSearch(event.target.value)
-              }
-            />
+            <div className="fuel-search-wrapper">
+              <label
+                htmlFor="fuel-search"
+                className="fuel-search-label"
+              >
+                SEARCH
+              </label>
 
+              <input
+                id="fuel-search"
+                className="fuel-search"
+                type="search"
+                placeholder="Station or location..."
+                value={search}
+                onChange={(event) =>
+                  setSearch(event.target.value)
+                }
+              />
+            </div>
           </div>
 
           {/* REPORT CARDS */}
           <div className="fuel-report-list">
-
-            {loadingSubmissions ? (
-              <div className="fuel-empty" style={{ color: "#888" }}>
-                Loading live fuel price submissions from database...
-              </div>
-            ) : filteredPrices.length > 0 ? (
+            {filteredPrices.length > 0 ? (
               filteredPrices.map((item) => (
                 <div
                   className="fuel-report-card"
                   key={item.id}
                 >
-
-                  <div className="fuel-report-icon">
+                  <div
+                    className="fuel-report-icon"
+                    aria-hidden="true"
+                  >
                     ⛽
                   </div>
 
                   <div className="fuel-report-details">
-
                     <h4>{item.station}</h4>
 
                     <p>
@@ -537,7 +605,6 @@ function FuelPrice() {
                     <span>
                       {item.submittedBy} · {item.time}
                     </span>
-
                   </div>
 
                   <div className="fuel-report-type">
@@ -551,22 +618,18 @@ function FuelPrice() {
 
                     <span>/ L</span>
                   </div>
-
                 </div>
               ))
             ) : (
               <div className="fuel-empty">
-                No community fuel price reports submitted yet. Be the first to report!
+                No fuel price reports found.
               </div>
             )}
-
           </div>
-
         </div>
-
       </div>
     </section>
   );
 }
 
-export default FuelPrice;
+export default FuelPrice;

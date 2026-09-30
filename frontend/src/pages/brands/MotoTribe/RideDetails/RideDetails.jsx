@@ -1,264 +1,315 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+
+import {
+  getMotoRideById,
+  getMotoRideStatus,
+  getMotoRideCountdown,
+} from "../../../../data/motoRides";
+
 import "./RideDetails.css";
 
-const demoRides = [
-  {
-    id: "ride-001",
-    title: "Araku Valley Adventure",
-    route: "Visakhapatnam → Araku Valley",
-    date: "20 Sep 2026",
-    type: "ADVENTURE",
-    difficulty: "INTERMEDIATE",
-    distance: 340,
-    duration: "2 Days",
-    budget: 4500,
-    status: "UPCOMING",
-    organizer: "Arjun",
-    capacity: 12,
-    description:
-      "A scenic motorcycle journey through mountain roads, viewpoints and forest routes.",
-    stops: [
-      "Lambasingi",
-      "Borra Caves",
-      "Araku Valley",
-    ],
-    requirements: [
-      "Valid driving license",
-      "Registered motorcycle",
-      "Helmet and riding gear",
-      "Basic emergency kit",
-    ],
-    participants: [
-      {
-        id: "r1",
-        name: "Arjun",
-        role: "ORGANIZER",
-        confirmed: true,
-      },
-      {
-        id: "r2",
-        name: "Rahul",
-        role: "RIDER",
-        confirmed: true,
-      },
-      {
-        id: "r3",
-        name: "Sneha",
-        role: "RIDER",
-        confirmed: true,
-      },
-    ],
-  },
-  {
-    id: "ride-002",
-    title: "Coastal Sunrise Ride",
-    route: "Kakinada → Yanam",
-    date: "27 Sep 2026",
-    type: "TOURING",
-    difficulty: "BEGINNER",
-    distance: 180,
-    duration: "1 Day",
-    budget: 2200,
-    status: "UPCOMING",
-    organizer: "Vikram",
-    capacity: 10,
-    description:
-      "A relaxed coastal ride focused on sunrise views, local food and community riding.",
-    stops: [
-      "Kakinada Beach",
-      "Yanam",
-      "Coringa",
-    ],
-    requirements: [
-      "Valid driving license",
-      "Helmet",
-      "Registered motorcycle",
-    ],
-    participants: [
-      {
-        id: "r4",
-        name: "Vikram",
-        role: "ORGANIZER",
-        confirmed: true,
-      },
-      {
-        id: "r5",
-        name: "Kiran",
-        role: "RIDER",
-        confirmed: true,
-      },
-    ],
-  },
-];
+/* --------------------------------------------------
+   LOCAL STORAGE HELPERS
+-------------------------------------------------- */
+
+const getStoredArray = (key) => {
+  try {
+    const value = localStorage.getItem(key);
+
+    if (!value) {
+      return [];
+    }
+
+    const parsed = JSON.parse(value);
+
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+const setStoredArray = (key, value) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // Ignore storage errors in demo mode.
+  }
+};
+
+/* --------------------------------------------------
+   CHAT HELPERS
+-------------------------------------------------- */
+
+const getChatStorageKey = (rideId) =>
+  `mototribe_ride_chat_${rideId}`;
+
+const createInitialMessages = (ride) => {
+  if (!ride) {
+    return [];
+  }
+
+  return [
+    {
+      id: `system-${ride.id}`,
+      type: "SYSTEM",
+      sender: "MotoTribe",
+      text: `Ride group created for ${ride.name}.`,
+      timestamp: new Date().toISOString(),
+    },
+    {
+      id: `organizer-${ride.id}`,
+      type: "ORGANIZER",
+      sender: ride.organizer || "Ride Organizer",
+      text: "Welcome riders. Please check the route and planned stops before departure.",
+      timestamp: new Date(
+        Date.now() - 45 * 60 * 1000
+      ).toISOString(),
+    },
+    {
+      id: `demo-${ride.id}`,
+      type: "RIDER",
+      sender: "Arjun",
+      text: "Looking forward to the ride. See you all at the start point.",
+      timestamp: new Date(
+        Date.now() - 25 * 60 * 1000
+      ).toISOString(),
+    },
+  ];
+};
+
+const loadChatMessages = (rideId, ride) => {
+  try {
+    const stored = localStorage.getItem(
+      getChatStorageKey(rideId)
+    );
+
+    if (!stored) {
+      return createInitialMessages(ride);
+    }
+
+    const parsed = JSON.parse(stored);
+
+    if (Array.isArray(parsed)) {
+      return parsed;
+    }
+
+    return createInitialMessages(ride);
+  } catch {
+    return createInitialMessages(ride);
+  }
+};
+
+/* --------------------------------------------------
+   FORMATTERS
+-------------------------------------------------- */
+
+const formatChatTime = (timestamp) => {
+  const date = new Date(timestamp);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return date.toLocaleTimeString("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+/* --------------------------------------------------
+   MAIN COMPONENT
+-------------------------------------------------- */
 
 function RideDetails() {
   const { rideId } = useParams();
   const navigate = useNavigate();
 
-  const [ride, setRide] = useState(() => demoRides.find((item) => item.id === rideId) || null);
-  const [participants, setParticipants] = useState(() => {
-    const selectedRide = demoRides.find((item) => item.id === rideId);
+  return (
+    <RideDetailsContent
+      key={rideId}
+      rideId={rideId}
+      navigate={navigate}
+    />
+  );
+}
+
+/* --------------------------------------------------
+   RIDE DETAILS CONTENT
+-------------------------------------------------- */
+
+function RideDetailsContent({ rideId, navigate }) {
+  const ride = getMotoRideById(rideId);
+
+  /* --------------------------------------------------
+     INITIAL PARTICIPANTS
+  -------------------------------------------------- */
+
+  const getInitialParticipants = () => {
+    if (!ride) {
+      return [];
+    }
+
+    const savedParticipants = localStorage.getItem(
+      `mototribeParticipants_${rideId}`
+    );
+
+    if (!savedParticipants) {
+      return ride.participants || [];
+    }
+
     try {
-      const savedParticipants = localStorage.getItem(`mototribeParticipants_${rideId}`);
-      if (savedParticipants) {
-        return JSON.parse(savedParticipants);
-      }
-    } catch (err) {
-      console.error(err);
+      const parsedParticipants =
+        JSON.parse(savedParticipants);
+
+      return Array.isArray(parsedParticipants)
+        ? parsedParticipants
+        : ride.participants || [];
+    } catch {
+      return ride.participants || [];
     }
-    return selectedRide ? selectedRide.participants : [];
-  });
-  const [joinStatus, setJoinStatus] = useState("NOT_JOINED");
-  const [requests, setRequests] = useState(() => {
+  };
+
+  /* --------------------------------------------------
+     INITIAL JOIN REQUESTS
+  -------------------------------------------------- */
+
+  const getInitialJoinRequests = () => {
+    const savedRequests = localStorage.getItem(
+      `mototribeRequests_${rideId}`
+    );
+
+    if (!savedRequests) {
+      return [];
+    }
+
     try {
-      const savedRequests = localStorage.getItem(`mototribeRequests_${rideId}`);
-      if (savedRequests) {
-        return JSON.parse(savedRequests);
-      }
-    } catch (err) {
-      console.error(err);
+      const parsedRequests =
+        JSON.parse(savedRequests);
+
+      return Array.isArray(parsedRequests)
+        ? parsedRequests
+        : [];
+    } catch {
+      return [];
     }
-    return [];
-  });
-  const [message, setMessage] = useState("");
-
-  const saveParticipants = (updatedParticipants) => {
-    setParticipants(updatedParticipants);
-
-    localStorage.setItem(
-      `mototribeParticipants_${rideId}`,
-      JSON.stringify(updatedParticipants)
-    );
   };
 
-  const saveRequests = (updatedRequests) => {
-    setRequests(updatedRequests);
+  /* --------------------------------------------------
+     INITIAL JOIN STATUS
+  -------------------------------------------------- */
 
-    localStorage.setItem(
-      `mototribeRequests_${rideId}`,
-      JSON.stringify(updatedRequests)
+  const getInitialJoinStatus = () => {
+    const joinedIds = getStoredArray(
+      "mototribeJoinedRides"
     );
-  };
 
-  const handleJoinRide = () => {
-    if (!ride) return;
+    const requestedIds = getStoredArray(
+      "mototribeRequestedRides"
+    );
 
-    if (participants.length >= ride.capacity) {
-      setMessage("This ride is currently full.");
-      return;
+    if (joinedIds.includes(rideId)) {
+      return "JOINED";
     }
 
-    const currentRider = {
-      id: "current-user",
-      name: "You",
-      role: "RIDER",
-      confirmed: true,
+    if (requestedIds.includes(rideId)) {
+      return "REQUESTED";
+    }
+
+    return "NOT_JOINED";
+  };
+
+  /* --------------------------------------------------
+     STATE
+  -------------------------------------------------- */
+
+  const [now, setNow] = useState(() => new Date());
+
+  const [joinStatus, setJoinStatus] = useState(
+    getInitialJoinStatus
+  );
+
+  const [participants, setParticipants] = useState(
+    getInitialParticipants
+  );
+
+  const [joinRequests, setJoinRequests] = useState(
+    getInitialJoinRequests
+  );
+
+  /*
+    IMPORTANT:
+    Chat messages are initialized directly with lazy
+    useState instead of calling setMessages inside
+    useEffect.
+
+    This fixes:
+    "Calling setState synchronously within an effect
+    can trigger cascading renders"
+  */
+  const [messages, setMessages] = useState(() =>
+    loadChatMessages(rideId, ride)
+  );
+
+  const [messageText, setMessageText] = useState("");
+
+  const [chatNotice, setChatNotice] = useState("");
+
+  /* --------------------------------------------------
+     CLOCK
+  -------------------------------------------------- */
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setNow(new Date());
+    }, 1000);
+
+    return () => {
+      window.clearInterval(timer);
     };
+  }, []);
 
-    const alreadyJoined = participants.some(
-      (participant) => participant.id === "current-user"
-    );
+  /* --------------------------------------------------
+     PERSIST CHAT
+     
+     This effect is allowed because it synchronizes
+     React state with an external system: localStorage.
+  -------------------------------------------------- */
 
-    if (alreadyJoined) {
-      setJoinStatus("JOINED");
-      setMessage("You are already part of this ride.");
-      return;
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        getChatStorageKey(rideId),
+        JSON.stringify(messages)
+      );
+    } catch {
+      // Ignore localStorage errors in demo mode.
     }
+  }, [messages, rideId]);
 
-    const updatedParticipants = [
-      ...participants,
-      currentRider,
-    ];
-
-    saveParticipants(updatedParticipants);
-
-    setJoinStatus("JOINED");
-    setMessage("You successfully joined the ride.");
-  };
-
-  const handleRequestJoin = () => {
-    const alreadyRequested = requests.some(
-      (request) => request.id === "current-user"
-    );
-
-    if (alreadyRequested) {
-      setJoinStatus("REQUESTED");
-      setMessage("Your join request is already pending.");
-      return;
-    }
-
-    const request = {
-      id: "current-user",
-      name: "You",
-      requestedAt: new Date().toLocaleString(),
-    };
-
-    const updatedRequests = [...requests, request];
-
-    saveRequests(updatedRequests);
-
-    setJoinStatus("REQUESTED");
-    setMessage("Join request sent to the organizer.");
-  };
-
-  const handleLeaveRide = () => {
-    const updatedParticipants = participants.filter(
-      (participant) => participant.id !== "current-user"
-    );
-
-    saveParticipants(updatedParticipants);
-
-    setJoinStatus("NOT_JOINED");
-    setMessage("You left this ride.");
-  };
-
-  const handleConfirmRequest = (request) => {
-    if (participants.length >= ride.capacity) {
-      setMessage("Ride capacity is full.");
-      return;
-    }
-
-    const newParticipant = {
-      id: request.id,
-      name: request.name,
-      role: "RIDER",
-      confirmed: true,
-    };
-
-    saveParticipants([...participants, newParticipant]);
-
-    const updatedRequests = requests.filter(
-      (item) => item.id !== request.id
-    );
-
-    saveRequests(updatedRequests);
-
-    setMessage(`${request.name} has been added to the ride.`);
-  };
-
-  const updateRideStatus = (status) => {
-    const updatedRide = {
-      ...ride,
-      status,
-    };
-
-    setRide(updatedRide);
-
-    localStorage.setItem(
-      `mototribeRide_${rideId}`,
-      JSON.stringify(updatedRide)
-    );
-
-    setMessage(`Ride status changed to ${status}.`);
-  };
+  /* --------------------------------------------------
+     NOT FOUND
+  -------------------------------------------------- */
 
   if (!ride) {
     return (
       <section className="ride-details-page">
-        <div className="ride-not-found">
-          <h2>Ride Not Found</h2>
-          <button onClick={() => navigate("/businesses/mototribe")}>
+        <div className="ride-details-not-found">
+          <span>404 / RIDE NOT FOUND</span>
+
+          <h1>THIS RIDE DOES NOT EXIST</h1>
+
+          <p>
+            The requested MotoTribe ride could not be
+            found.
+          </p>
+
+          <button
+            type="button"
+            onClick={() =>
+              navigate("/businesses/mototribe")
+            }
+          >
             BACK TO MOTOTRIBE
           </button>
         </div>
@@ -266,380 +317,1177 @@ function RideDetails() {
     );
   }
 
-  const isOrganizer = ride.organizer === "You";
+  /* --------------------------------------------------
+     SAVE PARTICIPANTS
+  -------------------------------------------------- */
 
-  const progress =
-    (participants.length / ride.capacity) * 100;
+  const saveParticipants = (participantsList) => {
+    setParticipants(participantsList);
+
+    try {
+      localStorage.setItem(
+        `mototribeParticipants_${rideId}`,
+        JSON.stringify(participantsList)
+      );
+    } catch {
+      // Ignore storage errors.
+    }
+  };
+
+  /* --------------------------------------------------
+     SAVE REQUESTS
+  -------------------------------------------------- */
+
+  const saveRequests = (requestsList) => {
+    setJoinRequests(requestsList);
+
+    try {
+      localStorage.setItem(
+        `mototribeRequests_${rideId}`,
+        JSON.stringify(requestsList)
+      );
+    } catch {
+      // Ignore storage errors.
+    }
+  };
+
+  /* --------------------------------------------------
+     JOIN RIDE
+  -------------------------------------------------- */
+
+  const handleJoinRide = () => {
+    if (joinStatus === "JOINED") {
+      return;
+    }
+
+    const hasCurrentUser = participants.some(
+      (participant) => participant.id === "current-user"
+    );
+
+    if (!hasCurrentUser) {
+      saveParticipants([
+        ...participants,
+        {
+          id: "current-user",
+          name: "You",
+          role: "RIDER",
+          confirmed: true,
+        },
+      ]);
+    }
+
+    const joinedIds = getStoredArray(
+      "mototribeJoinedRides"
+    );
+
+    if (!joinedIds.includes(rideId)) {
+      setStoredArray("mototribeJoinedRides", [
+        ...joinedIds,
+        rideId,
+      ]);
+    }
+
+    const requestedIds = getStoredArray(
+      "mototribeRequestedRides"
+    );
+
+    setStoredArray(
+      "mototribeRequestedRides",
+      requestedIds.filter((id) => id !== rideId)
+    );
+
+    setJoinStatus("JOINED");
+  };
+
+  /* --------------------------------------------------
+     REQUEST TO JOIN
+  -------------------------------------------------- */
+
+  const handleRequestJoin = () => {
+    if (
+      joinStatus === "JOINED" ||
+      joinStatus === "REQUESTED"
+    ) {
+      return;
+    }
+
+    const hasCurrentRequest = joinRequests.some(
+      (request) =>
+        request.id === "current-user-request"
+    );
+
+    if (!hasCurrentRequest) {
+      saveRequests([
+        ...joinRequests,
+        {
+          id: "current-user-request",
+          name: "You",
+          status: "PENDING",
+        },
+      ]);
+    }
+
+    const requestedIds = getStoredArray(
+      "mototribeRequestedRides"
+    );
+
+    if (!requestedIds.includes(rideId)) {
+      setStoredArray("mototribeRequestedRides", [
+        ...requestedIds,
+        rideId,
+      ]);
+    }
+
+    setJoinStatus("REQUESTED");
+  };
+
+  /* --------------------------------------------------
+     LEAVE RIDE
+  -------------------------------------------------- */
+
+  const handleLeaveRide = () => {
+    saveParticipants(
+      participants.filter(
+        (participant) =>
+          participant.id !== "current-user"
+      )
+    );
+
+    const joinedIds = getStoredArray(
+      "mototribeJoinedRides"
+    );
+
+    setStoredArray(
+      "mototribeJoinedRides",
+      joinedIds.filter((id) => id !== rideId)
+    );
+
+    setJoinStatus("NOT_JOINED");
+  };
+
+  /* --------------------------------------------------
+     CONFIRM REQUEST
+  -------------------------------------------------- */
+
+  const handleConfirmRequest = (requestId) => {
+    const request = joinRequests.find(
+      (item) => item.id === requestId
+    );
+
+    if (!request) {
+      return;
+    }
+
+    saveRequests(
+      joinRequests.map((item) =>
+        item.id === requestId
+          ? {
+              ...item,
+              status: "APPROVED",
+            }
+          : item
+      )
+    );
+  };
+
+  /* --------------------------------------------------
+     SEND CHAT MESSAGE
+  -------------------------------------------------- */
+
+  const handleSendMessage = () => {
+    const cleanMessage = messageText.trim();
+
+    if (!cleanMessage) {
+      return;
+    }
+
+    const newMessage = {
+      id: `message-${Date.now()}`,
+      type: "RIDER",
+      sender: "You",
+      text: cleanMessage,
+      timestamp: new Date().toISOString(),
+    };
+
+    setMessages((currentMessages) => [
+      ...currentMessages,
+      newMessage,
+    ]);
+
+    setMessageText("");
+
+    setChatNotice("Message sent");
+
+    window.setTimeout(() => {
+      setChatNotice("");
+    }, 1800);
+  };
+
+  /* --------------------------------------------------
+     CHAT KEYBOARD
+  -------------------------------------------------- */
+
+  const handleChatKeyDown = (event) => {
+    if (
+      event.key === "Enter" &&
+      !event.shiftKey
+    ) {
+      event.preventDefault();
+      handleSendMessage();
+    }
+  };
+
+  /* --------------------------------------------------
+     RESET DEMO CHAT
+  -------------------------------------------------- */
+
+  const handleResetChat = () => {
+    const initialMessages =
+      createInitialMessages(ride);
+
+    setMessages(initialMessages);
+    setMessageText("");
+    setChatNotice("Demo chat reset");
+
+    window.setTimeout(() => {
+      setChatNotice("");
+    }, 1800);
+  };
+
+  /* --------------------------------------------------
+     NAVIGATION
+  -------------------------------------------------- */
+
+  const handleBack = () => {
+    navigate("/businesses/mototribe");
+  };
+
+  const handleOpenExpenses = () => {
+    navigate(
+      `/businesses/mototribe/ride/${rideId}/expenses`
+    );
+  };
+
+  const handleOpenLiveRide = () => {
+    navigate(
+      `/businesses/mototribe/ride/${rideId}/live`
+    );
+  };
+
+  /* --------------------------------------------------
+     RIDE STATUS
+  -------------------------------------------------- */
+
+  const rideStatus = getMotoRideStatus(
+    ride,
+    now
+  );
+
+  const countdown = getMotoRideCountdown(
+    ride,
+    now
+  );
+
+  /* --------------------------------------------------
+     PARTICIPANT COUNT
+  -------------------------------------------------- */
+
+  const participantCount = participants.length;
+
+  const capacityPercentage =
+    ride.maxRiders > 0
+      ? Math.min(
+          (participantCount / ride.maxRiders) * 100,
+          100
+        )
+      : 0;
+
+  /* --------------------------------------------------
+     DATE
+  -------------------------------------------------- */
+
+  const formattedDate = new Date(
+    `${ride.date}T00:00:00`
+  ).toLocaleDateString("en-IN", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+
+  /* --------------------------------------------------
+     RENDER
+  -------------------------------------------------- */
 
   return (
     <section className="ride-details-page">
       <div className="ride-details-container">
 
+        {/* BACK */}
+
         <button
-          className="ride-back-btn"
-          onClick={() => navigate(-1)}
+          type="button"
+          className="ride-details-back"
+          onClick={handleBack}
         >
-          ← BACK
+          ← BACK TO RIDES
         </button>
 
-        <div className="ride-details-hero">
+        {/* HERO */}
 
-          <div>
-            <span className="ride-type">
-              {ride.type}
-            </span>
+        <header className="ride-details-hero">
+          <div className="ride-details-hero-content">
 
-            <h1>{ride.title}</h1>
+            <div className="ride-details-tags">
+              <span>{ride.type}</span>
 
-            <p className="ride-route">
-              {ride.route}
-            </p>
+              <span>{ride.difficulty}</span>
 
-            <p className="ride-description">
+              <span
+                className={`ride-details-status status-${rideStatus.toLowerCase()}`}
+              >
+                {rideStatus}
+              </span>
+            </div>
+
+            <h1>{ride.name}</h1>
+
+            <p className="ride-details-description">
               {ride.description}
             </p>
+
+            <div className="ride-details-organizer">
+              <span>ORGANIZED BY</span>
+
+              <strong>{ride.organizer}</strong>
+
+              <small>
+                {ride.organizerType}
+              </small>
+            </div>
           </div>
+        </header>
 
-          <div className="ride-status-card">
-            <span>RIDE STATUS</span>
-            <strong>{ride.status}</strong>
-          </div>
+        {/* COUNTDOWN */}
 
-        </div>
-
-        <div className="ride-info-grid">
-
-          <div className="ride-info-box">
-            <span>DATE</span>
-            <strong>{ride.date}</strong>
-          </div>
-
-          <div className="ride-info-box">
-            <span>DISTANCE</span>
-            <strong>{ride.distance} KM</strong>
-          </div>
-
-          <div className="ride-info-box">
-            <span>DURATION</span>
-            <strong>{ride.duration}</strong>
-          </div>
-
-          <div className="ride-info-box">
-            <span>BUDGET</span>
-            <strong>₹{ride.budget}</strong>
-          </div>
-
-          <div className="ride-info-box">
-            <span>DIFFICULTY</span>
-            <strong>{ride.difficulty}</strong>
-          </div>
-
-          <div className="ride-info-box">
-            <span>ORGANIZER</span>
-            <strong>{ride.organizer}</strong>
-          </div>
-
-        </div>
-
-        <div className="ride-action-panel">
-
+        <div className="ride-details-countdown-section">
           <div>
-            <span className="panel-label">
-              YOUR PARTICIPATION
-            </span>
+            <span>DEPARTURE</span>
 
-            <h3>
-              {joinStatus === "JOINED"
-                ? "YOU ARE JOINED"
-                : joinStatus === "REQUESTED"
-                ? "REQUEST PENDING"
-                : "JOIN THIS RIDE"}
-            </h3>
+            <strong>{formattedDate}</strong>
 
-            {message && (
-              <p className="ride-message">
-                {message}
-              </p>
+            <small>{ride.time}</small>
+          </div>
+
+          <div className="ride-details-countdown">
+            {rideStatus === "LIVE" ? (
+              <div className="ride-live-indicator">
+                ● LIVE NOW
+              </div>
+            ) : rideStatus === "COMPLETED" ? (
+              <div className="ride-completed-indicator">
+                RIDE COMPLETED
+              </div>
+            ) : countdown.expired ? (
+              <div>STARTING</div>
+            ) : (
+              <>
+                <div>
+                  <strong>
+                    {String(
+                      countdown.days
+                    ).padStart(2, "0")}
+                  </strong>
+
+                  <span>DAYS</span>
+                </div>
+
+                <div>
+                  <strong>
+                    {String(
+                      countdown.hours
+                    ).padStart(2, "0")}
+                  </strong>
+
+                  <span>HRS</span>
+                </div>
+
+                <div>
+                  <strong>
+                    {String(
+                      countdown.minutes
+                    ).padStart(2, "0")}
+                  </strong>
+
+                  <span>MIN</span>
+                </div>
+
+                <div>
+                  <strong>
+                    {String(
+                      countdown.seconds
+                    ).padStart(2, "0")}
+                  </strong>
+
+                  <span>SEC</span>
+                </div>
+              </>
             )}
           </div>
+        </div>
 
-          <div className="ride-actions">
+        {/* MAIN GRID */}
 
-            {joinStatus === "NOT_JOINED" && (
-              <>
+        <div className="ride-details-grid">
+
+          <div className="ride-details-main">
+
+            {/* ROUTE */}
+
+            <section className="ride-info-card">
+              <div className="ride-info-card-heading">
+                <span>01</span>
+                <h2>JOURNEY ROUTE</h2>
+              </div>
+
+              <div className="ride-route-main">
+                <div className="ride-route-location">
+                  <span className="ride-route-marker">
+                    A
+                  </span>
+
+                  <div>
+                    <small>START</small>
+
+                    <strong>
+                      {ride.start}
+                    </strong>
+                  </div>
+                </div>
+
+                <div className="ride-route-arrow">
+                  ↓
+                </div>
+
+                <div className="ride-route-location">
+                  <span className="ride-route-marker">
+                    B
+                  </span>
+
+                  <div>
+                    <small>DESTINATION</small>
+
+                    <strong>
+                      {ride.destination}
+                    </strong>
+                  </div>
+                </div>
+              </div>
+
+              <div className="ride-route-full">
+                <span>FULL ROUTE</span>
+
+                <p>{ride.route}</p>
+              </div>
+
+              <div className="ride-route-stops">
+                <span>PLANNED STOPS</span>
+
+                <div>
+                  {(ride.stops || []).map(
+                    (stop, index) => (
+                      <span
+                        key={`${stop}-${index}`}
+                      >
+                        <b>
+                          {String(
+                            index + 1
+                          ).padStart(2, "0")}
+                        </b>
+
+                        {stop}
+                      </span>
+                    )
+                  )}
+                </div>
+              </div>
+            </section>
+
+            {/* JOURNEY INTELLIGENCE */}
+
+            <section className="ride-info-card">
+              <div className="ride-info-card-heading">
+                <span>02</span>
+
+                <h2>
+                  JOURNEY INTELLIGENCE
+                </h2>
+              </div>
+
+              <div className="journey-intelligence-grid">
+                <div>
+                  <strong>
+                    {
+                      ride
+                        .journeyIntelligence
+                        .fuelStops
+                    }
+                  </strong>
+
+                  <span>FUEL STOPS</span>
+                </div>
+
+                <div>
+                  <strong>
+                    {
+                      ride
+                        .journeyIntelligence
+                        .restStops
+                    }
+                  </strong>
+
+                  <span>REST STOPS</span>
+                </div>
+
+                <div>
+                  <strong>
+                    {
+                      ride
+                        .journeyIntelligence
+                        .serviceStops
+                    }
+                  </strong>
+
+                  <span>SERVICE STOPS</span>
+                </div>
+
+                <div>
+                  <strong>
+                    {
+                      ride
+                        .journeyIntelligence
+                        .accommodationStops
+                    }
+                  </strong>
+
+                  <span>ACCOMMODATION</span>
+                </div>
+
+                <div>
+                  <strong>
+                    {
+                      ride
+                        .journeyIntelligence
+                        .scenicStops
+                    }
+                  </strong>
+
+                  <span>SCENIC STOPS</span>
+                </div>
+              </div>
+            </section>
+
+            {/* REQUIREMENTS */}
+
+            <section className="ride-info-card">
+              <div className="ride-info-card-heading">
+                <span>03</span>
+
+                <h2>
+                  RIDE REQUIREMENTS
+                </h2>
+              </div>
+
+              <ul className="ride-requirements-list">
+                {(ride.requirements || []).map(
+                  (requirement) => (
+                    <li key={requirement}>
+                      <span>✓</span>
+
+                      {requirement}
+                    </li>
+                  )
+                )}
+              </ul>
+            </section>
+
+            {/* VEHICLE */}
+
+            <section className="ride-info-card">
+              <div className="ride-info-card-heading">
+                <span>04</span>
+
+                <h2>
+                  VEHICLE INFORMATION
+                </h2>
+              </div>
+
+              <div className="vehicle-details">
+                <div>
+                  <span>MOTORCYCLE</span>
+
+                  <strong>
+                    {ride.vehicle?.name ||
+                      "Not specified"}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>FUEL TYPE</span>
+
+                  <strong>
+                    {ride.vehicle?.fuelType ||
+                      "Not specified"}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>
+                    EXPECTED MILEAGE
+                  </span>
+
+                  <strong>
+                    {ride.vehicle?.mileage ||
+                      "--"}{" "}
+                    KM/L
+                  </strong>
+                </div>
+              </div>
+            </section>
+
+            {/* SAFETY */}
+
+            <section className="ride-info-card safety-card">
+              <div className="ride-info-card-heading">
+                <span>05</span>
+
+                <h2>
+                  SAFETY INFORMATION
+                </h2>
+              </div>
+
+              <p>{ride.safety}</p>
+            </section>
+
+            {/* PARTICIPANTS */}
+
+            <section className="ride-info-card">
+              <div className="ride-info-card-heading">
+                <span>06</span>
+
+                <h2>RIDERS</h2>
+
+                <strong className="rider-count-label">
+                  {participantCount} /{" "}
+                  {ride.maxRiders}
+                </strong>
+              </div>
+
+              <div className="riders-capacity">
+                <div className="capacity-bar">
+                  <div
+                    className="capacity-fill"
+                    style={{
+                      width: `${capacityPercentage}%`,
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="riders-list">
+                {participants.map(
+                  (participant) => (
+                    <div
+                      key={participant.id}
+                      className="rider-item"
+                    >
+                      <div className="rider-avatar">
+                        {participant.name
+                          .charAt(0)
+                          .toUpperCase()}
+                      </div>
+
+                      <div>
+                        <strong>
+                          {participant.name}
+                        </strong>
+
+                        <span>
+                          {participant.role}
+                        </span>
+                      </div>
+
+                      {participant.confirmed && (
+                        <span className="rider-confirmed">
+                          ✓
+                        </span>
+                      )}
+                    </div>
+                  )
+                )}
+              </div>
+            </section>
+
+            {/* JOIN REQUESTS */}
+
+            {joinRequests.length > 0 && (
+              <section className="ride-info-card">
+                <div className="ride-info-card-heading">
+                  <span>07</span>
+
+                  <h2>
+                    JOIN REQUESTS
+                  </h2>
+                </div>
+
+                <div className="join-requests-list">
+                  {joinRequests.map(
+                    (request) => (
+                      <div
+                        key={request.id}
+                        className="join-request-item"
+                      >
+                        <div>
+                          <strong>
+                            {request.name}
+                          </strong>
+
+                          <span>
+                            {request.status}
+                          </span>
+                        </div>
+
+                        {request.status ===
+                          "PENDING" && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleConfirmRequest(
+                                request.id
+                              )
+                            }
+                          >
+                            APPROVE
+                          </button>
+                        )}
+                      </div>
+                    )
+                  )}
+                </div>
+              </section>
+            )}
+
+            {/* RIDE GROUP CHAT */}
+
+            <section className="ride-info-card ride-chat-card">
+              <div className="ride-info-card-heading">
+                <span>08</span>
+
+                <div className="ride-chat-heading-content">
+                  <h2>RIDE GROUP CHAT</h2>
+
+                  <small>
+                    FRONTEND DEMO · REALTIME API LATER
+                  </small>
+                </div>
+
                 <button
-                  className="primary-ride-btn"
-                  onClick={handleJoinRide}
+                  type="button"
+                  className="ride-chat-reset"
+                  onClick={handleResetChat}
                 >
-                  JOIN RIDE
+                  RESET
                 </button>
+              </div>
 
+              <div className="ride-chat-status-row">
+                <div className="ride-chat-online">
+                  <span className="chat-online-dot" />
+                  <strong>
+                    {Math.max(
+                      participants.length,
+                      1
+                    )}{" "}
+                    RIDERS IN GROUP
+                  </strong>
+                </div>
+
+                <span className="ride-chat-status-text">
+                  Group messages are stored locally
+                  for this frontend demo.
+                </span>
+              </div>
+
+              <div className="ride-chat-messages">
+                {messages.length === 0 ? (
+                  <div className="ride-chat-empty">
+                    <strong>
+                      NO MESSAGES YET
+                    </strong>
+
+                    <span>
+                      Start the conversation with
+                      your riding group.
+                    </span>
+                  </div>
+                ) : (
+                  messages.map((message) => {
+                    const isYou =
+                      message.sender === "You";
+
+                    const isSystem =
+                      message.type === "SYSTEM";
+
+                    const isOrganizer =
+                      message.type ===
+                      "ORGANIZER";
+
+                    return (
+                      <div
+                        key={message.id}
+                        className={`ride-chat-message ${
+                          isYou
+                            ? "is-you"
+                            : ""
+                        } ${
+                          isSystem
+                            ? "is-system"
+                            : ""
+                        }`}
+                      >
+                        {!isSystem && (
+                          <div className="ride-chat-avatar">
+                            {message.sender
+                              .charAt(0)
+                              .toUpperCase()}
+                          </div>
+                        )}
+
+                        <div className="ride-chat-message-body">
+                          {!isSystem && (
+                            <div className="ride-chat-message-meta">
+                              <strong>
+                                {
+                                  message.sender
+                                }
+                              </strong>
+
+                              {isOrganizer && (
+                                <span>
+                                  ORGANIZER
+                                </span>
+                              )}
+
+                              <small>
+                                {formatChatTime(
+                                  message.timestamp
+                                )}
+                              </small>
+                            </div>
+                          )}
+
+                          <div className="ride-chat-bubble">
+                            {message.text}
+                          </div>
+
+                          {isSystem && (
+                            <small className="ride-chat-system-time">
+                              {formatChatTime(
+                                message.timestamp
+                              )}
+                            </small>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
+              <div className="ride-chat-composer">
+                <textarea
+                  value={messageText}
+                  onChange={(event) =>
+                    setMessageText(
+                      event.target.value
+                    )
+                  }
+                  onKeyDown={
+                    handleChatKeyDown
+                  }
+                  placeholder="Write a message to the riding group..."
+                  rows={3}
+                  maxLength={500}
+                  aria-label="Ride group message"
+                />
+
+                <div className="ride-chat-composer-footer">
+                  <span>
+                    ENTER TO SEND · SHIFT + ENTER
+                    FOR NEW LINE
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={
+                      handleSendMessage
+                    }
+                    disabled={
+                      !messageText.trim()
+                    }
+                  >
+                    SEND MESSAGE →
+                  </button>
+                </div>
+              </div>
+
+              {chatNotice && (
+                <div
+                  className="ride-chat-notice"
+                  role="status"
+                >
+                  {chatNotice}
+                </div>
+              )}
+            </section>
+          </div>
+
+          {/* SIDEBAR */}
+
+          <aside className="ride-details-sidebar">
+
+            {/* OVERVIEW */}
+
+            <div className="ride-sidebar-card">
+              <span className="sidebar-label">
+                RIDE OVERVIEW
+              </span>
+
+              <div className="sidebar-stats">
+                <div>
+                  <span>DISTANCE</span>
+
+                  <strong>
+                    {ride.distanceLabel}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>DURATION</span>
+
+                  <strong>
+                    {ride.duration}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>EST. BUDGET</span>
+
+                  <strong>
+                    ₹
+                    {Number(
+                      ride.budget || 0
+                    ).toLocaleString(
+                      "en-IN"
+                    )}
+                  </strong>
+                </div>
+              </div>
+            </div>
+
+            {/* JOIN ACTION */}
+
+            <div className="ride-sidebar-card ride-action-card">
+              <span className="sidebar-label">
+                YOUR RIDE STATUS
+              </span>
+
+              {joinStatus === "JOINED" && (
+                <div className="current-ride-status joined">
+                  <strong>
+                    ✓ YOU ARE JOINED
+                  </strong>
+
+                  <p>
+                    You are confirmed as a rider
+                    for this journey.
+                  </p>
+                </div>
+              )}
+
+              {joinStatus === "REQUESTED" && (
+                <div className="current-ride-status requested">
+                  <strong>
+                    ◷ REQUEST PENDING
+                  </strong>
+
+                  <p>
+                    Your request has been submitted
+                    and is waiting for approval.
+                  </p>
+                </div>
+              )}
+
+              {joinStatus === "NOT_JOINED" && (
+                <div className="current-ride-status">
+                  <strong>
+                    NOT JOINED
+                  </strong>
+
+                  <p>
+                    Join this journey to become part
+                    of the riding group.
+                  </p>
+                </div>
+              )}
+
+              {joinStatus === "JOINED" ? (
+                <>
+                  <button
+                    type="button"
+                    className="ride-primary-action"
+                    onClick={handleOpenLiveRide}
+                  >
+                    RIDE DASHBOARD
+                  </button>
+
+                  <button
+                    type="button"
+                    className="ride-secondary-action"
+                    onClick={handleOpenExpenses}
+                  >
+                    MANAGE EXPENSES
+                  </button>
+
+                  <button
+                    type="button"
+                    className="ride-danger-action"
+                    onClick={handleLeaveRide}
+                  >
+                    LEAVE RIDE
+                  </button>
+                </>
+              ) : joinStatus === "REQUESTED" ? (
                 <button
-                  className="secondary-ride-btn"
+                  type="button"
+                  className="ride-primary-action disabled"
+                  disabled
+                >
+                  REQUEST PENDING
+                </button>
+              ) : ride.requestRequired ? (
+                <button
+                  type="button"
+                  className="ride-primary-action"
                   onClick={handleRequestJoin}
                 >
                   REQUEST TO JOIN
                 </button>
-              </>
-            )}
-
-            {joinStatus === "JOINED" && (
-              <button
-                className="secondary-ride-btn"
-                onClick={handleLeaveRide}
-              >
-                LEAVE RIDE
-              </button>
-            )}
-
-            {joinStatus === "REQUESTED" && (
-              <button
-                className="secondary-ride-btn"
-                disabled
-              >
-                REQUEST PENDING
-              </button>
-            )}
-
-          </div>
-        </div>
-
-        <div className="ride-content-grid">
-
-          <div className="ride-main-column">
-
-            <div className="ride-section">
-              <div className="section-heading">
-                <span>01</span>
-                <h2>ROUTE & STOPS</h2>
-              </div>
-
-              <div className="route-line">
-                <div className="route-point start">
-                  <span></span>
-                  <div>
-                    <small>START</small>
-                    <strong>
-                      {ride.route.split(" → ")[0]}
-                    </strong>
-                  </div>
-                </div>
-
-                {ride.stops.map((stop, index) => (
-                  <div
-                    className="route-point"
-                    key={stop}
-                  >
-                    <span></span>
-
-                    <div>
-                      <small>STOP {index + 1}</small>
-                      <strong>{stop}</strong>
-                    </div>
-                  </div>
-                ))}
-
-                <div className="route-point destination">
-                  <span></span>
-
-                  <div>
-                    <small>DESTINATION</small>
-                    <strong>
-                      {ride.route.split(" → ")[1]}
-                    </strong>
-                  </div>
-                </div>
-              </div>
+              ) : (
+                <button
+                  type="button"
+                  className="ride-primary-action"
+                  onClick={handleJoinRide}
+                >
+                  JOIN RIDE
+                </button>
+              )}
             </div>
 
-            <div className="ride-section">
+            {/* LIVE RIDE */}
 
-              <div className="section-heading">
-                <span>02</span>
-                <h2>RIDE REQUIREMENTS</h2>
-              </div>
-
-              <div className="requirements-list">
-                {ride.requirements.map((requirement) => (
-                  <div
-                    className="requirement"
-                    key={requirement}
-                  >
-                    <span>✓</span>
-                    {requirement}
-                  </div>
-                ))}
-              </div>
-
-            </div>
-
-          </div>
-
-          <aside className="ride-side-column">
-
-            <div className="ride-section participants-section">
-
-              <div className="section-heading">
-                <span>03</span>
-                <h2>RIDERS</h2>
-              </div>
-
-              <div className="capacity-info">
-                <div>
-                  <strong>
-                    {participants.length}
-                  </strong>
-                  <span>
-                    / {ride.capacity} RIDERS
-                  </span>
-                </div>
-
-                <span>
-                  {Math.round(progress)}%
+            {rideStatus === "LIVE" && (
+              <div className="ride-sidebar-card live-ride-card">
+                <span className="sidebar-label">
+                  LIVE JOURNEY
                 </span>
-              </div>
 
-              <div className="capacity-bar">
-                <div
-                  style={{
-                    width: `${Math.min(progress, 100)}%`,
-                  }}
-                ></div>
-              </div>
+                <h3>
+                  THIS RIDE IS LIVE
+                </h3>
 
-              <div className="participants-list">
+                <p>
+                  Follow the live journey and stay
+                  connected with your riding group.
+                </p>
 
-                {participants.map((participant) => (
-                  <div
-                    className="participant"
-                    key={participant.id}
-                  >
-                    <div className="participant-avatar">
-                      {participant.name
-                        .charAt(0)
-                        .toUpperCase()}
-                    </div>
-
-                    <div>
-                      <strong>
-                        {participant.name}
-                      </strong>
-
-                      <span>
-                        {participant.role}
-                      </span>
-                    </div>
-
-                    {participant.confirmed && (
-                      <span className="confirmed">
-                        ✓
-                      </span>
-                    )}
-                  </div>
-                ))}
-
-              </div>
-
-            </div>
-
-            {isOrganizer && requests.length > 0 && (
-              <div className="ride-section">
-
-                <div className="section-heading">
-                  <span>04</span>
-                  <h2>JOIN REQUESTS</h2>
-                </div>
-
-                {requests.map((request) => (
-                  <div
-                    className="join-request"
-                    key={request.id}
-                  >
-                    <div>
-                      <strong>{request.name}</strong>
-                      <small>{request.requestedAt}</small>
-                    </div>
-
-                    <button
-                      onClick={() =>
-                        handleConfirmRequest(request)
-                      }
-                    >
-                      CONFIRM
-                    </button>
-                  </div>
-                ))}
-
+                <button
+                  type="button"
+                  onClick={handleOpenLiveRide}
+                >
+                  ENTER LIVE RIDE
+                </button>
               </div>
             )}
 
+            {/* CHAT QUICK ACTION */}
+
+            <div className="ride-sidebar-card ride-chat-sidebar-card">
+              <span className="sidebar-label">
+                GROUP COMMUNICATION
+              </span>
+
+              <div className="ride-chat-sidebar-icon">
+                CHAT
+              </div>
+
+              <h3>
+                STAY CONNECTED
+              </h3>
+
+              <p>
+                Use the group chat above to share
+                updates, arrival information and ride
+                coordination messages.
+              </p>
+
+              <button
+                type="button"
+                onClick={() =>
+                  document
+                    .querySelector(
+                      ".ride-chat-card"
+                    )
+                    ?.scrollIntoView({
+                      behavior: "smooth",
+                      block: "start",
+                    })
+                }
+              >
+                OPEN GROUP CHAT ↓
+              </button>
+            </div>
+
+            {/* SOURCE */}
+
+            <div className="ride-sidebar-source">
+              <span>DATA SOURCE</span>
+
+              <strong>
+                {ride.source}
+              </strong>
+            </div>
           </aside>
-
         </div>
 
-        <div className="organizer-panel">
+        {/* FOOTER */}
 
+        <footer className="ride-details-footer">
           <div>
-            <span>ORGANIZER CONTROLS</span>
-            <h2>RIDE LIFECYCLE</h2>
+            <span>MOTOTRIBE</span>
+
+            <strong>
+              RIDE BEYOND THE ORDINARY.
+            </strong>
           </div>
 
-          <div className="lifecycle-buttons">
-
-            <button
-              className={ride.status === "UPCOMING" ? "selected" : ""}
-              onClick={() =>
-                updateRideStatus("UPCOMING")
-              }
-            >
-              UPCOMING
-            </button>
-
-            <button
-              className={ride.status === "STARTING" ? "selected" : ""}
-              onClick={() =>
-                updateRideStatus("STARTING")
-              }
-            >
-              STARTING
-            </button>
-
-            <button
-              className={ride.status === "LIVE" ? "selected" : ""}
-              onClick={() =>
-                updateRideStatus("LIVE")
-              }
-            >
-              START RIDE
-            </button>
-
-            <button
-              className={ride.status === "COMPLETED" ? "selected" : ""}
-              onClick={() =>
-                updateRideStatus("COMPLETED")
-              }
-            >
-              COMPLETE
-            </button>
-
-            <button
-              className={ride.status === "CANCELLED" ? "selected danger" : "danger"}
-              onClick={() =>
-                updateRideStatus("CANCELLED")
-              }
-            >
-              CANCEL
-            </button>
-
-          </div>
-
-          <p>
-            Demo organizer controls — backend authorization
-            will be connected later.
-          </p>
-
-        </div>
-
+          <button
+            type="button"
+            onClick={handleBack}
+          >
+            BACK TO UPCOMING RIDES ↑
+          </button>
+        </footer>
       </div>
     </section>
   );

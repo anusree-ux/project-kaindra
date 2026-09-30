@@ -2,10 +2,13 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./Signup.css";
 
+const TEST_OTP = "123456";
+const OTP_EXPIRY_MS = 5 * 60 * 1000;
+
 function Signup() {
   const navigate = useNavigate();
 
-  const [form, setForm] = useState({
+  const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
@@ -15,275 +18,433 @@ function Signup() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [agree, setAgree] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [agreeTerms, setAgreeTerms] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
+  const handleChange = (event) => {
+    const { name, value } = event.target;
 
+    if (name === "phone") {
+      const digitsOnly = value.replace(/\D/g, "").slice(0, 10);
+
+      setFormData((current) => ({
+        ...current,
+        phone: digitsOnly,
+      }));
+
+      return;
+    }
+
+    setFormData((current) => ({
+      ...current,
+      [name]: value,
+    }));
+
+    if (error) {
+      setError("");
+    }
+  };
+
+  const validateForm = () => {
+    const name = formData.name.trim();
+    const email = formData.email.trim().toLowerCase();
+    const phone = formData.phone.trim();
+
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+    if (!name) {
+      return "Please enter your full name.";
+    }
+
+    if (name.length < 2) {
+      return "Name must contain at least 2 characters.";
+    }
+
+    if (!email) {
+      return "Please enter your email address.";
+    }
+
+    if (!emailPattern.test(email)) {
+      return "Please enter a valid email address.";
+    }
+
+    if (!phone) {
+      return "Please enter your phone number.";
+    }
+
+    if (phone.length !== 10) {
+      return "Phone number must contain exactly 10 digits.";
+    }
+
+    if (!formData.password) {
+      return "Please create a password.";
+    }
+
+    if (formData.password.length < 8) {
+      return "Password must contain at least 8 characters.";
+    }
+
+    if (!formData.confirmPassword) {
+      return "Please confirm your password.";
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      return "Passwords do not match.";
+    }
+
+    if (!agreeTerms) {
+      return "Please accept the Terms and Privacy Policy.";
+    }
+
+    return "";
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+
+    if (isSubmitting) {
+      return;
+    }
+
+    const validationError = validateForm();
+
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    setIsSubmitting(true);
     setError("");
+
+    const normalizedData = {
+      name: formData.name.trim(),
+      email: formData.email.trim().toLowerCase(),
+      phone: formData.phone,
+      otp: TEST_OTP,
+      otpExpiresAt: Date.now() + OTP_EXPIRY_MS,
+      createdAt: Date.now(),
+    };
+
+    /*
+     * Do not store the raw password in localStorage.
+     * Password handling should be done by the backend once authentication
+     * is connected. The current frontend flow only needs the user's
+     * basic signup information for OTP verification and profile setup.
+     */
+    localStorage.setItem(
+      "mototribe_pending_signup",
+      JSON.stringify(normalizedData)
+    );
+
+    navigate("/businesses/mototribe/verify-otp");
   };
-
-  const getPasswordStrength = () => {
-    const password = form.password;
-
-    if (!password) return "";
-
-    if (password.length < 6) return "weak";
-
-    if (
-      password.length >= 8 &&
-      /[A-Z]/.test(password) &&
-      /[0-9]/.test(password) &&
-      /[^A-Za-z0-9]/.test(password)
-    ) {
-      return "strong";
-    }
-
-    return "medium";
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setError("");
-    setSuccess("");
-
-    if (
-      !form.name ||
-      !form.email ||
-      !form.phone ||
-      !form.password ||
-      !form.confirmPassword
-    ) {
-      setError("Please fill in all required fields.");
-      return;
-    }
-
-    if (!/^\S+@\S+\.\S+$/.test(form.email)) {
-      setError("Please enter a valid email address.");
-      return;
-    }
-
-    if (!/^[0-9]{10}$/.test(form.phone)) {
-      setError("Phone number must contain exactly 10 digits.");
-      return;
-    }
-
-    if (form.password.length < 6) {
-      setError("Password must contain at least 6 characters.");
-      return;
-    }
-
-    if (form.password !== form.confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
-
-    if (!agree) {
-      setError("Please accept the terms and conditions.");
-      return;
-    }
-
-    setLoading(true);
-
-    setTimeout(() => {
-      const account = {
-        id: `MT-${Date.now()}`,
-        name: form.name,
-        email: form.email,
-        phone: form.phone,
-        password: form.password,
-        createdAt: new Date().toISOString(),
-        verified: false,
-      };
-
-      localStorage.setItem(
-        "mototribeSignupAccount",
-        JSON.stringify(account)
-      );
-
-      setLoading(false);
-      setSuccess("Account created successfully. Continue to OTP verification.");
-
-      setTimeout(() => {
-        navigate("/businesses/mototribe/verify-otp");
-      }, 1200);
-    }, 1000);
-  };
-
-  const passwordStrength = getPasswordStrength();
 
   return (
-    <section className="moto-signup">
+    <main className="moto-signup-page">
       <div className="moto-signup-background">
-        <div className="moto-glow moto-glow-one"></div>
-        <div className="moto-glow moto-glow-two"></div>
+        <div className="moto-signup-glow moto-signup-glow-one"></div>
+        <div className="moto-signup-glow moto-signup-glow-two"></div>
+        <div className="moto-signup-grid"></div>
       </div>
 
       <div className="moto-signup-wrapper">
-        <div className="moto-signup-brand">
-          <span>MOTO</span>
-          <strong>TRIBE</strong>
-        </div>
+        {/* LEFT SIDE */}
+        <section className="moto-signup-intro">
+          <Link
+            to="/businesses/mototribe"
+            className="moto-signup-logo"
+            aria-label="MotoTribe home"
+          >
+            <span className="moto-signup-logo-mark">MT</span>
 
-        <div className="moto-signup-card">
-          <div className="signup-heading">
-            <span>JOIN THE TRIBE</span>
+            <span className="moto-signup-logo-text">
+              MOTO<span>TRIBE</span>
+            </span>
+          </Link>
 
-            <h1>Create your rider account</h1>
+          <div className="moto-signup-intro-content">
+            <p className="moto-signup-eyebrow">JOIN THE COMMUNITY</p>
+
+            <h1>
+              Ride Further.
+              <br />
+              <span>Ride Together.</span>
+            </h1>
+
+            <p className="moto-signup-description">
+              Create your MotoTribe account and connect with riders,
+              discover new routes, plan group rides, and build your riding
+              journey.
+            </p>
+
+            <div className="moto-signup-features">
+              <div className="moto-signup-feature">
+                <div className="moto-signup-feature-icon">01</div>
+
+                <div>
+                  <h3>Connect With Riders</h3>
+                  <p>
+                    Discover riders with similar interests, experience, and
+                    riding styles.
+                  </p>
+                </div>
+              </div>
+
+              <div className="moto-signup-feature">
+                <div className="moto-signup-feature-icon">02</div>
+
+                <div>
+                  <h3>Plan Better Rides</h3>
+                  <p>
+                    Create rides, explore routes, estimate fuel costs, and
+                    organize your journey.
+                  </p>
+                </div>
+              </div>
+
+              <div className="moto-signup-feature">
+                <div className="moto-signup-feature-icon">03</div>
+
+                <div>
+                  <h3>Build Your Ride Passport</h3>
+                  <p>
+                    Track your journeys, vehicles, achievements, and riding
+                    history.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* SIGNUP CARD */}
+        <section className="moto-signup-card">
+          <div className="moto-signup-card-header">
+            <p className="moto-signup-card-eyebrow">CREATE ACCOUNT</p>
+
+            <h2>Start Your Journey</h2>
 
             <p>
-              Start your journey with MotoTribe. Connect, plan, ride,
-              record and share.
+              Join MotoTribe and become part of the rider community.
             </p>
           </div>
 
-          {error && <div className="signup-message error">{error}</div>}
-
-          {success && (
-            <div className="signup-message success">{success}</div>
-          )}
-
-          <form onSubmit={handleSubmit}>
-            <div className="signup-field">
-              <label>RIDER NAME *</label>
+          <form
+            className="moto-signup-form"
+            onSubmit={handleSubmit}
+            noValidate
+          >
+            {/* NAME */}
+            <div className="moto-form-group">
+              <label htmlFor="signup-name">
+                Full Name
+                <span>*</span>
+              </label>
 
               <input
-                type="text"
+                id="signup-name"
                 name="name"
-                placeholder="Enter your name"
-                value={form.name}
+                type="text"
+                value={formData.name}
                 onChange={handleChange}
+                placeholder="Enter your full name"
+                autoComplete="name"
+                required
+                aria-invalid={Boolean(error && !formData.name.trim())}
               />
             </div>
 
-            <div className="signup-row">
-              <div className="signup-field">
-                <label>EMAIL *</label>
+            {/* EMAIL */}
+            <div className="moto-form-group">
+              <label htmlFor="signup-email">
+                Email Address
+                <span>*</span>
+              </label>
+
+              <input
+                id="signup-email"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="you@example.com"
+                autoComplete="email"
+                required
+              />
+            </div>
+
+            {/* PHONE */}
+            <div className="moto-form-group">
+              <label htmlFor="signup-phone">
+                Phone Number
+                <span>*</span>
+              </label>
+
+              <div className="moto-phone-input">
+                <span className="moto-phone-prefix">+91</span>
 
                 <input
-                  type="email"
-                  name="email"
-                  placeholder="rider@example.com"
-                  value={form.email}
-                  onChange={handleChange}
-                />
-              </div>
-
-              <div className="signup-field">
-                <label>PHONE NUMBER *</label>
-
-                <input
-                  type="tel"
+                  id="signup-phone"
                   name="phone"
-                  maxLength="10"
-                  placeholder="10 digit mobile number"
-                  value={form.phone}
+                  type="tel"
+                  value={formData.phone}
                   onChange={handleChange}
+                  placeholder="10-digit mobile number"
+                  autoComplete="tel"
+                  inputMode="numeric"
+                  maxLength={10}
+                  required
                 />
               </div>
             </div>
 
-            <div className="signup-row">
-              <div className="signup-field">
-                <label>PASSWORD *</label>
+            {/* PASSWORD */}
+            <div className="moto-form-group">
+              <label htmlFor="signup-password">
+                Password
+                <span>*</span>
+              </label>
 
-                <div className="password-wrapper">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    name="password"
-                    placeholder="Create password"
-                    value={form.password}
-                    onChange={handleChange}
-                  />
+              <div className="moto-password-input">
+                <input
+                  id="signup-password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="Create a password"
+                  autoComplete="new-password"
+                  minLength={8}
+                  required
+                />
 
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? "HIDE" : "SHOW"}
-                  </button>
-                </div>
-
-                {passwordStrength && (
-                  <div className={`password-strength ${passwordStrength}`}>
-                    <span></span>
-                    <span></span>
-                    <span></span>
-
-                    <small>
-                      {passwordStrength === "weak" && "Weak password"}
-                      {passwordStrength === "medium" && "Medium password"}
-                      {passwordStrength === "strong" && "Strong password"}
-                    </small>
-                  </div>
-                )}
+                <button
+                  type="button"
+                  className="moto-password-toggle"
+                  onClick={() =>
+                    setShowPassword((current) => !current)
+                  }
+                  aria-label={
+                    showPassword ? "Hide password" : "Show password"
+                  }
+                >
+                  {showPassword ? "HIDE" : "SHOW"}
+                </button>
               </div>
 
-              <div className="signup-field">
-                <label>CONFIRM PASSWORD *</label>
+              <small className="moto-field-hint">
+                Use at least 8 characters.
+              </small>
+            </div>
 
-                <div className="password-wrapper">
-                  <input
-                    type={showConfirmPassword ? "text" : "password"}
-                    name="confirmPassword"
-                    placeholder="Confirm password"
-                    value={form.confirmPassword}
-                    onChange={handleChange}
-                  />
+            {/* CONFIRM PASSWORD */}
+            <div className="moto-form-group">
+              <label htmlFor="signup-confirm-password">
+                Confirm Password
+                <span>*</span>
+              </label>
 
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setShowConfirmPassword(!showConfirmPassword)
-                    }
-                  >
-                    {showConfirmPassword ? "HIDE" : "SHOW"}
-                  </button>
-                </div>
+              <div className="moto-password-input">
+                <input
+                  id="signup-confirm-password"
+                  name="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  placeholder="Confirm your password"
+                  autoComplete="new-password"
+                  minLength={8}
+                  required
+                />
+
+                <button
+                  type="button"
+                  className="moto-password-toggle"
+                  onClick={() =>
+                    setShowConfirmPassword((current) => !current)
+                  }
+                  aria-label={
+                    showConfirmPassword
+                      ? "Hide confirmed password"
+                      : "Show confirmed password"
+                  }
+                >
+                  {showConfirmPassword ? "HIDE" : "SHOW"}
+                </button>
               </div>
             </div>
 
-            <label className="signup-terms">
+            {/* TERMS */}
+            <label className="moto-terms">
               <input
                 type="checkbox"
-                checked={agree}
-                onChange={(e) => setAgree(e.target.checked)}
+                checked={agreeTerms}
+                onChange={(event) =>
+                  setAgreeTerms(event.target.checked)
+                }
               />
 
-              <span>
-                I agree to the MotoTribe terms and privacy guidelines.
+              <span className="moto-custom-checkbox"></span>
+
+              <span className="moto-terms-text">
+                I agree to the MotoTribe Terms and Privacy Policy.
               </span>
             </label>
 
+            {/* ERROR */}
+            {error && (
+              <div
+                className="moto-signup-error"
+                role="alert"
+                aria-live="assertive"
+              >
+                <span className="moto-error-icon">!</span>
+                <span>{error}</span>
+              </div>
+            )}
+
+            {/* SUBMIT */}
             <button
               type="submit"
-              className="signup-submit"
-              disabled={loading}
+              className="moto-signup-submit"
+              disabled={isSubmitting}
             >
-              {loading ? "CREATING ACCOUNT..." : "CREATE RIDER ACCOUNT"}
+              {isSubmitting ? (
+                <>
+                  <span className="moto-submit-spinner"></span>
+                  Creating Account...
+                </>
+              ) : (
+                <>
+                  Create MotoTribe Account
+                  <span className="moto-submit-arrow">→</span>
+                </>
+              )}
             </button>
           </form>
 
-          <div className="signup-login">
-            <span>Already have an account?</span>
-
-            <Link to="/businesses/mototribe/login">
-              LOGIN
-            </Link>
+          <div className="moto-signup-divider">
+            <span>ALREADY A RIDER?</span>
           </div>
 
-          <div className="signup-note">
-            FRONTEND PROTOTYPE • ACCOUNT DATA STORED LOCALLY
-          </div>
-        </div>
+          <Link
+            to="/businesses/mototribe/login"
+            className="moto-login-link"
+          >
+            Sign in to MotoTribe
+            <span>→</span>
+          </Link>
+
+          <Link
+            to="/businesses/mototribe"
+            className="moto-signup-back"
+          >
+            ← Back to MotoTribe
+          </Link>
+        </section>
       </div>
-    </section>
+    </main>
   );
 }
 

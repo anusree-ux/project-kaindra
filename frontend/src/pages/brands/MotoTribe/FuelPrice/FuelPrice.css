@@ -17,6 +17,12 @@
   margin: 0 auto;
 }
 
+.fuel-price-section *,
+.fuel-price-section *::before,
+.fuel-price-section *::after {
+  box-sizing: border-box;
+}
+
 /* HEADER */
 
 .fuel-price-header {
@@ -63,7 +69,7 @@
   padding: 11px 15px;
   border: 1px solid rgba(198, 154, 85, 0.35);
   color: #c69a55;
-  font-size: 12px;
+  font-size: 10px;
   letter-spacing: 1.5px;
   white-space: nowrap;
 }
@@ -82,16 +88,18 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 1px;
+  margin-bottom: 50px;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  margin-bottom: 50px;
 }
 
 .fuel-stat-card {
   min-height: 150px;
   padding: 28px;
   background: #0d0f12;
-  transition: 0.3s ease;
+  transition:
+    background 0.3s ease,
+    transform 0.3s ease;
 }
 
 .fuel-stat-card:hover {
@@ -103,16 +111,16 @@
   display: block;
   margin-bottom: 20px;
   color: #777d84;
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 1.8px;
 }
 
 .fuel-stat-card strong {
   display: block;
+  margin-bottom: 10px;
   color: #f5f5f5;
   font-size: 25px;
-  margin-bottom: 10px;
 }
 
 .fuel-stat-card small {
@@ -189,7 +197,7 @@
   display: block;
   margin-bottom: 9px;
   color: #7c8289;
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 1.5px;
 }
@@ -198,15 +206,22 @@
 .fuel-field select,
 .fuel-search {
   width: 100%;
-  box-sizing: border-box;
   height: 48px;
   padding: 0 14px;
+  box-sizing: border-box;
   background: #08090b;
   border: 1px solid #292d32;
   outline: none;
   color: #f4f4f4;
   font-size: 13px;
-  transition: 0.25s ease;
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.fuel-field input::placeholder,
+.fuel-search::placeholder {
+  color: #50555b;
 }
 
 .fuel-field input:focus,
@@ -224,13 +239,13 @@
   position: relative;
 }
 
-.fuel-price-input span {
+.fuel-price-input > span {
   position: absolute;
-  left: 14px;
   top: 50%;
+  left: 14px;
+  z-index: 1;
   transform: translateY(-50%);
   color: #c69a55;
-  z-index: 1;
 }
 
 .fuel-price-input input {
@@ -246,26 +261,50 @@
   font-size: 12px;
 }
 
+.fuel-message.error {
+  border-left-color: #b86c62;
+  background: rgba(184, 108, 98, 0.08);
+  color: #d58b80;
+}
+
+.fuel-message.success {
+  border-left-color: #c69a55;
+  color: #c69a55;
+}
+
 .fuel-submit-btn {
-  width: 100%;
-  height: 50px;
-  border: 1px solid #c69a55;
-  background: #c69a55;
-  color: #08090b;
-  font-weight: 800;
-  font-size: 11px;
-  letter-spacing: 1.5px;
-  cursor: pointer;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  width: 100%;
+  height: 50px;
   padding: 0 18px;
-  transition: 0.3s ease;
+  border: 1px solid #c69a55;
+  background: #c69a55;
+  color: #08090b;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  transition:
+    background 0.3s ease,
+    color 0.3s ease;
 }
 
 .fuel-submit-btn:hover {
   background: transparent;
   color: #c69a55;
+}
+
+.fuel-submit-btn:focus-visible,
+.fuel-reset-btn:focus-visible,
+.fuel-filters button:focus-visible {
+  outline: 1px solid #c69a55;
+  outline-offset: 3px;
+}
+
+.fuel-submit-btn span {
+  font-size: 17px;
 }
 
 /* INFO CARD */
@@ -282,15 +321,20 @@
   bottom: 0;
   font-size: 130px;
   opacity: 0.025;
+  pointer-events: none;
 }
 
 .fuel-info-card h3 {
+  position: relative;
+  z-index: 1;
   margin-top: 22px;
   font-size: 30px;
   line-height: 1.1;
 }
 
 .fuel-info-card > p {
+  position: relative;
+  z-index: 1;
   max-width: 500px;
   margin: 22px 0 30px;
   color: #858a91;
@@ -299,20 +343,22 @@
 }
 
 .fuel-info-list {
+  position: relative;
+  z-index: 1;
   border-top: 1px solid rgba(255, 255, 255, 0.07);
 }
 
 .fuel-info-list > div {
   display: flex;
-  gap: 18px;
   align-items: center;
+  gap: 18px;
   padding: 17px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.07);
 }
 
 .fuel-info-list span {
   color: #c69a55;
-  font-size: 12px;
+  font-size: 10px;
   letter-spacing: 1px;
 }
 
@@ -323,13 +369,15 @@
 }
 
 .fuel-disclaimer {
+  position: relative;
+  z-index: 1;
   display: flex;
   gap: 10px;
   margin-top: 25px;
   padding: 13px;
   background: #090a0c;
   color: #6f757c;
-  font-size: 12px;
+  font-size: 10px;
   line-height: 1.5;
 }
 
@@ -340,8 +388,8 @@
 /* REPORTS */
 
 .fuel-reports {
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
   padding-top: 55px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .fuel-reports-header {
@@ -359,14 +407,16 @@
 }
 
 .fuel-reset-btn {
+  padding: 10px 14px;
   border: 1px solid #2c3035;
   background: transparent;
   color: #737980;
-  padding: 10px 14px;
-  font-size: 13px;
-  letter-spacing: 1px;
   cursor: pointer;
-  transition: 0.25s ease;
+  font-size: 9px;
+  letter-spacing: 1px;
+  transition:
+    border-color 0.25s ease,
+    color 0.25s ease;
 }
 
 .fuel-reset-btn:hover {
@@ -393,10 +443,13 @@
   border: 1px solid #292d32;
   background: #0d0f12;
   color: #747a81;
-  font-size: 12px;
-  letter-spacing: 1px;
   cursor: pointer;
-  transition: 0.25s ease;
+  font-size: 10px;
+  letter-spacing: 1px;
+  transition:
+    border-color 0.25s ease,
+    background 0.25s ease,
+    color 0.25s ease;
 }
 
 .fuel-filters button:hover,
@@ -404,6 +457,24 @@
   border-color: #c69a55;
   background: rgba(198, 154, 85, 0.08);
   color: #c69a55;
+}
+
+.fuel-search-wrapper {
+  position: relative;
+  width: min(320px, 100%);
+}
+
+.fuel-search-label {
+  position: absolute;
+  top: -7px;
+  left: 10px;
+  z-index: 1;
+  padding: 0 5px;
+  background: #08090b;
+  color: #666c72;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 1px;
 }
 
 .fuel-search {
@@ -421,12 +492,14 @@
 .fuel-report-card {
   display: grid;
   grid-template-columns: 55px 1fr 100px 130px;
-  gap: 20px;
   align-items: center;
+  gap: 20px;
   padding: 20px;
   background: #0d0f12;
   border: 1px solid rgba(255, 255, 255, 0.07);
-  transition: 0.3s ease;
+  transition:
+    border-color 0.3s ease,
+    transform 0.3s ease;
 }
 
 .fuel-report-card:hover {
@@ -435,29 +508,39 @@
 }
 
 .fuel-report-icon {
-  width: 45px;
-  height: 45px;
   display: grid;
   place-items: center;
+  width: 45px;
+  height: 45px;
   border: 1px solid rgba(198, 154, 85, 0.3);
   background: rgba(198, 154, 85, 0.05);
   font-size: 19px;
 }
 
+.fuel-report-details {
+  min-width: 0;
+}
+
 .fuel-report-details h4 {
   margin: 0 0 6px;
+  overflow: hidden;
   font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .fuel-report-details p {
   margin: 0 0 5px;
+  overflow: hidden;
   color: #80868d;
   font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .fuel-report-details span {
   color: #5f656b;
-  font-size: 13px;
+  font-size: 9px;
 }
 
 .fuel-report-type {
@@ -465,7 +548,7 @@
   padding: 7px 10px;
   border: 1px solid #2b2f34;
   color: #a9adb1;
-  font-size: 13px;
+  font-size: 9px;
   letter-spacing: 1px;
 }
 
@@ -479,16 +562,16 @@
 }
 
 .fuel-report-price span {
-  color: #666c72;
-  font-size: 12px;
   margin-left: 4px;
+  color: #666c72;
+  font-size: 10px;
 }
 
 .fuel-empty {
   padding: 45px;
-  text-align: center;
   border: 1px dashed #2b2f34;
   color: #6f757b;
+  text-align: center;
   font-size: 12px;
 }
 
@@ -519,8 +602,8 @@
   }
 
   .fuel-price-header {
-    align-items: flex-start;
     flex-direction: column;
+    align-items: flex-start;
   }
 
   .fuel-price-header h2 {
@@ -549,7 +632,9 @@
     flex-direction: column;
   }
 
+  .fuel-search-wrapper,
   .fuel-search {
+    width: 100%;
     max-width: none;
   }
 
@@ -569,7 +654,62 @@
   }
 
   .fuel-reports-header {
-    align-items: flex-start;
     flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .fuel-price-section {
+    padding: 60px 18px;
+  }
+
+  .fuel-price-header h2 {
+    font-size: 44px;
+  }
+
+  .fuel-live-indicator {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .fuel-filters {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    width: 100%;
+  }
+
+  .fuel-filters button {
+    padding: 10px 8px;
+  }
+
+  .fuel-report-card {
+    padding: 16px;
+  }
+
+  .fuel-report-details h4 {
+    font-size: 12px;
+  }
+
+  .fuel-report-details p {
+    font-size: 10px;
+  }
+
+  .fuel-info-card h3 {
+    font-size: 25px;
+  }
+
+  .fuel-stat-card strong {
+    font-size: 22px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fuel-price-section *,
+  .fuel-price-section *::before,
+  .fuel-price-section *::after {
+    scroll-behavior: auto !important;
+    transition: none !important;
+    animation: none !important;
   }
 }
