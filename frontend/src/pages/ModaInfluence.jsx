@@ -33,41 +33,51 @@ function ModaInfluence() {
   const [showForm, setShowForm] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  const formData = new FormData(e.target);
+    const formData = new FormData(e.target);
 
-  const campaign = {
-    id: `MI-${Date.now()}`,
-    brand: formData.get("brand"),
-    email: formData.get("email"),
-    campaignType: formData.get("campaignType"),
-    message: formData.get("message"),
-    submittedAt: new Date().toLocaleString(),
-    status: "New",
+    const apiBase =
+      import.meta.env.VITE_API_BASE_URL ||
+      "http://localhost:5000/api/";
+
+    const endpoint = apiBase.endsWith("/")
+      ? `${apiBase}modasphere/influence/campaigns`
+      : `${apiBase}/modasphere/influence/campaigns`;
+
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          brand: formData.get("brand"),
+          email: formData.get("email"),
+          campaignType: formData.get("campaignType"),
+          message: formData.get("message"),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || "Failed to submit campaign request"
+        );
+      }
+
+      setSubmitted(true);
+    } catch (error) {
+      console.error("Campaign submission error:", error);
+
+      alert(
+        error.message ||
+          "Failed to submit campaign request. Please try again."
+      );
+    }
   };
-
-  const existingCampaigns = JSON.parse(
-    localStorage.getItem("modaInfluenceCampaigns") || "[]"
-  );
-
-  const updatedCampaigns = [
-    ...existingCampaigns,
-    campaign,
-  ];
-
-  localStorage.setItem(
-    "modaInfluenceCampaigns",
-    JSON.stringify(updatedCampaigns)
-  );
-
-  window.dispatchEvent(
-    new Event("modaInfluenceCampaignsUpdated")
-  );
-
-  setSubmitted(true);
-};
 
   return (
     <div className="modainfluence-page">

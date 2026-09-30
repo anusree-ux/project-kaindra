@@ -1,6 +1,11 @@
 const express = require("express");
 
 const {
+  protect,
+  authorize,
+} = require("../../../middleware/authMiddleware");
+
+const {
   createCampaign,
   getCampaigns,
   getCampaignById,
@@ -15,26 +20,42 @@ const influenceCampaignValidator = require(
 
 const router = express.Router();
 
-// Public campaign request
+// =====================================================
+// PUBLIC
+// =====================================================
+
+// Submit campaign request
 router.post(
   "/campaigns",
   influenceCampaignValidator,
   createCampaign
 );
 
-// Admin campaign requests
+// =====================================================
+// ADMIN ONLY
+// =====================================================
+
+// Get all campaign requests
 router.get(
   "/campaigns",
+  protect,
+  authorize("admin"),
   getCampaigns
 );
 
+// Get single campaign request
 router.get(
   "/campaigns/:id",
+  protect,
+  authorize("admin"),
   getCampaignById
 );
 
+// Update campaign status
 router.patch(
   "/campaigns/:id/status",
+  protect,
+  authorize("admin"),
   updateCampaignStatus
 );
 
