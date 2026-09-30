@@ -33,6 +33,10 @@ const modasphereOrderRoutes = require("./routes/modasphere/orderRoutes");
 const wishlistRoutes = require("./routes/modasphere/wishlistRoutes");
 const reviewRoutes = require("./routes/modasphere/reviewRoutes");
 const dropRoutes = require("./routes/modasphere/dropRoutes");
+const influenceRoutes = require(
+  "./routes/modasphere/modainfluence/influenceRoutes"
+);
+
 const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
