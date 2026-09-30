@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../../context/AuthContext";
 import apiClient from "../../../../services/apiClient";
@@ -26,14 +26,17 @@ function Vehicles() {
   const [vehicles, setVehicles] = useState(() => {
     try {
       const savedVehicles = localStorage.getItem("mototribeVehicles");
+
       if (savedVehicles) {
         return JSON.parse(savedVehicles);
       }
     } catch (err) {
-      console.error(err);
+      console.error("Failed to load local vehicles:", err);
     }
+
     return [];
   });
+
   const [form, setForm] = useState(emptyVehicle);
   const [editingId, setEditingId] = useState(null);
   const [showForm, setShowForm] = useState(false);
@@ -41,44 +44,118 @@ function Vehicles() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const fetchDbVehicles = useCallback(async () => {
-    if (!isAuthenticated) return;
-    try {
-      const res = await apiClient.get("/api/mototribe/vehicles/me").catch(() => null);
-      const dbList = res?.data?.data?.vehicles;
-      if (Array.isArray(dbList) && dbList.length > 0) {
-        const mapped = dbList.map((v) => ({
-          id: v._id,
-          _id: v._id,
-          name: v.vehicleName,
-          brand: v.vehicleName.split(" ")[0] || "Motorcycle",
-          model: v.vehicleName.split(" ").slice(1).join(" ") || "Model",
-          registration: v.registrationNumber,
-          fuelType: (v.fuelType || "PETROL").toUpperCase(),
-          mileage: String(v.mileageKmpl || 28),
-          isDefault: !!v.isDefault,
-          createdAt: v.createdAt,
-        }));
-        setVehicles(mapped);
-        localStorage.setItem("mototribeVehicles", JSON.stringify(mapped));
-      }
-    } catch (err) {
-      console.error("Failed to fetch vehicles from DB:", err);
+  /*
+   * Load vehicles from MongoDB when the user is authenticated.
+   */
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return;
     }
+
+    let cancelled = false;
+
+    const loadVehicles = async () => {
+      try {
+        const res = await apiClient.get(
+          "/api/mototribe/vehicles/me"
+        );
+
+        const dbList = res?.data?.data?.vehicles;
+
+        if (cancelled || !Array.isArray(dbList)) {
+          return;
+        }
+
+        const mappedVehicles = dbList.map((vehicle) => {
+          const vehicleName = vehicle.vehicleName || "Motorcycle";
+
+          const nameParts = vehicleName
+            .trim()
+            .split(/\s+/);
+
+          return {
+            id: vehicle._id,
+            _id: vehicle._id,
+
+            name: vehicleName,
+
+            brand:
+              vehicle.brand ||
+              nameParts[0] ||
+              "Motorcycle",
+
+            model:
+              vehicle.model ||
+              nameParts.slice(1).join(" ") ||
+              "Model",
+
+            year: vehicle.year || "",
+
+            registration:
+              vehicle.registrationNumber || "",
+
+            fuelType:
+              (
+                vehicle.fuelType ||
+                "PETROL"
+              ).toUpperCase(),
+
+            mileage: String(
+              vehicle.mileageKmpl || 28
+            ),
+
+            engine: vehicle.engine || "",
+
+            lastService:
+              vehicle.lastService || "",
+
+            serviceDue:
+              vehicle.serviceDue || "",
+
+            isDefault: !!vehicle.isDefault,
+
+            createdAt: vehicle.createdAt,
+          };
+        });
+
+        setVehicles(mappedVehicles);
+
+        localStorage.setItem(
+          "mototribeVehicles",
+          JSON.stringify(mappedVehicles)
+        );
+      } catch (err) {
+        console.error(
+          "Failed to fetch vehicles from DB:",
+          err
+        );
+      }
+    };
+
+    loadVehicles();
+
+    return () => {
+      cancelled = true;
+    };
   }, [isAuthenticated]);
 
+  /*
+   * Redirect users who have not completed profile setup.
+   */
   useEffect(() => {
-    fetchDbVehicles();
-  }, [fetchDbVehicles]);
-
-  useEffect(() => {
-    const profile = localStorage.getItem("mototribeProfile");
+    const profile =
+      localStorage.getItem("mototribeProfile");
 
     if (!profile && !isAuthenticated) {
-      navigate("/businesses/mototribe/profile-setup");
+      navigate(
+        "/businesses/mototribe/profile-setup"
+      );
     }
   }, [navigate, isAuthenticated]);
 
+  /*
+   * Save vehicles to React state and localStorage.
+   */
   const saveVehicles = (updatedVehicles) => {
     setVehicles(updatedVehicles);
 
@@ -88,6 +165,9 @@ function Vehicles() {
     );
   };
 
+  /*
+   * Handle form changes.
+   */
   const handleChange = (event) => {
     const { name, value } = event.target;
 
@@ -97,19 +177,26 @@ function Vehicles() {
     }));
 
     setError("");
+    setSuccess("");
   };
 
+  /*
+   * Open add vehicle form.
+   */
   const openAddForm = () => {
     setEditingId(null);
-    setForm(emptyVehicle);
+    setForm({ ...emptyVehicle });
     setShowForm(true);
     setError("");
     setSuccess("");
   };
 
+  /*
+   * Open edit vehicle form.
+   */
   const openEditForm = (vehicle) => {
     setEditingId(vehicle.id);
-    setShowForm(true);
+
     setForm({
       name: vehicle.name || "",
       brand: vehicle.brand || "",
@@ -119,159 +206,448 @@ function Vehicles() {
       fuelType: vehicle.fuelType || "PETROL",
       mileage: vehicle.mileage || "",
       engine: vehicle.engine || "",
-      lastService: vehicle.lastService ? String(vehicle.lastService).split("T")[0] : "",
-      serviceDue: vehicle.serviceDue ? String(vehicle.serviceDue).split("T")[0] : "",
+      lastService: vehicle.lastService
+        ? String(vehicle.lastService).split("T")[0]
+        : "",
+      serviceDue: vehicle.serviceDue
+        ? String(vehicle.serviceDue).split("T")[0]
+        : "",
     });
 
+    setShowForm(true);
     setError("");
     setSuccess("");
   };
 
-  const handleSubmit = (event) => {
+  /*
+   * Add / update vehicle.
+   */
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
+    setError("");
+    setSuccess("");
+
+    /*
+     * Validation
+     */
     if (!form.name.trim()) {
-      setError("Please enter a motorcycle name.");
+      setError(
+        "Please enter a motorcycle name."
+      );
       return;
     }
 
     if (!form.brand.trim()) {
-      setError("Please enter the motorcycle brand.");
+      setError(
+        "Please enter the motorcycle brand."
+      );
       return;
     }
 
     if (!form.model.trim()) {
-      setError("Please enter the motorcycle model.");
+      setError(
+        "Please enter the motorcycle model."
+      );
       return;
     }
 
     if (!form.registration.trim()) {
-      setError("Please enter the registration number.");
+      setError(
+        "Please enter the registration number."
+      );
       return;
     }
 
-    if (!form.mileage || Number(form.mileage) <= 0) {
-      setError("Please enter a valid mileage.");
+    if (
+      !form.mileage ||
+      Number(form.mileage) <= 0
+    ) {
+      setError(
+        "Please enter a valid mileage."
+      );
       return;
     }
 
-    const existingTarget = editingId ? vehicles.find((v) => v.id === editingId || v._id === editingId) : null;
+    /*
+     * Find existing vehicle while editing.
+     */
+    const existingTarget = editingId
+      ? vehicles.find(
+          (vehicle) =>
+            vehicle.id === editingId ||
+            vehicle._id === editingId
+        )
+      : null;
+
+    /*
+     * Common frontend vehicle object.
+     */
     const vehicleData = {
       ...form,
-      id: existingTarget?._id || existingTarget?.id || editingId || Date.now(),
-      _id: existingTarget?._id || undefined,
-      createdAt: existingTarget?.createdAt || new Date().toISOString(),
+
+      id:
+        existingTarget?._id ||
+        existingTarget?.id ||
+        editingId ||
+        Date.now(),
+
+      _id:
+        existingTarget?._id ||
+        undefined,
+
+      createdAt:
+        existingTarget?.createdAt ||
+        new Date().toISOString(),
+
+      isDefault:
+        existingTarget?.isDefault ||
+        vehicles.length === 0,
     };
 
-    // Sync with backend DB if authenticated
-    if (isAuthenticated) {
-      if (existingTarget?._id) {
-        apiClient.patch(`/api/mototribe/vehicles/${existingTarget._id}`, {
-          vehicleName: form.name.trim(),
-          registrationNumber: form.registration.trim(),
-          mileageKmpl: Number(form.mileage) || 28,
-          fuelType: (form.fuelType || "petrol").toLowerCase(),
-        }).catch((err) => console.error("Failed to update vehicle in DB:", err));
-      } else {
-        apiClient.post("/api/mototribe/vehicles", {
-          vehicleName: form.name.trim(),
-          registrationNumber: form.registration.trim(),
-          mileageKmpl: Number(form.mileage) || 28,
-          fuelType: (form.fuelType || "petrol").toLowerCase(),
-          isDefault: vehicles.length === 0,
-        }).then((res) => {
-          if (res?.data?.data?.vehicle?._id) {
-            vehicleData._id = res.data.data.vehicle._id;
-            vehicleData.id = res.data.data.vehicle._id;
-            setVehicles((prev) => {
-              const updated = prev.map((v) => (v.id === vehicleData.id ? { ...v, _id: res.data.data.vehicle._id, id: res.data.data.vehicle._id } : v));
-              localStorage.setItem("mototribeVehicles", JSON.stringify(updated));
-              return updated;
-            });
+    /*
+     * EDIT EXISTING VEHICLE
+     */
+    if (editingId) {
+      let updatedVehicles = vehicles.map(
+        (vehicle) =>
+          vehicle.id === editingId ||
+          vehicle._id === editingId
+            ? vehicleData
+            : vehicle
+      );
+
+      /*
+       * Update MongoDB.
+       */
+      if (
+        isAuthenticated &&
+        existingTarget?._id
+      ) {
+        try {
+          const response =
+            await apiClient.patch(
+              `/api/mototribe/vehicles/${existingTarget._id}`,
+              {
+                vehicleName:
+                  form.name.trim(),
+
+                brand:
+                  form.brand.trim(),
+
+                model:
+                  form.model.trim(),
+
+                year:
+                  form.year
+                    ? Number(form.year)
+                    : null,
+
+                registrationNumber:
+                  form.registration.trim(),
+
+                mileageKmpl:
+                  Number(form.mileage),
+
+                fuelType:
+                  (
+                    form.fuelType ||
+                    "PETROL"
+                  ).toLowerCase(),
+
+                engine:
+                  form.engine
+                    ? Number(form.engine)
+                    : null,
+
+                lastService:
+                  form.lastService || null,
+
+                serviceDue:
+                  form.serviceDue || null,
+              }
+            );
+
+          const dbVehicle =
+            response?.data?.data?.vehicle;
+
+          if (dbVehicle?._id) {
+            vehicleData._id = dbVehicle._id;
+            vehicleData.id = dbVehicle._id;
           }
-        }).catch((err) => console.error("Failed to create vehicle in DB:", err));
+        } catch (err) {
+          console.error(
+            "Failed to update vehicle in DB:",
+            err
+          );
+
+          setError(
+            "Vehicle was updated locally, but database update failed."
+          );
+        }
+      }
+
+      updatedVehicles = updatedVehicles.map(
+        (vehicle) =>
+          vehicle.id === editingId ||
+          vehicle._id === editingId
+            ? vehicleData
+            : vehicle
+      );
+
+      saveVehicles(updatedVehicles);
+
+      setSuccess(
+        "Motorcycle updated successfully."
+      );
+    }
+
+    /*
+     * ADD NEW VEHICLE
+     */
+    else {
+      let newVehicle = vehicleData;
+
+      /*
+       * Create in MongoDB.
+       */
+      if (isAuthenticated) {
+        try {
+          const response =
+            await apiClient.post(
+              "/api/mototribe/vehicles",
+              {
+                vehicleName:
+                  form.name.trim(),
+
+                brand:
+                  form.brand.trim(),
+
+                model:
+                  form.model.trim(),
+
+                year:
+                  form.year
+                    ? Number(form.year)
+                    : null,
+
+                registrationNumber:
+                  form.registration.trim(),
+
+                mileageKmpl:
+                  Number(form.mileage),
+
+                fuelType:
+                  (
+                    form.fuelType ||
+                    "PETROL"
+                  ).toLowerCase(),
+
+                engine:
+                  form.engine
+                    ? Number(form.engine)
+                    : null,
+
+                lastService:
+                  form.lastService || null,
+
+                serviceDue:
+                  form.serviceDue || null,
+
+                isDefault:
+                  vehicles.length === 0,
+              }
+            );
+
+          const dbVehicle =
+            response?.data?.data?.vehicle;
+
+          if (dbVehicle?._id) {
+            newVehicle = {
+              ...newVehicle,
+
+              id: dbVehicle._id,
+
+              _id: dbVehicle._id,
+
+              isDefault:
+                !!dbVehicle.isDefault,
+
+              createdAt:
+                dbVehicle.createdAt ||
+                newVehicle.createdAt,
+            };
+          }
+        } catch (err) {
+          console.error(
+            "Failed to create vehicle in DB:",
+            err
+          );
+
+          setError(
+            "Vehicle was saved locally, but database creation failed."
+          );
+        }
+      }
+
+      const updatedVehicles = [
+        ...vehicles,
+        newVehicle,
+      ];
+
+      saveVehicles(updatedVehicles);
+
+      if (!error) {
+        setSuccess(
+          "Motorcycle added successfully."
+        );
       }
     }
 
-    let updatedVehicles;
-
-    if (editingId) {
-      updatedVehicles = vehicles.map((vehicle) =>
-        (vehicle.id === editingId || vehicle._id === editingId)
-          ? vehicleData
-          : vehicle
-      );
-
-      setSuccess("Motorcycle updated successfully.");
-    } else {
-      updatedVehicles = [
-        ...vehicles,
-        vehicleData,
-      ];
-
-      setSuccess("Motorcycle added successfully.");
-    }
-
-    saveVehicles(updatedVehicles);
-
+    /*
+     * Close form.
+     */
     setShowForm(false);
-    setForm(emptyVehicle);
+    setForm({ ...emptyVehicle });
     setEditingId(null);
   };
 
+  /*
+   * Delete vehicle.
+   */
   const deleteVehicle = async (id) => {
     const vehicle = vehicles.find(
-      (item) => item.id === id || item._id === id
+      (item) =>
+        item.id === id ||
+        item._id === id
     );
 
-    if (!vehicle) return;
+    if (!vehicle) {
+      return;
+    }
 
     const confirmed = window.confirm(
       `Remove ${vehicle.name} from your MotoTribe garage?`
     );
 
-    if (!confirmed) return;
-
-    if (isAuthenticated && (vehicle._id || typeof vehicle.id === "string" && /^[0-9a-fA-F]{24}$/.test(vehicle.id))) {
-      const dbId = vehicle._id || vehicle.id;
-      apiClient.delete(`/api/mototribe/vehicles/${dbId}`).catch((err) =>
-        console.error("Failed to delete vehicle from DB:", err)
-      );
+    if (!confirmed) {
+      return;
     }
 
-    const updatedVehicles = vehicles.filter(
-      (item) => item.id !== id && item._id !== id
-    );
+    /*
+     * Delete from MongoDB.
+     */
+    const isMongoId =
+      vehicle._id ||
+      (
+        typeof vehicle.id === "string" &&
+        /^[0-9a-fA-F]{24}$/.test(
+          vehicle.id
+        )
+      );
+
+    if (isAuthenticated && isMongoId) {
+      const dbId =
+        vehicle._id || vehicle.id;
+
+      try {
+        await apiClient.delete(
+          `/api/mototribe/vehicles/${dbId}`
+        );
+      } catch (err) {
+        console.error(
+          "Failed to delete vehicle from DB:",
+          err
+        );
+      }
+    }
+
+    /*
+     * Delete locally.
+     */
+    const updatedVehicles =
+      vehicles.filter(
+        (item) =>
+          item.id !== id &&
+          item._id !== id
+      );
 
     saveVehicles(updatedVehicles);
 
-    if (selectedVehicle?.id === id || selectedVehicle?._id === id) {
+    /*
+     * Close details modal if needed.
+     */
+    if (
+      selectedVehicle?.id === id ||
+      selectedVehicle?._id === id
+    ) {
       setSelectedVehicle(null);
     }
 
-    setSuccess("Motorcycle removed successfully.");
+    setSuccess(
+      "Motorcycle removed successfully."
+    );
   };
 
+  /*
+   * Set default vehicle.
+   */
   const setDefaultVehicle = async (id) => {
-    const updatedVehicles = vehicles.map((vehicle) => ({
-      ...vehicle,
-      isDefault: vehicle.id === id || vehicle._id === id,
-    }));
+    const updatedVehicles =
+      vehicles.map((vehicle) => ({
+        ...vehicle,
+
+        isDefault:
+          vehicle.id === id ||
+          vehicle._id === id,
+      }));
 
     saveVehicles(updatedVehicles);
 
-    const vehicle = updatedVehicles.find(
-      (item) => item.id === id || item._id === id
-    );
-
-    if (isAuthenticated && vehicle && (vehicle._id || typeof vehicle.id === "string" && /^[0-9a-fA-F]{24}$/.test(vehicle.id))) {
-      const dbId = vehicle._id || vehicle.id;
-      apiClient.patch(`/api/mototribe/vehicles/${dbId}`, { isDefault: true }).catch((err) =>
-        console.error("Failed to set default vehicle in DB:", err)
+    const vehicle =
+      updatedVehicles.find(
+        (item) =>
+          item.id === id ||
+          item._id === id
       );
+
+    if (!vehicle) {
+      return;
+    }
+
+    /*
+     * Update MongoDB.
+     */
+    const isMongoId =
+      vehicle._id ||
+      (
+        typeof vehicle.id === "string" &&
+        /^[0-9a-fA-F]{24}$/.test(
+          vehicle.id
+        )
+      );
+
+    if (isAuthenticated && isMongoId) {
+      const dbId =
+        vehicle._id || vehicle.id;
+
+      try {
+        await apiClient.patch(
+          `/api/mototribe/vehicles/${dbId}`,
+          {
+            isDefault: true,
+          }
+        );
+      } catch (err) {
+        console.error(
+          "Failed to set default vehicle in DB:",
+          err
+        );
+      }
     }
 
     setSelectedVehicle(vehicle);
+
     setSuccess(
       `${vehicle.name} is now your default motorcycle.`
     );
@@ -279,16 +655,14 @@ function Vehicles() {
 
   return (
     <div className="moto-vehicles-page">
-
       <div className="vehicles-background">
         <div className="vehicle-glow vehicle-glow-one"></div>
+
         <div className="vehicle-glow vehicle-glow-two"></div>
       </div>
 
       <div className="moto-vehicles-container">
-
         <header className="vehicles-header">
-
           <div className="vehicles-brand">
             <span>MOTO</span>
             <strong>TRIBE</strong>
@@ -305,7 +679,6 @@ function Vehicles() {
             information helps MotoTribe personalize
             journeys, fuel estimates and ride records.
           </p>
-
         </header>
 
         {success && (
@@ -315,7 +688,6 @@ function Vehicles() {
         )}
 
         <div className="vehicle-topbar">
-
           <div>
             <span className="vehicle-count">
               {vehicles.length}
@@ -323,7 +695,9 @@ function Vehicles() {
 
             <span className="vehicle-count-label">
               MOTORCYCLE
-              {vehicles.length !== 1 ? "S" : ""}
+              {vehicles.length !== 1
+                ? "S"
+                : ""}
             </span>
           </div>
 
@@ -333,21 +707,22 @@ function Vehicles() {
           >
             + ADD MOTORCYCLE
           </button>
-
         </div>
 
         {vehicles.length === 0 ? (
           <div className="empty-vehicles">
-
             <div className="empty-icon">
               🏍
             </div>
 
-            <h2>Your garage is empty</h2>
+            <h2>
+              Your garage is empty
+            </h2>
 
             <p>
-              Add your first motorcycle to start building
-              your MotoTribe rider profile.
+              Add your first motorcycle to
+              start building your MotoTribe
+              rider profile.
             </p>
 
             <button
@@ -356,11 +731,9 @@ function Vehicles() {
             >
               ADD YOUR FIRST MOTORCYCLE
             </button>
-
           </div>
         ) : (
           <div className="vehicles-grid">
-
             {vehicles.map((vehicle) => (
               <article
                 className={`vehicle-card ${
@@ -370,9 +743,7 @@ function Vehicles() {
                 }`}
                 key={vehicle.id}
               >
-
                 <div className="vehicle-card-top">
-
                   <span className="vehicle-type">
                     MOTORCYCLE
                   </span>
@@ -382,7 +753,6 @@ function Vehicles() {
                       DEFAULT
                     </span>
                   )}
-
                 </div>
 
                 <div className="motorcycle-symbol">
@@ -392,13 +762,14 @@ function Vehicles() {
                 <h2>{vehicle.name}</h2>
 
                 <p className="vehicle-model">
-                  {vehicle.brand} {vehicle.model}
+                  {vehicle.brand}{" "}
+                  {vehicle.model}
                 </p>
 
                 <div className="vehicle-specs">
-
                   <div>
                     <span>YEAR</span>
+
                     <strong>
                       {vehicle.year || "—"}
                     </strong>
@@ -406,6 +777,7 @@ function Vehicles() {
 
                   <div>
                     <span>ENGINE</span>
+
                     <strong>
                       {vehicle.engine
                         ? `${vehicle.engine} CC`
@@ -415,6 +787,7 @@ function Vehicles() {
 
                   <div>
                     <span>FUEL</span>
+
                     <strong>
                       {vehicle.fuelType}
                     </strong>
@@ -422,25 +795,29 @@ function Vehicles() {
 
                   <div>
                     <span>MILEAGE</span>
+
                     <strong>
                       {vehicle.mileage} KM/L
                     </strong>
                   </div>
-
                 </div>
 
                 <div className="registration-box">
-                  <span>REGISTRATION</span>
+                  <span>
+                    REGISTRATION
+                  </span>
+
                   <strong>
                     {vehicle.registration}
                   </strong>
                 </div>
 
                 <div className="vehicle-actions">
-
                   <button
                     onClick={() =>
-                      setSelectedVehicle(vehicle)
+                      setSelectedVehicle(
+                        vehicle
+                      )
                     }
                   >
                     VIEW
@@ -457,7 +834,9 @@ function Vehicles() {
                   {!vehicle.isDefault && (
                     <button
                       onClick={() =>
-                        setDefaultVehicle(vehicle.id)
+                        setDefaultVehicle(
+                          vehicle.id
+                        )
                       }
                     >
                       SET DEFAULT
@@ -467,25 +846,25 @@ function Vehicles() {
                   <button
                     className="delete-action"
                     onClick={() =>
-                      deleteVehicle(vehicle.id)
+                      deleteVehicle(
+                        vehicle.id
+                      )
                     }
                   >
                     DELETE
                   </button>
-
                 </div>
-
               </article>
             ))}
-
           </div>
         )}
 
         <div className="vehicles-navigation">
-
           <button
             onClick={() =>
-              navigate("/businesses/mototribe/profile-setup")
+              navigate(
+                "/businesses/mototribe/profile-setup"
+              )
             }
           >
             ← PROFILE
@@ -493,29 +872,27 @@ function Vehicles() {
 
           <button
             onClick={() =>
-              navigate("/businesses/mototribe")
+              navigate(
+                "/businesses/mototribe"
+              )
             }
           >
             CONTINUE TO MOTOTRIBE →
           </button>
-
         </div>
 
         <footer className="vehicles-footer">
-          FRONTEND PROTOTYPE • VEHICLE DATA STORED LOCALLY
+          FRONTEND PROTOTYPE • VEHICLE DATA
+          STORED LOCALLY & IN DATABASE
         </footer>
-
       </div>
 
       {/* ADD / EDIT MODAL */}
 
       {showForm && (
         <div className="vehicle-modal-overlay">
-
           <div className="vehicle-modal">
-
             <div className="modal-header">
-
               <div>
                 <span>
                   {editingId
@@ -531,19 +908,21 @@ function Vehicles() {
               </div>
 
               <button
-                onClick={() => setShowForm(false)}
+                onClick={() => {
+                  setShowForm(false);
+                  setError("");
+                }}
               >
                 ×
               </button>
-
             </div>
 
             <form onSubmit={handleSubmit}>
-
               <div className="vehicle-form-grid">
-
                 <div className="vehicle-field full">
-                  <label>MOTORCYCLE NAME *</label>
+                  <label>
+                    MOTORCYCLE NAME *
+                  </label>
 
                   <input
                     name="name"
@@ -598,11 +977,14 @@ function Vehicles() {
                     value={form.engine}
                     onChange={handleChange}
                     placeholder="450"
+                    min="1"
                   />
                 </div>
 
                 <div className="vehicle-field full">
-                  <label>REGISTRATION NUMBER *</label>
+                  <label>
+                    REGISTRATION NUMBER *
+                  </label>
 
                   <input
                     name="registration"
@@ -620,19 +1002,23 @@ function Vehicles() {
                     value={form.fuelType}
                     onChange={handleChange}
                   >
-                    {fuelTypes.map((fuel) => (
-                      <option
-                        key={fuel}
-                        value={fuel}
-                      >
-                        {fuel}
-                      </option>
-                    ))}
+                    {fuelTypes.map(
+                      (fuel) => (
+                        <option
+                          key={fuel}
+                          value={fuel}
+                        >
+                          {fuel}
+                        </option>
+                      )
+                    )}
                   </select>
                 </div>
 
                 <div className="vehicle-field">
-                  <label>MILEAGE KM/L *</label>
+                  <label>
+                    MILEAGE KM/L *
+                  </label>
 
                   <input
                     type="number"
@@ -646,41 +1032,44 @@ function Vehicles() {
                 </div>
 
                 <div className="vehicle-field">
-                  <label>LAST SERVICE</label>
+                  <label>
+                    LAST SERVICE
+                  </label>
 
                   <input
                     type="date"
                     name="lastService"
                     value={form.lastService}
                     onChange={handleChange}
-                    onClick={(e) => {
+                    onClick={(event) => {
                       try {
-                        e.target.showPicker?.();
+                        event.target.showPicker?.();
                       } catch (err) {
-                        /* ignore showPicker error */
+                        // Browser may not support showPicker.
                       }
                     }}
                   />
                 </div>
 
                 <div className="vehicle-field">
-                  <label>NEXT SERVICE</label>
+                  <label>
+                    NEXT SERVICE
+                  </label>
 
                   <input
                     type="date"
                     name="serviceDue"
                     value={form.serviceDue}
                     onChange={handleChange}
-                    onClick={(e) => {
+                    onClick={(event) => {
                       try {
-                        e.target.showPicker?.();
+                        event.target.showPicker?.();
                       } catch (err) {
-                        /* ignore showPicker error */
+                        // Browser may not support showPicker.
                       }
                     }}
                   />
                 </div>
-
               </div>
 
               {error && (
@@ -697,11 +1086,8 @@ function Vehicles() {
                   ? "UPDATE MOTORCYCLE"
                   : "ADD MOTORCYCLE"}
               </button>
-
             </form>
-
           </div>
-
         </div>
       )}
 
@@ -709,9 +1095,7 @@ function Vehicles() {
 
       {selectedVehicle && (
         <div className="vehicle-modal-overlay">
-
           <div className="vehicle-details-modal">
-
             <button
               className="details-close"
               onClick={() =>
@@ -729,7 +1113,9 @@ function Vehicles() {
               🏍
             </div>
 
-            <h2>{selectedVehicle.name}</h2>
+            <h2>
+              {selectedVehicle.name}
+            </h2>
 
             <p>
               {selectedVehicle.brand}{" "}
@@ -737,16 +1123,28 @@ function Vehicles() {
             </p>
 
             <div className="details-grid">
-
               <div>
-                <span>REGISTRATION</span>
+                <span>
+                  REGISTRATION
+                </span>
+
                 <strong>
                   {selectedVehicle.registration}
                 </strong>
               </div>
 
               <div>
+                <span>YEAR</span>
+
+                <strong>
+                  {selectedVehicle.year ||
+                    "Not added"}
+                </strong>
+              </div>
+
+              <div>
                 <span>FUEL</span>
+
                 <strong>
                   {selectedVehicle.fuelType}
                 </strong>
@@ -754,13 +1152,16 @@ function Vehicles() {
 
               <div>
                 <span>MILEAGE</span>
+
                 <strong>
-                  {selectedVehicle.mileage} KM/L
+                  {selectedVehicle.mileage}{" "}
+                  KM/L
                 </strong>
               </div>
 
               <div>
                 <span>ENGINE</span>
+
                 <strong>
                   {selectedVehicle.engine
                     ? `${selectedVehicle.engine} CC`
@@ -770,6 +1171,7 @@ function Vehicles() {
 
               <div>
                 <span>LAST SERVICE</span>
+
                 <strong>
                   {selectedVehicle.lastService ||
                     "Not added"}
@@ -778,12 +1180,12 @@ function Vehicles() {
 
               <div>
                 <span>NEXT SERVICE</span>
+
                 <strong>
                   {selectedVehicle.serviceDue ||
                     "Not added"}
                 </strong>
               </div>
-
             </div>
 
             {!selectedVehicle.isDefault && (
@@ -798,12 +1200,9 @@ function Vehicles() {
                 SET AS DEFAULT MOTORCYCLE
               </button>
             )}
-
           </div>
-
         </div>
       )}
-
     </div>
   );
 }
