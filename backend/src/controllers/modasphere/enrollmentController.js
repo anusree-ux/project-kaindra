@@ -1,243 +1,155 @@
-const CourseEnrollment = require("../../models/modasphere/CourseEnrollment");
-const ModaCourse = require("../../models/modasphere/ModaCourse");
-const CourseCertificate = require("../../models/modasphere/CourseCertificate");
+const ModaAcademyEnrollment = require("../../models/modasphere/CourseEnrollment");
 
-// Enroll in a course
-const enrollInCourse = async (req, res) => {
+// Student - Submit enrollment
+const createEnrollment = async (req, res) => {
   try {
-    const course = await ModaCourse.findOne({
-      _id: req.params.id,
-      status: "published",
-    });
+    const {
+      courseId,
+      courseName,
+      category,
+      level,
+      duration,
+      instructor,
+      name,
+      email,
+      phone,
+      experience,
+    } = req.body;
 
-    if (!course) {
-      return res.status(404).json({
+    // Basic validation
+    if (
+      !courseId ||
+      !courseName ||
+      !category ||
+      !level ||
+      !duration ||
+      !instructor ||
+      !name ||
+      !email ||
+      !phone ||
+      !experience
+    ) {
+      return res.status(400).json({
         success: false,
-        message: "Published course not found",
+        message: "All enrollment fields are required",
       });
     }
 
-    const existingEnrollment = await CourseEnrollment.findOne({
-      user: req.user._id,
-      course: course._id,
+    const enrollment = await ModaAcademyEnrollment.create({
+      enrollmentId: `MA-${Date.now()}`,
+      courseId,
+      courseName,
+      category,
+      level,
+      duration,
+      instructor,
+      name,
+      email,
+      phone,
+      experience,
+      status: "Enrolled",
+      progress: 0,
     });
 
-    if (existingEnrollment) {
-      return res.status(409).json({
-        success: false,
-        message: "You are already enrolled in this course",
-      });
-    }
-
-    const enrollment = await CourseEnrollment.create({
-      user: req.user._id,
-      course: course._id,
-    });
-
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
-      message: "Enrolled in course successfully",
-      enrollment,
+      message: "Enrollment submitted successfully",
+      data: enrollment,
     });
   } catch (error) {
-    console.error("Enroll in course error:", error);
+    console.error("Create academy enrollment error:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
-      message: "Failed to enroll in course",
+      message: "Failed to submit enrollment",
     });
   }
 };
 
-// Get logged-in user's enrollments
+// Student - Get enrollments using email
 const getMyEnrollments = async (req, res) => {
   try {
-    const enrollments = await CourseEnrollment.find({
-      user: req.user._id,
-    })
-      .populate(
-        "course",
-        "title slug subtitle shortDescription category level coverImage durationMinutes"
-      )
-      .sort({ enrolledAt: -1 });
+    const { email } = req.query;
 
-    res.status(200).json({
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required",
+      });
+    }
+
+    const enrollments = await ModaAcademyEnrollment.find({
+      email: email.toLowerCase(),
+    }).sort({ enrolledAt: -1 });
+
+    return res.status(200).json({
       success: true,
       count: enrollments.length,
-      enrollments,
+      data: enrollments,
     });
   } catch (error) {
-    console.error("Get my enrollments error:", error);
+    console.error("Get academy enrollments error:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Failed to fetch enrollments",
     });
   }
 };
 
-// Get enrollment for a specific course
-const getMyEnrollment = async (req, res) => {
+// Admin - Get all enrollments
+const getAllEnrollments = async (req, res) => {
   try {
-    const enrollment = await CourseEnrollment.findOne({
-      user: req.user._id,
-      course: req.params.courseId,
-    }).populate("course");
+    const enrollments = await ModaAcademyEnrollment.find().sort({
+      enrolledAt: -1,
+    });
 
-    if (!enrollment) {
-      return res.status(404).json({
-        success: false,
-        message: "You are not enrolled in this course",
-      });
-    }
-
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      enrollment,
+      count: enrollments.length,
+      data: enrollments,
     });
   } catch (error) {
-    console.error("Get enrollment error:", error);
+    console.error("Get all academy enrollments error:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
-      message: "Failed to fetch enrollment",
+      message: "Failed to fetch enrollments",
     });
   }
 };
 
-// Complete a course module
-const completeModule = async (req, res) => {
+// Admin - Delete enrollment
+const deleteEnrollment = async (req, res) => {
   try {
-    const { courseId, moduleId } = req.params;
-
-    const enrollment = await CourseEnrollment.findOne({
-      user: req.user._id,
-      course: courseId,
-    });
+    const enrollment = await ModaAcademyEnrollment.findById(req.params.id);
 
     if (!enrollment) {
       return res.status(404).json({
         success: false,
-        message: "You are not enrolled in this course",
+        message: "Enrollment not found",
       });
     }
 
-    const course = await ModaCourse.findById(courseId);
+    await enrollment.deleteOne();
 
-    if (!course) {
-      return res.status(404).json({
-        success: false,
-        message: "Course not found",
-      });
-    }
-
-    const moduleExists = course.modules.some(
-      (module) => module._id.toString() === moduleId
-    );
-
-    if (!moduleExists) {
-      return res.status(404).json({
-        success: false,
-        message: "Module not found in this course",
-      });
-    }
-
-    const alreadyCompleted = enrollment.completedModules.some(
-      (id) => id.toString() === moduleId
-    );
-
-    if (!alreadyCompleted) {
-      enrollment.completedModules.push(moduleId);
-    }
-
-    const totalModules = course.modules.length;
-
-    enrollment.progress =
-      totalModules === 0
-        ? 0
-        : Math.round(
-            (enrollment.completedModules.length / totalModules) * 100
-          );
-
-    if (enrollment.progress === 100) {
-        enrollment.status = "completed";
-
-        if (!enrollment.completedAt) {
-            enrollment.completedAt = new Date();
-        }
-    }
-
-    await enrollment.save();
-
-    let certificate = null;
-
-    if (enrollment.progress === 100) {
-        certificate = await CourseCertificate.findOneAndUpdate(
-            {
-                user: req.user._id,
-                course: course._id,
-            },
-            {
-                user: req.user._id,
-                course: course._id,
-                enrollment: enrollment._id,
-                certificateNumber: `MODA-${Date.now()}`,
-            },
-            {
-                new: true,
-                upsert: true,
-                setDefaultsOnInsert: true,
-            }
-        );
-    }
-
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      message: "Module completed successfully",
-      enrollment,
-      certificate,
+      message: "Enrollment deleted successfully",
     });
   } catch (error) {
-    console.error("Complete module error:", error);
+    console.error("Delete academy enrollment error:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
-      message: "Failed to complete module",
-    });
-  }
-};
-
-// Get logged-in user's certificates
-const getMyCertificates = async (req, res) => {
-  try {
-    const certificates = await CourseCertificate.find({
-      user: req.user._id,
-    })
-      .populate(
-        "course",
-        "title slug category level coverImage"
-      )
-      .sort({ issuedAt: -1 });
-
-    res.status(200).json({
-      success: true,
-      count: certificates.length,
-      certificates,
-    });
-  } catch (error) {
-    console.error("Get my certificates error:", error);
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch certificates",
+      message: "Failed to delete enrollment",
     });
   }
 };
 
 module.exports = {
-  enrollInCourse,
+  createEnrollment,
   getMyEnrollments,
-  getMyEnrollment,
-  completeModule,
-  getMyCertificates,
+  getAllEnrollments,
+  deleteEnrollment,
 };

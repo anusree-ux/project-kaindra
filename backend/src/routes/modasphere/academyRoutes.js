@@ -13,11 +13,10 @@ const {
   deleteCourse
 } = require("../../controllers/modasphere/academyController");
 const {
-  enrollInCourse,
-  getMyEnrollments,
-  getMyEnrollment,
-  completeModule,
-  getMyCertificates,
+  createEnrollment,
+  getMyEnrollments: getAcademyMyEnrollments,
+  getAllEnrollments,
+  deleteEnrollment,
 } = require("../../controllers/modasphere/enrollmentController");
 
 const router = express.Router();
@@ -62,38 +61,32 @@ router.delete(
   deleteCourse
 );
 
-// Authenticated user - Enroll in course
+// Public - Submit academy enrollment
 router.post(
-  "/courses/:id/enroll",
-  protect,
-  enrollInCourse
+  "/enrollments",
+  createEnrollment
 );
 
-// Authenticated user - Get my enrollments
+// Public - Get student's enrollments by email
 router.get(
-  "/my/enrollments",
-  protect,
-  getMyEnrollments
+  "/enrollments/my",
+  getAcademyMyEnrollments
 );
 
-// Authenticated user - Get enrollment for a course
+// Admin - Get all academy enrollments
 router.get(
-  "/my/enrollments/:courseId",
+  "/enrollments",
   protect,
-  getMyEnrollment
+  authorize("admin"),
+  getAllEnrollments
 );
 
-router.get(
-  "/my/certificates",
+// Admin - Delete academy enrollment
+router.delete(
+  "/enrollments/:id",
   protect,
-  getMyCertificates
-);
-
-// Authenticated user - Complete a course module
-router.patch(
-  "/enrollments/:courseId/modules/:moduleId/complete",
-  protect,
-  completeModule
+  authorize("admin"),
+  deleteEnrollment
 );
 
 module.exports = router;
