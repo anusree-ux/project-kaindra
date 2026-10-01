@@ -18,6 +18,9 @@ describe("ModaSphere Product Reviews & Ratings API", () => {
   const createDeliveredOrder = async (buyer, prod) => {
     return await Order.create({
       buyerId: buyer.userId,
+      subtotalAmount: 100,
+      discountAmount: 0,
+      totalAmount: 100,
       items: [
         {
           productId: prod._id,
@@ -116,6 +119,9 @@ describe("ModaSphere Product Reviews & Ratings API", () => {
     test("User with non-delivered order (e.g. shipped or paid) is rejected with 403", async () => {
       await Order.create({
         buyerId: buyer1.userId,
+        subtotalAmount: 100,
+        discountAmount: 0,
+        totalAmount: 100,
         items: [
           {
             productId: product._id,
