@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import products from "../data/products";
 import {
@@ -17,27 +17,67 @@ const ORDER_STEPS = [
 ];
 
 function Orders() {
-  const [orders] = useState(() => {
-    try {
-      const savedOrders = localStorage.getItem("modamartOrders");
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-      if (!savedOrders) {
-        return [];
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const token = localStorage.getItem("token");
+
+        const response = await fetch(
+          "http://localhost:5000/api/modasphere/orders/me",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "Failed to load orders.");
+        }
+
+        setOrders(data.data?.orders || []);
+      } catch (err) {
+        console.error("Failed to load orders:", err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
       }
+    };
 
-      const parsedOrders = JSON.parse(savedOrders);
-
-      return Array.isArray(parsedOrders) ? parsedOrders : [];
-    } catch {
-      return [];
-    }
-  });
+    fetchOrders();
+  }, []);
 
   const getStatusStep = (status) => {
     const index = ORDER_STEPS.indexOf(status);
 
     return index >= 0 ? index : 0;
   };
+
+  if (loading) {
+    return (
+      <main className="orders-page">
+        <div className="orders-container">
+          <p>Loading orders...</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main className="orders-page">
+        <div className="orders-container">
+          <p>{error}</p>
+        </div>
+      </main>
+    );
+  }
 
   if (orders.length === 0) {
     return (
@@ -102,16 +142,23 @@ function Orders() {
             .reverse()
             .map((order, orderIndex) => {
               const orderNumber =
-                order.orderNumber || `MS-${1001 + orderIndex}`;
+                order.orderNumber || `MS-${String(order._id || "").slice(-6).toUpperCase()}`;
+
+              const statusMap = {
+                pending_payment: "Order Placed",
+                paid: "Processing",
+                shipped: "Shipped",
+                delivered: "Delivered",
+              };
 
               const status =
-                order.status || "Order Placed";
+                statusMap[order.status] || "Order Placed";
 
               const items = Array.isArray(order.items)
                 ? order.items
                 : [];
 
-              const customer = order.customer || {};
+              const customer = order.shippingAddress || {};
 
               const currentStep = getStatusStep(status);
 
@@ -156,7 +203,7 @@ function Orders() {
                       <span>Total</span>
 
                       <strong>
-                        ₹{Number(order.total || 0)}
+                        ₹{Number(order.totalAmount || 0)}
                       </strong>
                     </div>
 
@@ -273,7 +320,7 @@ function Orders() {
                       <span>Order Total</span>
 
                       <strong>
-                        ₹{Number(order.total || 0)}
+                        ₹{Number(order.totalAmount || 0)}
                       </strong>
                     </div>
                   </div>

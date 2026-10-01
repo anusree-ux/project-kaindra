@@ -133,53 +133,73 @@ function ModaMart() {
     }
   };
 
-  const addToCart = (product) => {
-    setCart((currentCart) => {
+  const addToCart = async (product) => {
+    try {
       const productId = product._id || product.id;
-      const existingProduct = currentCart.find(
-        (item) => String(item.id || item._id) === String(productId)
-      );
 
-      const productImage =
-        product.images?.[0]?.url ||
-        (typeof product.images?.[0] === "string" ? product.images[0] : "") ||
-        product.image ||
-        "";
+      await apiClient.post("/api/modasphere/cart/items", {
+        productId,
+        quantity: 1,
+      });
 
-      const brandName =
-        product.sellerId?.name || product.brand || "ModaSphere Studio";
-
-      let updatedCart;
-
-      if (existingProduct) {
-        updatedCart = currentCart.map((item) =>
-          String(item.id || item._id) === String(productId)
-            ? {
-                ...item,
-                quantity: item.quantity + 1,
-              }
-            : item
+      // Keep the local cart only for the cart-count UI for now.
+      setCart((currentCart) => {
+        const existingProduct = currentCart.find(
+          (item) =>
+            String(item.id || item._id) === String(productId)
         );
-      } else {
-        updatedCart = [
-          ...currentCart,
-          {
-            id: productId,
-            _id: productId,
-            name: product.name,
-            price: product.price,
-            category: product.category,
-            brand: brandName,
-            image: productImage,
-            images: product.images,
-            quantity: 1,
-          },
-        ];
-      }
 
-      localStorage.setItem("modamartCart", JSON.stringify(updatedCart));
-      return updatedCart;
-    });
+        const productImage =
+          product.images?.[0]?.url ||
+          (typeof product.images?.[0] === "string"
+            ? product.images[0]
+            : "") ||
+          product.image ||
+          "";
+
+        const brandName =
+          product.sellerId?.name ||
+          product.brand ||
+          "ModaSphere Studio";
+
+        const updatedCart = existingProduct
+          ? currentCart.map((item) =>
+              String(item.id || item._id) === String(productId)
+                ? {
+                    ...item,
+                    quantity: item.quantity + 1,
+                  }
+                : item
+            )
+          : [
+              ...currentCart,
+              {
+                id: productId,
+                _id: productId,
+                name: product.name,
+                price: product.price,
+                category: product.category,
+                brand: brandName,
+                image: productImage,
+                images: product.images,
+                quantity: 1,
+              },
+            ];
+
+        localStorage.setItem(
+          "modamartCart",
+          JSON.stringify(updatedCart)
+        );
+
+        return updatedCart;
+      });
+    } catch (err) {
+      console.error("Failed to add product to cart:", err);
+      alert(
+        err.response?.data?.message ||
+          "Failed to add product to cart."
+      );
+    }
   };
 
   return (

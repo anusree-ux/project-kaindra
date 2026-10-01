@@ -1,36 +1,153 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowLeft, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import "./Cart.css";
 
 function Cart() {
-  const [cart, setCart] = useState(() => {
-    return JSON.parse(localStorage.getItem("modamartCart") || "[]");
-  });
+  // Cart state
+  const [cart, setCart] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchCart = async () => {
+      try {
+        const token = localStorage.getItem("token");
+
+        const response = await fetch(
+          "http://localhost:5000/api/modasphere/cart",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "Failed to load cart.");
+        }
+
+        // Backend cart items
+        const backendItems = data.data?.cart?.items || [];
+
+        const formattedItems = backendItems.map((item) => ({
+          _id: item.product._id,
+          id: item.product._id,
+          name: item.product.name,
+          price: item.product.price,
+          quantity: item.quantity,
+          category: item.product.category,
+          brand: item.product.sellerId?.name || "ModaSphere",
+          image: item.product.images?.[0]?.url || "",
+          images: item.product.images || [],
+        }));
+
+        setCart(formattedItems);
+      } catch (err) {
+        console.error("Failed to load cart:", err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCart();
+  }, []);
 
   const getItemId = (item) => String(item._id || item.id);
 
-  const updateCart = (id, change) => {
-    const updatedCart = cart.map((item) =>
-      getItemId(item) === String(id)
-        ? {
-            ...item,
-            quantity: Math.max(1, item.quantity + change),
-          }
-        : item
-    );
+  const updateCart = async (productId, newQuantity) => {
+    // Prevent quantity from going below 1
+    if (newQuantity < 1) return;
 
-    setCart(updatedCart);
-    localStorage.setItem("modamartCart", JSON.stringify(updatedCart));
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await fetch(
+        `http://localhost:5000/api/modasphere/cart/items/${productId}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            quantity: newQuantity,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to update quantity.");
+      }
+
+      // Backend returns the updated cart
+      const backendItems = data.data?.cart?.items || [];
+
+      const formattedItems = backendItems.map((item) => ({
+        _id: item.product._id,
+        id: item.product._id,
+        name: item.product.name,
+        price: item.product.price,
+        quantity: item.quantity,
+        category: item.product.category,
+        brand: item.product.sellerId?.name || "ModaSphere",
+        image: item.product.images?.[0]?.url || "",
+        images: item.product.images || [],
+      }));
+
+      setCart(formattedItems);
+    } catch (err) {
+      console.error("Failed to update quantity:", err);
+      alert(err.message || "Failed to update quantity.");
+    }
   };
 
-  const removeItem = (id) => {
-    const updatedCart = cart.filter(
-      (item) => getItemId(item) !== String(id)
-    );
+  // Remove the item from the backend MongoDB cart
+  const removeItem = async (productId) => {
+    try {
+      const token = localStorage.getItem("token");
 
-    setCart(updatedCart);
-    localStorage.setItem("modamartCart", JSON.stringify(updatedCart));
+      const response = await fetch(
+        `http://localhost:5000/api/modasphere/cart/items/${productId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to remove item.");
+      }
+
+      // Backend returns the updated cart
+      const backendItems = data.data?.cart?.items || [];
+
+      const formattedItems = backendItems.map((item) => ({
+        _id: item.product._id,
+        id: item.product._id,
+        name: item.product.name,
+        price: item.product.price,
+        quantity: item.quantity,
+        category: item.product.category,
+        brand: item.product.sellerId?.name || "ModaSphere",
+        image: item.product.images?.[0]?.url || "",
+        images: item.product.images || [],
+      }));
+
+      setCart(formattedItems);
+    } catch (err) {
+      console.error("Failed to remove item:", err);
+      alert(err.message || "Failed to remove item.");
+    }
   };
 
   const subtotal = cart.reduce(
@@ -38,8 +155,8 @@ function Cart() {
     0
   );
 
-  const delivery = subtotal > 0 ? 99 : 0;
-  const total = subtotal + delivery;
+  const delivery = 0;
+  const total = subtotal;
 
   if (cart.length === 0) {
     return (
@@ -123,7 +240,7 @@ function Cart() {
                       <div className="cart-quantity">
                         <button
                           type="button"
-                          onClick={() => updateCart(itemId, -1)}
+                          onClick={() => updateCart(item.id, item.quantity - 1)}
                           aria-label="Decrease quantity"
                         >
                           <Minus size={15} />
@@ -133,7 +250,7 @@ function Cart() {
 
                         <button
                           type="button"
-                          onClick={() => updateCart(itemId, 1)}
+                          onClick={() => updateCart(item.id, item.quantity + 1)}
                           aria-label="Increase quantity"
                         >
                           <Plus size={15} />
@@ -143,7 +260,7 @@ function Cart() {
                       <button
                         type="button"
                         className="remove-button"
-                        onClick={() => removeItem(itemId)}
+                        onClick={() => removeItem(item.id)}
                       >
                         <Trash2 size={16} />
                         Remove
