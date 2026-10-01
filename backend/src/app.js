@@ -28,6 +28,7 @@ const talesRoutes = require("./routes/modasphere/talesRoutes");
 const academyRoutes = require("./routes/modasphere/academyRoutes");
 const influenceRoutes = require("./routes/modasphere/modainfluence/influenceRoutes");
 const productRoutes = require("./routes/modasphere/productRoutes");
+const discountCodeRoutes = require("./routes/modasphere/discountCodeRoutes");
 const cartRoutes = require("./routes/modasphere/cartRoutes");
 const modasphereOrderRoutes = require("./routes/modasphere/orderRoutes");
 const wishlistRoutes = require("./routes/modasphere/wishlistRoutes");
@@ -102,6 +103,9 @@ app.use("/api/v1/modasphere/influence", influenceRoutes);
 
 app.use("/api/modasphere/products", productRoutes);
 app.use("/api/v1/modasphere/products", productRoutes);
+
+app.use("/api/modasphere/discount-codes", discountCodeRoutes);
+app.use("/api/v1/modasphere/discount-codes", discountCodeRoutes);
 
 app.use("/api/modasphere/cart", cartRoutes);
 app.use("/api/v1/modasphere/cart", cartRoutes);
