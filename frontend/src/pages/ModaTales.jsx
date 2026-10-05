@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Play,
   BookOpen,
@@ -29,6 +29,30 @@ const stories = [
 function ModaTales() {
   const [showForm, setShowForm] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [approvedTales, setApprovedTales] = useState([]);
+  const [loadingTales, setLoadingTales] = useState(true);
+
+  useEffect(() => {
+    const fetchApprovedTales = async () => {
+      try {
+        const response = await fetch("/api/modasphere/tales/approved");
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "Failed to fetch approved stories");
+        }
+
+        setApprovedTales(data.tales || []);
+      } catch (error) {
+        console.error("Fetch approved tales error:", error);
+      } finally {
+        setLoadingTales(false);
+      }
+    };
+
+    fetchApprovedTales();
+  }, []);
 
   const handleSubmit = async (e) => {
   e.preventDefault();
@@ -133,6 +157,24 @@ function ModaTales() {
                 </article>
               );
             })}
+            
+            {!loadingTales &&
+              approvedTales.map((tale) => (
+                <article
+                  className="modatales-card"
+                  key={tale._id}
+                >
+                  <div className="modatales-card-icon">
+                    <BookOpen size={23} />
+                  </div>
+
+                  <h3>{tale.name}</h3>
+
+                  <p>{tale.message}</p>
+
+                  <small>{tale.storyType}</small>
+                </article>
+              ))}
           </div>
 
         </div>

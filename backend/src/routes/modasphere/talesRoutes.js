@@ -9,6 +9,7 @@ const talesValidator = require("../../validators/modasphere/talesValidator");
 
 const {
   createTale,
+  getApprovedTales,
   getAdminTales,
   getAdminTaleById,
   updateTaleStatus,
@@ -26,6 +27,12 @@ router.post(
   "/",
   talesValidator,
   createTale
+);
+
+// Get approved stories for public display
+router.get(
+  "/approved",
+  getApprovedTales
 );
 
 /*
