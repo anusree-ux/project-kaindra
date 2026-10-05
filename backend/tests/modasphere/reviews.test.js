@@ -11,7 +11,6 @@ describe("ModaSphere Product Reviews & Ratings API", () => {
   let buyer2;
   let buyer3;
   let nonBuyer;
-  let adminUser;
   let product;
   let otherProduct;
 
@@ -50,7 +49,6 @@ describe("ModaSphere Product Reviews & Ratings API", () => {
     buyer2 = await createTestUser({ name: "Bob Shopper", role: "user" });
     buyer3 = await createTestUser({ name: "Charlie Critic", role: "user" });
     nonBuyer = await createTestUser({ name: "Dave Stranger", role: "user" });
-    adminUser = await createTestUser({ name: "Admin Mod", role: "admin" });
 
     product = await Product.create({
       sellerId: seller.userId,
@@ -73,14 +71,15 @@ describe("ModaSphere Product Reviews & Ratings API", () => {
     });
   });
 
-  describe("1. Review Creation & Authorization", () => {
-    test("User who purchased and received (delivered) a product can review it", async () => {
-      await createDeliveredOrder(buyer1, product);
+  describe("1. Review Creation & Purchase Verification", () => {
+    test("Reviewing a delivered order's product succeeds and updates Product's averageRating/reviewCount", async () => {
+      const order = await createDeliveredOrder(buyer1, product);
 
       const res = await request(app)
         .post(`/api/modasphere/products/${product._id}/reviews`)
         .set("Authorization", `Bearer ${buyer1.token}`)
         .send({
+          orderId: order._id,
           rating: 5,
           comment: "Outstanding fabric quality and perfect fit!",
         });
@@ -92,29 +91,23 @@ describe("ModaSphere Product Reviews & Ratings API", () => {
       expect(res.body.data.review.comment).toBe("Outstanding fabric quality and perfect fit!");
       expect(res.body.data.review.productId.toString()).toBe(product._id.toString());
       expect(res.body.data.review.userId.toString()).toBe(buyer1.userId.toString());
+      expect(res.body.data.review.orderId.toString()).toBe(order._id.toString());
 
-      // Check product summary updated
       const updatedProd = await Product.findById(product._id);
       expect(updatedProd.averageRating).toBe(5);
       expect(updatedProd.reviewCount).toBe(1);
     });
 
-    test("User who has not purchased the product is rejected with 403", async () => {
-      const res = await request(app)
+    test("Reviewing without a delivered order is rejected (400 / 403 / 404)", async () => {
+      // 1. Missing orderId
+      const resNoOrder = await request(app)
         .post(`/api/modasphere/products/${product._id}/reviews`)
-        .set("Authorization", `Bearer ${nonBuyer.token}`)
-        .send({
-          rating: 4,
-          comment: "Looks nice but I never bought it",
-        });
+        .set("Authorization", `Bearer ${buyer1.token}`)
+        .send({ rating: 5, comment: "No order" });
+      expect(resNoOrder.statusCode).toBe(400);
 
-      expect(res.statusCode).toBe(403);
-      expect(res.body.status).toBe("fail");
-      expect(res.body.message).toMatch(/delivered/i);
-    });
-
-    test("User with non-delivered order (e.g. shipped or paid) is rejected with 403", async () => {
-      await Order.create({
+      // 2. Non-delivered order status (e.g. shipped)
+      const shippedOrder = await Order.create({
         buyerId: buyer1.userId,
         items: [
           {
@@ -137,134 +130,126 @@ describe("ModaSphere Product Reviews & Ratings API", () => {
         },
       });
 
-      const res = await request(app)
+      const resShipped = await request(app)
         .post(`/api/modasphere/products/${product._id}/reviews`)
         .set("Authorization", `Bearer ${buyer1.token}`)
-        .send({
-          rating: 4,
-          comment: "Still on the way",
-        });
+        .send({ orderId: shippedOrder._id, rating: 5 });
+      expect(resShipped.statusCode).toBe(400);
+      expect(resShipped.body.message).toMatch(/delivered/i);
 
-      expect(res.statusCode).toBe(403);
-      expect(res.body.status).toBe("fail");
+      // 3. Someone else's delivered order
+      const otherBuyerOrder = await createDeliveredOrder(buyer2, product);
+      const resOtherBuyer = await request(app)
+        .post(`/api/modasphere/products/${product._id}/reviews`)
+        .set("Authorization", `Bearer ${buyer1.token}`)
+        .send({ orderId: otherBuyerOrder._id, rating: 5 });
+      expect(resOtherBuyer.statusCode).toBe(403);
+
+      // 4. Delivered order for a different product
+      const differentProdOrder = await createDeliveredOrder(buyer1, otherProduct);
+      const resWrongProd = await request(app)
+        .post(`/api/modasphere/products/${product._id}/reviews`)
+        .set("Authorization", `Bearer ${buyer1.token}`)
+        .send({ orderId: differentProdOrder._id, rating: 5 });
+      expect(resWrongProd.statusCode).toBe(400);
+      expect(resWrongProd.body.message).toMatch(/does not contain the specified product/i);
     });
 
-    test("Duplicate review attempt by the same user is rejected cleanly with 400", async () => {
-      await createDeliveredOrder(buyer1, product);
+    test("Reviewing the same product twice is rejected with clean 400 error", async () => {
+      const order1 = await createDeliveredOrder(buyer1, product);
+      const order2 = await createDeliveredOrder(buyer1, product); // bought a second time
 
       // First review
       const firstRes = await request(app)
         .post(`/api/modasphere/products/${product._id}/reviews`)
         .set("Authorization", `Bearer ${buyer1.token}`)
-        .send({ rating: 5, comment: "First review" });
+        .send({ orderId: order1._id, rating: 5, comment: "First review" });
       expect(firstRes.statusCode).toBe(201);
 
-      // Second review attempt by same buyer on same product
+      // Second review attempt
       const secondRes = await request(app)
         .post(`/api/modasphere/products/${product._id}/reviews`)
         .set("Authorization", `Bearer ${buyer1.token}`)
-        .send({ rating: 4, comment: "Second review attempt" });
+        .send({ orderId: order2._id, rating: 4, comment: "Second review attempt" });
 
       expect(secondRes.statusCode).toBe(400);
       expect(secondRes.body.status).toBe("fail");
       expect(secondRes.body.message).toMatch(/already submitted a review/i);
     });
 
-    test("Different buyers with delivered orders can review the same product without colliding", async () => {
-      await createDeliveredOrder(buyer1, product);
-      await createDeliveredOrder(buyer2, product);
-
-      const res1 = await request(app)
-        .post(`/api/modasphere/products/${product._id}/reviews`)
-        .set("Authorization", `Bearer ${buyer1.token}`)
-        .send({ rating: 5, comment: "Buyer 1 review" });
-      expect(res1.statusCode).toBe(201);
-
-      const res2 = await request(app)
-        .post(`/api/modasphere/products/${product._id}/reviews`)
-        .set("Authorization", `Bearer ${buyer2.token}`)
-        .send({ rating: 4, comment: "Buyer 2 review" });
-      expect(res2.statusCode).toBe(201);
-
-      const updatedProd = await Product.findById(product._id);
-      expect(updatedProd.reviewCount).toBe(2);
-      expect(updatedProd.averageRating).toBe(4.5);
-    });
-
     test("Rejects review with invalid rating (< 1 or > 5)", async () => {
-      await createDeliveredOrder(buyer1, product);
+      const order = await createDeliveredOrder(buyer1, product);
 
       const resUnder = await request(app)
         .post(`/api/modasphere/products/${product._id}/reviews`)
         .set("Authorization", `Bearer ${buyer1.token}`)
-        .send({ rating: 0 });
+        .send({ orderId: order._id, rating: 0 });
       expect(resUnder.statusCode).toBe(400);
 
       const resOver = await request(app)
         .post(`/api/modasphere/products/${product._id}/reviews`)
         .set("Authorization", `Bearer ${buyer1.token}`)
-        .send({ rating: 6 });
+        .send({ orderId: order._id, rating: 6 });
       expect(resOver.statusCode).toBe(400);
     });
   });
 
-  describe("2. Review Mathematical Verification across Life Cycle", () => {
-    test("Calculates exact expected average rating and count across multiple reviews, updates, and deletes", async () => {
-      // Setup 3 buyers with delivered orders
-      await createDeliveredOrder(buyer1, product);
-      await createDeliveredOrder(buyer2, product);
-      await createDeliveredOrder(buyer3, product);
+  describe("2. Rating Math Verification & Lifecycle (Update / Delete)", () => {
+    test("Multiple reviews calculate exact average rating (ratings 5, 3, 4 produce exactly 4.0)", async () => {
+      const order1 = await createDeliveredOrder(buyer1, product);
+      const order2 = await createDeliveredOrder(buyer2, product);
+      const order3 = await createDeliveredOrder(buyer3, product);
 
-      // 1. Buyer 1 rates 5
+      // Review 1: Rating 5
       await request(app)
         .post(`/api/modasphere/products/${product._id}/reviews`)
         .set("Authorization", `Bearer ${buyer1.token}`)
-        .send({ rating: 5, comment: "5 stars" });
+        .send({ orderId: order1._id, rating: 5, comment: "5 stars" });
 
       let prod = await Product.findById(product._id);
       expect(prod.reviewCount).toBe(1);
       expect(prod.averageRating).toBe(5);
 
-      // 2. Buyer 2 rates 4
-      await request(app)
+      // Review 2: Rating 3
+      const res2 = await request(app)
         .post(`/api/modasphere/products/${product._id}/reviews`)
         .set("Authorization", `Bearer ${buyer2.token}`)
-        .send({ rating: 4, comment: "4 stars" });
+        .send({ orderId: order2._id, rating: 3, comment: "3 stars" });
+      const review2Id = res2.body.data.review._id;
 
       prod = await Product.findById(product._id);
       expect(prod.reviewCount).toBe(2);
-      expect(prod.averageRating).toBe(4.5); // (5 + 4) / 2 = 4.5
+      expect(prod.averageRating).toBe(4.0); // (5 + 3) / 2 = 4.0
 
-      // 3. Buyer 3 rates 3
-      const res3 = await request(app)
+      // Review 3: Rating 4
+      await request(app)
         .post(`/api/modasphere/products/${product._id}/reviews`)
         .set("Authorization", `Bearer ${buyer3.token}`)
-        .send({ rating: 3, comment: "3 stars" });
-
-      const review3Id = res3.body.data.review._id;
+        .send({ orderId: order3._id, rating: 4, comment: "4 stars" });
 
       prod = await Product.findById(product._id);
       expect(prod.reviewCount).toBe(3);
-      expect(prod.averageRating).toBe(4); // (5 + 4 + 3) / 3 = 4.0
+      // Expected: (5 + 3 + 4) / 3 = 12 / 3 = 4.0 exactly
+      expect(prod.averageRating).toBe(4.0);
 
-      // 4. Buyer 3 updates review from 3 to 2
+      // Update Review 2 from 3 to 5 (PATCH /api/modasphere/reviews/:id)
       const updateRes = await request(app)
-        .patch(`/api/modasphere/products/${product._id}/reviews/${review3Id}`)
-        .set("Authorization", `Bearer ${buyer3.token}`)
-        .send({ rating: 2, comment: "Changed my mind to 2 stars" });
+        .patch(`/api/modasphere/reviews/${review2Id}`)
+        .set("Authorization", `Bearer ${buyer2.token}`)
+        .send({ rating: 5, comment: "Updated to 5 stars" });
 
       expect(updateRes.statusCode).toBe(200);
-      expect(updateRes.body.data.review.rating).toBe(2);
+      expect(updateRes.body.data.review.rating).toBe(5);
 
       prod = await Product.findById(product._id);
       expect(prod.reviewCount).toBe(3);
-      // Expected: (5 + 4 + 2) / 3 = 11 / 3 = 3.6666... -> rounded to 3.67
-      expect(prod.averageRating).toBe(3.67);
+      // Expected: (5 + 5 + 4) / 3 = 14 / 3 = 4.6666... -> 4.67
+      expect(prod.averageRating).toBe(4.67);
 
-      // 5. Buyer 3 deletes review
+      // Delete Review 2 (DELETE /api/modasphere/reviews/:id)
       const deleteRes = await request(app)
-        .delete(`/api/modasphere/products/${product._id}/reviews/${review3Id}`)
-        .set("Authorization", `Bearer ${buyer3.token}`);
+        .delete(`/api/modasphere/reviews/${review2Id}`)
+        .set("Authorization", `Bearer ${buyer2.token}`);
 
       expect(deleteRes.statusCode).toBe(200);
 
@@ -274,59 +259,108 @@ describe("ModaSphere Product Reviews & Ratings API", () => {
       expect(prod.averageRating).toBe(4.5);
     });
 
-    test("Only review owner can update their review", async () => {
-      await createDeliveredOrder(buyer1, product);
-      const res = await request(app)
+    test("Deleting the only review resets rating and count to 0 without NaN", async () => {
+      const order = await createDeliveredOrder(buyer1, product);
+
+      const createRes = await request(app)
         .post(`/api/modasphere/products/${product._id}/reviews`)
         .set("Authorization", `Bearer ${buyer1.token}`)
-        .send({ rating: 5, comment: "Original" });
+        .send({ orderId: order._id, rating: 5, comment: "Sole review" });
 
-      const reviewId = res.body.data.review._id;
+      const reviewId = createRes.body.data.review._id;
 
-      // Another user attempts to update
-      const unauthorizedRes = await request(app)
-        .patch(`/api/modasphere/products/${product._id}/reviews/${reviewId}`)
-        .set("Authorization", `Bearer ${buyer2.token}`)
-        .send({ rating: 1, comment: "Hacked" });
+      let prod = await Product.findById(product._id);
+      expect(prod.reviewCount).toBe(1);
+      expect(prod.averageRating).toBe(5);
 
-      expect(unauthorizedRes.statusCode).toBe(403);
-    });
-
-    test("Admin can delete any review, and rating recalculates", async () => {
-      await createDeliveredOrder(buyer1, product);
-      const res = await request(app)
-        .post(`/api/modasphere/products/${product._id}/reviews`)
-        .set("Authorization", `Bearer ${buyer1.token}`)
-        .send({ rating: 5, comment: "Buyer review" });
-
-      const reviewId = res.body.data.review._id;
-
+      // Delete sole review
       const deleteRes = await request(app)
-        .delete(`/api/modasphere/products/${product._id}/reviews/${reviewId}`)
-        .set("Authorization", `Bearer ${adminUser.token}`);
+        .delete(`/api/modasphere/reviews/${reviewId}`)
+        .set("Authorization", `Bearer ${buyer1.token}`);
 
       expect(deleteRes.statusCode).toBe(200);
 
-      const prod = await Product.findById(product._id);
+      prod = await Product.findById(product._id);
       expect(prod.reviewCount).toBe(0);
       expect(prod.averageRating).toBe(0);
+      expect(isNaN(prod.averageRating)).toBe(false);
+    });
+
+    test("Unauthorized user cannot update or delete someone else's review", async () => {
+      const order = await createDeliveredOrder(buyer1, product);
+      const res = await request(app)
+        .post(`/api/modasphere/products/${product._id}/reviews`)
+        .set("Authorization", `Bearer ${buyer1.token}`)
+        .send({ orderId: order._id, rating: 5 });
+
+      const reviewId = res.body.data.review._id;
+
+      // Update attempt by buyer2
+      const updateRes = await request(app)
+        .patch(`/api/modasphere/reviews/${reviewId}`)
+        .set("Authorization", `Bearer ${buyer2.token}`)
+        .send({ rating: 1 });
+      expect(updateRes.statusCode).toBe(403);
+
+      // Delete attempt by buyer2
+      const deleteRes = await request(app)
+        .delete(`/api/modasphere/reviews/${reviewId}`)
+        .set("Authorization", `Bearer ${buyer2.token}`);
+      expect(deleteRes.statusCode).toBe(403);
     });
   });
 
-  describe("3. Fetching Reviews & User's Own Review", () => {
-    test("GET /products/:productId/reviews returns public paginated reviews populated with reviewer name", async () => {
-      await createDeliveredOrder(buyer1, product);
-      await createDeliveredOrder(buyer2, product);
+  describe("3. Eligibility Check (can-review) & Public Listing", () => {
+    test("GET /api/modasphere/products/:productId/can-review returns correct true/false and reasons", async () => {
+      // 1. Non-purchaser: returns canReview: false
+      const res1 = await request(app)
+        .get(`/api/modasphere/products/${product._id}/can-review`)
+        .set("Authorization", `Bearer ${nonBuyer.token}`);
+
+      expect(res1.statusCode).toBe(200);
+      expect(res1.body.data.canReview).toBe(false);
+      expect(res1.body.data.reason).toMatch(/only review products from delivered orders/i);
+
+      // 2. Purchaser with delivered order: returns canReview: true
+      const order1 = await createDeliveredOrder(buyer1, product);
+      await createDeliveredOrder(buyer1, product); // Multiple delivered orders
+
+      const res2 = await request(app)
+        .get(`/api/modasphere/products/${product._id}/can-review`)
+        .set("Authorization", `Bearer ${buyer1.token}`);
+
+      expect(res2.statusCode).toBe(200);
+      expect(res2.body.data.canReview).toBe(true);
+      expect(res2.body.data.orderId).toBeDefined();
+
+      // 3. Purchaser after submitting review: returns canReview: false
+      await request(app)
+        .post(`/api/modasphere/products/${product._id}/reviews`)
+        .set("Authorization", `Bearer ${buyer1.token}`)
+        .send({ orderId: order1._id, rating: 5, comment: "Reviewed!" });
+
+      const res3 = await request(app)
+        .get(`/api/modasphere/products/${product._id}/can-review`)
+        .set("Authorization", `Bearer ${buyer1.token}`);
+
+      expect(res3.statusCode).toBe(200);
+      expect(res3.body.data.canReview).toBe(false);
+      expect(res3.body.data.reason).toMatch(/already reviewed this product/i);
+    });
+
+    test("GET /api/modasphere/products/:productId/reviews returns public paginated reviews populated with reviewer name", async () => {
+      const order1 = await createDeliveredOrder(buyer1, product);
+      const order2 = await createDeliveredOrder(buyer2, product);
 
       await request(app)
         .post(`/api/modasphere/products/${product._id}/reviews`)
         .set("Authorization", `Bearer ${buyer1.token}`)
-        .send({ rating: 4, comment: "Good quality" });
+        .send({ orderId: order1._id, rating: 4, comment: "Good quality" });
 
       await request(app)
         .post(`/api/modasphere/products/${product._id}/reviews`)
         .set("Authorization", `Bearer ${buyer2.token}`)
-        .send({ rating: 5, comment: "Excellent service" });
+        .send({ orderId: order2._id, rating: 5, comment: "Excellent service" });
 
       const res = await request(app).get(`/api/modasphere/products/${product._id}/reviews`);
 
@@ -334,38 +368,10 @@ describe("ModaSphere Product Reviews & Ratings API", () => {
       expect(res.body.status).toBe("success");
       expect(res.body.data.reviews.length).toBe(2);
       expect(res.body.data.pagination.total).toBe(2);
-      // Newest first
+      // Sorted newest first
       expect(res.body.data.reviews[0].comment).toBe("Excellent service");
       expect(res.body.data.reviews[0].userId.name).toBe("Bob Shopper");
       expect(res.body.data.reviews[1].userId.name).toBe("Alice Reviewer");
-    });
-
-    test("GET /products/:productId/reviews/me returns the logged in user's review or null", async () => {
-      await createDeliveredOrder(buyer1, product);
-
-      // Before reviewing: returns null
-      const beforeRes = await request(app)
-        .get(`/api/modasphere/products/${product._id}/reviews/me`)
-        .set("Authorization", `Bearer ${buyer1.token}`);
-
-      expect(beforeRes.statusCode).toBe(200);
-      expect(beforeRes.body.data.review).toBeNull();
-
-      // Submit review
-      await request(app)
-        .post(`/api/modasphere/products/${product._id}/reviews`)
-        .set("Authorization", `Bearer ${buyer1.token}`)
-        .send({ rating: 5, comment: "My own review" });
-
-      // After reviewing: returns user's review
-      const afterRes = await request(app)
-        .get(`/api/modasphere/products/${product._id}/reviews/me`)
-        .set("Authorization", `Bearer ${buyer1.token}`);
-
-      expect(afterRes.statusCode).toBe(200);
-      expect(afterRes.body.data.review).not.toBeNull();
-      expect(afterRes.body.data.review.rating).toBe(5);
-      expect(afterRes.body.data.review.comment).toBe("My own review");
     });
   });
 });

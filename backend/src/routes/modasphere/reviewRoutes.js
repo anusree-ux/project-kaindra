@@ -1,20 +1,22 @@
-const express = require("express");
+﻿const express = require("express");
 const {
   createReview,
+  getProductReviews,
   updateReview,
   deleteReview,
-  getProductReviews,
-  getMyReview,
+  canReviewProduct,
 } = require("../../controllers/modasphere/reviewController");
 const { protect } = require("../../middleware/authMiddleware");
 
 const router = express.Router();
 
-// Register /products/:productId/reviews/me explicitly before other review endpoints
-router.get("/products/:productId/reviews/me", protect, getMyReview);
+// Product reviews & eligibility endpoints
+router.get("/products/:productId/can-review", protect, canReviewProduct);
 router.get("/products/:productId/reviews", getProductReviews);
 router.post("/products/:productId/reviews", protect, createReview);
-router.patch("/products/:productId/reviews/:reviewId", protect, updateReview);
-router.delete("/products/:productId/reviews/:reviewId", protect, deleteReview);
+
+// Review management endpoints
+router.patch("/reviews/:id", protect, updateReview);
+router.delete("/reviews/:id", protect, deleteReview);
 
 module.exports = router;
