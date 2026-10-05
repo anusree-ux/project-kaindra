@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useAuth } from "../../../../context/AuthContext";
 import "./CommunityGuide.css";
 
@@ -129,7 +129,7 @@ function CommunityGuide() {
               margin: "40px 0",
             }}
           >
-            <div style={{ fontSize: "36px", marginBottom: "16px" }}>🔒</div>
+            <div style={{ fontSize: "36px", marginBottom: "16px" }}>&#128274;</div>
             <h3 style={{ fontSize: "16px", fontWeight: "800", letterSpacing: "2px", color: "#d4a03e", marginBottom: "8px" }}>
               AUTHENTICATION REQUIRED
             </h3>
@@ -183,7 +183,7 @@ function CommunityGuide() {
                       <small>{category.description}</small>
                     </span>
 
-                    <span className="guide-category-arrow">→</span>
+                    <span className="guide-category-arrow">&#8250;</span>
                   </button>
                 ))}
               </div>

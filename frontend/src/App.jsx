@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect } from "react";
 
 import { AuthProvider } from "./context/AuthContext";
@@ -576,6 +576,11 @@ function App() {
           <Route
             path="/businesses/mototribe/login"
             element={<MotoLogin />}
+          />
+
+          <Route
+            path="/businesses/mototribe/ride"
+            element={<Navigate to="/businesses/mototribe" replace />}
           />
 
           <Route

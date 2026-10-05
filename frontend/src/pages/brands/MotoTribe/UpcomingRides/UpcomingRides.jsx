@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState, useCallback } from "react";
+﻿import { useEffect, useMemo, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../../context/AuthContext";
 import apiClient from "../../../../services/apiClient";
 import "./UpcomingRides.css";
@@ -13,6 +14,7 @@ const filters = [
 ];
 
 function UpcomingRides() {
+  const navigate = useNavigate();
   const { isAuthenticated, openAuthModal } = useAuth();
   const [rides, setRides] = useState([]);
   const [activeFilter, setActiveFilter] = useState("ALL");
@@ -71,7 +73,7 @@ function UpcomingRides() {
           requestRequired: false,
           distance: `${r.distanceKm || 150} KM`,
           duration: `${Math.ceil((r.distanceKm || 150) / 120)} Days`,
-          route: `${r.origin} → ${r.destination}`,
+          route: `${r.origin} â†’ ${r.destination}`,
           description: `User ride planned from ${r.origin} to ${r.destination}.`,
           requirements: [
             "Helmet and full riding gear required",
@@ -260,7 +262,7 @@ function UpcomingRides() {
 
   const getButtonLabel = (ride) => {
     if (ride.isOrganizer) {
-      return "ORGANIZER • YOU CREATED THIS RIDE";
+      return "ORGANIZER â€¢ YOU CREATED THIS RIDE";
     }
 
     if (isJoined(ride.id)) {
@@ -337,7 +339,7 @@ function UpcomingRides() {
               margin: "40px 0",
             }}
           >
-            <div style={{ fontSize: "36px", marginBottom: "16px" }}>🔒</div>
+            <div style={{ fontSize: "36px", marginBottom: "16px" }}>ðŸ”’</div>
             <h3 style={{ fontSize: "16px", fontWeight: "800", letterSpacing: "2px", color: "#d4a03e", marginBottom: "8px" }}>
               AUTHENTICATION REQUIRED
             </h3>
@@ -417,7 +419,7 @@ function UpcomingRides() {
                         <div className="ride-card-top">
                           <div className="ride-type">
                             {ride.isUserRide ? (
-                              <span style={{ color: "#d4a03e", fontWeight: "800" }}>★ YOUR PLANNED RIDE</span>
+                              <span style={{ color: "#d4a03e", fontWeight: "800" }}>â˜… YOUR PLANNED RIDE</span>
                             ) : (
                               ride.type
                             )}
@@ -514,7 +516,7 @@ function UpcomingRides() {
                   color: "rgba(255, 255, 255, 0.7)",
                 }}
               >
-                <div style={{ fontSize: "24px", marginBottom: "8px" }}>🏍</div>
+                <div style={{ fontSize: "24px", marginBottom: "8px" }}>ðŸ</div>
                 <h3 style={{ fontSize: "14px", letterSpacing: "1px", color: "#fff", marginBottom: "6px" }}>
                   NO UPCOMING RIDES IN DATABASE
                 </h3>
@@ -701,13 +703,13 @@ function UpcomingRides() {
                 }
               >
                 {getButtonLabel(selectedRide)}
-                {!selectedRide.isOrganizer && <span>→</span>}
+                {!selectedRide.isOrganizer && <span>â†’</span>}
               </button>
 
               {selectedRide.requestRequired &&
                 isRequested(selectedRide.id) && (
                   <div className="request-message">
-                    <span>✓</span>
+                    <span>âœ“</span>
                     Your request has been recorded for this demo ride.
                   </div>
                 )}
@@ -715,10 +717,29 @@ function UpcomingRides() {
               {isJoined(selectedRide.id) && (
                 <div className="joined-message">
                   <span>✓</span>
-                  You are part of this ride. The next stage will be the Live
-                  Ride dashboard.
+                  You are confirmed for this ride! You can now join the live tracking and chat with other members.
                 </div>
               )}
+
+              {(isJoined(selectedRide.id) || selectedRide.isOrganizer) && (
+                <button
+                  type="button"
+                  className="live-chat-navigate-action"
+                  onClick={() => navigate(`/businesses/mototribe/ride/${selectedRide.id}/live`)}
+                >
+                  <span>ENTER LIVE RIDE & GROUP CHAT</span>
+                  <span>💬 →</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                className="view-details-navigate-action"
+                onClick={() => navigate(`/businesses/mototribe/ride/${selectedRide.id}`)}
+              >
+                <span>VIEW FULL RIDE DETAILS</span>
+                <span>↗</span>
+              </button>
             </aside>
           )}
         </div>
