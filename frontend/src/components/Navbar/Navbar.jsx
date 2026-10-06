@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { ChevronDown, ShieldCheck } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import NotificationDropdown from "../NotificationDropdown/NotificationDropdown";
 import "./Navbar.css";
 
 function Navbar() {
@@ -296,6 +297,7 @@ function Navbar() {
             </button>
           ) : isAdmin ? (
             <div className="navbar-user-area">
+              <NotificationDropdown brand="modasphere" />
               <Link
                 to="/admin"
                 className="navbar-user-name"

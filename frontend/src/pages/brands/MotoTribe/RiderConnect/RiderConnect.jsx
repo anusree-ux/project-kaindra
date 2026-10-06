@@ -20,18 +20,22 @@ function RiderConnect() {
   const [messageText, setMessageText] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const [incomingRequests, setIncomingRequests] = useState([]);
+
   const fetchRiderNetwork = useCallback(async () => {
     if (!isAuthenticated) {
       setRiders([]);
       setConnections([]);
       setOutgoingRequests([]);
+      setIncomingRequests([]);
       return;
     }
     setLoading(true);
     try {
-      const [connRes, reqRes, nearbyRes] = await Promise.allSettled([
+      const [connRes, reqRes, incomingRes, nearbyRes] = await Promise.allSettled([
         apiClient.get("/api/core/connections"),
         apiClient.get("/api/core/connections/requests/outgoing"),
+        apiClient.get("/api/core/connections/requests/incoming"),
         apiClient.get("/api/mototribe/riders-nearby?lat=28.6139&lng=77.2090&radius=10000000"),
       ]);
 
@@ -79,6 +83,28 @@ function RiderConnect() {
       }
       setOutgoingRequests(reqList);
 
+      const incList = [];
+      if (incomingRes.status === "fulfilled" && incomingRes.value.data?.data) {
+        (incomingRes.value.data.data.requests || []).forEach((r) => {
+          const sender = r.fromUserId;
+          if (sender) {
+            incList.push({
+              id: String(sender._id || sender),
+              requestId: r._id,
+              name: sender.name || "Rider",
+              style: "ADVENTURE",
+              location: sender.city || "India",
+              bike: sender.primaryVehicleName || null,
+              experience: "INTERMEDIATE",
+              rides: 0,
+              mutual: 0,
+              bio: "Sent you a connection request.",
+            });
+          }
+        });
+      }
+      setIncomingRequests(incList);
+
       let discoverList = [];
       if (nearbyRes.status === "fulfilled" && nearbyRes.value.data?.data?.riders) {
         discoverList = nearbyRes.value.data.data.riders
@@ -105,7 +131,12 @@ function RiderConnect() {
     }
   }, [isAuthenticated, user?._id]);
 
-  useEffect(() => { fetchRiderNetwork(); }, [fetchRiderNetwork]);
+  useEffect(() => {
+    fetchRiderNetwork();
+    const handleUpdate = () => { fetchRiderNetwork(); };
+    window.addEventListener("kaindra:connection_updated", handleUpdate);
+    return () => { window.removeEventListener("kaindra:connection_updated", handleUpdate); };
+  }, [fetchRiderNetwork]);
 
   const activeRiders = useMemo(() => {
     if (activeTab === "CONNECTIONS") return connections;
@@ -130,7 +161,18 @@ function RiderConnect() {
   const getConnectionStatus = (riderId) => {
     if (connections.some((c) => c.id === riderId)) return "CONNECTED";
     if (outgoingRequests.some((r) => r.id === riderId)) return "REQUESTED";
+    if (incomingRequests.some((r) => r.id === riderId)) return "INCOMING";
     return "CONNECT";
+  };
+
+  const handleAcceptIncoming = async (requestId) => {
+    if (!isAuthenticated) { openAuthModal(); return; }
+    try {
+      await apiClient.patch(`/api/core/connections/requests/${requestId}/respond`, { action: "accept" });
+      await fetchRiderNetwork();
+    } catch (err) {
+      console.error("Failed to accept request:", err);
+    }
   };
 
   const handleConnectionAction = async (riderId) => {

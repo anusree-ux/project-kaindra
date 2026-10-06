@@ -19,6 +19,7 @@ const expenseRoutes = require("./routes/mototribe/expenseRoutes");
 const routeReportRoutes = require("./routes/mototribe/routeReportRoutes");
 const presenceRoutes = require("./routes/mototribe/presenceRoutes");
 const connectionRoutes = require("./routes/core/connectionRoutes");
+const notificationRoutes = require("./routes/core/notificationRoutes");
 const careerRoutes = require("./routes/core/careerRoutes");
 const applicationRoutes = require("./routes/core/applicationRoutes");
 const communityRoutes = require("./routes/core/communityRoutes");

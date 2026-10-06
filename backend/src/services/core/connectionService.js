@@ -1,5 +1,6 @@
 const ConnectionRequest = require("../../models/core/ConnectionRequest");
 const User = require("../../models/core/User");
+const Notification = require("../../models/core/Notification");
 const AppError = require("../../utils/AppError");
 
 /**
@@ -13,10 +14,16 @@ const sendConnectionRequest = async (fromUserId, toUserId) => {
     throw new AppError("You cannot send a connection request to yourself.", 400);
   }
 
-  const targetUser = await User.findById(toUserId);
+  const [fromUser, targetUser] = await Promise.all([
+    User.findById(fromUserId),
+    User.findById(toUserId),
+  ]);
+
   if (!targetUser) {
     throw new AppError("Target user not found.", 404);
   }
+
+  const senderName = fromUser?.name || "A MotoTribe Rider";
 
   // Check if an opposite-direction request exists
   const oppositeRequest = await ConnectionRequest.findOne({
@@ -25,10 +32,31 @@ const sendConnectionRequest = async (fromUserId, toUserId) => {
   });
 
   if (oppositeRequest && oppositeRequest.status === "pending") {
-    // Auto-accept both as connected
     oppositeRequest.status = "accepted";
     oppositeRequest.respondedAt = new Date();
     await oppositeRequest.save();
+
+    // Notify both users of the mutual connection
+    await Promise.all([
+      Notification.create({
+        userId: fromUserId,
+        senderId: toUserId,
+        type: "CONNECTION_ACCEPTED",
+        brand: "mototribe",
+        title: "New Connection Established! 🤝",
+        message: `You and ${targetUser.name || "a rider"} connected with each other!`,
+        data: { requestId: oppositeRequest._id, userId: toUserId, userName: targetUser.name },
+      }),
+      Notification.create({
+        userId: toUserId,
+        senderId: fromUserId,
+        type: "CONNECTION_ACCEPTED",
+        brand: "mototribe",
+        title: "New Connection Established! 🤝",
+        message: `You and ${senderName} connected with each other!`,
+        data: { requestId: oppositeRequest._id, userId: fromUserId, userName: senderName },
+      }),
+    ]);
 
     return {
       connectionRequest: oppositeRequest,
@@ -37,7 +65,7 @@ const sendConnectionRequest = async (fromUserId, toUserId) => {
     };
   }
 
-  // Check if any request already exists between these two users (pending or accepted)
+  // Check if any request already exists between these two users
   const existingRequest = await ConnectionRequest.findOne({
     $or: [
       { fromUserId, toUserId },
@@ -70,6 +98,22 @@ const sendConnectionRequest = async (fromUserId, toUserId) => {
     });
   }
 
+  // Create real-time notification for the recipient
+  await Notification.create({
+    userId: toUserId,
+    senderId: fromUserId,
+    type: "CONNECTION_REQUEST",
+    brand: "mototribe",
+    title: "New Connection Request ⚡",
+    message: `${senderName} wants to connect with you on MotoTribe.`,
+    data: {
+      requestId: request._id,
+      fromUserId: fromUserId,
+      fromUserName: senderName,
+      fromUserEmail: fromUser?.email,
+    },
+  });
+
   return {
     connectionRequest: request,
     autoAccepted: false,
@@ -94,7 +138,6 @@ const respondToRequest = async (requestId, userId, action) => {
     throw new AppError("Connection request not found.", 404);
   }
 
-  // Only the recipient (toUserId) can respond
   if (request.toUserId.toString() !== userId.toString()) {
     throw new AppError("Only the recipient of this connection request can respond.", 403);
   }
@@ -108,29 +151,54 @@ const respondToRequest = async (requestId, userId, action) => {
   request.respondedAt = new Date();
   await request.save();
 
+  if (action === "accept") {
+    const acceptingUser = await User.findById(userId);
+    const acceptorName = acceptingUser?.name || "Rider";
+
+    // Notify the original sender that their request was accepted
+    await Notification.create({
+      userId: request.fromUserId,
+      senderId: userId,
+      type: "CONNECTION_ACCEPTED",
+      brand: "mototribe",
+      title: "Connection Request Accepted 🎉",
+      message: `${acceptorName} accepted your connection request. You are now connected!`,
+      data: {
+        requestId: request._id,
+        userId: userId,
+        userName: acceptorName,
+      },
+    });
+
+    // Mark the incoming request notification as read
+    await Notification.updateMany(
+      { userId, "data.requestId": request._id },
+      { $set: { isRead: true, readAt: new Date() } }
+    );
+  }
+
   return request;
 };
 
 /**
  * Get all accepted connections for a user
- * @param {string|ObjectId} userId
- * @returns {Promise<Array<Object>>}
  */
 const getConnections = async (userId) => {
   const requests = await ConnectionRequest.find({
     status: "accepted",
     $or: [{ fromUserId: userId }, { toUserId: userId }],
   })
-    .populate("fromUserId", "name email phoneNumber role")
-    .populate("toUserId", "name email phoneNumber role");
+    .populate("fromUserId", "name email phoneNumber role city primaryVehicleName")
+    .populate("toUserId", "name email phoneNumber role city primaryVehicleName");
 
   const connections = requests.map((req) => {
-    const isFromMe = req.fromUserId._id.toString() === userId.toString();
+    const isFromMe = req.fromUserId?._id?.toString() === userId.toString();
     const partner = isFromMe ? req.toUserId : req.fromUserId;
     return {
       requestId: req._id,
       connectedAt: req.respondedAt || req.updatedAt,
       user: partner,
+      otherUser: partner,
     };
   });
 
@@ -139,26 +207,22 @@ const getConnections = async (userId) => {
 
 /**
  * Get incoming pending connection requests for a user
- * @param {string|ObjectId} userId
- * @returns {Promise<Array<Object>>}
  */
 const getIncomingRequests = async (userId) => {
   return await ConnectionRequest.find({
     toUserId: userId,
     status: "pending",
-  }).populate("fromUserId", "name email phoneNumber role");
+  }).populate("fromUserId", "name email phoneNumber role city primaryVehicleName");
 };
 
 /**
  * Get outgoing pending connection requests sent by a user
- * @param {string|ObjectId} userId
- * @returns {Promise<Array<Object>>}
  */
 const getOutgoingRequests = async (userId) => {
   return await ConnectionRequest.find({
     fromUserId: userId,
     status: "pending",
-  }).populate("toUserId", "name email phoneNumber role");
+  }).populate("toUserId", "name email phoneNumber role city primaryVehicleName");
 };
 
 module.exports = {
