@@ -1,5 +1,8 @@
 ﻿const Drop = require("../../models/modasphere/Drop");
 const Order = require("../../models/modasphere/Order");
+const ProductDropWaitlist = require("../../models/modasphere/ProductDropWaitlist");
+const Product = require("../../models/modasphere/Product");
+const { sendEmail } = require("../mototribe/emailService");
 
 /**
  * Recalculates and transitions drop statuses based on current time.
@@ -74,7 +77,116 @@ const getUserPurchaseCountInDrop = async (userId, dropId) => {
   return purchasedCount;
 };
 
+/**
+ * Notifies the next user in the waitlist when stock becomes available.
+ * @param {string|ObjectId} productId
+ * @returns {Promise<Object>}
+ */
+const notifyNextProductDropWaitlistUser = async (productId) => {
+  try {
+    const product = await Product.findById(productId);
+
+    if (!product || !product.isDrop) {
+      return {
+        success: false,
+        notified: false,
+        error: "Drop product not found.",
+      };
+    }
+
+    const waitlistEntry = await ProductDropWaitlist.findOne({
+      productId: product._id,
+    })
+      .sort({ joinedAt: 1 })
+      .populate("userId", "name email");
+
+    if (!waitlistEntry || !waitlistEntry.userId) {
+      return {
+        success: true,
+        notified: false,
+        message: "No users are waiting for this drop.",
+      };
+    }
+
+    const user = waitlistEntry.userId;
+
+    if (!user.email) {
+      return {
+        success: false,
+        notified: false,
+        error: "Waitlisted user does not have an email address.",
+      };
+    }
+
+    const subject = `${product.name} is back in stock`;
+
+    const htmlBody = `
+      <h2>Good news! Your ModaDrop is available.</h2>
+
+      <p>Hi ${user.name || "there"},</p>
+
+      <p>
+        <strong>${product.name}</strong> is now available again.
+      </p>
+
+      <p>
+        Stock is limited, so we recommend purchasing it as soon as possible.
+      </p>
+
+      <p>
+        Please visit ModaSphere to complete your purchase.
+      </p>
+
+      <p>Thank you for shopping with ModaSphere.</p>
+    `;
+
+    const emailResult = await sendEmail(
+      user.email,
+      subject,
+      htmlBody
+    );
+
+    if (!emailResult.success) {
+      console.error(
+        `[ModaDrop Waitlist] Failed to notify ${user.email}:`,
+        emailResult.error
+      );
+
+      return {
+        success: false,
+        notified: false,
+        error: emailResult.error,
+      };
+    }
+
+    console.log(
+      `[ModaDrop Waitlist] Notified ${user.email} for product ${product.name}.`
+    );
+
+    return {
+      success: true,
+      notified: true,
+      userId: user._id,
+      email: user.email,
+      productId: product._id,
+      messageId: emailResult.messageId,
+    };
+  } catch (error) {
+    console.error(
+      "[ModaDrop Waitlist] Notification error:",
+      error.message || error
+    );
+
+    return {
+      success: false,
+      notified: false,
+      error: error.message || "Failed to notify waitlisted user.",
+    };
+  }
+};
+
 module.exports = {
   updateDropStatuses,
   getUserPurchaseCountInDrop,
+  notifyNextProductDropWaitlistUser,
 };

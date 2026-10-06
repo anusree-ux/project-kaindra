@@ -125,10 +125,44 @@ const addItemToCart = async (req, res, next) => {
       requestedTotalQty = cart.items[existingItemIndex].quantity + numQuantity;
     }
 
-    if (requestedTotalQty > product.stock) {
+    const availableStock = product.isDrop
+      ? product.dropStock
+      : product.stock;
+
+    if (product.isDrop) {
+      if (!product.dropReleaseAt) {
+        return next(
+          new AppError("This drop does not have a release date configured.", 400)
+        );
+      }
+
+      if (new Date() < new Date(product.dropReleaseAt)) {
+        return next(
+          new AppError(
+            `This drop has not been released yet. It will be available on ${new Date(
+              product.dropReleaseAt
+            ).toISOString()}.`,
+            400
+          )
+        );
+      }
+    }
+
+    if (availableStock === null || availableStock === undefined || availableStock <= 0) {
       return next(
         new AppError(
-          `Cannot add ${numQuantity} item(s). Requested total (${requestedTotalQty}) exceeds available stock (${product.stock}).`,
+          product.isDrop
+            ? "This drop is sold out."
+            : "This product is currently out of stock.",
+          400
+        )
+      );
+    }
+
+    if (requestedTotalQty > availableStock) {
+      return next(
+        new AppError(
+          `Cannot add ${numQuantity} item(s). Requested total (${requestedTotalQty}) exceeds available stock (${availableStock}).`,
           400
         )
       );
@@ -192,10 +226,42 @@ const updateCartItem = async (req, res, next) => {
       return next(new AppError("Product is no longer available.", 400));
     }
 
-    if (numQuantity > product.stock) {
+    const availableStock = product.isDrop
+      ? product.dropStock
+      : product.stock;
+
+    if (product.isDrop) {
+      if (!product.dropReleaseAt) {
+        return next(
+          new AppError("This drop does not have a release date configured.", 400)
+        );
+      }
+
+      if (new Date() < new Date(product.dropReleaseAt)) {
+        return next(
+          new AppError(
+            "This drop has not been released yet.",
+            400
+          )
+        );
+      }
+    }
+
+    if (availableStock === null || availableStock === undefined || availableStock <= 0) {
       return next(
         new AppError(
-          `Requested quantity (${numQuantity}) exceeds available stock (${product.stock}).`,
+          product.isDrop
+            ? "This drop is sold out."
+            : "This product is currently out of stock.",
+          400
+        )
+      );
+    }
+
+    if (numQuantity > availableStock) {
+      return next(
+        new AppError(
+          `Requested quantity (${numQuantity}) exceeds available stock (${availableStock}).`,
           400
         )
       );
