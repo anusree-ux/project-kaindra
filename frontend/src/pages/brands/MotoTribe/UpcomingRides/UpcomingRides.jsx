@@ -13,6 +13,39 @@ const filters = [
   "OFFICIAL",
 ];
 
+const getRideDateHelper = (ride) => {
+  if (!ride || !ride.date) return new Date();
+  return new Date(`${ride.date}T${ride.time || "06:00"}:00`);
+};
+
+const getCurrentStatusHelper = (ride, currentNow) => {
+  if (ride.status === "completed" || ride.status === "cancelled") {
+    return ride.status.toUpperCase();
+  }
+
+  const startDate = getRideDateHelper(ride);
+  const durationDays = ride.durationDays || 1;
+  const durationMs = durationDays * 24 * 60 * 60 * 1000;
+  const endDate = new Date(startDate.getTime() + durationMs);
+
+  const timeUntilStart = startDate.getTime() - currentNow.getTime();
+  const timeUntilEnd = endDate.getTime() - currentNow.getTime();
+
+  if (timeUntilEnd <= 0) {
+    return "COMPLETED";
+  }
+
+  if (timeUntilStart <= 0) {
+    return "LIVE";
+  }
+
+  if (timeUntilStart <= 60 * 60 * 1000) {
+    return "STARTING";
+  }
+
+  return ride.status || "UPCOMING";
+};
+
 function UpcomingRides() {
   const navigate = useNavigate();
   const { isAuthenticated, openAuthModal } = useAuth();
@@ -131,41 +164,11 @@ function UpcomingRides() {
     return () => clearInterval(timer);
   }, []);
 
-  const getRideDate = (ride) => {
-    if (!ride || !ride.date) return new Date();
-    return new Date(`${ride.date}T${ride.time || "06:00"}:00`);
-  };
+  // getRideDateHelper and getCurrentStatusHelper are defined at module scope
 
-  const getCurrentStatus = (ride) => {
-    if (ride.status === "completed" || ride.status === "cancelled") {
-      return ride.status.toUpperCase();
-    }
-
-    const startDate = getRideDate(ride);
-    const durationDays = ride.durationDays || 1;
-    const durationMs = durationDays * 24 * 60 * 60 * 1000;
-    const endDate = new Date(startDate.getTime() + durationMs);
-
-    const timeUntilStart = startDate.getTime() - now.getTime();
-    const timeUntilEnd = endDate.getTime() - now.getTime();
-
-    if (timeUntilEnd <= 0) {
-      return "COMPLETED";
-    }
-
-    if (timeUntilStart <= 0) {
-      return "LIVE";
-    }
-
-    if (timeUntilStart <= 60 * 60 * 1000) {
-      return "STARTING";
-    }
-
-    return ride.status || "UPCOMING";
-  };
 
   const getCountdown = (ride) => {
-    const target = getRideDate(ride);
+    const target = getRideDateHelper(ride);
     const difference = target.getTime() - now.getTime();
 
     if (difference <= 0) {
@@ -192,8 +195,8 @@ function UpcomingRides() {
   const filteredRides = useMemo(() => {
     // Exclude rides that are completed, cancelled, or whose departure date/time has passed (unless currently LIVE)
     const activeUpcomingRides = rides.filter((ride) => {
-      const currentStatus = getCurrentStatus(ride);
-      const rideDate = getRideDate(ride);
+      const currentStatus = getCurrentStatusHelper(ride, now);
+      const rideDate = getRideDateHelper(ride);
       const isPast = rideDate.getTime() < now.getTime() && currentStatus !== "LIVE";
 
       return (
@@ -334,7 +337,7 @@ function UpcomingRides() {
     : null;
 
   const selectedStatus = selectedRide
-    ? getCurrentStatus(selectedRide)
+    ? getCurrentStatusHelper(selectedRide, now)
     : "UPCOMING";
 
   return (
@@ -437,7 +440,7 @@ function UpcomingRides() {
                 ) : filteredRides.length > 0 ? (
                   filteredRides.map((ride) => {
                     const countdown = getCountdown(ride);
-                    const status = getCurrentStatus(ride);
+                    const status = getCurrentStatusHelper(ride, now);
                     const maxCap = ride.maxRiders > 0 ? ride.maxRiders : 1;
                     const rawPercent = Math.round((ride.riders / maxCap) * 100);
                     const progressPercent = Math.min(100, Math.max(0, rawPercent));

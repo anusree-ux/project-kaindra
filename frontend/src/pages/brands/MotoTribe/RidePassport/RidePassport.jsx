@@ -33,8 +33,8 @@ function RidePassport() {
   }, [fetchPassport]);
 
   const profile = passportData?.profile;
-  const earnedBadges = passportData?.earnedBadges || [];
-  const unearnedBadges = passportData?.unearnedBadges || [];
+  const earnedBadges = useMemo(() => passportData?.earnedBadges || [], [passportData]);
+  const unearnedBadges = useMemo(() => passportData?.unearnedBadges || [], [passportData]);
 
   const totalRides = profile?.totalRidesCompleted || 0;
   const totalDistance = profile?.totalDistanceKm || 0;
@@ -42,6 +42,7 @@ function RidePassport() {
   // Combine and format all badges from DB
   const allBadges = useMemo(() => {
     const list = [];
+
     earnedBadges.forEach((b) => {
       let curVal = b.criteriaValue;
       if (b.criteriaType === "ridesCompleted") curVal = totalRides;
