@@ -226,14 +226,34 @@ const createRide = async (req, res, next) => {
  */
 const getUpcomingRides = async (req, res, next) => {
   try {
-    const rides = await Ride.find({
+    const now = new Date();
+
+    const candidateRides = await Ride.find({
       status: { $in: ["planning", "ongoing"] },
     })
       .populate("organizerId", "name email")
       .populate("vehicleId")
       .sort({ startDate: 1 });
 
-    const rideIds = rides.map((r) => r._id);
+    const activeUpcomingRides = [];
+
+    for (const r of candidateRides) {
+      const startDate = new Date(r.startDate);
+      const durationDays = r.durationDays || 1;
+      const durationMs = durationDays * 24 * 60 * 60 * 1000;
+      const endDateTime = new Date(startDate.getTime() + durationMs);
+
+      // If the ride's scheduled end time has completely passed, mark as completed
+      if (endDateTime < now) {
+        r.status = "completed";
+        await r.save().catch(() => null);
+        continue;
+      }
+
+      activeUpcomingRides.push(r);
+    }
+
+    const rideIds = activeUpcomingRides.map((r) => r._id);
     const participants = await RideParticipant.find({
       rideId: { $in: rideIds },
       status: { $ne: "left" },
@@ -249,7 +269,7 @@ const getUpcomingRides = async (req, res, next) => {
       }
     });
 
-    const formattedRides = rides.map((r) => {
+    const formattedRides = activeUpcomingRides.map((r) => {
       const rideObj = formatRideForUser(r, req.user._id);
       const isOrganizer =
         r.organizerId?._id?.toString() === req.user._id.toString() ||

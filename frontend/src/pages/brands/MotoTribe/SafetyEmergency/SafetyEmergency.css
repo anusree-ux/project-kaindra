@@ -363,12 +363,12 @@
   letter-spacing: 1px;
 }
 
-.contact-grid {
+.safety-emergency .contact-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
 }
 
-.contact-card {
+.safety-emergency .contact-card {
   min-height: 125px;
   padding: 22px;
   display: grid;
@@ -379,21 +379,21 @@
   transition: 0.25s ease;
 }
 
-.contact-card:last-child {
+.safety-emergency .contact-card:last-child {
   border-right: none;
 }
 
-.contact-card:hover,
-.contact-card.selected {
+.safety-emergency .contact-card:hover,
+.safety-emergency .contact-card.selected {
   background: rgba(201, 155, 69, 0.05);
 }
 
-.contact-number {
+.safety-emergency .contact-number {
   color: #444;
   font-size: 13px;
 }
 
-.contact-info strong {
+.safety-emergency .contact-info strong {
   display: block;
   color: #bbb;
   font-size: 12px;
@@ -401,7 +401,7 @@
   font-weight: 500;
 }
 
-.contact-info span {
+.safety-emergency .contact-info span {
   display: block;
   color: #555;
   font-size: 12px;
@@ -409,7 +409,7 @@
   letter-spacing: 0.5px;
 }
 
-.contact-card button {
+.safety-emergency .contact-card button {
   padding: 9px 12px;
   border: 1px solid rgba(201, 155, 69, 0.45);
   background: transparent;
@@ -419,7 +419,7 @@
   cursor: pointer;
 }
 
-.contact-card button:hover {
+.safety-emergency .contact-card button:hover {
   background: #c99b45;
   color: #080808;
 }
@@ -448,24 +448,24 @@
 }
 
 @media (max-width: 900px) {
-  .safety-header {
+  .safety-emergency .safety-header {
     flex-direction: column;
   }
 
-  .safety-grid {
+  .safety-emergency .safety-grid {
     grid-template-columns: 1fr;
   }
 
-  .contact-grid {
+  .safety-emergency .contact-grid {
     grid-template-columns: 1fr;
   }
 
-  .contact-card {
+  .safety-emergency .contact-card {
     border-right: none;
     border-bottom: 1px solid rgba(255, 255, 255, 0.07);
   }
 
-  .contact-card:last-child {
+  .safety-emergency .contact-card:last-child {
     border-bottom: none;
   }
 }
@@ -475,34 +475,34 @@
     padding: 80px 5%;
   }
 
-  .safety-check {
+  .safety-emergency .safety-check {
     padding: 20px;
   }
 
-  .check-item {
+  .safety-emergency .check-item {
     grid-template-columns: 25px 25px 1fr;
   }
 
-  .check-status {
+  .safety-emergency .check-status {
     display: none;
   }
 
-  .contacts-heading {
+  .safety-emergency .contacts-heading {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
   }
 
-  .contact-card {
+  .safety-emergency .contact-card {
     grid-template-columns: 25px 1fr;
   }
 
-  .contact-card button {
+  .safety-emergency .contact-card button {
     grid-column: 2;
     width: fit-content;
   }
 
-  .safety-note {
+  .safety-emergency .safety-note {
     align-items: flex-start;
     flex-direction: column;
     gap: 8px;
