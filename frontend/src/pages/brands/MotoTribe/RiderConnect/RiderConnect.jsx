@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../../../context/AuthContext";
 import apiClient from "../../../../services/apiClient";
 import "./RiderConnect.css";
@@ -10,6 +10,7 @@ function RiderConnect() {
   const [riders, setRiders] = useState([]);
   const [connections, setConnections] = useState([]);
   const [outgoingRequests, setOutgoingRequests] = useState([]);
+  const [incomingRequests, setIncomingRequests] = useState([]);
   const [following, setFollowing] = useState([]);
   const [activeTab, setActiveTab] = useState("DISCOVER");
   const [styleFilter, setStyleFilter] = useState("ALL");
@@ -19,8 +20,6 @@ function RiderConnect() {
   const [directMessages, setDirectMessages] = useState([]);
   const [messageText, setMessageText] = useState("");
   const [loading, setLoading] = useState(false);
-
-  const [incomingRequests, setIncomingRequests] = useState([]);
 
   const fetchRiderNetwork = useCallback(async () => {
     if (!isAuthenticated) {
@@ -108,7 +107,7 @@ function RiderConnect() {
       let discoverList = [];
       if (nearbyRes.status === "fulfilled" && nearbyRes.value.data?.data?.riders) {
         discoverList = nearbyRes.value.data.data.riders
-          .filter((r) => String(r.userId) !== String(user?._id))
+          .filter((r) => String(r.userId || r._id) !== String(user?._id))
           .map((r) => ({
             id: String(r.userId || r._id),
             name: r.name || "Rider",
@@ -141,8 +140,9 @@ function RiderConnect() {
   const activeRiders = useMemo(() => {
     if (activeTab === "CONNECTIONS") return connections;
     if (activeTab === "REQUESTS") return outgoingRequests;
+    if (activeTab === "INCOMING") return incomingRequests;
     return riders;
-  }, [activeTab, connections, outgoingRequests, riders]);
+  }, [activeTab, connections, outgoingRequests, incomingRequests, riders]);
 
   const filteredRiders = useMemo(() => {
     return activeRiders.filter((rider) => {
@@ -159,28 +159,33 @@ function RiderConnect() {
   }, [activeRiders, search, styleFilter]);
 
   const getConnectionStatus = (riderId) => {
-    if (connections.some((c) => c.id === riderId)) return "CONNECTED";
-    if (outgoingRequests.some((r) => r.id === riderId)) return "REQUESTED";
-    if (incomingRequests.some((r) => r.id === riderId)) return "INCOMING";
+    if (connections.some((c) => String(c.id) === String(riderId))) return "CONNECTED";
+    if (incomingRequests.some((r) => String(r.id) === String(riderId))) return "INCOMING";
+    if (outgoingRequests.some((r) => String(r.id) === String(riderId))) return "REQUESTED";
     return "CONNECT";
-  };
-
-  const handleAcceptIncoming = async (requestId) => {
-    if (!isAuthenticated) { openAuthModal(); return; }
-    try {
-      await apiClient.patch(`/api/core/connections/requests/${requestId}/respond`, { action: "accept" });
-      await fetchRiderNetwork();
-    } catch (err) {
-      console.error("Failed to accept request:", err);
-    }
   };
 
   const handleConnectionAction = async (riderId) => {
     if (!isAuthenticated) { openAuthModal(); return; }
-    if (getConnectionStatus(riderId) === "CONNECT") {
+    const status = getConnectionStatus(riderId);
+
+    if (status === "INCOMING") {
+      const inc = incomingRequests.find((r) => String(r.id) === String(riderId));
+      if (inc && inc.requestId) {
+        try {
+          await apiClient.patch(`/api/core/connections/requests/${inc.requestId}/respond`, { action: "accept" });
+          window.dispatchEvent(new CustomEvent("kaindra:connection_updated"));
+          await fetchRiderNetwork();
+        } catch (err) {
+          console.error("Failed to accept connection request:", err);
+        }
+      }
+    } else if (status === "CONNECT") {
       try {
         await apiClient.post("/api/core/connections/request", { toUserId: riderId });
-        setOutgoingRequests((prev) => [...prev, { id: riderId }]);
+        setOutgoingRequests((prev) => [...prev, { id: String(riderId) }]);
+        window.dispatchEvent(new CustomEvent("kaindra:connection_updated"));
+        await fetchRiderNetwork();
       } catch (err) {
         console.error("Failed to send connection request:", err);
       }
@@ -219,8 +224,8 @@ function RiderConnect() {
           <div className="rider-connect-summary">
             <div className="rider-summary-item"><strong>{riders.length}</strong><span>NEARBY</span></div>
             <div className="rider-summary-item"><strong>{connections.length}</strong><span>TRIBE</span></div>
+            <div className="rider-summary-item"><strong>{incomingRequests.length}</strong><span>INCOMING</span></div>
             <div className="rider-summary-item"><strong>{outgoingRequests.length}</strong><span>PENDING</span></div>
-            <div className="rider-summary-item"><strong>{following.length}</strong><span>FOLLOWING</span></div>
           </div>
         </div>
 
@@ -228,6 +233,7 @@ function RiderConnect() {
           {[
             { key: "DISCOVER", label: "DISCOVER", count: riders.length },
             { key: "CONNECTIONS", label: "MY TRIBE", count: connections.length },
+            { key: "INCOMING", label: "INCOMING", count: incomingRequests.length },
             { key: "REQUESTS", label: "REQUESTS", count: outgoingRequests.length },
           ].map(({ key, label, count }) => (
             <button key={key} type="button"
@@ -257,7 +263,7 @@ function RiderConnect() {
             {styleFilters.map((s) => (
               <button key={s} type="button"
                 className={`style-filter ${styleFilter === s ? "active" : ""}`}
-                onClick={() => setStyleFilter(s)} aria-pressed={styleFilter === s}
+                onClick={() => setStyleFilter(s)}
               >{s}</button>
             ))}
           </div>
@@ -298,11 +304,19 @@ function RiderConnect() {
                     <div><strong>{rider.mutual}</strong><span>MUTUAL</span></div>
                   </div>
                   <div className="rider-card-actions">
-                    <button type="button"
+                    <button
+                      type="button"
                       className={`connection-button ${status.toLowerCase()}`}
                       onClick={() => handleConnectionAction(rider.id)}
+                      disabled={status === "CONNECTED" || status === "REQUESTED"}
                     >
-                      {status === "CONNECTED" ? "CONNECTED" : status === "REQUESTED" ? "REQUESTED" : "CONNECT"}
+                      {status === "CONNECTED"
+                        ? "CONNECTED ✓"
+                        : status === "REQUESTED"
+                        ? "REQUEST SENT ⏳"
+                        : status === "INCOMING"
+                        ? "✓ ACCEPT REQUEST"
+                        : "CONNECT"}
                     </button>
                     <button type="button" className="profile-button" onClick={() => setSelectedRider(rider)}>PROFILE</button>
                     {status === "CONNECTED" && (
@@ -321,6 +335,7 @@ function RiderConnect() {
             <h3>
               {activeTab === "DISCOVER" && "No riders found"}
               {activeTab === "CONNECTIONS" && "No connections yet"}
+              {activeTab === "INCOMING" && "No incoming requests"}
               {activeTab === "REQUESTS" && "No sent requests"}
             </h3>
             <p>
@@ -328,6 +343,8 @@ function RiderConnect() {
                 ? "Discover riders across the MotoTribe network and send connection requests."
                 : activeTab === "CONNECTIONS"
                 ? "Connect with riders from the Discover tab to build your tribe."
+                : activeTab === "INCOMING"
+                ? "Incoming connection requests from other riders will appear here."
                 : "Sent connection requests will appear here."}
             </p>
           </div>
@@ -363,9 +380,19 @@ function RiderConnect() {
               <div><span>Mutual Riders</span><strong>{selectedRider.mutual}</strong></div>
             </div>
             <div className="modal-actions">
-              <button type="button" className="modal-primary-button" onClick={() => handleConnectionAction(selectedRider.id)}>
-                {getConnectionStatus(selectedRider.id) === "CONNECTED" ? "CONNECTED"
-                  : getConnectionStatus(selectedRider.id) === "REQUESTED" ? "CANCEL REQUEST" : "CONNECT"}
+              <button
+                type="button"
+                className={`modal-primary-button ${getConnectionStatus(selectedRider.id).toLowerCase()}`}
+                onClick={() => handleConnectionAction(selectedRider.id)}
+                disabled={getConnectionStatus(selectedRider.id) === "CONNECTED" || getConnectionStatus(selectedRider.id) === "REQUESTED"}
+              >
+                {getConnectionStatus(selectedRider.id) === "CONNECTED"
+                  ? "CONNECTED ✓"
+                  : getConnectionStatus(selectedRider.id) === "REQUESTED"
+                  ? "REQUEST SENT ⏳"
+                  : getConnectionStatus(selectedRider.id) === "INCOMING"
+                  ? "✓ ACCEPT REQUEST"
+                  : "CONNECT"}
               </button>
               <button type="button" className="modal-secondary-button" onClick={() => openDirectMessage(selectedRider)}>MESSAGE</button>
               <button type="button"

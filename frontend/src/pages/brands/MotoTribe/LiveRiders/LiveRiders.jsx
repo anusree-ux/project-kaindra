@@ -12,25 +12,28 @@ const ridingStyles = [
 ];
 
 function LiveRiders() {
-  const { isAuthenticated, openAuthModal } = useAuth();
+  const { isAuthenticated, openAuthModal, user } = useAuth();
   const [riders, setRiders] = useState([]);
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState("ALL");
-  const [connectedRiders, setConnectedRiders] = useState([]);
+  const [connections, setConnections] = useState([]);
+  const [outgoingRequests, setOutgoingRequests] = useState([]);
+  const [incomingRequests, setIncomingRequests] = useState([]);
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState({});
 
-  // 1. Fetch live riders from backend API
   const fetchLiveRiders = useCallback(async () => {
     if (!isAuthenticated) {
       setRiders([]);
+      setConnections([]);
+      setOutgoingRequests([]);
+      setIncomingRequests([]);
       return;
     }
 
     setLoading(true);
 
     try {
-      // Try to get user coordinates or use default India coords
       let lat = 28.6139;
       let lng = 77.2090;
 
@@ -44,62 +47,66 @@ function LiveRiders() {
         } catch (_) {}
       }
 
-      // Query nearby riders (with large radius to discover all active network riders)
-      const [nearbyRes, connRes] = await Promise.allSettled([
+      const [nearbyRes, connRes, reqRes, incomingRes] = await Promise.allSettled([
         apiClient.get(`/api/mototribe/riders-nearby?lat=${lat}&lng=${lng}&radius=10000000`),
         apiClient.get("/api/core/connections"),
+        apiClient.get("/api/core/connections/requests/outgoing"),
+        apiClient.get("/api/core/connections/requests/incoming"),
       ]);
 
       let formattedList = [];
 
       if (nearbyRes.status === "fulfilled" && nearbyRes.value.data?.data?.riders) {
-        formattedList = nearbyRes.value.data.data.riders.map((r) => ({
-          id: r.userId || r._id,
-          name: r.name || "Rider",
-          location: r.currentJourney?.destination || (r.distanceKm ? `${Math.round(r.distanceKm)} km away` : "Active Network"),
-          bike: r.primaryVehicleName || "Motorcycle",
-          style: (r.preferredRideType || "ADVENTURE").toUpperCase(),
-          status: (r.status || "online").toUpperCase(),
-          experience: r.totalRidesCompleted > 10 ? "ADVANCED" : r.totalRidesCompleted > 3 ? "INTERMEDIATE" : "BEGINNER",
-          distance: Math.round(r.distanceKm || 15),
-          trustScore: r.trustScore || 100,
-        }));
-      }
-
-      // If no other riders found in nearby presence, fetch community members as fallback
-      if (formattedList.length === 0) {
-        const commRes = await apiClient.get("/api/community").catch(() => null);
-        if (commRes?.data?.data) {
-          const members = Array.isArray(commRes.data.data) ? commRes.data.data : commRes.data.data.members || [];
-          formattedList = members.map((m) => ({
-            id: m._id || m.userId,
-            name: m.name || m.fullName || "Community Rider",
-            location: m.location || m.city || "India",
-            bike: m.bike || m.vehicleName || "Adventure Bike",
-            style: (m.ridingStyle || m.preferredRideType || "TOURING").toUpperCase(),
-            status: "ONLINE",
-            experience: m.experience || "INTERMEDIATE",
-            distance: Math.floor(Math.random() * 40) + 10,
+        formattedList = nearbyRes.value.data.data.riders
+          .filter((r) => String(r.userId || r._id) !== String(user?._id))
+          .map((r) => ({
+            id: String(r.userId || r._id),
+            name: r.name || "Rider",
+            location: r.currentJourney?.destination || (r.distanceKm ? `${Math.round(r.distanceKm)} km away` : "Active Network"),
+            bike: r.primaryVehicleName || "Motorcycle",
+            style: (r.preferredRideType || "ADVENTURE").toUpperCase(),
+            status: (r.status || "online").toUpperCase(),
+            experience: r.totalRidesCompleted > 10 ? "ADVANCED" : r.totalRidesCompleted > 3 ? "INTERMEDIATE" : "BEGINNER",
+            distance: Math.round(r.distanceKm || 15),
+            trustScore: r.trustScore || 100,
           }));
-        }
       }
 
       setRiders(formattedList);
 
       if (connRes.status === "fulfilled" && connRes.value.data?.data) {
         const conns = connRes.value.data.data.connections || [];
-        const connectedIds = conns.map((c) => (c.user?._id || c._id || c.toUserId || c.fromUserId)?.toString());
-        setConnectedRiders(connectedIds);
+        const ids = conns.map((c) => {
+          const ou = c.otherUser || c.user || c.toUserId || c.fromUserId;
+          return String(ou?._id || ou?.id || c._id);
+        });
+        setConnections(ids);
+      }
+
+      if (reqRes.status === "fulfilled" && reqRes.value.data?.data) {
+        const reqs = reqRes.value.data.data.requests || [];
+        setOutgoingRequests(reqs.map((r) => String(r.toUserId?._id || r.toUserId)));
+      }
+
+      if (incomingRes.status === "fulfilled" && incomingRes.value.data?.data) {
+        const incs = incomingRes.value.data.data.requests || [];
+        setIncomingRequests(incs.map((r) => ({
+          userId: String(r.fromUserId?._id || r.fromUserId),
+          requestId: r._id,
+        })));
       }
     } catch (err) {
       console.error("Failed to load live riders:", err);
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, user?._id]);
 
   useEffect(() => {
     fetchLiveRiders();
+    const handleUpdate = () => { fetchLiveRiders(); };
+    window.addEventListener("kaindra:connection_updated", handleUpdate);
+    return () => { window.removeEventListener("kaindra:connection_updated", handleUpdate); };
   }, [fetchLiveRiders]);
 
   const filteredRiders = useMemo(() => {
@@ -133,31 +140,39 @@ function LiveRiders() {
     (rider) => rider.distance <= 30
   ).length;
 
-  const toggleConnection = async (riderId) => {
+  const getRiderStatus = (riderId) => {
+    if (connections.includes(String(riderId))) return "CONNECTED";
+    if (incomingRequests.some((i) => i.userId === String(riderId))) return "INCOMING";
+    if (outgoingRequests.includes(String(riderId))) return "REQUESTED";
+    return "CONNECT";
+  };
+
+  const handleRiderAction = async (riderId) => {
     if (!isAuthenticated) {
       openAuthModal();
       return;
     }
 
-    if (connectedRiders.includes(riderId)) {
-      // Already connected
-      return;
-    }
+    const status = getRiderStatus(riderId);
+    if (status === "CONNECTED" || status === "REQUESTED") return;
 
     setActionLoading((prev) => ({ ...prev, [riderId]: true }));
     try {
-      await apiClient.post("/api/core/connections/request", {
-        toUserId: riderId,
-      });
-      setConnectedRiders((current) => [...current, riderId]);
-    } catch (err) {
-      // If error indicates already requested/connected, mark as connected
-      const msg = err.response?.data?.message || "";
-      if (msg.includes("already") || msg.includes("exists")) {
-        setConnectedRiders((current) => [...current, riderId]);
-      } else {
-        console.error("Connection request failed:", err);
+      if (status === "INCOMING") {
+        const inc = incomingRequests.find((i) => i.userId === String(riderId));
+        if (inc && inc.requestId) {
+          await apiClient.patch(`/api/core/connections/requests/${inc.requestId}/respond`, { action: "accept" });
+          window.dispatchEvent(new CustomEvent("kaindra:connection_updated"));
+          await fetchLiveRiders();
+        }
+      } else if (status === "CONNECT") {
+        await apiClient.post("/api/core/connections/request", { toUserId: riderId });
+        setOutgoingRequests((prev) => [...prev, String(riderId)]);
+        window.dispatchEvent(new CustomEvent("kaindra:connection_updated"));
+        await fetchLiveRiders();
       }
+    } catch (err) {
+      console.error("Connection action failed:", err);
     } finally {
       setActionLoading((prev) => ({ ...prev, [riderId]: false }));
     }
@@ -169,7 +184,7 @@ function LiveRiders() {
   };
 
   return (
-    <section className="live-riders">
+    <section className="live-riders" id="live-riders">
       <div className="live-riders-container">
         <div className="live-riders-header">
           <div>
@@ -215,7 +230,7 @@ function LiveRiders() {
 
           <div className="live-stat-card">
             <span className="live-stat-number">
-              {connectedRiders.length}
+              {connections.length}
             </span>
             <span className="live-stat-label">CONNECTED</span>
           </div>
@@ -282,9 +297,7 @@ function LiveRiders() {
         ) : filteredRiders.length > 0 ? (
           <div className="live-riders-grid">
             {filteredRiders.map((rider) => {
-              const isConnected = connectedRiders.includes(
-                rider.id
-              );
+              const status = getRiderStatus(rider.id);
               const isActing = actionLoading[rider.id];
 
               return (
@@ -357,18 +370,18 @@ function LiveRiders() {
 
                   <button
                     type="button"
-                    disabled={isActing}
-                    className={`live-connect-button ${
-                      isConnected ? "connected" : ""
-                    }`}
-                    onClick={() =>
-                      toggleConnection(rider.id)
-                    }
+                    disabled={isActing || status === "CONNECTED" || status === "REQUESTED"}
+                    className={`live-connect-button ${status.toLowerCase()}`}
+                    onClick={() => handleRiderAction(rider.id)}
                   >
                     {isActing
-                      ? "CONNECTING..."
-                      : isConnected
-                      ? "CONNECTED"
+                      ? "PROCESSING..."
+                      : status === "CONNECTED"
+                      ? "CONNECTED ✓"
+                      : status === "REQUESTED"
+                      ? "REQUEST SENT ⏳"
+                      : status === "INCOMING"
+                      ? "✓ ACCEPT REQUEST"
                       : "CONNECT WITH RIDER"}
                   </button>
                 </article>

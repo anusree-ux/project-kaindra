@@ -1042,3 +1042,24 @@
     min-width: 64px;
   }
 }
+
+.connection-button.incoming,
+.modal-primary-button.incoming {
+  border-color: #d4a03e !important;
+  background: linear-gradient(135deg, #d4a03e 0%, #b88328 100%) !important;
+  color: #000000 !important;
+  font-weight: 800 !important;
+  box-shadow: 0 0 14px rgba(212, 160, 62, 0.45) !important;
+  animation: pulse-connect 2s infinite alternate;
+}
+
+.connection-button.incoming:hover,
+.modal-primary-button.incoming:hover {
+  background: linear-gradient(135deg, #f0bc5a 0%, #d4a03e 100%) !important;
+  transform: translateY(-1px);
+}
+
+@keyframes pulse-connect {
+  0% { box-shadow: 0 0 6px rgba(212, 160, 62, 0.3); }
+  100% { box-shadow: 0 0 18px rgba(212, 160, 62, 0.6); }
+}
