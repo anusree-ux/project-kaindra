@@ -241,16 +241,19 @@ const getUpcomingRides = async (req, res, next) => {
       const startDate = new Date(r.startDate);
       const durationDays = r.durationDays || 1;
       const durationMs = durationDays * 24 * 60 * 60 * 1000;
-      const endDateTime = new Date(startDate.getTime() + durationMs);
+      const endDateTime = r.endDate ? new Date(r.endDate) : new Date(startDate.getTime() + durationMs);
 
-      // If the ride's scheduled end time has completely passed, mark as completed
-      if (endDateTime < now) {
+      // 1. If ride was in planning and start date/time has passed, or scheduled end time has passed -> mark completed
+      if (endDateTime < now || (r.status === "planning" && startDate < now)) {
         r.status = "completed";
         await r.save().catch(() => null);
         continue;
       }
 
-      activeUpcomingRides.push(r);
+      // 2. Only include truly upcoming or live ongoing rides
+      if (r.status === "ongoing" || startDate >= now) {
+        activeUpcomingRides.push(r);
+      }
     }
 
     const rideIds = activeUpcomingRides.map((r) => r._id);

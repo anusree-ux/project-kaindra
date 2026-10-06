@@ -38,7 +38,14 @@ function UpcomingRides() {
       const res = await apiClient.get("/api/mototribe/rides");
       const dbList = res.data.data?.rides || [];
 
-      const dbFormatted = dbList.map((r) => {
+      const dbFormatted = dbList
+        .filter((r) => {
+          if (r.status === "completed" || r.status === "cancelled") return false;
+          const sDate = r.startDate ? new Date(r.startDate) : null;
+          if (r.status === "planning" && sDate && sDate.getTime() < Date.now()) return false;
+          return true;
+        })
+        .map((r) => {
         const startDateObj = r.startDate ? new Date(r.startDate) : new Date();
         const yyyy = startDateObj.getFullYear();
         const mm = String(startDateObj.getMonth() + 1).padStart(2, "0");
@@ -183,14 +190,18 @@ function UpcomingRides() {
   };
 
   const filteredRides = useMemo(() => {
-    // Exclude rides that are completed, cancelled, or whose schedule has elapsed
+    // Exclude rides that are completed, cancelled, or whose departure date/time has passed (unless currently LIVE)
     const activeUpcomingRides = rides.filter((ride) => {
       const currentStatus = getCurrentStatus(ride);
+      const rideDate = getRideDate(ride);
+      const isPast = rideDate.getTime() < now.getTime() && currentStatus !== "LIVE";
+
       return (
         ride.status !== "completed" &&
         ride.status !== "cancelled" &&
         currentStatus !== "COMPLETED" &&
-        currentStatus !== "CANCELLED"
+        currentStatus !== "CANCELLED" &&
+        !isPast
       );
     });
 
