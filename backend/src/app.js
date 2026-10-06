@@ -73,6 +73,9 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/auth", authRoutes);
 
 // Core Connection & Operations Routes
+app.use("/api/v1/core/notifications", notificationRoutes);
+app.use("/api/core/notifications", notificationRoutes);
+
 app.use("/api/v1/core", connectionRoutes);
 app.use("/api/core", connectionRoutes);
 
