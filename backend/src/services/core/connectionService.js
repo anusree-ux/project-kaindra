@@ -170,10 +170,10 @@ const respondToRequest = async (requestId, userId, action) => {
       },
     });
 
-    // Mark the incoming request notification as read
+    // Mark the incoming request notification as read and accepted
     await Notification.updateMany(
       { userId, "data.requestId": request._id },
-      { $set: { isRead: true, readAt: new Date() } }
+      { $set: { isRead: true, readAt: new Date(), "data.status": "accepted" } }
     );
   }
 

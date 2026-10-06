@@ -332,3 +332,26 @@
   border-color: #d9534f;
   color: #ff8885;
 }
+
+.notif-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.notif-status-badge.connected {
+  background: rgba(117, 201, 135, 0.12);
+  border: 1px solid rgba(117, 201, 135, 0.4);
+  color: #75c987;
+}
+
+.notif-status-badge.ignored {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #88847c;
+}

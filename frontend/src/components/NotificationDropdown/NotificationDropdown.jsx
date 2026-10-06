@@ -18,6 +18,7 @@ export default function NotificationDropdown({ brand = "mototribe" }) {
   const [isOpen, setIsOpen] = useState(false);
   const [filter, setFilter] = useState("ALL");
   const [actionLoading, setActionLoading] = useState({});
+  const [handledActions, setHandledActions] = useState({});
   const dropdownRef = useRef(null);
 
   // Close on outside click
@@ -37,8 +38,23 @@ export default function NotificationDropdown({ brand = "mototribe" }) {
     setActionLoading((prev) => ({ ...prev, [notifId]: true }));
     try {
       await respondToConnection(requestId, action, notifId);
+      setHandledActions((prev) => ({
+        ...prev,
+        [requestId]: action,
+        [notifId]: action,
+      }));
     } catch (err) {
-      alert("Could not process request: " + (err.response?.data?.message || err.message));
+      // If already accepted/handled on server, reflect in UI
+      const msg = err.response?.data?.message || err.message || "";
+      if (msg.includes("already") || msg.includes("accepted")) {
+        setHandledActions((prev) => ({
+          ...prev,
+          [requestId]: "accept",
+          [notifId]: "accept",
+        }));
+      } else {
+        alert("Could not process request: " + msg);
+      }
     } finally {
       setActionLoading((prev) => ({ ...prev, [notifId]: false }));
     }
@@ -148,46 +164,66 @@ export default function NotificationDropdown({ brand = "mototribe" }) {
                 <small>You're all caught up!</small>
               </div>
             ) : (
-              filteredNotifications.map((n) => (
-                <div
-                  key={n._id}
-                  className={"notification-card " + (!n.isRead ? "unread " : "") + (n.type.toLowerCase())}
-                  onClick={() => !n.isRead && markAsRead(n._id)}
-                >
-                  <div className="notif-icon-col">
-                    <span className="notif-type-icon">{getNotifIcon(n.type)}</span>
-                  </div>
-                  <div className="notif-content-col">
-                    <div className="notif-card-header">
-                      <strong>{n.title}</strong>
-                      <span className="notif-time">{formatTime(n.createdAt)}</span>
-                    </div>
-                    <p className="notif-message">{n.message}</p>
+              filteredNotifications.map((n) => {
+                const reqId = n.data?.requestId;
+                const actionState =
+                  handledActions[n._id] ||
+                  handledActions[reqId] ||
+                  (n.data?.status === "accepted" ? "accept" : null);
 
-                    {/* INLINE CONNECTION REQUEST ACCEPT / DECLINE ACTIONS */}
-                    {n.type === "CONNECTION_REQUEST" && n.data?.requestId && (
-                      <div className="notif-action-row" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          type="button"
-                          className="btn-notif-accept"
-                          disabled={actionLoading[n._id]}
-                          onClick={() => handleAction(n.data.requestId, "accept", n._id)}
-                        >
-                          {actionLoading[n._id] ? "Connecting..." : "✓ Accept Request"}
-                        </button>
-                        <button
-                          type="button"
-                          className="btn-notif-decline"
-                          disabled={actionLoading[n._id]}
-                          onClick={() => handleAction(n.data.requestId, "ignore", n._id)}
-                        >
-                          Ignore
-                        </button>
+                return (
+                  <div
+                    key={n._id}
+                    className={"notification-card " + (!n.isRead ? "unread " : "") + (n.type.toLowerCase())}
+                    onClick={() => !n.isRead && markAsRead(n._id)}
+                  >
+                    <div className="notif-icon-col">
+                      <span className="notif-type-icon">{getNotifIcon(n.type)}</span>
+                    </div>
+                    <div className="notif-content-col">
+                      <div className="notif-card-header">
+                        <strong>{n.title}</strong>
+                        <span className="notif-time">{formatTime(n.createdAt)}</span>
                       </div>
-                    )}
+                      <p className="notif-message">{n.message}</p>
+
+                      {/* CONNECTION REQUEST ACTIONS OR STATUS BADGE */}
+                      {n.type === "CONNECTION_REQUEST" && reqId && (
+                        <div className="notif-action-row" onClick={(e) => e.stopPropagation()}>
+                          {actionState === "accept" ? (
+                            <span className="notif-status-badge connected">
+                              Connected ✓
+                            </span>
+                          ) : actionState === "ignore" ? (
+                            <span className="notif-status-badge ignored">
+                              Request Ignored
+                            </span>
+                          ) : (
+                            <>
+                              <button
+                                type="button"
+                                className="btn-notif-accept"
+                                disabled={actionLoading[n._id]}
+                                onClick={() => handleAction(reqId, "accept", n._id)}
+                              >
+                                {actionLoading[n._id] ? "Connecting..." : "✓ Accept Request"}
+                              </button>
+                              <button
+                                type="button"
+                                className="btn-notif-decline"
+                                disabled={actionLoading[n._id]}
+                                onClick={() => handleAction(reqId, "ignore", n._id)}
+                              >
+                                Ignore
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>
