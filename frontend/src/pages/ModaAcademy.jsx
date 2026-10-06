@@ -19,7 +19,7 @@ import {
 
 import "./ModaAcademy.css";
 
-const courses = [
+const placeholderCourses = [
   {
     id: "fashion-design",
     title: "Fashion Design Foundations",
@@ -138,6 +138,8 @@ const learningAreas = [
 ];
 
 function ModaAcademy() {
+  const [courses, setCourses] = useState([]);
+  const [loadingCourses, setLoadingCourses] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState(null);
 
   const [showEnrollment, setShowEnrollment] = useState(false);
@@ -151,6 +153,43 @@ function ModaAcademy() {
     phone: "",
     experience: "Beginner",
   });
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        setLoadingCourses(true);
+
+        const response = await fetch(
+          "/api/modasphere/academy/courses"
+        );
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          throw new Error(
+            result.message || "Failed to fetch courses"
+          );
+        }
+
+        setCourses(
+          result.courses?.length
+            ? result.courses
+            : placeholderCourses
+        );
+      } catch (error) {
+        console.error(
+          "Unable to load ModaAcademy courses:",
+          error
+        );
+
+        setCourses(placeholderCourses);
+      } finally {
+        setLoadingCourses(false);
+      }
+    };
+
+    fetchCourses();
+  }, []);
 
   /*
    * =========================================
@@ -268,11 +307,13 @@ function ModaAcademy() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            courseId: selectedCourse.id,
+            courseId: selectedCourse._id || selectedCourse.id,
             courseName: selectedCourse.title,
             category: selectedCourse.category,
             level: selectedCourse.level,
-            duration: selectedCourse.duration,
+            duration: selectedCourse.durationMinutes
+              ? `${selectedCourse.durationMinutes} min`
+              : selectedCourse.duration || "Self-paced",
             instructor: selectedCourse.instructor,
             name: formData.name,
             email: formData.email,
@@ -465,39 +506,40 @@ function ModaAcademy() {
           </div>
 
           <div className="modaacademy-course-grid">
-
-            {courses.map((course) => {
-
-              const Icon = course.icon;
-
-              return (
+            {loadingCourses ? (
+              <div className="modaacademy-no-learning">
+                <BookOpen size={40} />
+                <h3>Loading courses...</h3>
+              </div>
+            ) : courses.length === 0 ? (
+              <div className="modaacademy-no-learning">
+                <BookOpen size={40} />
+                <h3>No courses available.</h3>
+                <p>Check back soon for new ModaAcademy courses.</p>
+              </div>
+            ) : (
+              courses.map((course) => (
                 <article
                   className="modaacademy-course-card"
-                  key={course.id}
+                  key={course._id || course.id}
                 >
-
                   <div className="modaacademy-course-top">
-
                     <div className="modaacademy-course-icon">
-                      <Icon size={25} />
+                      {course.icon ? (
+                        <course.icon size={25} />
+                      ) : (
+                        <GraduationCap size={25} />
+                      )}
                     </div>
 
-                    <span>
-                      {course.category}
-                    </span>
-
+                    <span>{course.category}</span>
                   </div>
 
-                  <h3>
-                    {course.title}
-                  </h3>
+                  <h3>{course.title}</h3>
 
-                  <p>
-                    {course.description}
-                  </p>
+                  <p>{course.description}</p>
 
                   <div className="modaacademy-course-meta">
-
                     <span>
                       <BarChart3 size={15} />
                       {course.level}
@@ -505,36 +547,31 @@ function ModaAcademy() {
 
                     <span>
                       <Clock size={15} />
-                      {course.duration}
+                      {course.durationMinutes
+                        ? `${course.durationMinutes} min`
+                        : course.duration || "Self-paced"}
                     </span>
-
                   </div>
 
                   <div className="modaacademy-course-skills">
-
-                    {course.skills.map((skill) => (
-                      <span key={skill}>
-                        {skill}
+                    {(course.tags || course.skills)?.map((tag) => (
+                      <span key={tag}>
+                        {tag}
                       </span>
                     ))}
-
                   </div>
 
                   <button
                     type="button"
                     className="modaacademy-enroll-button"
-                    onClick={() =>
-                      openEnrollment(course)
-                    }
+                    onClick={() => openEnrollment(course)}
                   >
                     Enroll Now
                     <ArrowRight size={17} />
                   </button>
-
                 </article>
-              );
-            })}
-
+              ))
+            )}
           </div>
 
         </div>
@@ -939,7 +976,9 @@ function ModaAcademy() {
 
                 <span>
                   {selectedCourse.level} ·{" "}
-                  {selectedCourse.duration}
+                  {selectedCourse.durationMinutes
+                    ? `${selectedCourse.durationMinutes} min`
+                    : selectedCourse.duration || "Self-paced"}
                 </span>
 
               </div>
