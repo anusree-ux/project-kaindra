@@ -264,6 +264,7 @@ function Navbar() {
                 </div>
               ) : (
                 <div className="mobile-user-area">
+                  <NotificationDropdown brand="modasphere" />
                   <Link
                     to="/profile"
                     className="mobile-user-name"
@@ -311,6 +312,7 @@ function Navbar() {
             </div>
           ) : (
             <div className="navbar-user-area">
+              <NotificationDropdown brand="modasphere" />
               <Link
                 to="/profile"
                 className="navbar-user-name"
