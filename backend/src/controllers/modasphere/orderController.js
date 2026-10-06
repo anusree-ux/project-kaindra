@@ -2,6 +2,7 @@ const Order = require("../../models/modasphere/Order");
 const Cart = require("../../models/modasphere/Cart");
 const Product = require("../../models/modasphere/Product");
 const Drop = require("../../models/modasphere/Drop");
+const DiscountCode = require("../../models/modasphere/DiscountCode");
 const { getUserPurchaseCountInDrop } = require("../../services/modasphere/dropService");
 const {
   createRazorpayOrder,
@@ -18,7 +19,7 @@ const AppError = require("../../utils/AppError");
 const checkout = async (req, res, next) => {
   let order = null;
   try {
-    const { shippingAddress } = req.body;
+    const { shippingAddress, discountCode } = req.body;
 
     if (
       !shippingAddress ||
@@ -84,15 +85,16 @@ const checkout = async (req, res, next) => {
     }
 
     const orderItems = [];
-    let totalAmount = 0;
+    let subtotalAmount = 0;
 
     // Validate stock and build order snapshot
     for (const item of cart.items) {
       const product = item.productId;
+
       if (!product || product.status !== "active") {
         return next(
           new AppError(
-            `Product "${product?.name || "Item"}" is no longer available. Please update your cart.`,
+            `Product "${item.productId}" is no longer available.`,
             400
           )
         );
@@ -101,14 +103,14 @@ const checkout = async (req, res, next) => {
       if (item.quantity > product.stock) {
         return next(
           new AppError(
-            `Insufficient stock for "${product.name}". Requested ${item.quantity}, but only ${product.stock} left.`,
+            `Insufficient stock for "${product.name}". Available stock: ${product.stock}.`,
             400
           )
         );
       }
 
       const itemPrice = Number(product.price);
-      totalAmount += itemPrice * item.quantity;
+      subtotalAmount += itemPrice * item.quantity;
 
       orderItems.push({
         productId: product._id,
@@ -119,10 +121,103 @@ const checkout = async (req, res, next) => {
       });
     }
 
+    let discountAmount = 0;
+    let appliedDiscountCode = null;
+
+    if (discountCode && discountCode.trim()) {
+      const normalizedDiscountCode = discountCode.trim().toUpperCase();
+
+      const discount = await DiscountCode.findOne({
+        code: normalizedDiscountCode,
+      });
+
+      if (!discount) {
+        return next(new AppError("Invalid discount code.", 400));
+      }
+
+      if (!discount.isActive) {
+        return next(
+          new AppError("This discount code is inactive.", 400)
+        );
+      }
+
+      if (
+        discount.expiryDate &&
+        new Date() > discount.expiryDate
+      ) {
+        return next(
+          new AppError("This discount code has expired.", 400)
+        );
+      }
+
+      if (subtotalAmount < discount.minOrderAmount) {
+        return next(
+          new AppError(
+            `Minimum order amount for this discount is ${discount.minOrderAmount}.`,
+            400
+          )
+        );
+      }
+
+      // Check total usage limit
+      if (discount.maxTotalUses !== null) {
+        const totalUsed = await Order.countDocuments({
+          discountCode: discount.code,
+          status: { $in: ["paid", "shipped", "delivered"] },
+        });
+
+        if (totalUsed >= discount.maxTotalUses) {
+          return next(
+            new AppError(
+              "This discount code has reached its maximum usage limit.",
+              400
+            )
+          );
+        }
+      }
+
+      // Check per-user usage limit
+      if (discount.maxUsesPerUser !== null) {
+        const userUsed = await Order.countDocuments({
+          buyerId: req.user._id,
+          discountCode: discount.code,
+          status: { $in: ["paid", "shipped", "delivered"] },
+        });
+
+        if (userUsed >= discount.maxUsesPerUser) {
+          return next(
+            new AppError(
+              "You have already reached the usage limit for this discount code.",
+              400
+            )
+          );
+        }
+      }
+
+      if (discount.discountType === "percentage") {
+        discountAmount =
+          (subtotalAmount * discount.discountValue) / 100;
+      } else {
+        discountAmount = discount.discountValue;
+      }
+
+      discountAmount = Math.min(discountAmount, subtotalAmount);
+
+      appliedDiscountCode = discount.code;
+    }
+
+    const totalAmount = Math.max(
+      subtotalAmount - discountAmount,
+      0
+    );
+
     // Create pending order
     order = await Order.create({
       buyerId: req.user._id,
       items: orderItems,
+      subtotalAmount,
+      discountCode: appliedDiscountCode,
+      discountAmount,
       totalAmount,
       status: "pending_payment",
       shippingAddress,

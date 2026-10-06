@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, CheckCircle, Lock, ShoppingBag } from "lucide-react";
 import "./Checkout.css";
@@ -6,12 +6,61 @@ import "./Checkout.css";
 function Checkout() {
   const navigate = useNavigate();
 
-  const [cart] = useState(() => {
-    return JSON.parse(localStorage.getItem("modamartCart") || "[]");
-  });
+  const [cart, setCart] = useState([]);
+  const [cartLoading, setCartLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCart = async () => {
+      try {
+        const token = localStorage.getItem("token");
+
+        const response = await fetch(
+          "http://localhost:5000/api/modasphere/cart",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "Failed to load cart.");
+        }
+
+        const backendItems = data.data?.cart?.items || [];
+
+        // Convert backend cart structure to the format Checkout already uses
+        const formattedItems = backendItems.map((item) => ({
+          _id: item.product._id,
+          id: item.product._id,
+          name: item.product.name,
+          price: item.product.price,
+          quantity: item.quantity,
+          category: item.product.category,
+          brand: item.product.sellerId?.name || "ModaSphere",
+          image: item.product.images?.[0]?.url || "",
+          images: item.product.images || [],
+        }));
+
+        setCart(formattedItems);
+      } catch (error) {
+        console.error("Failed to load checkout cart:", error);
+      } finally {
+        setCartLoading(false);
+      }
+    };
+
+    fetchCart();
+  }, []);
 
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [orderNumber, setOrderNumber] = useState("");
+  const [discountCode, setDiscountCode] = useState("");
+  const [discount, setDiscount] = useState(null);
+  const [discountLoading, setDiscountLoading] = useState(false);
+  const [discountError, setDiscountError] = useState("");
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -28,8 +77,9 @@ function Checkout() {
     0
   );
 
-  const delivery = subtotal > 0 ? 99 : 0;
-  const total = subtotal + delivery;
+  const delivery = 0;
+  const discountAmount = discount?.discountAmount || 0;
+  const total = Math.max(subtotal - discountAmount + delivery, 0);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -40,39 +90,116 @@ function Checkout() {
     }));
   };
 
-  const handleSubmit = (event) => {
-  event.preventDefault();
+  const handleApplyDiscount = async () => {
+    if (!discountCode.trim()) {
+      setDiscountError("Please enter a discount code.");
+      return;
+    }
 
-  if (cart.length === 0) {
-    return;
-  }
+    setDiscountLoading(true);
+    setDiscountError("");
+    setDiscount(null);
 
-  const existingOrders = JSON.parse(
-    localStorage.getItem("modamartOrders") || "[]"
-  );
+    try {
+      const token = localStorage.getItem("token");
 
-  const newOrderNumber = `MS-${1001 + existingOrders.length}`;
+      const response = await fetch(
+        "http://localhost:5000/api/modasphere/discount-codes/validate",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            code: discountCode.trim(),
+            orderAmount: subtotal,
+          }),
+        }
+      );
 
-  const newOrder = {
-    orderNumber: newOrderNumber,
-    customer: formData,
-    items: cart,
-    subtotal,
-    delivery,
-    total,
-    status: "Order Placed",
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Invalid discount code.");
+      }
+
+      setDiscount(data.data);
+    } catch (error) {
+      setDiscountError(error.message);
+    } finally {
+      setDiscountLoading(false);
+    }
   };
 
-  localStorage.setItem(
-    "modamartOrders",
-    JSON.stringify([...existingOrders, newOrder])
-  );
+  // CHANGED: Create the order through the backend/MongoDB
+  const handleSubmit = async (event) => {
+    event.preventDefault();
 
-  localStorage.removeItem("modamartCart");
+    // Don't show "Cart Empty" while MongoDB cart is still loading
+    if (cartLoading) {
+      return null;
+    }
 
-  setOrderNumber(newOrderNumber);
-  setOrderPlaced(true);
-};
+    if (cart.length === 0) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await fetch(
+        "http://localhost:5000/api/modasphere/orders/checkout",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            shippingAddress: {
+              name: formData.fullName,
+              phone: formData.phone,
+              addressLine1: formData.address,
+              addressLine2: "",
+              city: formData.city,
+              state: formData.state,
+              pincode: formData.pincode,
+            },
+
+            // CHANGED: Send only the discount code.
+            // Backend recalculates and validates the discount.
+            discountCode: discount?.code || undefined,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || "Failed to place the order."
+        );
+      }
+
+      // CHANGED: Use the real backend order number
+      const createdOrder = data.data?.order;
+
+      setOrderNumber(
+        createdOrder?.orderNumber ||
+          createdOrder?._id ||
+          "Order placed"
+      );
+
+      setOrderPlaced(true);
+
+      // CHANGED: Backend cart is cleared during checkout.
+      localStorage.removeItem("modamartCart");
+    } catch (error) {
+      console.error("Checkout failed:", error);
+      alert(error.message || "Failed to place the order.");
+    }
+  };
 
   if (orderPlaced) {
     return (
@@ -456,6 +583,46 @@ function Checkout() {
             </div>
 
             <div className="checkout-summary-divider" />
+            <div className="discount-section">
+              <label htmlFor="discountCode">
+                Discount Code
+              </label>
+
+              <div className="discount-input-row">
+                <input
+                  id="discountCode"
+                  type="text"
+                  value={discountCode}
+                  onChange={(e) => {
+                    setDiscountCode(e.target.value.toUpperCase());
+                    setDiscount(null);
+                    setDiscountError("");
+                  }}
+                  placeholder="Enter code"
+                  disabled={discountLoading}
+                />
+
+                <button
+                  type="button"
+                  onClick={handleApplyDiscount}
+                  disabled={discountLoading}
+                >
+                  {discountLoading ? "Applying..." : "Apply"}
+                </button>
+              </div>
+
+              {discountError && (
+                <p className="discount-error">
+                  {discountError}
+                </p>
+              )}
+
+              {discount && (
+                <p className="discount-success">
+                  {discount.code} applied successfully.
+                </p>
+              )}
+            </div>
 
             <div className="checkout-summary-row">
               <span>Subtotal</span>
@@ -463,6 +630,18 @@ function Checkout() {
                 ₹{subtotal.toLocaleString("en-IN")}
               </strong>
             </div>
+
+            {discount && (
+              <div className="checkout-summary-row">
+                <span>Discount</span>
+                <strong>
+                  -₹{discountAmount.toLocaleString("en-IN", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </strong>
+              </div>
+            )}
 
             <div className="checkout-summary-row">
               <span>Delivery</span>

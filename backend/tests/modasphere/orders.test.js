@@ -645,6 +645,9 @@ describe("ModaSphere Orders & Razorpay Payment Integration (ModaPay)", () => {
       // Create an order with refundStatus 'failed'
       const order = await Order.create({
         buyerId: buyer.userId,
+        subtotalAmount: 1000,
+        discountAmount: 0,
+        totalAmount: 1000,
         items: [
           {
             productId: product1._id,
