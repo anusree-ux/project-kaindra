@@ -37,6 +37,9 @@ const wishlistRoutes = require("./routes/modasphere/wishlistRoutes");
 const reviewRoutes = require("./routes/modasphere/reviewRoutes");
 const insightsRoutes = require("./routes/modasphere/insightsRoutes");
 const dropRoutes = require("./routes/modasphere/dropRoutes");
+const designRoutes = require("./routes/modasphere/designRoutes");
+const manufacturerRoutes = require("./routes/modasphere/manufacturerRoutes");
+const productionRequestRoutes = require("./routes/modasphere/productionRequestRoutes");
 const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
@@ -133,6 +136,15 @@ app.use("/api/v1/modasphere/insights", insightsRoutes);
 
 app.use("/api/modasphere", reviewRoutes);
 app.use("/api/v1/modasphere", reviewRoutes);
+
+app.use("/api/modasphere", designRoutes);
+app.use("/api/v1/modasphere", designRoutes);
+
+app.use("/api/modasphere", manufacturerRoutes);
+app.use("/api/v1/modasphere", manufacturerRoutes);
+
+app.use("/api/modasphere", productionRequestRoutes);
+app.use("/api/v1/modasphere", productionRequestRoutes);
 
 // MotoTribe Routes (supports both /api/mototribe and /api/v1/mototribe)
 app.use("/api/v1/mototribe", directionsRoutes);
