@@ -438,59 +438,6 @@ const verifyPayment = async (req, res, next) => {
     order.razorpaySignature = razorpaySignature;
     await order.save();
 
-    // Decrement stock for each product
-    for (const item of order.items) {
-      const product = await Product.findById(item.productId);
-
-      if (!product) {
-        throw new AppError(
-          `Product "${item.name}" no longer exists.`,
-          400
-        );
-      }
-
-      if (product.isDrop) {
-        // Atomically decrement drop stock only if enough stock remains.
-        const updatedProduct = await Product.findOneAndUpdate(
-          {
-            _id: item.productId,
-            isDrop: true,
-            dropStock: { $gte: item.quantity },
-          },
-          {
-            $inc: { dropStock: -item.quantity },
-          },
-          { new: true }
-        );
-
-        if (!updatedProduct) {
-          throw new AppError(
-            `Insufficient drop stock for "${item.name}". The drop may have sold out.`,
-            400
-          );
-        }
-      } else {
-        // Atomically decrement regular product stock.
-        const updatedProduct = await Product.findOneAndUpdate(
-          {
-            _id: item.productId,
-            stock: { $gte: item.quantity },
-          },
-          {
-            $inc: { stock: -item.quantity },
-          },
-          { new: true }
-        );
-
-        if (!updatedProduct) {
-          throw new AppError(
-            `Insufficient stock for "${item.name}". The product may have sold out.`,
-            400
-          );
-        }
-      }
-    }
-
     // Clear user's Cart
     const cart = await Cart.findOne({ userId: req.user._id });
     if (cart) {
