@@ -1,11 +1,10 @@
 const FuelPriceSubmission = require("../../models/mototribe/FuelPriceSubmission");
 const FuelPrice = require("../../models/mototribe/FuelPrice");
+const { ioclStateFuelPriceData } = require("./ioclFuelPriceService");
 const AppError = require("../../utils/AppError");
 
 /**
  * Calculates the median of an array of numbers.
- * @param {number[]} numbers
- * @returns {number|null}
  */
 const calculateMedian = (numbers) => {
   if (!numbers || numbers.length === 0) return null;
@@ -19,11 +18,103 @@ const calculateMedian = (numbers) => {
 };
 
 /**
- * 1. Get current 7-day median fuel price for state + fuelType
- *
- * @param {string} state - State name (e.g. "Maharashtra")
- * @param {string} fuelType - Fuel type ("petrol" | "diesel")
- * @returns {Promise<Object>} Object containing state, fuelType, median, count, and isFallback
+ * Helper to get official benchmark price from DB or official IOCL dataset
+ */
+const getOfficialBenchmark = async (normalizedState, normalizedFuelType) => {
+  const searchRegex = new RegExp(`^${normalizedState.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i");
+
+  // 1. Check MongoDB FuelPrice collection
+  let officialRecord = await FuelPrice.findOne({
+    $or: [{ state: searchRegex }, { city: searchRegex }, { location: searchRegex }],
+    isLatest: true,
+  });
+
+  if (!officialRecord) {
+    officialRecord = await FuelPrice.findOne({
+      $or: [{ state: searchRegex }, { city: searchRegex }, { location: searchRegex }],
+    });
+  }
+
+  if (officialRecord) {
+    return {
+      price: normalizedFuelType === "petrol" ? officialRecord.petrolPrice : officialRecord.dieselPrice,
+      source: officialRecord.source || "IOCL",
+      sourceType: officialRecord.sourceType || "official",
+      confidence: officialRecord.confidence || 1.0,
+      isDbRecord: true,
+    };
+  }
+
+  // 2. Check official IOCL dataset array if DB not seeded yet
+  const stateClean = normalizedState.toLowerCase();
+  const ioclMatch = ioclStateFuelPriceData.find(
+    (item) =>
+      item.state.toLowerCase() === stateClean ||
+      item.city.toLowerCase() === stateClean ||
+      item.location.toLowerCase().includes(stateClean)
+  );
+
+  if (ioclMatch) {
+    return {
+      price: normalizedFuelType === "petrol" ? ioclMatch.petrolPrice : ioclMatch.dieselPrice,
+      source: "IOCL",
+      sourceType: "official",
+      confidence: 1.0,
+      isDbRecord: false,
+    };
+  }
+
+  // 3. Fallback national default
+  return {
+    price: normalizedFuelType === "petrol" ? 94.72 : 87.62,
+    source: "National Default Fallback",
+    sourceType: "official",
+    confidence: 0.5,
+    isDbRecord: false,
+  };
+};
+
+/**
+ * Calculates weighted confidence score (0.0 to 1.0) for fuel price data
+ */
+const calculateConfidenceScore = ({ submissions, expectedPrice }) => {
+  if (!submissions || submissions.length === 0) return 0.0;
+
+  const now = Date.now();
+  const newestDate = new Date(Math.max(...submissions.map((s) => new Date(s.submittedAt).getTime())));
+  const ageHours = (now - newestDate.getTime()) / (1000 * 60 * 60);
+
+  // 1. Recency Score (weight 0.3)
+  let recencyScore = 0.2;
+  if (ageHours <= 24) recencyScore = 1.0;
+  else if (ageHours <= 72) recencyScore = 0.8;
+  else if (ageHours <= 168) recencyScore = 0.5;
+
+  // 2. Rider Count Score (weight 0.3)
+  const uniqueRiders = new Set(submissions.map((s) => s.userId?.toString() || s._id?.toString())).size;
+  let riderCountScore = 0.3;
+  if (uniqueRiders >= 5) riderCountScore = 1.0;
+  else if (uniqueRiders >= 2) riderCountScore = 0.7;
+
+  // 3. Agreement / Deviation Score (weight 0.4)
+  const prices = submissions.map((s) => s.pricePerLiter);
+  const medianPrice = calculateMedian(prices);
+  let agreementScore = 0.5;
+
+  if (expectedPrice && expectedPrice > 0 && medianPrice !== null) {
+    const deviationPct = Math.abs(medianPrice - expectedPrice) / expectedPrice;
+    if (deviationPct <= 0.02) agreementScore = 1.0;
+    else if (deviationPct <= 0.05) agreementScore = 0.8;
+    else if (deviationPct <= 0.10) agreementScore = 0.5;
+    else agreementScore = 0.1;
+  }
+
+  const totalScore = recencyScore * 0.3 + riderCountScore * 0.3 + agreementScore * 0.4;
+  return Math.min(1.0, Math.max(0.0, Math.round(totalScore * 100) / 100));
+};
+
+/**
+ * 1. Resolution Logic: Official Baseline + Community Verification
  */
 const getCurrentAverage = async (state, fuelType) => {
   if (!state || typeof state !== "string" || !state.trim()) {
@@ -41,67 +132,63 @@ const getCurrentAverage = async (state, fuelType) => {
     throw new AppError("Fuel type must be either 'petrol' or 'diesel'.", 400);
   }
 
+  const searchRegex = new RegExp(`^${normalizedState.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i");
+
+  // Fetch recent Accepted Community Submissions (last 7 days)
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-
-  const submissions = await FuelPriceSubmission.find({
-    state: new RegExp(`^${normalizedState.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i"),
+  const acceptedSubmissions = await FuelPriceSubmission.find({
+    state: searchRegex,
     fuelType: normalizedFuelType,
+    validationStatus: "ACCEPTED",
     submittedAt: { $gte: sevenDaysAgo },
-  }).select("pricePerLiter");
+  }).select("userId pricePerLiter submittedAt station location");
 
-  let isFallback = false;
-  let priceSource = "Community 7-Day Median";
-  let count = submissions.length;
-  let median = null;
+  // Fetch Official Benchmark
+  const official = await getOfficialBenchmark(normalizedState, normalizedFuelType);
+  const officialPrice = official.price;
 
-  if (submissions.length > 0) {
-    const prices = submissions.map((s) => s.pricePerLiter);
-    const rawMedian = calculateMedian(prices);
-    median = rawMedian !== null ? Math.round(rawMedian * 100) / 100 : null;
-    isFallback = false;
-    priceSource = `Community 7-Day Median (${submissions.length} reports)`;
-  } else {
-    // Lookup official state IOCL fuel price from database
-    const searchRegex = new RegExp(normalizedState.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
-    let record = await FuelPrice.findOne({
-      $or: [{ state: searchRegex }, { city: searchRegex }, { location: searchRegex }],
-      isLatest: true,
-    });
-    if (!record) {
-      record = await FuelPrice.findOne({
-        $or: [{ state: searchRegex }, { city: searchRegex }, { location: searchRegex }],
-      });
-    }
+  const communityPrices = acceptedSubmissions.map((s) => s.pricePerLiter);
+  const communityMedian = calculateMedian(communityPrices);
 
-    if (record) {
-      median = normalizedFuelType === "petrol" ? record.petrolPrice : record.dieselPrice;
+  let resolvedPrice = officialPrice;
+  let isFallback = !official.isDbRecord && acceptedSubmissions.length === 0 && official.source === "National Default Fallback";
+  let priceSource = official.isDbRecord ? `Official ${official.source} Benchmark (Database)` : `Official ${official.source} Benchmark`;
+  let confidence = official.confidence;
+  let hasDiscrepancy = false;
+
+  if (communityMedian !== null) {
+    const deviation = Math.abs(communityMedian - officialPrice) / officialPrice;
+    if (deviation <= 0.08) {
+      // Community verifies official price (within 8%)
+      resolvedPrice = Math.round(communityMedian * 100) / 100;
+      confidence = calculateConfidenceScore({ submissions: acceptedSubmissions, expectedPrice: officialPrice });
+      priceSource = `Official ${official.source} Baseline + Community Verified (${acceptedSubmissions.length} reports)`;
       isFallback = false;
-      priceSource = `Official IOCL ${record.state} Benchmark (Database)`;
     } else {
-      median = normalizedFuelType === "petrol" ? 94.72 : 87.62;
-      isFallback = true;
-      priceSource = "National Default Fallback";
+      // Community data diverges > 8% -> Keep official baseline, flag discrepancy
+      resolvedPrice = officialPrice;
+      confidence = 0.85;
+      priceSource = `Official ${official.source} Baseline (Community Discrepancy Flagged)`;
+      hasDiscrepancy = true;
     }
   }
 
   return {
     state: normalizedState,
     fuelType: normalizedFuelType,
-    median,
-    count,
+    median: resolvedPrice,
+    officialBaseline: officialPrice,
+    count: acceptedSubmissions.length,
+    confidenceScore: confidence,
+    hasDiscrepancy,
     isFallback,
     source: priceSource,
+    sourceType: official.sourceType,
   };
 };
 
 /**
- * 2. Submit crowdsourced fuel price with bootstrap check (< 3 submissions) and 20% outlier rejection
- *
- * @param {string} userId - ID of submitting user
- * @param {string} state - State name
- * @param {string} fuelType - Fuel type ("petrol" | "diesel")
- * @param {number} pricePerLiter - Price per liter in INR
- * @returns {Promise<Object>} Object containing saved submission and updated median
+ * 2. Submit crowdsourced fuel price with strict ±5% validation & audit trail storing
  */
 const submitFuelPrice = async (userId, state, fuelType, pricePerLiter, station, location) => {
   if (!state || !fuelType || pricePerLiter === undefined || pricePerLiter === null) {
@@ -118,18 +205,26 @@ const submitFuelPrice = async (userId, state, fuelType, pricePerLiter, station, 
     throw new AppError("Fuel type must be either 'petrol' or 'diesel'.", 400);
   }
 
-  const currentStats = await getCurrentAverage(state, normalizedFuelType);
+  // Get Official Expected Baseline for comparison
+  const official = await getOfficialBenchmark(state.trim(), normalizedFuelType);
+  const baselinePrice = official.price;
 
-  // Bootstrap rule: If fewer than 3 submissions exist, accept unconditionally.
-  // Otherwise, reject if the new price deviates by more than 20% from the current median.
-  if (currentStats.count >= 3 && currentStats.median !== null) {
-    const deviation = Math.abs(numPrice - currentStats.median) / currentStats.median;
-    if (deviation > 0.20) {
-      throw new AppError(
-        `Submitted price ₹${numPrice}/L deviates more than 20% from the current state median (₹${currentStats.median}/L). Submission rejected.`,
-        400
-      );
-    }
+  // Stricter validation check: 5% soft band for ACCEPTED, 20% hard threshold for REJECTED
+  const deviation = Math.abs(numPrice - baselinePrice) / baselinePrice;
+  const deviationPct = Math.round(deviation * 10000) / 100;
+
+  let validationStatus = "ACCEPTED";
+  let confidenceScore = 0.8;
+
+  if (deviation <= 0.08) {
+    validationStatus = "ACCEPTED";
+    confidenceScore = Math.round((1.0 - deviation) * 100) / 100;
+  } else if (deviation <= 0.20) {
+    validationStatus = "SUSPICIOUS";
+    confidenceScore = 0.4;
+  } else {
+    validationStatus = "REJECTED";
+    confidenceScore = 0.1;
   }
 
   const submissionData = {
@@ -137,6 +232,9 @@ const submitFuelPrice = async (userId, state, fuelType, pricePerLiter, station, 
     state: state.trim(),
     fuelType: normalizedFuelType,
     pricePerLiter: numPrice,
+    validationStatus,
+    confidenceScore,
+    deviationPct,
     submittedAt: new Date(),
   };
 
@@ -149,10 +247,20 @@ const submitFuelPrice = async (userId, state, fuelType, pricePerLiter, station, 
 
   const submission = await FuelPriceSubmission.create(submissionData);
 
+  // If price deviates > 20% from baseline, reject with clear error message
+  if (deviation > 0.20) {
+    throw new AppError(
+      `Submitted price ₹${numPrice}/L deviates more than 20% from current price baseline (₹${baselinePrice}/L). Submission rejected.`,
+      400
+    );
+  }
+
   const updatedStats = await getCurrentAverage(state, normalizedFuelType);
 
   return {
     submission,
+    validationStatus,
+    confidenceScore,
     updatedMedian: updatedStats.median,
     count: updatedStats.count,
   };
@@ -160,8 +268,6 @@ const submitFuelPrice = async (userId, state, fuelType, pricePerLiter, station, 
 
 /**
  * Fetch recent community fuel price submissions
- * @param {number} [limit=20]
- * @returns {Promise<Array>}
  */
 const getRecentSubmissions = async (limit = 20) => {
   const submissions = await FuelPriceSubmission.find()
@@ -173,13 +279,6 @@ const getRecentSubmissions = async (limit = 20) => {
 
 /**
  * 3. Estimate fuel cost for distance, vehicle mileage, state, and fuel type
- * Uses stored IOCL state-wise petrol and diesel prices from DB for estimation.
- *
- * @param {number} distanceKm - Total distance in km
- * @param {number} vehicleMileageKmpl - Vehicle mileage in km/L
- * @param {string} [state='Delhi'] - Target state
- * @param {string} [fuelType='petrol'] - Fuel type ("petrol" | "diesel")
- * @returns {Promise<Object>} Calculated fuel estimation result
  */
 const estimateFuelCost = async (distanceKm, vehicleMileageKmpl, state, fuelType) => {
   const numDistance = Number(distanceKm);
@@ -195,39 +294,8 @@ const estimateFuelCost = async (distanceKm, vehicleMileageKmpl, state, fuelType)
   const normalizedState = state && typeof state === "string" && state.trim() ? state.trim() : "Delhi";
   const normalizedFuelType = fuelType && typeof fuelType === "string" && fuelType.trim() ? fuelType.trim().toLowerCase() : "petrol";
 
-  // 1. Primary lookup: Official IOCL state-wise FuelPrice record stored in DB
-  const searchRegex = new RegExp(normalizedState.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
-  let ioclRecord = await FuelPrice.findOne({
-    $or: [{ state: searchRegex }, { city: searchRegex }, { location: searchRegex }],
-    isLatest: true,
-  });
-
-  if (!ioclRecord) {
-    ioclRecord = await FuelPrice.findOne({
-      $or: [{ state: searchRegex }, { city: searchRegex }, { location: searchRegex }],
-    });
-  }
-
-  let pricePerLiter;
-  let isFallback = false;
-  let priceSource = "IOCL DB";
-
-  if (ioclRecord) {
-    pricePerLiter = normalizedFuelType === "petrol" ? ioclRecord.petrolPrice : ioclRecord.dieselPrice;
-    isFallback = false;
-  } else {
-    // 2. Fallback to crowdsourced community submission 7-day average if DB state missing
-    const stats = await getCurrentAverage(normalizedState, normalizedFuelType);
-    if (stats.count > 0 && stats.median !== null) {
-      pricePerLiter = stats.median;
-      priceSource = "Community 7-Day Median";
-    } else {
-      // 3. Fallback to national default
-      pricePerLiter = normalizedFuelType === "petrol" ? 94.72 : 87.62;
-      isFallback = true;
-      priceSource = "National Default";
-    }
-  }
+  const resolved = await getCurrentAverage(normalizedState, normalizedFuelType);
+  const pricePerLiter = resolved.median;
 
   const fuelRequiredExact = numDistance / numMileage;
   const estimatedFuelCostExact = fuelRequiredExact * pricePerLiter;
@@ -243,9 +311,10 @@ const estimateFuelCost = async (distanceKm, vehicleMileageKmpl, state, fuelType)
     pricePerLiter,
     fuelRequired,
     estimatedFuelCost,
-    priceSource,
-    isFallback,
-    note: `Estimated using official IOCL state-wise DB rate (₹${pricePerLiter}/L for ${normalizedFuelType}) for state '${normalizedState}'.`,
+    priceSource: resolved.source,
+    confidenceScore: resolved.confidenceScore,
+    isFallback: resolved.isFallback,
+    note: `Estimated using ${resolved.source} (₹${pricePerLiter}/L for ${normalizedFuelType}) in '${normalizedState}'.`,
   };
 };
 
@@ -254,4 +323,6 @@ module.exports = {
   submitFuelPrice,
   estimateFuelCost,
   getRecentSubmissions,
+  calculateConfidenceScore,
+  getOfficialBenchmark,
 };

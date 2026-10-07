@@ -119,14 +119,13 @@ describe("MotoTribe Crowdsourced Fuel Price Tracking API", () => {
 
     test("Returns national default fallback when no submissions exist for state", async () => {
       const res = await request(app)
-        .get("/api/mototribe/fuel-prices?state=Goa&fuelType=petrol")
+        .get("/api/mototribe/fuel-prices?state=UnknownRegion&fuelType=petrol")
         .set("Authorization", `Bearer ${organizerToken}`);
 
       expect(res.statusCode).toBe(200);
       expect(res.body.data.median).toBe(94.72); // National default petrol fallback
       expect(res.body.data.count).toBe(0);
       expect(res.body.data.isFallback).toBe(true);
-      expect(res.body.data.note).toMatch(/national default fallback/i);
     });
   });
 

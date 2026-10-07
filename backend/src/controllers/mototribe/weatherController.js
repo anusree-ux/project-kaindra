@@ -36,20 +36,35 @@ const getRideWeather = async (req, res, next) => {
       );
     }
 
-    // 3. Determine coordinates (origin coordinates first, fallback to destination)
-    let latitude = ride.originLat;
-    let longitude = ride.originLng;
-    let locationType = "origin";
+    // 3. Determine coordinates: Check query params for rider's live location, fallback to origin, then destination
+    let latitude;
+    let longitude;
+    let locationType = "rider_location";
 
-    if (
-      latitude === undefined ||
-      longitude === undefined ||
-      latitude === null ||
-      longitude === null
-    ) {
-      latitude = ride.destLat;
-      longitude = ride.destLng;
-      locationType = "destination";
+    if (req.query.lat !== undefined && req.query.lng !== undefined && req.query.lat !== "" && req.query.lng !== "") {
+      const qLat = parseFloat(req.query.lat);
+      const qLng = parseFloat(req.query.lng);
+      if (!isNaN(qLat) && !isNaN(qLng)) {
+        latitude = qLat;
+        longitude = qLng;
+      }
+    }
+
+    if (latitude === undefined || longitude === undefined) {
+      latitude = ride.originLat;
+      longitude = ride.originLng;
+      locationType = "origin";
+
+      if (
+        latitude === undefined ||
+        longitude === undefined ||
+        latitude === null ||
+        longitude === null
+      ) {
+        latitude = ride.destLat;
+        longitude = ride.destLng;
+        locationType = "destination";
+      }
     }
 
     if (
