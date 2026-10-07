@@ -1,4 +1,4 @@
-﻿const express = require("express");
+const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const connectDB = require("./config/database");
@@ -30,10 +30,12 @@ const academyRoutes = require("./routes/modasphere/academyRoutes");
 const influenceRoutes = require("./routes/modasphere/modainfluence/influenceRoutes");
 const productRoutes = require("./routes/modasphere/productRoutes");
 const discountCodeRoutes = require("./routes/modasphere/discountCodeRoutes");
+const shipmentRoutes = require("./routes/modasphere/shipmentRoutes");
 const cartRoutes = require("./routes/modasphere/cartRoutes");
 const modasphereOrderRoutes = require("./routes/modasphere/orderRoutes");
 const wishlistRoutes = require("./routes/modasphere/wishlistRoutes");
 const reviewRoutes = require("./routes/modasphere/reviewRoutes");
+const insightsRoutes = require("./routes/modasphere/insightsRoutes");
 const dropRoutes = require("./routes/modasphere/dropRoutes");
 const errorHandler = require("./middleware/errorHandler");
 
@@ -108,6 +110,9 @@ app.use("/api/v1/modasphere/influence", influenceRoutes);
 app.use("/api/modasphere/products", productRoutes);
 app.use("/api/v1/modasphere/products", productRoutes);
 
+app.use("/api/modasphere/shipments", shipmentRoutes);
+app.use("/api/v1/modasphere/shipments", shipmentRoutes);
+
 app.use("/api/modasphere/discount-codes", discountCodeRoutes);
 app.use("/api/v1/modasphere/discount-codes", discountCodeRoutes);
 
@@ -122,6 +127,9 @@ app.use("/api/v1/modasphere/wishlist", wishlistRoutes);
 
 app.use("/api/modasphere/drops", dropRoutes);
 app.use("/api/v1/modasphere/drops", dropRoutes);
+
+app.use("/api/modasphere/insights", insightsRoutes);
+app.use("/api/v1/modasphere/insights", insightsRoutes);
 
 app.use("/api/modasphere", reviewRoutes);
 app.use("/api/v1/modasphere", reviewRoutes);

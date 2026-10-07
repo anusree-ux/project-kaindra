@@ -1,4 +1,5 @@
 const Order = require("../../models/modasphere/Order");
+const Shipment = require("../../models/modasphere/Shipment");
 const Cart = require("../../models/modasphere/Cart");
 const Product = require("../../models/modasphere/Product");
 const Drop = require("../../models/modasphere/Drop");
