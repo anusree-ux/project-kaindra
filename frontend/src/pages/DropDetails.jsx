@@ -1,6 +1,6 @@
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, Clock, Package, ShoppingBag } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./DropDetails.css";
 
 const drops = [
@@ -49,15 +49,148 @@ const drops = [
 ];
 
 function DropDetails() {
-  const { dropId } = useParams();
+ const { dropId } = useParams();
 
-  const drop = drops.find(
-    (item) => String(item.id) === String(dropId)
-  );
+  const [apiDrop, setApiDrop] = useState(null);
+  const [loadingDrop, setLoadingDrop] = useState(true);
 
   const [quantity, setQuantity] = useState(1);
   const [preOrdered, setPreOrdered] = useState(false);
   const [preOrderNumber, setPreOrderNumber] = useState("");
+
+  const [waitlistJoined, setWaitlistJoined] = useState(false);
+  const [waitlistPosition, setWaitlistPosition] = useState(null);
+  const [joiningWaitlist, setJoiningWaitlist] = useState(false);
+
+  const placeholderDrop = drops.find(
+    (item) => String(item.id) === String(dropId)
+  );
+
+  const drop = apiDrop || placeholderDrop;
+
+  const isRealDrop = Boolean(apiDrop);
+
+  useEffect(() => {
+    const fetchDrop = async () => {
+      try {
+        setLoadingDrop(true);
+
+        const [upcomingResponse, liveResponse] =
+          await Promise.all([
+            fetch("/api/modasphere/drops/products/upcoming"),
+            fetch("/api/modasphere/drops/products/live"),
+          ]);
+
+        const upcomingResult = await upcomingResponse.json();
+        const liveResult = await liveResponse.json();
+
+        if (
+          !upcomingResponse.ok ||
+          upcomingResult.status !== "success"
+        ) {
+          throw new Error(
+            upcomingResult.message ||
+              "Failed to fetch upcoming drops"
+          );
+        }
+
+        if (
+          !liveResponse.ok ||
+          liveResult.status !== "success"
+        ) {
+          throw new Error(
+            liveResult.message ||
+              "Failed to fetch live drops"
+          );
+        }
+
+        const upcoming =
+          upcomingResult.data?.products || [];
+
+        const live =
+          liveResult.data?.products || [];
+
+        const products = [...upcoming, ...live];
+
+        const matchedProduct = products.find(
+          (product) =>
+            String(product._id) === String(dropId)
+        );
+
+        setApiDrop(matchedProduct || null);
+      } catch (error) {
+        console.error(
+          "Unable to load ModaDrop details:",
+          error
+        );
+
+        setApiDrop(null);
+      } finally {
+        setLoadingDrop(false);
+      }
+    };
+
+    fetchDrop();
+  }, [dropId]);
+
+  useEffect(() => {
+    if (!apiDrop || !apiDrop.isDrop || apiDrop.dropStock > 0) {
+      return;
+    }
+
+    const accessToken = localStorage.getItem("token");
+
+    if (!accessToken) {
+      return;
+    }
+
+    const fetchWaitlistPosition = async () => {
+      try {
+        const response = await fetch(
+          `/api/modasphere/drops/products/${apiDrop._id}/waitlist/position`,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
+        );
+
+        const result = await response.json();
+
+        if (
+          response.ok &&
+          result.status === "success"
+        ) {
+          setWaitlistJoined(true);
+          setWaitlistPosition(
+            result.data?.position ?? null
+          );
+        }
+      } catch (error) {
+        console.error(
+          "Unable to check ModaDrop waitlist position:",
+          error
+        );
+      }
+    };
+
+    fetchWaitlistPosition();
+  }, [apiDrop]);
+
+
+  if (loadingDrop) {
+    return (
+      <main className="drop-details-page">
+        <div className="drop-not-found">
+          <h1>Loading Drop...</h1>
+          <p>
+            Please wait while we load the drop details.
+          </p>
+        </div>
+      </main>
+    );
+  }
+
   if (!drop) {
     return (
       <main className="drop-details-page">
@@ -80,8 +213,31 @@ function DropDetails() {
     );
   }
 
+  const isUpcoming =
+  isRealDrop &&
+  drop.dropReleaseAt &&
+  new Date(drop.dropReleaseAt) > new Date();
+
+  const isSoldOut =
+    isRealDrop &&
+    drop.dropStock <= 0;
+
+  const dropStatus = isRealDrop
+    ? isUpcoming
+      ? "Coming Soon"
+      : isSoldOut
+      ? "Sold Out"
+      : "Pre-order Open"
+    : drop?.status;
+
   const increaseQuantity = () => {
-    setQuantity((current) => current + 1);
+    setQuantity((current) => {
+      if (isRealDrop) {
+        return Math.min(current + 1, drop.dropStock);
+      }
+
+      return current + 1;
+    });
   };
 
   const decreaseQuantity = () => {
@@ -90,41 +246,145 @@ function DropDetails() {
     );
   };
 
-  const handlePreOrder = () => {
-  if (drop.status !== "Pre-order Open") {
-    return;
-  }
+  const handlePreOrder = async () => {
+    if (isRealDrop) {
+      try {
+        const accessToken = localStorage.getItem("token");
 
-  const existingOrders = JSON.parse(
-    localStorage.getItem("modadropOrders") || "[]"
-  );
+        if (!accessToken) {
+          alert("Please log in to add this drop to your cart.");
+          return;
+        }
 
-  const orderNumber = `DROP-${1001 + existingOrders.length}`;
+        const response = await fetch("/api/modasphere/cart/items", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({
+            productId: drop._id,
+            quantity,
+          }),
+        });
 
-  const newOrder = {
-    orderNumber,
-    dropId: drop.id,
-    dropName: drop.name,
-    category: drop.category,
-    description: drop.description,
-    image: drop.image,
-    price: drop.price,
-    quantity,
-    total: drop.price * quantity,
-    status: "Pre-order Placed",
+        const result = await response.json();
+
+        if (!response.ok || result.status !== "success") {
+          throw new Error(
+            result.message || "Failed to add the drop to your cart."
+          );
+        }
+
+        alert("Drop added to your cart.");
+      } catch (error) {
+        console.error("Unable to add ModaDrop to cart:", error);
+        alert(error.message || "Failed to add the drop to your cart.");
+      }
+
+      return;
+    }
+
+    if (dropStatus !== "Pre-order Open") {
+      return;
+    }
+
+    const existingOrders = JSON.parse(
+      localStorage.getItem("modadropOrders") || "[]"
+    );
+
+    const orderNumber = `DROP-${1001 + existingOrders.length}`;
+
+    const newOrder = {
+      orderNumber,
+      dropId: drop.id,
+      dropName: drop.name,
+      category: drop.category,
+      description: drop.description,
+      image: drop.image,
+      price: drop.price,
+      quantity,
+      total: drop.price * quantity,
+      status: "Pre-order Placed",
+    };
+
+    localStorage.setItem(
+      "modadropOrders",
+      JSON.stringify([
+        ...existingOrders,
+        newOrder,
+      ])
+    );
+
+    setPreOrderNumber(orderNumber);
+    setPreOrdered(true);
   };
+  const handleJoinWaitlist = async () => {
+    if (!isRealDrop || !isSoldOut) {
+      return;
+    }
 
-  localStorage.setItem(
-    "modadropOrders",
-    JSON.stringify([
-      ...existingOrders,
-      newOrder,
-    ])
-  );
+    try {
+      const accessToken = localStorage.getItem("token");
 
-  setPreOrderNumber(orderNumber);
-  setPreOrdered(true);
-};
+      if (!accessToken) {
+        alert("Please log in to join the waitlist.");
+        return;
+      }
+
+      setJoiningWaitlist(true);
+
+      const response = await fetch(
+        `/api/modasphere/drops/products/${drop._id}/waitlist`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || result.status !== "success") {
+        throw new Error(
+          result.message || "Failed to join the waitlist."
+        );
+      }
+
+      setWaitlistJoined(true);
+
+      // Fetch the user's position after successfully joining.
+      const positionResponse = await fetch(
+        `/api/modasphere/drops/products/${drop._id}/waitlist/position`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      const positionResult = await positionResponse.json();
+
+      if (
+        positionResponse.ok &&
+        positionResult.status === "success"
+      ) {
+        setWaitlistPosition(positionResult.data?.position ?? null);
+      }
+    } catch (error) {
+      console.error(
+        "Unable to join ModaDrop waitlist:",
+        error
+      );
+
+      alert(
+        error.message || "Failed to join the waitlist."
+      );
+    } finally {
+      setJoiningWaitlist(false);
+    }
+  };
 
   if (preOrdered) {
     return (
@@ -199,18 +459,18 @@ function DropDetails() {
 
           <div className="drop-product-image">
             <img
-              src={drop.image}
+              src={drop.images?.[0] || drop.image}
               alt={drop.name}
             />
 
             <span
               className={`drop-product-status ${
-                drop.status === "Pre-order Open"
+                dropStatus === "Pre-order Open"
                   ? "open"
                   : ""
               }`}
             >
-              {drop.status}
+              {dropStatus}
             </span>
           </div>
 
@@ -223,7 +483,7 @@ function DropDetails() {
             <h1>{drop.name}</h1>
 
             <p className="drop-description">
-              {drop.details}
+              {drop.details || drop.description}
             </p>
 
             <div className="drop-price">
@@ -237,7 +497,18 @@ function DropDetails() {
                 <span>DROP AVAILABILITY</span>
 
                 <strong>
-                  {drop.available}
+                  {isRealDrop
+                    ? isUpcoming
+                      ? `Releases ${new Date(
+                          drop.dropReleaseAt
+                        ).toLocaleString("en-IN", {
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                        })}`
+                      : isSoldOut
+                      ? "Currently sold out"
+                      : `${drop.dropStock} available`
+                    : drop.available}
                 </strong>
               </div>
             </div>
@@ -260,7 +531,7 @@ function DropDetails() {
               </div>
             </div>
 
-            {drop.status === "Pre-order Open" ? (
+            {dropStatus === "Pre-order Open" ? (
               <>
                 <div className="drop-quantity">
                   <span>Quantity</span>
@@ -278,6 +549,10 @@ function DropDetails() {
                     <button
                       type="button"
                       onClick={increaseQuantity}
+                      disabled={
+                        isRealDrop &&
+                        quantity >= drop.dropStock
+                      }
                     >
                       +
                     </button>
@@ -289,13 +564,55 @@ function DropDetails() {
                   className="drop-preorder-button"
                   onClick={handlePreOrder}
                 >
-                  Pre-order Now
+                  {isRealDrop
+                    ? "Add to Cart"
+                    : "Pre-order Now"}
+
                   <ArrowLeft
                     size={18}
                     className="arrow-right"
                   />
                 </button>
               </>
+            ) : dropStatus === "Sold Out" && isRealDrop ? (
+              waitlistJoined ? (
+                <div className="drop-coming-soon">
+                  <Package size={19} />
+
+                  <div>
+                    <strong>You're on the waitlist</strong>
+
+                    {waitlistPosition !== null && (
+                      <span>
+                        Your position: #{waitlistPosition}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <div className="drop-coming-soon">
+                    <Package size={19} />
+                    This drop is currently sold out.
+                  </div>
+
+                  <button
+                    type="button"
+                    className="drop-preorder-button"
+                    onClick={handleJoinWaitlist}
+                    disabled={joiningWaitlist}
+                  >
+                    {joiningWaitlist
+                      ? "Joining Waitlist..."
+                      : "Join Waitlist"}
+
+                    <ArrowLeft
+                      size={18}
+                      className="arrow-right"
+                    />
+                  </button>
+                </div>
+              )
             ) : (
               <div className="drop-coming-soon">
                 <Clock size={19} />

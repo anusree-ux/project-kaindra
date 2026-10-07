@@ -159,6 +159,10 @@ const notifyNextProductDropWaitlistUser = async (productId) => {
       };
     }
 
+    await ProductDropWaitlist.deleteOne({
+      _id: waitlistEntry._id,
+    });
+
     console.log(
       `[ModaDrop Waitlist] Notified ${user.email} for product ${product.name}.`
     );
