@@ -7,7 +7,7 @@ services:
       - "5000"
 
     env_file:
-      - ../.env.production
+      - ./.env
 
     restart: unless-stopped
 
