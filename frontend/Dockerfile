@@ -13,6 +13,8 @@ CMD ["npm", "run", "dev", "--", "--host"]
 
 # ---- Build stage ----
 FROM base AS build
+ARG VITE_GOOGLE_MAPS_API_KEY
+ENV VITE_GOOGLE_MAPS_API_KEY=$VITE_GOOGLE_MAPS_API_KEY
 RUN npm ci
 COPY . .
 RUN npm run build
