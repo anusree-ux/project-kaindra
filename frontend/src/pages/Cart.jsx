@@ -15,7 +15,7 @@ function Cart() {
         const token = localStorage.getItem("token");
 
         const response = await fetch(
-          "http://localhost:5000/api/modasphere/cart",
+          "/api/modasphere/cart",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -66,7 +66,7 @@ function Cart() {
       const token = localStorage.getItem("token");
 
       const response = await fetch(
-        `http://localhost:5000/api/modasphere/cart/items/${productId}`,
+        `/api/modasphere/cart/items/${productId}`,
         {
           method: "PATCH",
           headers: {
@@ -113,7 +113,7 @@ function Cart() {
       const token = localStorage.getItem("token");
 
       const response = await fetch(
-        `http://localhost:5000/api/modasphere/cart/items/${productId}`,
+        `/api/modasphere/cart/items/${productId}`,
         {
           method: "DELETE",
           headers: {

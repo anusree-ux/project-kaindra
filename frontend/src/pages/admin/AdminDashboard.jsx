@@ -17,8 +17,7 @@ import {
 
 import "./AdminDashboard.css";
 
-const API_BASE = (import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "http://localhost:5000").replace(/\/api\/?$/, "");
-
+const API_BASE = "";
 function AdminDashboard() {
   const navigate = useNavigate();
 

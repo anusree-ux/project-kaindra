@@ -27,7 +27,7 @@ function SafetyEmergency() {
   // Fetch active ride & SOS history
   const fetchRideAndSosData = useCallback(async () => {
     try {
-      const response = await apiClient.get("/mototribe/rides");
+      const response = await apiClient.get("/api/mototribe/rides");
       const fetchedRides = response.data.data?.rides || [];
 
       if (fetchedRides.length > 0) {
@@ -45,7 +45,7 @@ function SafetyEmergency() {
         setActiveRide(selected);
 
         if (selected) {
-          const sosRes = await apiClient.get(`/mototribe/rides/${selected._id}/sos`);
+          const sosRes = await apiClient.get(`/api/mototribe/rides/${selected._id}/sos`);
           setSosAlerts(sosRes.data.data?.alerts || []);
         }
       }
@@ -99,7 +99,7 @@ function SafetyEmergency() {
 
     const sendSosRequest = async (lat, lng) => {
       try {
-        const response = await apiClient.post(`/mototribe/rides/${activeRide._id}/sos`, {
+        const response = await apiClient.post(`/api/mototribe/rides/${activeRide._id}/sos`, {
           latitude: lat,
           longitude: lng,
         });
@@ -137,7 +137,7 @@ function SafetyEmergency() {
   const handleResolveSos = async (alertId) => {
     if (!activeRide) return;
     try {
-      await apiClient.patch(`/mototribe/rides/${activeRide._id}/sos/${alertId}/resolve`);
+      await apiClient.patch(`/api/mototribe/rides/${activeRide._id}/sos/${alertId}/resolve`);
       fetchRideAndSosData();
     } catch (err) {
       alert(err.response?.data?.message || "Failed to resolve alert");
@@ -453,4 +453,4 @@ function SafetyEmergency() {
   );
 }
 
-export default SafetyEmergency;
+export default SafetyEmergency;

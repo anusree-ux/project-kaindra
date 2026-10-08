@@ -27,6 +27,28 @@ const createTale = async (req, res) => {
   }
 };
 
+// Get approved tales for public display
+const getApprovedTales = async (req, res) => {
+  try {
+    const tales = await ModaTales.find({ status: "Approved" })
+      .sort({ submittedAt: -1 })
+      .select("name storyType message submittedAt");
+
+    res.status(200).json({
+      success: true,
+      count: tales.length,
+      tales,
+    });
+  } catch (error) {
+    console.error("Get approved tales error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch approved tales",
+    });
+  }
+};
+
 // Get all tale submissions for admin
 const getAdminTales = async (req, res) => {
   try {
@@ -136,6 +158,7 @@ const deleteTale = async (req, res) => {
 
 module.exports = {
   createTale,
+  getApprovedTales,
   getAdminTales,
   getAdminTaleById,
   updateTaleStatus,

@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, Clock, Package, ShoppingBag } from "lucide-react";
 import "./ModaDrop.css";
@@ -36,6 +37,90 @@ const drops = [
 ];
 
 function ModaDrop() {
+  const [apiDrops, setApiDrops] = useState([]);
+  const [loadingDrops, setLoadingDrops] = useState(false);
+
+  useEffect(() => {
+    const fetchDrops = async () => {
+      try {
+        setLoadingDrops(true);
+
+        const [upcomingResponse, liveResponse] =
+          await Promise.all([
+            fetch("/api/modasphere/drops/products/upcoming"),
+            fetch("/api/modasphere/drops/products/live"),
+          ]);
+
+        const upcomingResult = await upcomingResponse.json();
+        const liveResult = await liveResponse.json();
+
+        if (
+          !upcomingResponse.ok ||
+          upcomingResult.status !== "success"
+        ) {
+          throw new Error(
+            upcomingResult.message ||
+              "Failed to fetch upcoming drops"
+          );
+        }
+
+        if (
+          !liveResponse.ok ||
+          liveResult.status !== "success"
+        ) {
+          throw new Error(
+            liveResult.message ||
+              "Failed to fetch live drops"
+          );
+        }
+
+        const upcoming =
+          upcomingResult.data?.products || [];
+
+        const live =
+          liveResult.data?.products || [];
+
+        setApiDrops([...upcoming, ...live]);
+      } catch (error) {
+        console.error(
+          "Unable to load ModaDrop products:",
+          error
+        );
+
+        setApiDrops([]);
+      } finally {
+        setLoadingDrops(false);
+      }
+    };
+
+    fetchDrops();
+  }, []);
+  const displayDrops =
+    !loadingDrops && apiDrops.length > 0
+      ? apiDrops
+      : drops;
+
+    const getDropStatus = (drop) => {
+    // Placeholder drop
+    if (!drop._id) {
+      return drop.status;
+    }
+
+    // Real ModaDrop product
+    if (drop.dropStock <= 0) {
+      return "Sold Out";
+    }
+
+    if (
+      drop.dropReleaseAt &&
+      new Date(drop.dropReleaseAt) > new Date()
+    ) {
+      return "Coming Soon";
+    }
+
+    return "Pre-order Open";
+  };
+      
   return (
     <main className="modadrop-page">
 
@@ -155,25 +240,28 @@ function ModaDrop() {
         </div>
 
         <div className="modadrop-grid">
-          {drops.map((drop) => (
+          {displayDrops.map((drop) => (
             <article
               className="modadrop-card"
-              key={drop.id}
+              key={drop._id || drop.id}
             >
               <div className="modadrop-image-wrapper">
                 <img
-                  src={drop.image}
+                  src={
+                    drop.images?.[0] ||
+                    drop.image
+                  }
                   alt={drop.name}
                 />
 
                 <span
                   className={`modadrop-status ${
-                    drop.status === "Pre-order Open"
+                    getDropStatus(drop) === "Pre-order Open"
                       ? "open"
                       : ""
                   }`}
                 >
-                  {drop.status}
+                  {getDropStatus(drop)}
                 </span>
               </div>
 
@@ -185,9 +273,9 @@ function ModaDrop() {
                 <span>{drop.description}</span>
 
                 <Link
-  to={`/businesses/modadrop/drop/${drop.id}`}
-  className="modadrop-view-button"
->
+                  to={`/businesses/modadrop/drop/${drop._id || drop.id}`}
+                  className="modadrop-view-button"
+                >
   View Drop
   <ArrowRight size={17} />
 </Link>

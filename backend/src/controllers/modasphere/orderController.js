@@ -9,6 +9,9 @@ const {
   verifyPaymentSignature,
   initiateRefund,
 } = require("../../services/modasphere/paymentService");
+const {
+  notifyNextProductDropWaitlistUser,
+} = require("../../services/modasphere/dropService");
 const AppError = require("../../utils/AppError");
 
 /**
@@ -100,13 +103,59 @@ const checkout = async (req, res, next) => {
         );
       }
 
-      if (item.quantity > product.stock) {
-        return next(
-          new AppError(
-            `Insufficient stock for "${product.name}". Available stock: ${product.stock}.`,
-            400
-          )
-        );
+      // ModaDrop validation
+      if (product.isDrop) {
+        if (!product.dropReleaseAt) {
+          return next(
+            new AppError(
+              `Drop "${product.name}" does not have a release date configured.`,
+              400
+            )
+          );
+        }
+
+        if (new Date() < new Date(product.dropReleaseAt)) {
+          return next(
+            new AppError(
+              `Drop "${product.name}" has not been released yet. It will be available on ${new Date(
+                product.dropReleaseAt
+              ).toISOString()}.`,
+              400
+            )
+          );
+        }
+
+        if (
+          product.dropStock === null ||
+          product.dropStock === undefined ||
+          product.dropStock <= 0
+        ) {
+          return next(
+            new AppError(
+              `Drop "${product.name}" is sold out.`,
+              400
+            )
+          );
+        }
+
+        if (item.quantity > product.dropStock) {
+          return next(
+            new AppError(
+              `Insufficient drop stock for "${product.name}". Available drop stock: ${product.dropStock}.`,
+              400
+            )
+          );
+        }
+      } else {
+        // Normal product validation
+        if (item.quantity > product.stock) {
+          return next(
+            new AppError(
+              `Insufficient stock for "${product.name}". Available stock: ${product.stock}.`,
+              400
+            )
+          );
+        }
       }
 
       const itemPrice = Number(product.price);
@@ -300,18 +349,94 @@ const verifyPayment = async (req, res, next) => {
       );
     }
 
-    // Mark paid
+    // Reserve/decrement inventory before marking the order as paid.
+    const updatedStockItems = [];
+
+    try {
+      for (const item of order.items) {
+        const product = await Product.findById(item.productId);
+
+        if (!product) {
+          throw new AppError(
+            `Product "${item.name}" no longer exists.`,
+            400
+          );
+        }
+
+        if (product.isDrop) {
+          const updatedProduct = await Product.findOneAndUpdate(
+            {
+              _id: item.productId,
+              isDrop: true,
+              dropStock: { $gte: item.quantity },
+            },
+            {
+              $inc: { dropStock: -item.quantity },
+            },
+            { new: true }
+          );
+
+          if (!updatedProduct) {
+            throw new AppError(
+              `Insufficient drop stock for "${item.name}". The drop may have sold out.`,
+              400
+            );
+          }
+
+          updatedStockItems.push({
+            productId: item.productId,
+            quantity: item.quantity,
+            isDrop: true,
+          });
+        } else {
+          const updatedProduct = await Product.findOneAndUpdate(
+            {
+              _id: item.productId,
+              isDrop: false,
+              stock: { $gte: item.quantity },
+            },
+            {
+              $inc: { stock: -item.quantity },
+            },
+            { new: true }
+          );
+
+          if (!updatedProduct) {
+            throw new AppError(
+              `Insufficient stock for "${item.name}". The product may have sold out.`,
+              400
+            );
+          }
+
+          updatedStockItems.push({
+            productId: item.productId,
+            quantity: item.quantity,
+            isDrop: false,
+          });
+        }
+      }
+    } catch (stockError) {
+      // Restore inventory if a later item failed.
+      for (const item of updatedStockItems) {
+        if (item.isDrop) {
+          await Product.findByIdAndUpdate(item.productId, {
+            $inc: { dropStock: item.quantity },
+          });
+        } else {
+          await Product.findByIdAndUpdate(item.productId, {
+            $inc: { stock: item.quantity },
+          });
+        }
+      }
+
+      return next(stockError);
+    }
+
+    // Only mark the order as paid after all inventory was successfully reserved.
     order.status = "paid";
     order.razorpayPaymentId = razorpayPaymentId;
     order.razorpaySignature = razorpaySignature;
     await order.save();
-
-    // Decrement stock for each product
-    for (const item of order.items) {
-      await Product.findByIdAndUpdate(item.productId, {
-        $inc: { stock: -item.quantity },
-      });
-    }
 
     // Clear user's Cart
     const cart = await Cart.findOne({ userId: req.user._id });
@@ -581,12 +706,39 @@ const cancelOrder = async (req, res, next) => {
       );
     }
 
-    // If cancelling a paid order, restore product stock and initiate Razorpay refund
+    // If cancelling a paid order, restore product stock/drop stock
+    // and initiate Razorpay refund.
     if (order.status === "paid") {
       for (const item of order.items) {
-        await Product.findByIdAndUpdate(item.productId, {
-          $inc: { stock: item.quantity },
-        });
+        const product = await Product.findById(item.productId);
+
+        if (!product) {
+          console.warn(
+            `[ModaSphere Cancellation] Product ${item.productId} no longer exists.`
+          );
+          continue;
+        }
+
+        if (product.isDrop) {
+          await Product.findByIdAndUpdate(item.productId, {
+            $inc: { dropStock: item.quantity },
+          });
+
+          // Notify the first person waiting for this drop.
+          const notificationResult =
+            await notifyNextProductDropWaitlistUser(item.productId);
+
+          if (!notificationResult.success) {
+            console.warn(
+              `[ModaDrop Waitlist] Could not notify next user for ${product.name}:`,
+              notificationResult.error
+            );
+          }
+        } else {
+          await Product.findByIdAndUpdate(item.productId, {
+            $inc: { stock: item.quantity },
+          });
+        }
       }
 
       order.status = "cancelled";

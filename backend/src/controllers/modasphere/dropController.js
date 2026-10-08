@@ -1,5 +1,6 @@
 ﻿const Drop = require("../../models/modasphere/Drop");
 const DropWaitlist = require("../../models/modasphere/DropWaitlist");
+const ProductDropWaitlist = require("../../models/modasphere/ProductDropWaitlist");
 const Product = require("../../models/modasphere/Product");
 const { getUserPurchaseCountInDrop } = require("../../services/modasphere/dropService");
 const AppError = require("../../utils/AppError");
@@ -232,6 +233,168 @@ const getUserPurchaseLimit = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc    Get upcoming product drops
+ * @route   GET /api/modasphere/drops/products/upcoming
+ * @access  Public
+ */
+const getUpcomingProductDrops = async (req, res, next) => {
+  try {
+    const now = new Date();
+
+    const products = await Product.find({
+      isDrop: true,
+      dropReleaseAt: { $gt: now },
+      status: "active",
+    }).sort({ dropReleaseAt: 1 });
+
+    res.status(200).json({
+      status: "success",
+      data: { products },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Get live product drops
+ * @route   GET /api/modasphere/drops/products/live
+ * @access  Public
+ */
+const getLiveProductDrops = async (req, res, next) => {
+  try {
+    const now = new Date();
+
+    const products = await Product.find({
+      isDrop: true,
+      dropReleaseAt: { $lte: now },
+      status: "active",
+    }).sort({ dropReleaseAt: 1 });
+
+    res.status(200).json({
+      status: "success",
+      data: { products },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const joinProductDropWaitlist = async (req, res, next) => {
+  try {
+    const { productId } = req.params;
+
+    const product = await Product.findById(productId);
+
+    if (!product) {
+      return next(new AppError("Product not found.", 404));
+    }
+
+    if (!product.isDrop) {
+      return next(
+        new AppError("This product is not a ModaDrop product.", 400)
+      );
+    }
+
+    if (product.status !== "active") {
+      return next(
+        new AppError("This drop is not currently available.", 400)
+      );
+    }
+
+    // A user should join the waitlist only when the drop is sold out.
+    if (product.dropStock > 0) {
+      return next(
+        new AppError(
+          "This drop still has stock available. You can purchase it instead.",
+          400
+        )
+      );
+    }
+
+    const existingEntry = await ProductDropWaitlist.findOne({
+      productId: product._id,
+      userId: req.user._id,
+    });
+
+    if (existingEntry) {
+      return next(
+        new AppError("You are already on the waitlist for this drop.", 400)
+      );
+    }
+
+    const waitlistEntry = await ProductDropWaitlist.create({
+      productId: product._id,
+      userId: req.user._id,
+    });
+
+    res.status(201).json({
+      status: "success",
+      message: "Successfully joined the drop waitlist.",
+      data: {
+        waitlistEntry,
+      },
+    });
+  } catch (error) {
+    // Handle unique index race condition
+    if (error.code === 11000) {
+      return next(
+        new AppError("You are already on the waitlist for this drop.", 400)
+      );
+    }
+
+    next(error);
+  }
+};
+
+const getProductDropWaitlistPosition = async (req, res, next) => {
+  try {
+    const { productId } = req.params;
+
+    const product = await Product.findById(productId);
+
+    if (!product) {
+      return next(new AppError("Product not found.", 404));
+    }
+
+    if (!product.isDrop) {
+      return next(
+        new AppError("This product is not a ModaDrop product.", 400)
+      );
+    }
+
+    const waitlistEntry = await ProductDropWaitlist.findOne({
+      productId: product._id,
+      userId: req.user._id,
+    });
+
+    if (!waitlistEntry) {
+      return next(
+        new AppError("You are not on the waitlist for this drop.", 404)
+      );
+    }
+
+    const position = await ProductDropWaitlist.countDocuments({
+      productId: product._id,
+      joinedAt: {
+        $lte: waitlistEntry.joinedAt,
+      },
+    });
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        productId: product._id,
+        position,
+        joinedAt: waitlistEntry.joinedAt,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createDrop,
   getDrops,
@@ -239,4 +402,9 @@ module.exports = {
   joinWaitlist,
   leaveWaitlist,
   getUserPurchaseLimit,
+
+  getUpcomingProductDrops,
+  getLiveProductDrops,
+  joinProductDropWaitlist,
+  getProductDropWaitlistPosition,
 };
