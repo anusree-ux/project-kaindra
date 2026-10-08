@@ -10,83 +10,154 @@ on:
       - main
 
 jobs:
-  frontend:
-    name: Frontend - Lint, Build
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: frontend
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Build
-        run: npm run build
-
-      - name: Build Docker image (dev target)
-        run: docker build --target dev -t kaindra-frontend:ci-test .
-
   backend:
-    name: Backend - Build
+    name: Backend - Test
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: 24
           cache: npm
           cache-dependency-path: backend/package-lock.json
 
       - name: Install dependencies
+        working-directory: backend
         run: npm ci
 
-      - name: Create temporary environment file
-        run: cp .env.example .env
-
       - name: Run tests
-        run: npm test
+        working-directory: backend
+        run: npm test -- --passWithNoTests
 
-      - name: Build Docker image (dev target)
-        run: docker build --target dev -t kaindra-backend:ci-test .
+  frontend:
+    name: Frontend - Lint and Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Run lint
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
 
   docker:
     name: Docker - Production Images
     runs-on: ubuntu-latest
+
+    env:
+      ECR_REGISTRY: local
+      IMAGE_TAG: ci-test
+
     needs:
       - frontend
       - backend
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Build backend production image
-        run: docker build --target production --tag kaindra-backend:ci ./backend
+        run: |
+          docker build \
+            --target production \
+            --tag local/kaindra-backend:ci-test \
+            ./backend
 
       - name: Build frontend production image
-        run: docker build --target production --tag kaindra-frontend:ci ./frontend
-      
+        run: |
+          docker build \
+            --target production \
+            --build-arg VITE_GOOGLE_MAPS_API_KEY="${{ vars.GOOGLE_MAPS_API_KEY }}" \
+            --tag local/kaindra-frontend:ci-test \
+            ./frontend
+
       - name: Create temporary production environment file
         run: cp .env.example .env.production
 
       - name: Validate production Docker Compose
-        run: docker compose -f docker/docker-compose.prod.yml config
+        run: |
+          docker compose \
+            --env-file .env.production \
+            -f docker/docker-compose.prod.yml \
+            config
+
+      - name: Start production stack
+        run: |
+          docker compose \
+            --env-file .env.production \
+            -f docker/docker-compose.prod.yml \
+            up -d
+
+      - name: Wait for production containers
+        run: |
+          for i in {1..30}; do
+            backend_status=$(docker inspect --format='{{.State.Health.Status}}' kaindra-backend 2>/dev/null || true)
+            frontend_status=$(docker inspect --format='{{.State.Health.Status}}' kaindra-frontend 2>/dev/null || true)
+
+            echo "Backend: $backend_status"
+            echo "Frontend: $frontend_status"
+
+            if [ "$backend_status" = "healthy" ] && [ "$frontend_status" = "healthy" ]; then
+              exit 0
+            fi
+
+            if [ "$backend_status" = "unhealthy" ] || [ "$frontend_status" = "unhealthy" ]; then
+              docker compose \
+                --env-file .env.production \
+                -f docker/docker-compose.prod.yml \
+                logs
+              exit 1
+            fi
+
+            sleep 2
+          done
+
+          docker compose \
+            --env-file .env.production \
+            -f docker/docker-compose.prod.yml \
+            ps
+
+          exit 1
+
+      - name: Smoke test production stack
+        run: |
+          curl --fail --retry 5 --retry-delay 2 http://localhost/
+
+          docker exec kaindra-backend \
+            wget --spider -q http://127.0.0.1:5000/health
+
+      - name: Show production logs on failure
+        if: failure()
+        run: |
+          docker compose \
+            --env-file .env.production \
+            -f docker/docker-compose.prod.yml \
+            logs
+
+      - name: Tear down production stack
+        if: always()
+        run: |
+          docker compose \
+            --env-file .env.production \
+            -f docker/docker-compose.prod.yml \
+            down -v
