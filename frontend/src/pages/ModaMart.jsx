@@ -8,18 +8,22 @@ import {
   Loader2,
 } from "lucide-react";
 import apiClient from "../services/apiClient";
+import { useAuth } from "../context/AuthContext";
+import { useCart } from "../context/CartContext";
 import "./ModaMart.css";
 
 function ModaMart() {
+  const { isAuthenticated, openAuthModal } = useAuth();
+  const { cartCount, addToCart: addToCartContext } = useCart();
+
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [wishlist, setWishlist] = useState([]);
-  const [cart, setCart] = useState(() => {
-    return JSON.parse(localStorage.getItem("modamartCart") || "[]");
-  });
+  const [addingId, setAddingId] = useState(null);
+  const [toastMessage, setToastMessage] = useState("");
 
   const categories = [
     "All",
@@ -134,71 +138,24 @@ function ModaMart() {
   };
 
   const addToCart = async (product) => {
-    try {
-      const productId = product._id || product.id;
+    if (!isAuthenticated) {
+      openAuthModal("login");
+      return;
+    }
 
-      await apiClient.post("/api/modasphere/cart/items", {
-        productId,
-        quantity: 1,
-      });
+    const productId = product._id || product.id;
+    setAddingId(productId);
+    setToastMessage("");
 
-      // Keep the local cart only for the cart-count UI for now.
-      setCart((currentCart) => {
-        const existingProduct = currentCart.find(
-          (item) =>
-            String(item.id || item._id) === String(productId)
-        );
+    const result = await addToCartContext(productId, 1);
+    setAddingId(null);
 
-        const productImage =
-          product.images?.[0]?.url ||
-          (typeof product.images?.[0] === "string"
-            ? product.images[0]
-            : "") ||
-          product.image ||
-          "";
-
-        const brandName =
-          product.sellerId?.name ||
-          product.brand ||
-          "ModaSphere Studio";
-
-        const updatedCart = existingProduct
-          ? currentCart.map((item) =>
-              String(item.id || item._id) === String(productId)
-                ? {
-                    ...item,
-                    quantity: item.quantity + 1,
-                  }
-                : item
-            )
-          : [
-              ...currentCart,
-              {
-                id: productId,
-                _id: productId,
-                name: product.name,
-                price: product.price,
-                category: product.category,
-                brand: brandName,
-                image: productImage,
-                images: product.images,
-                quantity: 1,
-              },
-            ];
-
-        localStorage.setItem(
-          "modamartCart",
-          JSON.stringify(updatedCart)
-        );
-
-        return updatedCart;
-      });
-    } catch (err) {
-      console.error("Failed to add product to cart:", err);
-      alert(
-        err.response?.data?.message ||
-          "Failed to add product to cart."
-      );
+    if (result.success) {
+      setToastMessage(`${product.name} added to cart!`);
+      setTimeout(() => setToastMessage(""), 3000);
+    } else {
+      setToastMessage(result.message || "Failed to add to cart.");
+      setTimeout(() => setToastMessage(""), 4000);
     }
   };
 
@@ -227,6 +184,32 @@ function ModaMart() {
       {/* SHOP HEADER */}
       <section className="modamart-shop">
         <div className="modamart-container">
+          {toastMessage && (
+            <div
+              style={{
+                background: "#111",
+                color: "#fff",
+                padding: "12px 20px",
+                borderRadius: "6px",
+                marginBottom: "20px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                fontSize: "14px",
+                fontWeight: 500,
+                borderLeft: "4px solid #c9964a",
+              }}
+            >
+              <span>{toastMessage}</span>
+              <button
+                onClick={() => setToastMessage("")}
+                style={{ background: "none", border: "none", color: "#888", cursor: "pointer" }}
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
           <div className="modamart-shop-top">
             <div>
               <span className="modamart-label">SHOP MODASPHERE</span>
@@ -246,9 +229,7 @@ function ModaMart() {
 
               <Link to="/businesses/modamart/cart" className="modamart-cart">
                 <ShoppingBag size={19} />
-                <span>
-                  {cart.reduce((total, item) => total + item.quantity, 0)}
-                </span>
+                <span>{cartCount}</span>
               </Link>
 
               <Link
@@ -418,8 +399,11 @@ function ModaMart() {
                           ₹{product.price?.toLocaleString("en-IN")}
                         </strong>
 
-                        <button onClick={() => addToCart(product)}>
-                          Add to Cart
+                        <button
+                          onClick={() => addToCart(product)}
+                          disabled={addingId === productId}
+                        >
+                          {addingId === productId ? "Adding..." : "Add to Cart"}
                         </button>
                       </div>
                     </div>

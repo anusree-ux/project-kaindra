@@ -9,13 +9,20 @@ import {
   Loader2,
 } from "lucide-react";
 import apiClient from "../services/apiClient";
+import { useAuth } from "../context/AuthContext";
+import { useCart } from "../context/CartContext";
 import "./ProductDetails.css";
 
 function ProductDetails() {
   const { productId } = useParams();
+  const { isAuthenticated, openAuthModal } = useAuth();
+  const { addToCart: addToCartContext } = useCart();
+
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [toastMessage, setToastMessage] = useState("");
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [isWishlisted, setIsWishlisted] = useState(false);
@@ -92,22 +99,24 @@ function ProductDetails() {
   // Add product to cart
   const addToCart = async () => {
     if (!product) return;
+    if (!isAuthenticated) {
+      openAuthModal("login");
+      return;
+    }
 
-    try {
-      const productId = product._id || product.id;
+    setSubmitting(true);
+    setToastMessage("");
 
-      await apiClient.post("/api/modasphere/cart/items", {
-        productId,
-        quantity,
-      });
+    const targetId = product._id || product.id;
+    const result = await addToCartContext(targetId, quantity);
+    setSubmitting(false);
 
-      alert(`${product.name} added to cart`);
-    } catch (err) {
-      console.error("Failed to add product to cart:", err);
-      alert(
-        err.response?.data?.message ||
-          "Failed to add product to cart."
-      );
+    if (result.success) {
+      setToastMessage(`${product.name} added to cart!`);
+      setTimeout(() => setToastMessage(""), 3000);
+    } else {
+      setToastMessage(result.message || "Failed to add to cart.");
+      setTimeout(() => setToastMessage(""), 4000);
     }
   };
 
@@ -252,16 +261,37 @@ function ProductDetails() {
               </div>
             </div>
 
+            {toastMessage && (
+              <div
+                style={{
+                  background: "#111",
+                  color: "#fff",
+                  padding: "10px 16px",
+                  borderRadius: "6px",
+                  marginBottom: "16px",
+                  fontSize: "14px",
+                  fontWeight: 500,
+                  borderLeft: "4px solid #c9964a",
+                }}
+              >
+                {toastMessage}
+              </div>
+            )}
+
             {/* ================= ACTIONS ================= */}
             <div className="product-actions">
               <button
                 type="button"
                 className="add-to-cart-button"
                 onClick={addToCart}
-                disabled={product.stock <= 0}
+                disabled={product.stock <= 0 || submitting}
               >
                 <ShoppingBag size={19} />
-                {product.stock > 0 ? "Add to Cart" : "Out of Stock"}
+                {submitting
+                  ? "Adding..."
+                  : product.stock > 0
+                  ? "Add to Cart"
+                  : "Out of Stock"}
               </button>
 
               <button

@@ -1,162 +1,54 @@
-import { useEffect, useState } from "react";
-import { ArrowLeft, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { ArrowLeft, Minus, Plus, ShoppingBag, Trash2, AlertCircle, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useCart } from "../context/CartContext";
 import "./Cart.css";
 
 function Cart() {
-  // Cart state
-  const [cart, setCart] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const {
+    cart,
+    subtotal,
+    loading,
+    error,
+    unavailableItemsRemoved,
+    updateQuantity,
+    removeFromCart,
+    clearCart,
+  } = useCart();
 
-  useEffect(() => {
-    const fetchCart = async () => {
-      try {
-        const token = localStorage.getItem("token");
+  const [confirmClear, setConfirmClear] = useState(false);
+  const [updatingId, setUpdatingId] = useState(null);
 
-        const response = await fetch(
-          "http://localhost:5000/api/modasphere/cart",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.message || "Failed to load cart.");
-        }
-
-        // Backend cart items
-        const backendItems = data.data?.cart?.items || [];
-
-        const formattedItems = backendItems.map((item) => ({
-          _id: item.product._id,
-          id: item.product._id,
-          name: item.product.name,
-          price: item.product.price,
-          quantity: item.quantity,
-          category: item.product.category,
-          brand: item.product.sellerId?.name || "ModaSphere",
-          image: item.product.images?.[0]?.url || "",
-          images: item.product.images || [],
-        }));
-
-        setCart(formattedItems);
-      } catch (err) {
-        console.error("Failed to load cart:", err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCart();
-  }, []);
-
-  const getItemId = (item) => String(item._id || item.id);
-
-  const updateCart = async (productId, newQuantity) => {
-    // Prevent quantity from going below 1
+  const handleUpdateQuantity = async (productId, newQuantity, currentStock) => {
     if (newQuantity < 1) return;
+    if (currentStock !== undefined && newQuantity > currentStock) return;
 
-    try {
-      const token = localStorage.getItem("token");
-
-      const response = await fetch(
-        `http://localhost:5000/api/modasphere/cart/items/${productId}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            quantity: newQuantity,
-          }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to update quantity.");
-      }
-
-      // Backend returns the updated cart
-      const backendItems = data.data?.cart?.items || [];
-
-      const formattedItems = backendItems.map((item) => ({
-        _id: item.product._id,
-        id: item.product._id,
-        name: item.product.name,
-        price: item.product.price,
-        quantity: item.quantity,
-        category: item.product.category,
-        brand: item.product.sellerId?.name || "ModaSphere",
-        image: item.product.images?.[0]?.url || "",
-        images: item.product.images || [],
-      }));
-
-      setCart(formattedItems);
-    } catch (err) {
-      console.error("Failed to update quantity:", err);
-      alert(err.message || "Failed to update quantity.");
-    }
+    setUpdatingId(productId);
+    await updateQuantity(productId, newQuantity);
+    setUpdatingId(null);
   };
 
-  // Remove the item from the backend MongoDB cart
-  const removeItem = async (productId) => {
-    try {
-      const token = localStorage.getItem("token");
-
-      const response = await fetch(
-        `http://localhost:5000/api/modasphere/cart/items/${productId}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to remove item.");
-      }
-
-      // Backend returns the updated cart
-      const backendItems = data.data?.cart?.items || [];
-
-      const formattedItems = backendItems.map((item) => ({
-        _id: item.product._id,
-        id: item.product._id,
-        name: item.product.name,
-        price: item.product.price,
-        quantity: item.quantity,
-        category: item.product.category,
-        brand: item.product.sellerId?.name || "ModaSphere",
-        image: item.product.images?.[0]?.url || "",
-        images: item.product.images || [],
-      }));
-
-      setCart(formattedItems);
-    } catch (err) {
-      console.error("Failed to remove item:", err);
-      alert(err.message || "Failed to remove item.");
-    }
+  const handleRemoveItem = async (productId) => {
+    setUpdatingId(productId);
+    await removeFromCart(productId);
+    setUpdatingId(null);
   };
 
-  const subtotal = cart.reduce(
-    (total, item) => total + (item.price || 0) * (item.quantity || 1),
-    0
-  );
+  const handleClearCart = async () => {
+    await clearCart();
+    setConfirmClear(false);
+  };
 
-  const delivery = 0;
-  const total = subtotal;
+  if (loading && cart.length === 0) {
+    return (
+      <main className="cart-page">
+        <div className="cart-container" style={{ textAlign: "center", padding: "100px 0" }}>
+          <Loader2 size={40} className="animate-spin" style={{ margin: "0 auto 16px", color: "#b89552" }} />
+          <p style={{ color: "#777" }}>Loading your cart...</p>
+        </div>
+      </main>
+    );
+  }
 
   if (cart.length === 0) {
     return (
@@ -165,10 +57,7 @@ function Cart() {
           <ShoppingBag size={48} />
           <h1>Your Cart is Empty</h1>
           <p>Add some products from ModaMart to continue shopping.</p>
-          <Link
-            to="/businesses/modamart/shop"
-            className="continue-shopping"
-          >
+          <Link to="/businesses/modamart/shop" className="continue-shopping">
             <ArrowLeft size={18} />
             Continue Shopping
           </Link>
@@ -180,13 +69,103 @@ function Cart() {
   return (
     <main className="cart-page">
       <div className="cart-container">
-        <Link
-          to="/businesses/modamart/shop"
-          className="cart-back-link"
-        >
-          <ArrowLeft size={18} />
-          Continue Shopping
-        </Link>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+          <Link to="/businesses/modamart/shop" className="cart-back-link">
+            <ArrowLeft size={18} />
+            Continue Shopping
+          </Link>
+
+          {!confirmClear ? (
+            <button
+              type="button"
+              onClick={() => setConfirmClear(true)}
+              style={{
+                background: "transparent",
+                border: "1px solid #fee2e2",
+                color: "#dc2626",
+                padding: "6px 14px",
+                borderRadius: "6px",
+                fontSize: "13px",
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              Clear Cart
+            </button>
+          ) : (
+            <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+              <span style={{ fontSize: "13px", color: "#666" }}>Clear all items?</span>
+              <button
+                type="button"
+                onClick={handleClearCart}
+                style={{
+                  background: "#dc2626",
+                  color: "#fff",
+                  border: "none",
+                  padding: "6px 12px",
+                  borderRadius: "4px",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                Yes, Clear
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmClear(false)}
+                style={{
+                  background: "#f3f4f6",
+                  color: "#374151",
+                  border: "none",
+                  padding: "6px 12px",
+                  borderRadius: "4px",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          )}
+        </div>
+
+        {unavailableItemsRemoved && (
+          <div
+            style={{
+              background: "#fffbe6",
+              border: "1px solid #ffe58f",
+              padding: "14px 18px",
+              borderRadius: "8px",
+              marginBottom: "24px",
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              color: "#8c6b00",
+              fontSize: "14px",
+            }}
+          >
+            <AlertCircle size={20} />
+            <span>Some items in your cart are no longer available and were automatically removed.</span>
+          </div>
+        )}
+
+        {error && (
+          <div
+            style={{
+              background: "#fef2f2",
+              border: "1px solid #fecaca",
+              padding: "14px 18px",
+              borderRadius: "8px",
+              marginBottom: "24px",
+              color: "#dc2626",
+              fontSize: "14px",
+            }}
+          >
+            {error}
+          </div>
+        )}
 
         <div className="cart-heading">
           <div>
@@ -203,21 +182,28 @@ function Cart() {
           {/* Cart Items */}
           <section className="cart-items">
             {cart.map((item) => {
-              const itemId = getItemId(item);
+              const product = item.product || {};
+              const productId = product._id || product.id;
+              const name = product.name || "Product";
+              const price = product.price || 0;
+              const stock = product.stock !== undefined ? product.stock : 999;
+              const category = product.category || "";
+              const brand = product.sellerId?.name || "ModaSphere";
               const imageUrl =
-                item.image ||
-                item.images?.[0]?.url ||
-                (typeof item.images?.[0] === "string"
-                  ? item.images[0]
-                  : "") ||
+                product.images?.[0]?.url ||
+                (typeof product.images?.[0] === "string" ? product.images[0] : "") ||
                 "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&q=80";
 
+              const lineTotal = price * item.quantity;
+              const isAtMaxStock = item.quantity >= stock;
+              const isBusy = updatingId === productId;
+
               return (
-                <article className="cart-item" key={itemId}>
+                <article className="cart-item" key={productId}>
                   <div className="cart-item-image">
                     <img
                       src={imageUrl}
-                      alt={item.name}
+                      alt={name}
                       onError={(e) => {
                         e.currentTarget.src =
                           "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&q=80";
@@ -226,22 +212,27 @@ function Cart() {
                   </div>
 
                   <div className="cart-item-info">
-                    <span style={{ textTransform: "capitalize" }}>{item.category}</span>
+                    <span style={{ textTransform: "capitalize" }}>{category}</span>
 
-                    <h2>{item.name}</h2>
+                    <h2>{name}</h2>
 
-                    <p>by {item.brand || "ModaSphere"}</p>
+                    <p>by {brand}</p>
 
-                    <strong>
-                      ₹{item.price?.toLocaleString("en-IN")}
-                    </strong>
+                    <strong>₹{price.toLocaleString("en-IN")}</strong>
+
+                    {stock <= 5 && (
+                      <p style={{ fontSize: "12px", color: "#d97706", marginTop: "4px" }}>
+                        Only {stock} available in stock
+                      </p>
+                    )}
 
                     <div className="cart-item-actions">
                       <div className="cart-quantity">
                         <button
                           type="button"
-                          onClick={() => updateCart(item.id, item.quantity - 1)}
+                          onClick={() => handleUpdateQuantity(productId, item.quantity - 1, stock)}
                           aria-label="Decrease quantity"
+                          disabled={item.quantity <= 1 || isBusy}
                         >
                           <Minus size={15} />
                         </button>
@@ -250,8 +241,10 @@ function Cart() {
 
                         <button
                           type="button"
-                          onClick={() => updateCart(item.id, item.quantity + 1)}
+                          onClick={() => handleUpdateQuantity(productId, item.quantity + 1, stock)}
                           aria-label="Increase quantity"
+                          disabled={isAtMaxStock || isBusy}
+                          title={isAtMaxStock ? `Maximum available stock (${stock}) reached` : ""}
                         >
                           <Plus size={15} />
                         </button>
@@ -260,7 +253,8 @@ function Cart() {
                       <button
                         type="button"
                         className="remove-button"
-                        onClick={() => removeItem(item.id)}
+                        onClick={() => handleRemoveItem(productId)}
+                        disabled={isBusy}
                       >
                         <Trash2 size={16} />
                         Remove
@@ -269,7 +263,7 @@ function Cart() {
                   </div>
 
                   <div className="cart-item-total">
-                    ₹{((item.price || 0) * (item.quantity || 1)).toLocaleString("en-IN")}
+                    ₹{lineTotal.toLocaleString("en-IN")}
                   </div>
                 </article>
               );
@@ -285,16 +279,15 @@ function Cart() {
               <strong>₹{subtotal.toLocaleString("en-IN")}</strong>
             </div>
 
-            <div className="summary-row">
-              <span>Delivery</span>
-              <strong>₹{delivery.toLocaleString("en-IN")}</strong>
-            </div>
+            <p style={{ fontSize: "12px", color: "#888", marginBottom: "16px" }}>
+              Taxes, discounts, and shipping costs are calculated during checkout.
+            </p>
 
             <div className="summary-divider" />
 
             <div className="summary-total">
-              <span>Total</span>
-              <strong>₹{total.toLocaleString("en-IN")}</strong>
+              <span>Subtotal Amount</span>
+              <strong>₹{subtotal.toLocaleString("en-IN")}</strong>
             </div>
 
             <Link

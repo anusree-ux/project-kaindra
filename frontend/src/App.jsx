@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect } from "react";
 
 import { AuthProvider } from "./context/AuthContext";
+import { CartProvider } from "./context/CartContext";
 import { NotificationProvider } from "./context/NotificationContext";
 
 import Navbar from "./components/Navbar/Navbar";
@@ -131,14 +132,15 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <NotificationProvider>
-        <AuthModal />
+        <CartProvider>
+          <NotificationProvider>
+            <AuthModal />
 
-        <ScrollToTop />
+            <ScrollToTop />
 
-        <ScrollToTopComponent />
+            <ScrollToTopComponent />
 
-        <Routes>
+            <Routes>
           {/* =========================
               KAINDRA PUBLIC WEBSITE
           ========================= */}
@@ -618,7 +620,8 @@ function App() {
             }
           />
         </Routes>
-      </NotificationProvider>
+          </NotificationProvider>
+        </CartProvider>
       </AuthProvider>
     </BrowserRouter>
   );

@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, CheckCircle, Lock, ShoppingBag } from "lucide-react";
+import apiClient from "../services/apiClient";
+import { useCart } from "../context/CartContext";
 import "./Checkout.css";
 
 function Checkout() {
   const navigate = useNavigate();
+  const { fetchCart: refetchCartContext } = useCart();
 
   const [cart, setCart] = useState([]);
   const [cartLoading, setCartLoading] = useState(true);
@@ -12,24 +15,8 @@ function Checkout() {
   useEffect(() => {
     const fetchCart = async () => {
       try {
-        const token = localStorage.getItem("token");
-
-        const response = await fetch(
-          "http://localhost:5000/api/modasphere/cart",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.message || "Failed to load cart.");
-        }
-
-        const backendItems = data.data?.cart?.items || [];
+        const response = await apiClient.get("/api/modasphere/cart");
+        const backendItems = response.data?.data?.cart?.items || [];
 
         // Convert backend cart structure to the format Checkout already uses
         const formattedItems = backendItems.map((item) => ({
@@ -101,38 +88,25 @@ function Checkout() {
     setDiscount(null);
 
     try {
-      const token = localStorage.getItem("token");
-
-      const response = await fetch(
-        "http://localhost:5000/api/modasphere/discount-codes/validate",
+      const response = await apiClient.post(
+        "/api/modasphere/discount-codes/validate",
         {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            code: discountCode.trim(),
-            orderAmount: subtotal,
-          }),
+          code: discountCode.trim(),
+          orderAmount: subtotal,
         }
       );
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Invalid discount code.");
-      }
-
-      setDiscount(data.data);
+      setDiscount(response.data?.data);
     } catch (error) {
-      setDiscountError(error.message);
+      setDiscountError(
+        error.response?.data?.message || error.message || "Invalid discount code."
+      );
     } finally {
       setDiscountLoading(false);
     }
   };
 
-  // CHANGED: Create the order through the backend/MongoDB
+  // Create the order through the backend/MongoDB
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -146,44 +120,23 @@ function Checkout() {
     }
 
     try {
-      const token = localStorage.getItem("token");
-
-      const response = await fetch(
-        "http://localhost:5000/api/modasphere/orders/checkout",
+      const response = await apiClient.post(
+        "/api/modasphere/orders/checkout",
         {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+          shippingAddress: {
+            name: formData.fullName,
+            phone: formData.phone,
+            addressLine1: formData.address,
+            addressLine2: "",
+            city: formData.city,
+            state: formData.state,
+            pincode: formData.pincode,
           },
-          body: JSON.stringify({
-            shippingAddress: {
-              name: formData.fullName,
-              phone: formData.phone,
-              addressLine1: formData.address,
-              addressLine2: "",
-              city: formData.city,
-              state: formData.state,
-              pincode: formData.pincode,
-            },
-
-            // CHANGED: Send only the discount code.
-            // Backend recalculates and validates the discount.
-            discountCode: discount?.code || undefined,
-          }),
+          discountCode: discount?.code || undefined,
         }
       );
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data.message || "Failed to place the order."
-        );
-      }
-
-      // CHANGED: Use the real backend order number
-      const createdOrder = data.data?.order;
+      const createdOrder = response.data?.data?.order;
 
       setOrderNumber(
         createdOrder?.orderNumber ||
@@ -192,12 +145,11 @@ function Checkout() {
       );
 
       setOrderPlaced(true);
-
-      // CHANGED: Backend cart is cleared during checkout.
+      refetchCartContext();
       localStorage.removeItem("modamartCart");
     } catch (error) {
       console.error("Checkout failed:", error);
-      alert(error.message || "Failed to place the order.");
+      alert(error.response?.data?.message || error.message || "Failed to place the order.");
     }
   };
 

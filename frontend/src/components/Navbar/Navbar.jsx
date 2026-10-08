@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronDown, ShieldCheck } from "lucide-react";
+import { ChevronDown, ShieldCheck, ShoppingBag } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { useCart } from "../../context/CartContext";
 import NotificationDropdown from "../NotificationDropdown/NotificationDropdown";
 import "./Navbar.css";
 
@@ -10,6 +11,7 @@ function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const navbarRef = useRef(null);
   const { user, isAuthenticated, logout, openAuthModal, loading } = useAuth();
+  const { cartCount } = useCart();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -313,6 +315,14 @@ function Navbar() {
           ) : (
             <div className="navbar-user-area">
               <NotificationDropdown brand="modasphere" />
+              <Link
+                to="/businesses/modamart/cart"
+                className="navbar-cart-icon"
+                title="View Cart"
+              >
+                <ShoppingBag size={18} />
+                {cartCount > 0 && <span className="navbar-cart-badge">{cartCount}</span>}
+              </Link>
               <Link
                 to="/profile"
                 className="navbar-user-name"

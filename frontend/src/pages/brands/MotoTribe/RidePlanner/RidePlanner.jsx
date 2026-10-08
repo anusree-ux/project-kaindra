@@ -3045,6 +3045,7 @@ function RidePlanner() {
                       }
                       placeholder="Enter starting point"
                       icon="●"
+                      allowCurrentLocation={true}
                     />
                   </div>
 
@@ -3068,6 +3069,7 @@ function RidePlanner() {
                       }
                       placeholder="Where do you want to ride?"
                       icon="◎"
+                      allowCurrentLocation={false}
                     />
                   </div>
                 </div>
