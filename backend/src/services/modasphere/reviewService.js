@@ -1,10 +1,9 @@
-const mongoose = require("mongoose");
+﻿const mongoose = require("mongoose");
 const Product = require("../../models/modasphere/Product");
 const Review = require("../../models/modasphere/Review");
 
 /**
- * Computes average rating & total review count across all reviews for a product
- * and updates Product.averageRating and Product.reviewCount.
+ * Recalculate average rating & review count for a product
  * @param {string|mongoose.Types.ObjectId} productId
  * @returns {Promise<{ averageRating: number, reviewCount: number }>}
  */
@@ -25,7 +24,7 @@ const recalculateProductRating = async (productId) => {
   let reviewCount = 0;
   let averageRating = 0;
 
-  if (stats.length > 0) {
+  if (stats.length > 0 && stats[0].reviewCount > 0) {
     reviewCount = stats[0].reviewCount;
     averageRating = Math.round((stats[0].averageRating + Number.EPSILON) * 100) / 100;
   }
@@ -36,7 +35,7 @@ const recalculateProductRating = async (productId) => {
       averageRating,
       reviewCount,
     },
-    { returnDocument: 'after' }
+    { returnDocument: "after" }
   );
 
   return { averageRating, reviewCount };

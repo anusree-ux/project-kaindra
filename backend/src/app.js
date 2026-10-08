@@ -19,6 +19,7 @@ const expenseRoutes = require("./routes/mototribe/expenseRoutes");
 const routeReportRoutes = require("./routes/mototribe/routeReportRoutes");
 const presenceRoutes = require("./routes/mototribe/presenceRoutes");
 const connectionRoutes = require("./routes/core/connectionRoutes");
+const notificationRoutes = require("./routes/core/notificationRoutes");
 const careerRoutes = require("./routes/core/careerRoutes");
 const applicationRoutes = require("./routes/core/applicationRoutes");
 const communityRoutes = require("./routes/core/communityRoutes");
@@ -73,6 +74,9 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/auth", authRoutes);
 
 // Core Connection & Operations Routes
+app.use("/api/v1/core/notifications", notificationRoutes);
+app.use("/api/core/notifications", notificationRoutes);
+
 app.use("/api/v1/core", connectionRoutes);
 app.use("/api/core", connectionRoutes);
 

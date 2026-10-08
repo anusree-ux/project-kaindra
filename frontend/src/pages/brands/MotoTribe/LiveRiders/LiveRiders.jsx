@@ -1,68 +1,7 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useAuth } from "../../../../context/AuthContext";
+import apiClient from "../../../../services/apiClient";
 import "./LiveRiders.css";
-
-const riders = [
-  {
-    id: "live-001",
-    name: "Arjun",
-    location: "Delhi",
-    bike: "Royal Enfield Himalayan",
-    style: "ADVENTURE",
-    status: "ONLINE",
-    experience: "ADVANCED",
-    distance: 42,
-  },
-  {
-    id: "live-002",
-    name: "Rahul",
-    location: "Chandigarh",
-    bike: "KTM Adventure 390",
-    style: "ADVENTURE",
-    status: "ONLINE",
-    experience: "INTERMEDIATE",
-    distance: 27,
-  },
-  {
-    id: "live-003",
-    name: "Meera",
-    location: "Bengaluru",
-    bike: "Yamaha MT-15",
-    style: "TOURING",
-    status: "RIDING",
-    experience: "INTERMEDIATE",
-    distance: 31,
-  },
-  {
-    id: "live-004",
-    name: "Vikram",
-    location: "Visakhapatnam",
-    bike: "Royal Enfield Classic 350",
-    style: "CRUISER",
-    status: "ONLINE",
-    experience: "ADVANCED",
-    distance: 56,
-  },
-  {
-    id: "live-005",
-    name: "Kiran",
-    location: "Hyderabad",
-    bike: "Bajaj Dominar 400",
-    style: "TOURING",
-    status: "RIDING",
-    experience: "INTERMEDIATE",
-    distance: 19,
-  },
-  {
-    id: "live-006",
-    name: "Aditya",
-    location: "Mysuru",
-    bike: "KTM Duke 390",
-    style: "SPORT",
-    status: "RIDING",
-    experience: "ADVANCED",
-    distance: 38,
-  },
-];
 
 const ridingStyles = [
   "ALL",
@@ -73,9 +12,102 @@ const ridingStyles = [
 ];
 
 function LiveRiders() {
-  const [activeFilter, setActiveFilter] = useState("ALL");
+  const { isAuthenticated, openAuthModal, user } = useAuth();
+  const [riders, setRiders] = useState([]);
   const [search, setSearch] = useState("");
-  const [connectedRiders, setConnectedRiders] = useState([]);
+  const [activeFilter, setActiveFilter] = useState("ALL");
+  const [connections, setConnections] = useState([]);
+  const [outgoingRequests, setOutgoingRequests] = useState([]);
+  const [incomingRequests, setIncomingRequests] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState({});
+
+  const fetchLiveRiders = useCallback(async () => {
+    if (!isAuthenticated) {
+      setRiders([]);
+      setConnections([]);
+      setOutgoingRequests([]);
+      setIncomingRequests([]);
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      let lat = 28.6139;
+      let lng = 77.2090;
+
+      if (navigator.geolocation) {
+        try {
+          const pos = await new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 3000 });
+          });
+          lat = pos.coords.latitude;
+          lng = pos.coords.longitude;
+        } catch (_) {}
+      }
+
+      const [nearbyRes, connRes, reqRes, incomingRes] = await Promise.allSettled([
+        apiClient.get(`/api/mototribe/riders-nearby?lat=${lat}&lng=${lng}&radius=10000000`),
+        apiClient.get("/api/core/connections"),
+        apiClient.get("/api/core/connections/requests/outgoing"),
+        apiClient.get("/api/core/connections/requests/incoming"),
+      ]);
+
+      let formattedList = [];
+
+      if (nearbyRes.status === "fulfilled" && nearbyRes.value.data?.data?.riders) {
+        formattedList = nearbyRes.value.data.data.riders
+          .filter((r) => String(r.userId || r._id) !== String(user?._id))
+          .map((r) => ({
+            id: String(r.userId || r._id),
+            name: r.name || "Rider",
+            location: r.currentJourney?.destination || (r.distanceKm ? `${Math.round(r.distanceKm)} km away` : "Active Network"),
+            bike: r.primaryVehicleName || "Motorcycle",
+            style: (r.preferredRideType || "ADVENTURE").toUpperCase(),
+            status: (r.status || "online").toUpperCase(),
+            experience: r.totalRidesCompleted > 10 ? "ADVANCED" : r.totalRidesCompleted > 3 ? "INTERMEDIATE" : "BEGINNER",
+            distance: Math.round(r.distanceKm || 15),
+            trustScore: r.trustScore || 100,
+          }));
+      }
+
+      setRiders(formattedList);
+
+      if (connRes.status === "fulfilled" && connRes.value.data?.data) {
+        const conns = connRes.value.data.data.connections || [];
+        const ids = conns.map((c) => {
+          const ou = c.otherUser || c.user || c.toUserId || c.fromUserId;
+          return String(ou?._id || ou?.id || c._id);
+        });
+        setConnections(ids);
+      }
+
+      if (reqRes.status === "fulfilled" && reqRes.value.data?.data) {
+        const reqs = reqRes.value.data.data.requests || [];
+        setOutgoingRequests(reqs.map((r) => String(r.toUserId?._id || r.toUserId)));
+      }
+
+      if (incomingRes.status === "fulfilled" && incomingRes.value.data?.data) {
+        const incs = incomingRes.value.data.data.requests || [];
+        setIncomingRequests(incs.map((r) => ({
+          userId: String(r.fromUserId?._id || r.fromUserId),
+          requestId: r._id,
+        })));
+      }
+    } catch (err) {
+      console.error("Failed to load live riders:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [isAuthenticated, user?._id]);
+
+  useEffect(() => {
+    fetchLiveRiders();
+    const handleUpdate = () => { fetchLiveRiders(); };
+    window.addEventListener("kaindra:connection_updated", handleUpdate);
+    return () => { window.removeEventListener("kaindra:connection_updated", handleUpdate); };
+  }, [fetchLiveRiders]);
 
   const filteredRiders = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
@@ -86,7 +118,6 @@ function LiveRiders() {
         rider.name.toLowerCase().includes(normalizedSearch) ||
         rider.location.toLowerCase().includes(normalizedSearch) ||
         rider.bike.toLowerCase().includes(normalizedSearch) ||
-        rider.style.toLowerCase().includes(normalizedSearch) ||
         rider.experience.toLowerCase().includes(normalizedSearch);
 
       const matchesStyle =
@@ -95,7 +126,7 @@ function LiveRiders() {
 
       return matchesSearch && matchesStyle;
     });
-  }, [activeFilter, search]);
+  }, [activeFilter, riders, search]);
 
   const onlineCount = riders.filter(
     (rider) => rider.status === "ONLINE"
@@ -109,14 +140,42 @@ function LiveRiders() {
     (rider) => rider.distance <= 30
   ).length;
 
-  const toggleConnection = (riderId) => {
-    setConnectedRiders((current) => {
-      if (current.includes(riderId)) {
-        return current.filter((id) => id !== riderId);
-      }
+  const getRiderStatus = (riderId) => {
+    if (connections.includes(String(riderId))) return "CONNECTED";
+    if (incomingRequests.some((i) => i.userId === String(riderId))) return "INCOMING";
+    if (outgoingRequests.includes(String(riderId))) return "REQUESTED";
+    return "CONNECT";
+  };
 
-      return [...current, riderId];
-    });
+  const handleRiderAction = async (riderId) => {
+    if (!isAuthenticated) {
+      openAuthModal();
+      return;
+    }
+
+    const status = getRiderStatus(riderId);
+    if (status === "CONNECTED" || status === "REQUESTED") return;
+
+    setActionLoading((prev) => ({ ...prev, [riderId]: true }));
+    try {
+      if (status === "INCOMING") {
+        const inc = incomingRequests.find((i) => i.userId === String(riderId));
+        if (inc && inc.requestId) {
+          await apiClient.patch(`/api/core/connections/requests/${inc.requestId}/respond`, { action: "accept" });
+          window.dispatchEvent(new CustomEvent("kaindra:connection_updated"));
+          await fetchLiveRiders();
+        }
+      } else if (status === "CONNECT") {
+        await apiClient.post("/api/core/connections/request", { toUserId: riderId });
+        setOutgoingRequests((prev) => [...prev, String(riderId)]);
+        window.dispatchEvent(new CustomEvent("kaindra:connection_updated"));
+        await fetchLiveRiders();
+      }
+    } catch (err) {
+      console.error("Connection action failed:", err);
+    } finally {
+      setActionLoading((prev) => ({ ...prev, [riderId]: false }));
+    }
   };
 
   const clearSearch = () => {
@@ -125,7 +184,7 @@ function LiveRiders() {
   };
 
   return (
-    <section className="live-riders">
+    <section className="live-riders" id="live-riders">
       <div className="live-riders-container">
         <div className="live-riders-header">
           <div>
@@ -171,7 +230,7 @@ function LiveRiders() {
 
           <div className="live-stat-card">
             <span className="live-stat-number">
-              {connectedRiders.length}
+              {connections.length}
             </span>
             <span className="live-stat-label">CONNECTED</span>
           </div>
@@ -179,7 +238,7 @@ function LiveRiders() {
 
         <div className="live-riders-controls">
           <div className="live-rider-search">
-            <span className="live-search-icon">⌕</span>
+            <span className="live-search-icon">🔍</span>
 
             <input
               type="search"
@@ -196,7 +255,7 @@ function LiveRiders() {
                 onClick={() => setSearch("")}
                 aria-label="Clear search"
               >
-                ×
+                ✕
               </button>
             )}
           </div>
@@ -222,7 +281,7 @@ function LiveRiders() {
           <div>
             <span className="location-pulse" />
             <span>
-              Showing active riders across the MotoTribe network
+              {loading ? "Connecting to live database..." : "Showing active riders across the MotoTribe network"}
             </span>
           </div>
 
@@ -231,12 +290,15 @@ function LiveRiders() {
           </span>
         </div>
 
-        {filteredRiders.length > 0 ? (
+        {loading ? (
+          <div className="live-riders-empty">
+            <h3>Loading active riders...</h3>
+          </div>
+        ) : filteredRiders.length > 0 ? (
           <div className="live-riders-grid">
             {filteredRiders.map((rider) => {
-              const isConnected = connectedRiders.includes(
-                rider.id
-              );
+              const status = getRiderStatus(rider.id);
+              const isActing = actionLoading[rider.id];
 
               return (
                 <article
@@ -273,7 +335,7 @@ function LiveRiders() {
                     </div>
 
                     <p className="live-rider-location">
-                      <span>⌖</span>
+                      <span>📍</span>
                       {rider.location}
                     </p>
 
@@ -308,15 +370,18 @@ function LiveRiders() {
 
                   <button
                     type="button"
-                    className={`live-connect-button ${
-                      isConnected ? "connected" : ""
-                    }`}
-                    onClick={() =>
-                      toggleConnection(rider.id)
-                    }
+                    disabled={isActing || status === "CONNECTED" || status === "REQUESTED"}
+                    className={`live-connect-button ${status.toLowerCase()}`}
+                    onClick={() => handleRiderAction(rider.id)}
                   >
-                    {isConnected
-                      ? "CONNECTED"
+                    {isActing
+                      ? "PROCESSING..."
+                      : status === "CONNECTED"
+                      ? "CONNECTED ✓"
+                      : status === "REQUESTED"
+                      ? "REQUEST SENT ⏳"
+                      : status === "INCOMING"
+                      ? "✓ ACCEPT REQUEST"
                       : "CONNECT WITH RIDER"}
                   </button>
                 </article>
@@ -325,21 +390,22 @@ function LiveRiders() {
           </div>
         ) : (
           <div className="live-riders-empty">
-            <div className="empty-rider-icon">⌁</div>
+            <div className="empty-rider-icon">🏍️</div>
 
             <h3>No active riders found</h3>
 
             <p>
-              Try another search or change the riding style
-              filter.
+              {!isAuthenticated
+                ? "Please log in to discover riders active on the network."
+                : "Try another search or change the riding style filter."}
             </p>
 
             <button
               type="button"
-              onClick={clearSearch}
+              onClick={!isAuthenticated ? openAuthModal : clearSearch}
               className="reset-live-riders"
             >
-              RESET FILTERS
+              {!isAuthenticated ? "LOG IN" : "RESET FILTERS"}
             </button>
           </div>
         )}

@@ -1,540 +1,328 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useAuth } from "../../../../context/AuthContext";
+import apiClient from "../../../../services/apiClient";
 import "./RiderConnect.css";
 
-const STORAGE_KEYS = {
-  connections: "mototribeConnections",
-  requests: "mototribeConnectionRequests",
-  following: "mototribeFollowing",
-};
-
-const riderData = [
-  {
-    id: "rc-001",
-    name: "Arjun",
-    location: "Delhi",
-    bike: "Royal Enfield Himalayan",
-    style: "ADVENTURE",
-    experience: "ADVANCED",
-    rides: 42,
-    mutual: 8,
-    bio: "Weekend adventure rider exploring long-distance mountain routes.",
-  },
-  {
-    id: "rc-002",
-    name: "Rahul",
-    location: "Chandigarh",
-    bike: "KTM Adventure 390",
-    style: "ADVENTURE",
-    experience: "INTERMEDIATE",
-    rides: 27,
-    mutual: 5,
-    bio: "Adventure rider interested in Himalayan and North India routes.",
-  },
-  {
-    id: "rc-003",
-    name: "Meera",
-    location: "Bengaluru",
-    bike: "Yamaha MT-15",
-    style: "TOURING",
-    experience: "INTERMEDIATE",
-    rides: 31,
-    mutual: 11,
-    bio: "Touring enthusiast who enjoys discovering new weekend routes.",
-  },
-  {
-    id: "rc-004",
-    name: "Vikram",
-    location: "Visakhapatnam",
-    bike: "Royal Enfield Classic 350",
-    style: "CRUISER",
-    experience: "ADVANCED",
-    rides: 56,
-    mutual: 7,
-    bio: "Experienced rider focused on coastal and long-distance rides.",
-  },
-  {
-    id: "rc-005",
-    name: "Kiran",
-    location: "Hyderabad",
-    bike: "Bajaj Dominar 400",
-    style: "TOURING",
-    experience: "INTERMEDIATE",
-    rides: 19,
-    mutual: 4,
-    bio: "Touring rider looking for new groups and highway routes.",
-  },
-  {
-    id: "rc-006",
-    name: "Aditya",
-    location: "Mysuru",
-    bike: "KTM Duke 390",
-    style: "SPORT",
-    experience: "ADVANCED",
-    rides: 38,
-    mutual: 9,
-    bio: "Sport riding enthusiast who enjoys twisty roads and group rides.",
-  },
-];
-
-const riderStyles = ["ALL", "ADVENTURE", "TOURING", "CRUISER", "SPORT"];
-
-function readArray(key) {
-  try {
-    const stored = localStorage.getItem(key);
-
-    if (!stored) {
-      return [];
-    }
-
-    const parsed = JSON.parse(stored);
-
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
+const styleFilters = ["ALL", "ADVENTURE", "TOURING", "CRUISER", "SPORT"];
 
 function RiderConnect() {
+  const { isAuthenticated, openAuthModal, user } = useAuth();
+  const [riders, setRiders] = useState([]);
+  const [connections, setConnections] = useState([]);
+  const [outgoingRequests, setOutgoingRequests] = useState([]);
+  const [incomingRequests, setIncomingRequests] = useState([]);
+  const [following, setFollowing] = useState([]);
   const [activeTab, setActiveTab] = useState("DISCOVER");
-  const [search, setSearch] = useState("");
   const [styleFilter, setStyleFilter] = useState("ALL");
+  const [search, setSearch] = useState("");
   const [selectedRider, setSelectedRider] = useState(null);
   const [messagingRider, setMessagingRider] = useState(null);
-  const [messageText, setMessageText] = useState("");
   const [directMessages, setDirectMessages] = useState([]);
+  const [messageText, setMessageText] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const [connections, setConnections] = useState(() =>
-    readArray(STORAGE_KEYS.connections)
-  );
-
-  const [requests, setRequests] = useState(() =>
-    readArray(STORAGE_KEYS.requests)
-  );
-
-  const [following, setFollowing] = useState(() =>
-    readArray(STORAGE_KEYS.following)
-  );
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(
-        STORAGE_KEYS.connections,
-        JSON.stringify(connections)
-      );
-    } catch {
-      // Ignore localStorage errors.
-    }
-  }, [connections]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(
-        STORAGE_KEYS.requests,
-        JSON.stringify(requests)
-      );
-    } catch {
-      // Ignore localStorage errors.
-    }
-  }, [requests]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(
-        STORAGE_KEYS.following,
-        JSON.stringify(following)
-      );
-    } catch {
-      // Ignore localStorage errors.
-    }
-  }, [following]);
-
-  useEffect(() => {
-    if (!selectedRider) {
-      return undefined;
-    }
-
-    const handleKeyDown = (event) => {
-      if (event.key === "Escape") {
-        setSelectedRider(null);
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [selectedRider]);
-
-  const filteredRiders = useMemo(() => {
-    const normalizedSearch = search.trim().toLowerCase();
-
-    return riderData.filter((rider) => {
-      const matchesSearch =
-        !normalizedSearch ||
-        rider.name.toLowerCase().includes(normalizedSearch) ||
-        rider.location.toLowerCase().includes(normalizedSearch) ||
-        rider.bike.toLowerCase().includes(normalizedSearch) ||
-        rider.style.toLowerCase().includes(normalizedSearch);
-
-      const matchesStyle =
-        styleFilter === "ALL" || rider.style === styleFilter;
-
-      if (!matchesSearch || !matchesStyle) {
-        return false;
-      }
-
-      if (activeTab === "CONNECTIONS") {
-        return connections.includes(rider.id);
-      }
-
-      if (activeTab === "REQUESTS") {
-        return requests.includes(rider.id);
-      }
-
-      return !connections.includes(rider.id);
-    });
-  }, [activeTab, connections, requests, search, styleFilter]);
-
-  const sendConnectionRequest = (riderId) => {
-    if (
-      connections.includes(riderId) ||
-      requests.includes(riderId)
-    ) {
+  const fetchRiderNetwork = useCallback(async () => {
+    if (!isAuthenticated) {
+      setRiders([]);
+      setConnections([]);
+      setOutgoingRequests([]);
+      setIncomingRequests([]);
       return;
     }
+    setLoading(true);
+    try {
+      const [connRes, reqRes, incomingRes, nearbyRes] = await Promise.allSettled([
+        apiClient.get("/api/core/connections"),
+        apiClient.get("/api/core/connections/requests/outgoing"),
+        apiClient.get("/api/core/connections/requests/incoming"),
+        apiClient.get("/api/mototribe/riders-nearby?lat=28.6139&lng=77.2090&radius=10000000"),
+      ]);
 
-    setRequests((current) => [...current, riderId]);
-  };
-
-  const cancelRequest = (riderId) => {
-    setRequests((current) =>
-      current.filter((id) => id !== riderId)
-    );
-  };
-
-  const removeConnection = (riderId) => {
-    setConnections((current) =>
-      current.filter((id) => id !== riderId)
-    );
-  };
-
-  const toggleFollow = (riderId) => {
-    setFollowing((current) => {
-      if (current.includes(riderId)) {
-        return current.filter((id) => id !== riderId);
+      const connectedList = [];
+      if (connRes.status === "fulfilled" && connRes.value.data?.data) {
+        (connRes.value.data.data.connections || []).forEach((c) => {
+          const ou = c.otherUser || c.user || c.toUserId || c.fromUserId;
+          if (ou && (ou._id || ou.id)) {
+            connectedList.push({
+              id: String(ou._id || ou.id),
+              name: ou.name || "Connected Rider",
+              location: ou.city || "India",
+              bike: ou.primaryVehicleName || ou.bike || null,
+              style: (ou.ridingStyle || "TOURING").toUpperCase(),
+              experience: "INTERMEDIATE",
+              rides: ou.totalRidesCompleted || 0,
+              mutual: 0,
+              bio: "Active MotoTribe community connection.",
+              connectionId: c._id,
+            });
+          }
+        });
       }
+      setConnections(connectedList);
 
-      return [...current, riderId];
+      const reqList = [];
+      if (reqRes.status === "fulfilled" && reqRes.value.data?.data) {
+        (reqRes.value.data.data.requests || []).forEach((r) => {
+          const target = r.toUserId;
+          if (target) {
+            reqList.push({
+              id: String(target._id || target),
+              requestId: r._id,
+              name: target.name || "Rider",
+              style: "ADVENTURE",
+              location: "India",
+              bike: null,
+              experience: "INTERMEDIATE",
+              rides: 0,
+              mutual: 0,
+              bio: "Pending connection request.",
+            });
+          }
+        });
+      }
+      setOutgoingRequests(reqList);
+
+      const incList = [];
+      if (incomingRes.status === "fulfilled" && incomingRes.value.data?.data) {
+        (incomingRes.value.data.data.requests || []).forEach((r) => {
+          const sender = r.fromUserId;
+          if (sender) {
+            incList.push({
+              id: String(sender._id || sender),
+              requestId: r._id,
+              name: sender.name || "Rider",
+              style: "ADVENTURE",
+              location: sender.city || "India",
+              bike: sender.primaryVehicleName || null,
+              experience: "INTERMEDIATE",
+              rides: 0,
+              mutual: 0,
+              bio: "Sent you a connection request.",
+            });
+          }
+        });
+      }
+      setIncomingRequests(incList);
+
+      let discoverList = [];
+      if (nearbyRes.status === "fulfilled" && nearbyRes.value.data?.data?.riders) {
+        discoverList = nearbyRes.value.data.data.riders
+          .filter((r) => String(r.userId || r._id) !== String(user?._id))
+          .map((r) => ({
+            id: String(r.userId || r._id),
+            name: r.name || "Rider",
+            location: r.distanceKm ? `${Math.round(r.distanceKm)} km away` : "India",
+            bike: r.primaryVehicleName || null,
+            style: (r.preferredRideType || "ADVENTURE").toUpperCase(),
+            experience: r.totalRidesCompleted > 10 ? "ADVANCED" : "INTERMEDIATE",
+            rides: r.totalRidesCompleted || 0,
+            mutual: 0,
+            bio: r.currentJourney
+              ? `Currently on: ${r.currentJourney.title || "Active Journey"}`
+              : "Verified rider exploring open highways and mountain passes.",
+          }));
+      }
+      setRiders(discoverList);
+    } catch (err) {
+      console.error("Failed to load rider network:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [isAuthenticated, user?._id]);
+
+  useEffect(() => {
+    fetchRiderNetwork();
+    const handleUpdate = () => { fetchRiderNetwork(); };
+    window.addEventListener("kaindra:connection_updated", handleUpdate);
+    return () => { window.removeEventListener("kaindra:connection_updated", handleUpdate); };
+  }, [fetchRiderNetwork]);
+
+  const activeRiders = useMemo(() => {
+    if (activeTab === "CONNECTIONS") return connections;
+    if (activeTab === "REQUESTS") return outgoingRequests;
+    if (activeTab === "INCOMING") return incomingRequests;
+    return riders;
+  }, [activeTab, connections, outgoingRequests, incomingRequests, riders]);
+
+  const filteredRiders = useMemo(() => {
+    return activeRiders.filter((rider) => {
+      const matchesStyle = styleFilter === "ALL" || rider.style === styleFilter;
+      const q = search.trim().toLowerCase();
+      const matchesSearch =
+        !q ||
+        rider.name.toLowerCase().includes(q) ||
+        (rider.location || "").toLowerCase().includes(q) ||
+        (rider.bike || "").toLowerCase().includes(q) ||
+        rider.style.toLowerCase().includes(q);
+      return matchesStyle && matchesSearch;
     });
-  };
+  }, [activeRiders, search, styleFilter]);
 
   const getConnectionStatus = (riderId) => {
-    if (connections.includes(riderId)) {
-      return "CONNECTED";
-    }
-
-    if (requests.includes(riderId)) {
-      return "REQUESTED";
-    }
-
+    if (connections.some((c) => String(c.id) === String(riderId))) return "CONNECTED";
+    if (incomingRequests.some((r) => String(r.id) === String(riderId))) return "INCOMING";
+    if (outgoingRequests.some((r) => String(r.id) === String(riderId))) return "REQUESTED";
     return "CONNECT";
   };
 
-  const handleConnectionAction = (riderId) => {
+  const handleConnectionAction = async (riderId) => {
+    if (!isAuthenticated) { openAuthModal(); return; }
     const status = getConnectionStatus(riderId);
 
-    if (status === "CONNECTED") {
-      removeConnection(riderId);
-      return;
+    if (status === "INCOMING") {
+      const inc = incomingRequests.find((r) => String(r.id) === String(riderId));
+      if (inc && inc.requestId) {
+        try {
+          await apiClient.patch(`/api/core/connections/requests/${inc.requestId}/respond`, { action: "accept" });
+          window.dispatchEvent(new CustomEvent("kaindra:connection_updated"));
+          await fetchRiderNetwork();
+        } catch (err) {
+          console.error("Failed to accept connection request:", err);
+        }
+      }
+    } else if (status === "CONNECT") {
+      try {
+        await apiClient.post("/api/core/connections/request", { toUserId: riderId });
+        setOutgoingRequests((prev) => [...prev, { id: String(riderId) }]);
+        window.dispatchEvent(new CustomEvent("kaindra:connection_updated"));
+        await fetchRiderNetwork();
+      } catch (err) {
+        console.error("Failed to send connection request:", err);
+      }
     }
-
-    if (status === "REQUESTED") {
-      cancelRequest(riderId);
-      return;
-    }
-
-    sendConnectionRequest(riderId);
   };
 
-
-
-  const getDirectMessageKey = (riderId) =>
-    `mototribe_direct_chat_${riderId}`;
-
-  const openDirectMessage = (rider) => {
-    setMessagingRider(rider);
-    setMessageText("");
-    setDirectMessages(readArray(getDirectMessageKey(rider.id)));
+  const toggleFollow = (riderId) => {
+    setFollowing((cur) =>
+      cur.includes(riderId) ? cur.filter((id) => id !== riderId) : [...cur, riderId]
+    );
   };
 
-  const closeDirectMessage = () => {
-    setMessagingRider(null);
-    setMessageText("");
-    setDirectMessages([]);
-  };
+  const openDirectMessage = (rider) => { setMessagingRider(rider); setSelectedRider(null); };
+  const closeDirectMessage = () => { setMessagingRider(null); setMessageText(""); };
 
   const sendDirectMessage = () => {
-    const trimmedMessage = messageText.trim();
-
-    if (!trimmedMessage || !messagingRider) {
-      return;
-    }
-
-    const message = {
-      id: `msg-${new Date().getTime()}`,
-      sender: "ME",
-      text: trimmedMessage,
-      createdAt: new Date().toISOString(),
-    };
-
-    const updatedMessages = [...directMessages, message];
-
-    try {
-      localStorage.setItem(
-        getDirectMessageKey(messagingRider.id),
-        JSON.stringify(updatedMessages)
-      );
-    } catch {
-      // Ignore localStorage errors.
-    }
-
-    setDirectMessages(updatedMessages);
+    if (!messageText.trim()) return;
+    setDirectMessages((prev) => [
+      ...prev,
+      { id: Date.now(), sender: "ME", text: messageText.trim(),
+        time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) },
+    ]);
     setMessageText("");
-  };
-
-  const handleInvite = (rider) => {
-    window.alert(
-      `Ride invitation feature will be connected to the ride system for ${rider.name}.`
-    );
   };
 
   return (
     <section className="rider-connect">
       <div className="rider-connect-container">
+
         <div className="rider-connect-header">
           <div>
-            <span className="rider-connect-eyebrow">
-              RIDER NETWORK
-            </span>
-
+            <span className="rider-connect-eyebrow">COMMUNITY NETWORK</span>
             <h2>Rider Connect</h2>
-
-            <p>
-              Discover riders, build connections and find people
-              who share your riding style.
-            </p>
+            <p>Discover and connect with riders from your region, share live routes, and build your riding tribe.</p>
           </div>
-
           <div className="rider-connect-summary">
-            <div className="rider-summary-item">
-              <strong>{riderData.length}</strong>
-              <span>Riders</span>
-            </div>
-
-            <div className="rider-summary-item">
-              <strong>{connections.length}</strong>
-              <span>Connections</span>
-            </div>
-
-            <div className="rider-summary-item">
-              <strong>{requests.length}</strong>
-              <span>Requests</span>
-            </div>
-
-            <div className="rider-summary-item">
-              <strong>{following.length}</strong>
-              <span>Following</span>
-            </div>
+            <div className="rider-summary-item"><strong>{riders.length}</strong><span>NEARBY</span></div>
+            <div className="rider-summary-item"><strong>{connections.length}</strong><span>TRIBE</span></div>
+            <div className="rider-summary-item"><strong>{incomingRequests.length}</strong><span>INCOMING</span></div>
+            <div className="rider-summary-item"><strong>{outgoingRequests.length}</strong><span>PENDING</span></div>
           </div>
         </div>
 
-        <div className="rider-connect-tabs">
-          {["DISCOVER", "CONNECTIONS", "REQUESTS"].map((tab) => (
-            <button
-              key={tab}
-              type="button"
-              className={`rider-tab ${
-                activeTab === tab ? "active" : ""
-              }`}
-              onClick={() => setActiveTab(tab)}
+        <div className="rider-connect-tabs" role="tablist">
+          {[
+            { key: "DISCOVER", label: "DISCOVER", count: riders.length },
+            { key: "CONNECTIONS", label: "MY TRIBE", count: connections.length },
+            { key: "INCOMING", label: "INCOMING", count: incomingRequests.length },
+            { key: "REQUESTS", label: "REQUESTS", count: outgoingRequests.length },
+          ].map(({ key, label, count }) => (
+            <button key={key} type="button"
+              className={`rider-tab ${activeTab === key ? "active" : ""}`}
+              onClick={() => setActiveTab(key)} role="tab" aria-selected={activeTab === key}
             >
-              {tab}
-
-              {tab === "CONNECTIONS" && connections.length > 0 && (
-                <span className="tab-count">
-                  {connections.length}
-                </span>
-              )}
-
-              {tab === "REQUESTS" && requests.length > 0 && (
-                <span className="tab-count">
-                  {requests.length}
-                </span>
-              )}
+              {label} <span className="tab-count">{count}</span>
             </button>
           ))}
         </div>
 
         <div className="rider-connect-controls">
           <div className="rider-search">
-            <span className="search-icon">⌕</span>
-
-            <input
-              type="search"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search riders, bikes or locations..."
+            <span className="search-icon">&#128269;</span>
+            <input type="search" value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by rider name, motorcycle or location..."
               aria-label="Search riders"
             />
-
             {search && (
-              <button
-                type="button"
-                className="clear-search"
-                onClick={() => setSearch("")}
-                aria-label="Clear rider search"
-              >
-                ×
+              <button type="button" className="clear-search" onClick={() => setSearch("")} aria-label="Clear search">
+                &times;
               </button>
             )}
           </div>
-
           <div className="rider-style-filters">
-            {riderStyles.map((style) => (
-              <button
-                key={style}
-                type="button"
-                className={`style-filter ${
-                  styleFilter === style ? "active" : ""
-                }`}
-                onClick={() => setStyleFilter(style)}
-                aria-pressed={styleFilter === style}
-              >
-                {style}
-              </button>
+            {styleFilters.map((s) => (
+              <button key={s} type="button"
+                className={`style-filter ${styleFilter === s ? "active" : ""}`}
+                onClick={() => setStyleFilter(s)}
+              >{s}</button>
             ))}
           </div>
         </div>
 
         <div className="rider-network-note">
           <span className="note-dot" />
-
-          {activeTab === "DISCOVER" && (
-            <span>
-              Discover riders outside your current connections.
-            </span>
-          )}
-
-          {activeTab === "CONNECTIONS" && (
-            <span>
-              Riders you have connected with.
-            </span>
-          )}
-
-          {activeTab === "REQUESTS" && (
-            <span>
-              Connection requests you have sent.
-            </span>
-          )}
+          {loading ? "Connecting to live database..." : `${filteredRiders.length} rider${filteredRiders.length !== 1 ? "s" : ""} in your network`}
         </div>
 
-        {filteredRiders.length > 0 ? (
+        {loading ? (
+          <div className="rider-empty-state">
+            <div className="empty-icon">&#9878;</div>
+            <h3>Loading riders...</h3>
+            <p>Fetching live rider data from the MotoTribe network.</p>
+          </div>
+        ) : filteredRiders.length > 0 ? (
           <div className="rider-connect-grid">
             {filteredRiders.map((rider) => {
               const status = getConnectionStatus(rider.id);
-              const isFollowing = following.includes(rider.id);
-
               return (
-                <article
-                  className="rider-connect-card"
-                  key={rider.id}
-                >
+                <article className="rider-connect-card" key={rider.id}>
                   <div className="rider-card-top">
-                    <div className="rider-avatar">
-                      {rider.name.charAt(0)}
-                    </div>
-
-                    <span
-                      className={`rider-style-badge ${rider.style.toLowerCase()}`}
-                    >
-                      {rider.style}
-                    </span>
+                    <div className="rider-avatar">{rider.name.charAt(0).toUpperCase()}</div>
+                    <span className={`rider-style-badge ${rider.style.toLowerCase()}`}>{rider.style}</span>
                   </div>
-
                   <div className="rider-card-content">
-                    <h3>{rider.name}</h3>
-
-                    <p className="rider-location">
-                      <span>⌖</span>
-                      {rider.location}
-                    </p>
-
-                    <p className="rider-bike">
-                      {rider.bike}
-                    </p>
-
-                    <p className="rider-bio">
-                      {rider.bio}
-                    </p>
-
-                    <div className="rider-card-meta">
-                      <div>
-                        <strong>{rider.experience}</strong>
-                        <span>Experience</span>
-                      </div>
-
-                      <div>
-                        <strong>{rider.rides}</strong>
-                        <span>Rides</span>
-                      </div>
-
-                      <div>
-                        <strong>{rider.mutual}</strong>
-                        <span>Mutual</span>
-                      </div>
-                    </div>
+                    <h3 style={{ cursor: "pointer" }} onClick={() => setSelectedRider(rider)} title="View profile">
+                      {rider.name}
+                    </h3>
+                    <p className="rider-location"><span>&#8599;</span>{rider.location}</p>
+                    {rider.bike && <p className="rider-bike">{rider.bike}</p>}
+                    <p className="rider-bio">{rider.bio}</p>
                   </div>
-
+                  <div className="rider-card-meta">
+                    <div><strong>{rider.experience}</strong><span>EXPERIENCE</span></div>
+                    <div><strong>{rider.rides}</strong><span>TOTAL RIDES</span></div>
+                    <div><strong>{rider.mutual}</strong><span>MUTUAL</span></div>
+                  </div>
                   <div className="rider-card-actions">
                     <button
                       type="button"
-                      className="profile-button"
-                      onClick={() => setSelectedRider(rider)}
+                      className={`connection-button ${status.toLowerCase()}`}
+                      onClick={() => handleConnectionAction(rider.id)}
+                      disabled={status === "CONNECTED" || status === "REQUESTED"}
                     >
-                      VIEW PROFILE
+                      {status === "CONNECTED"
+                        ? "CONNECTED ✓"
+                        : status === "REQUESTED"
+                        ? "REQUEST SENT ⏳"
+                        : status === "INCOMING"
+                        ? "✓ ACCEPT REQUEST"
+                        : "CONNECT"}
                     </button>
-
-                    <button
-                      type="button"
-                      className={`connection-button ${
-                        status === "CONNECTED"
-                          ? "connected"
-                          : status === "REQUESTED"
-                          ? "requested"
-                          : ""
-                      }`}
-                      onClick={() =>
-                        handleConnectionAction(rider.id)
-                      }
-                    >
-                      {status === "CONNECTED" && "CONNECTED"}
-                      {status === "REQUESTED" && "REQUESTED · CANCEL"}
-                      {status === "CONNECT" && "CONNECT"}
-                    </button>
-
-                    {activeTab === "CONNECTIONS" && (
-                      <button
-                        type="button"
-                        className={`follow-button ${
-                          isFollowing ? "following" : ""
-                        }`}
-                        onClick={() =>
-                          toggleFollow(rider.id)
-                        }
-                      >
-                        {isFollowing ? "FOLLOWING" : "FOLLOW"}
-                      </button>
+                    <button type="button" className="profile-button" onClick={() => setSelectedRider(rider)}>PROFILE</button>
+                    {status === "CONNECTED" && (
+                      <button type="button" className="follow-button"
+                        onClick={() => openDirectMessage(rider)} aria-label={`Message ${rider.name}`}
+                      >MSG</button>
                     )}
                   </div>
                 </article>
@@ -543,260 +331,113 @@ function RiderConnect() {
           </div>
         ) : (
           <div className="rider-empty-state">
-            <div className="empty-icon">⌁</div>
-
+            <div className="empty-icon">&#9832;</div>
             <h3>
-              {activeTab === "DISCOVER" &&
-                "No riders found"}
-
-              {activeTab === "CONNECTIONS" &&
-                "No connections yet"}
-
-              {activeTab === "REQUESTS" &&
-                "No sent requests"}
+              {activeTab === "DISCOVER" && "No riders found"}
+              {activeTab === "CONNECTIONS" && "No connections yet"}
+              {activeTab === "INCOMING" && "No incoming requests"}
+              {activeTab === "REQUESTS" && "No sent requests"}
             </h3>
-
             <p>
-              {search
-                ? "Try another search or change the riding style filter."
-                : activeTab === "DISCOVER"
-                ? "Try changing the riding style filter to discover more riders."
+              {activeTab === "DISCOVER"
+                ? "Discover riders across the MotoTribe network and send connection requests."
                 : activeTab === "CONNECTIONS"
-                ? "Connect with riders from the Discover section."
-                : "Connection requests that you send will appear here."}
+                ? "Connect with riders from the Discover tab to build your tribe."
+                : activeTab === "INCOMING"
+                ? "Incoming connection requests from other riders will appear here."
+                : "Sent connection requests will appear here."}
             </p>
-
-            {(search || styleFilter !== "ALL") && (
-              <button
-                type="button"
-                className="reset-rider-filters"
-                onClick={() => {
-                  setSearch("");
-                  setStyleFilter("ALL");
-                }}
-              >
-                RESET FILTERS
-              </button>
-            )}
           </div>
         )}
 
         <div className="rider-connect-footer">
-          <div>
-            <span className="footer-line" />
-            <span>RIDE TOGETHER</span>
-            <span className="footer-line" />
-          </div>
-
-          <p>
-            Find riders. Share routes. Build your tribe.
-          </p>
+          <div><span className="footer-line" /><span>RIDE TOGETHER</span><span className="footer-line" /></div>
+          <p>Find riders. Share routes. Build your tribe.</p>
         </div>
       </div>
 
       {selectedRider && (
-        <div
-          className="rider-modal-overlay"
-          onClick={() => setSelectedRider(null)}
-          role="presentation"
-        >
-          <div
-            className="rider-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="rider-modal-title"
-            onClick={(event) => event.stopPropagation()}
+        <div className="rider-modal-overlay" onClick={() => setSelectedRider(null)} role="presentation">
+          <div className="rider-modal" role="dialog" aria-modal="true"
+            aria-labelledby="rider-modal-title" onClick={(e) => e.stopPropagation()}
           >
-            <button
-              type="button"
-              className="modal-close"
-              onClick={() => setSelectedRider(null)}
-              aria-label="Close rider profile"
-            >
-              ×
+            <button type="button" className="modal-close" onClick={() => setSelectedRider(null)} aria-label="Close rider profile">
+              &times;
             </button>
-
             <div className="modal-profile-header">
-              <div className="modal-avatar">
-                {selectedRider.name.charAt(0)}
-              </div>
-
+              <div className="modal-avatar">{selectedRider.name.charAt(0).toUpperCase()}</div>
               <div>
-                <span className="modal-style">
-                  {selectedRider.style}
-                </span>
-
-                <h3 id="rider-modal-title">
-                  {selectedRider.name}
-                </h3>
-
-                <p>
-                  ⌖ {selectedRider.location}
-                </p>
+                <span className="modal-style">{selectedRider.style}</span>
+                <h3 id="rider-modal-title">{selectedRider.name}</h3>
+                <p>&#8599; {selectedRider.location}</p>
               </div>
             </div>
-
-            <div className="modal-bio">
-              <p>{selectedRider.bio}</p>
-            </div>
-
+            <div className="modal-bio"><p>{selectedRider.bio}</p></div>
             <div className="modal-details">
-              <div>
-                <span>Motorcycle</span>
-                <strong>{selectedRider.bike}</strong>
-              </div>
-
-              <div>
-                <span>Experience</span>
-                <strong>{selectedRider.experience}</strong>
-              </div>
-
-              <div>
-                <span>Total Rides</span>
-                <strong>{selectedRider.rides}</strong>
-              </div>
-
-              <div>
-                <span>Mutual Riders</span>
-                <strong>{selectedRider.mutual}</strong>
-              </div>
+              <div><span>Motorcycle</span><strong>{selectedRider.bike || "Not added"}</strong></div>
+              <div><span>Experience</span><strong>{selectedRider.experience}</strong></div>
+              <div><span>Total Rides</span><strong>{selectedRider.rides}</strong></div>
+              <div><span>Mutual Riders</span><strong>{selectedRider.mutual}</strong></div>
             </div>
-
             <div className="modal-actions">
               <button
                 type="button"
-                className="modal-primary-button"
-                onClick={() =>
-                  handleConnectionAction(selectedRider.id)
-                }
+                className={`modal-primary-button ${getConnectionStatus(selectedRider.id).toLowerCase()}`}
+                onClick={() => handleConnectionAction(selectedRider.id)}
+                disabled={getConnectionStatus(selectedRider.id) === "CONNECTED" || getConnectionStatus(selectedRider.id) === "REQUESTED"}
               >
-                {getConnectionStatus(selectedRider.id) ===
-                  "CONNECTED" && "REMOVE CONNECTION"}
-
-                {getConnectionStatus(selectedRider.id) ===
-                  "REQUESTED" && "CANCEL REQUEST"}
-
-                {getConnectionStatus(selectedRider.id) ===
-                  "CONNECT" && "CONNECT"}
+                {getConnectionStatus(selectedRider.id) === "CONNECTED"
+                  ? "CONNECTED ✓"
+                  : getConnectionStatus(selectedRider.id) === "REQUESTED"
+                  ? "REQUEST SENT ⏳"
+                  : getConnectionStatus(selectedRider.id) === "INCOMING"
+                  ? "✓ ACCEPT REQUEST"
+                  : "CONNECT"}
               </button>
-
-              <button
-                type="button"
-                className="modal-secondary-button"
-                onClick={() => openDirectMessage(selectedRider)}
-              >
-                MESSAGE
-              </button>
-
-              <button
-                type="button"
-                className={`modal-follow-button ${
-                  following.includes(selectedRider.id)
-                    ? "active"
-                    : ""
-                }`}
-                onClick={() =>
-                  toggleFollow(selectedRider.id)
-                }
-              >
-                {following.includes(selectedRider.id)
-                  ? "FOLLOWING"
-                  : "FOLLOW"}
-              </button>
-
-              <button
-                type="button"
-                className="modal-invite-button"
-                onClick={() => handleInvite(selectedRider)}
-              >
-                INVITE TO RIDE
-              </button>
+              <button type="button" className="modal-secondary-button" onClick={() => openDirectMessage(selectedRider)}>MESSAGE</button>
+              <button type="button"
+                className={`modal-follow-button ${following.includes(selectedRider.id) ? "active" : ""}`}
+                onClick={() => toggleFollow(selectedRider.id)}
+              >{following.includes(selectedRider.id) ? "FOLLOWING" : "FOLLOW"}</button>
             </div>
           </div>
         </div>
       )}
 
       {messagingRider && (
-        <div
-          className="rider-message-overlay"
-          onClick={closeDirectMessage}
-          role="presentation"
-        >
-          <div
-            className="rider-message-panel"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="rider-message-title"
-            onClick={(event) => event.stopPropagation()}
+        <div className="rider-message-overlay" onClick={closeDirectMessage} role="presentation">
+          <div className="rider-message-panel" role="dialog" aria-modal="true"
+            aria-labelledby="rider-message-title" onClick={(e) => e.stopPropagation()}
           >
             <div className="rider-message-header">
               <div>
-                <span className="rider-message-eyebrow">
-                  DIRECT CONNECTION
-                </span>
-                <h3 id="rider-message-title">
-                  {messagingRider.name}
-                </h3>
-                <p>
-                  {messagingRider.location} · {messagingRider.style}
-                </p>
+                <span className="rider-message-eyebrow">DIRECT CONNECTION</span>
+                <h3 id="rider-message-title">{messagingRider.name}</h3>
+                <p>{messagingRider.location} &middot; {messagingRider.style}</p>
               </div>
-
-              <button
-                type="button"
-                className="rider-message-close"
-                onClick={closeDirectMessage}
-                aria-label="Close direct message"
-              >
-                ×
+              <button type="button" className="rider-message-close" onClick={closeDirectMessage} aria-label="Close direct message">
+                &times;
               </button>
             </div>
-
             <div className="rider-message-body">
               {directMessages.length > 0 ? (
-                directMessages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={`direct-message ${
-                      message.sender === "ME" ? "mine" : ""
-                    }`}
-                  >
-                    <span>{message.text}</span>
+                directMessages.map((msg) => (
+                  <div key={msg.id} className={`direct-message ${msg.sender === "ME" ? "mine" : ""}`}>
+                    <span>{msg.text}</span>
                   </div>
                 ))
               ) : (
                 <div className="direct-message-empty">
                   <span>START THE CONVERSATION</span>
-                  <p>
-                    Ask about routes, riding conditions, fuel,
-                    accommodation or upcoming rides.
-                  </p>
+                  <p>Ask about routes, riding conditions, fuel, accommodation or upcoming rides.</p>
                 </div>
               )}
             </div>
-
-            <form
-              className="rider-message-form"
-              onSubmit={(event) => {
-                event.preventDefault();
-                sendDirectMessage();
-              }}
-            >
-              <input
-                type="text"
-                value={messageText}
-                onChange={(event) => setMessageText(event.target.value)}
-                placeholder={`Message ${messagingRider.name}...`}
-                aria-label={`Message ${messagingRider.name}`}
-                maxLength={500}
+            <form className="rider-message-form" onSubmit={(e) => { e.preventDefault(); sendDirectMessage(); }}>
+              <input type="text" value={messageText} onChange={(e) => setMessageText(e.target.value)}
+                placeholder={`Message ${messagingRider.name}...`} aria-label={`Message ${messagingRider.name}`} maxLength={500}
               />
-
-              <button
-                type="submit"
-                disabled={!messageText.trim()}
-              >
-                SEND
-              </button>
+              <button type="submit" disabled={!messageText.trim()}>SEND</button>
             </form>
           </div>
         </div>

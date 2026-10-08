@@ -430,8 +430,9 @@ function ProfileSetup() {
                       </h3>
 
                       <span>
-                        Contact {index + 1} of{" "}
-                        {profile.contacts.length}
+                        {index === 0
+                          ? "Primary Contact"
+                          : `Contact ${index + 1} of ${profile.contacts.length}`}
                       </span>
                     </div>
 

@@ -111,9 +111,7 @@ function RidePlanner() {
   ] = useState(null);
 
   const [motorcycle, setMotorcycle] =
-    useState(
-      "ROYAL ENFIELD HIMALAYAN"
-    );
+    useState("");
 
   const [riders, setRiders] =
     useState(1);
@@ -381,8 +379,7 @@ function RidePlanner() {
 
           setMotorcycle(
             String(
-              defaultVehicle.name ||
-                "ROYAL ENFIELD HIMALAYAN"
+              defaultVehicle.name || ""
             ).toUpperCase()
           );
 
@@ -487,7 +484,7 @@ function RidePlanner() {
 
                     bike: (
                       rider.primaryVehicleName ||
-                      "ROYAL ENFIELD"
+                      "MOTORCYCLE"
                     ).toUpperCase(),
 
                     experience:
@@ -2538,7 +2535,7 @@ function RidePlanner() {
                   vehicleName:
                     foundVehicle?.name ||
                     motorcycle ||
-                    "Royal Enfield Himalayan",
+                    "",
 
                   registrationNumber:
                     foundVehicle?.registrationNumber ||
@@ -3325,7 +3322,7 @@ function RidePlanner() {
                       ) : (
                         <option value="">
                           {motorcycle ||
-                            "ROYAL ENFIELD HIMALAYAN (28 KM/L)"}
+                            "Add your vehicle above"}
                         </option>
                       )}
                     </select>

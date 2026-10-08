@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../../context/AuthContext";
 import apiClient from "../../../../services/apiClient";
 import "./UpcomingRides.css";
@@ -13,6 +14,7 @@ const filters = [
 ];
 
 function UpcomingRides() {
+  const navigate = useNavigate();
   const { isAuthenticated, openAuthModal } = useAuth();
   const [rides, setRides] = useState([]);
   const [activeFilter, setActiveFilter] = useState("ALL");
@@ -36,7 +38,14 @@ function UpcomingRides() {
       const res = await apiClient.get("/api/mototribe/rides");
       const dbList = res.data.data?.rides || [];
 
-      const dbFormatted = dbList.map((r) => {
+      const dbFormatted = dbList
+        .filter((r) => {
+          if (r.status === "completed" || r.status === "cancelled") return false;
+          const sDate = r.startDate ? new Date(r.startDate) : null;
+          if (r.status === "planning" && sDate && sDate.getTime() < Date.now()) return false;
+          return true;
+        })
+        .map((r) => {
         const startDateObj = r.startDate ? new Date(r.startDate) : new Date();
         const yyyy = startDateObj.getFullYear();
         const mm = String(startDateObj.getMonth() + 1).padStart(2, "0");
@@ -72,7 +81,7 @@ function UpcomingRides() {
           distance: `${r.distanceKm || 150} KM`,
           duration: `${Math.ceil((r.distanceKm || 150) / 120)} Days`,
           route: `${r.origin} → ${r.destination}`,
-          description: `User ride planned from ${r.origin} to ${r.destination}.`,
+          description: r.description || `User ride planned from ${r.origin} to ${r.destination}.`,
           requirements: [
             "Helmet and full riding gear required",
             "Motorcycle in good mechanical condition",
@@ -111,7 +120,6 @@ function UpcomingRides() {
     };
   }, [fetchUpcomingRides]);
 
-
   /*
    * Clock timer for countdowns
    */
@@ -123,25 +131,37 @@ function UpcomingRides() {
     return () => clearInterval(timer);
   }, []);
 
-  const filteredRides = useMemo(() => {
-    if (activeFilter === "ALL") {
-      return rides;
-    }
-
-    if (activeFilter === "COMMUNITY") {
-      return rides.filter((ride) => ride.organizerType === "COMMUNITY");
-    }
-
-    if (activeFilter === "OFFICIAL") {
-      return rides.filter((ride) => ride.organizerType === "OFFICIAL");
-    }
-
-    return rides.filter((ride) => ride.type === activeFilter);
-  }, [activeFilter, rides]);
-
   const getRideDate = (ride) => {
     if (!ride || !ride.date) return new Date();
     return new Date(`${ride.date}T${ride.time || "06:00"}:00`);
+  };
+
+  const getCurrentStatus = (ride) => {
+    if (ride.status === "completed" || ride.status === "cancelled") {
+      return ride.status.toUpperCase();
+    }
+
+    const startDate = getRideDate(ride);
+    const durationDays = ride.durationDays || 1;
+    const durationMs = durationDays * 24 * 60 * 60 * 1000;
+    const endDate = new Date(startDate.getTime() + durationMs);
+
+    const timeUntilStart = startDate.getTime() - now.getTime();
+    const timeUntilEnd = endDate.getTime() - now.getTime();
+
+    if (timeUntilEnd <= 0) {
+      return "COMPLETED";
+    }
+
+    if (timeUntilStart <= 0) {
+      return "LIVE";
+    }
+
+    if (timeUntilStart <= 60 * 60 * 1000) {
+      return "STARTING";
+    }
+
+    return ride.status || "UPCOMING";
   };
 
   const getCountdown = (ride) => {
@@ -169,20 +189,36 @@ function UpcomingRides() {
     };
   };
 
-  const getCurrentStatus = (ride) => {
-    const target = getRideDate(ride);
-    const difference = target.getTime() - now.getTime();
+  const filteredRides = useMemo(() => {
+    // Exclude rides that are completed, cancelled, or whose departure date/time has passed (unless currently LIVE)
+    const activeUpcomingRides = rides.filter((ride) => {
+      const currentStatus = getCurrentStatus(ride);
+      const rideDate = getRideDate(ride);
+      const isPast = rideDate.getTime() < now.getTime() && currentStatus !== "LIVE";
 
-    if (difference <= 0) {
-      return "LIVE";
+      return (
+        ride.status !== "completed" &&
+        ride.status !== "cancelled" &&
+        currentStatus !== "COMPLETED" &&
+        currentStatus !== "CANCELLED" &&
+        !isPast
+      );
+    });
+
+    if (activeFilter === "ALL") {
+      return activeUpcomingRides;
     }
 
-    if (difference <= 60 * 60 * 1000) {
-      return "STARTING";
+    if (activeFilter === "COMMUNITY") {
+      return activeUpcomingRides.filter((ride) => ride.organizerType === "COMMUNITY");
     }
 
-    return ride.status || "UPCOMING";
-  };
+    if (activeFilter === "OFFICIAL") {
+      return activeUpcomingRides.filter((ride) => ride.organizerType === "OFFICIAL");
+    }
+
+    return activeUpcomingRides.filter((ride) => ride.type === activeFilter);
+  }, [activeFilter, rides, now]);
 
   const handleJoin = async (ride) => {
     const alreadyJoined = joinedRides.includes(ride.id);
@@ -402,9 +438,9 @@ function UpcomingRides() {
                   filteredRides.map((ride) => {
                     const countdown = getCountdown(ride);
                     const status = getCurrentStatus(ride);
-                    const capacity = Math.round(
-                      (ride.riders / ride.maxRiders) * 100
-                    );
+                    const maxCap = ride.maxRiders > 0 ? ride.maxRiders : 1;
+                    const rawPercent = Math.round((ride.riders / maxCap) * 100);
+                    const progressPercent = Math.min(100, Math.max(0, rawPercent));
 
                     return (
                       <article
@@ -417,357 +453,373 @@ function UpcomingRides() {
                         <div className="ride-card-top">
                           <div className="ride-type">
                             {ride.isUserRide ? (
-                              <span style={{ color: "#d4a03e", fontWeight: "800" }}>★ YOUR PLANNED RIDE</span>
+                              <span className="user-planned-badge">★ YOUR PLANNED RIDE</span>
                             ) : (
                               ride.type
                             )}
                           </div>
 
+                          <div
+                            className={`ride-status status-${status.toLowerCase()}`}
+                          >
+                            <span></span>
+                            {status}
+                          </div>
+                        </div>
 
-                      <div
-                        className={`ride-status status-${status.toLowerCase()}`}
-                      >
-                        <span></span>
-                        {status}
-                      </div>
-                    </div>
+                        <div className="ride-card-main">
+                          <h3>{ride.name}</h3>
 
-                    <div className="ride-card-main">
-                      <h3>{ride.name}</h3>
+                          <div className="ride-route-line">
+                            <span>{ride.start}</span>
+                            <i></i>
+                            <span>{ride.destination}</span>
+                          </div>
+                        </div>
 
-                      <div className="ride-route-line">
-                        <span>{ride.start}</span>
-                        <i></i>
-                        <span>{ride.destination}</span>
-                      </div>
-                    </div>
+                        <div className="ride-card-meta">
+                          <div>
+                            <small>DATE</small>
+                            <strong>{formatDate(ride.date)}</strong>
+                          </div>
 
-                    <div className="ride-card-meta">
-                      <div>
-                        <small>DATE</small>
-                        <strong>{formatDate(ride.date)}</strong>
-                      </div>
+                          <div>
+                            <small>START</small>
+                            <strong>{ride.time}</strong>
+                          </div>
 
-                      <div>
-                        <small>START</small>
-                        <strong>{ride.time}</strong>
-                      </div>
+                          <div>
+                            <small>DISTANCE</small>
+                            <strong>{ride.distance}</strong>
+                          </div>
 
-                      <div>
-                        <small>DISTANCE</small>
-                        <strong>{ride.distance}</strong>
-                      </div>
-
-                      <div>
-                        <small>RIDERS</small>
-                        <strong>
-                          {ride.riders}/{ride.maxRiders}
-                        </strong>
-                      </div>
-                    </div>
-
-                    <div className="capacity-wrapper">
-                      <div className="capacity-label">
-                        <span>RIDE CAPACITY</span>
-                        <span>{capacity}%</span>
-                      </div>
-
-                      <div className="capacity-track">
-                        <div
-                          className="capacity-fill"
-                          style={{ width: `${capacity}%` }}
-                        ></div>
-                      </div>
-                    </div>
-
-                    <div className="ride-card-bottom">
-                      <div className="ride-organizer">
-                        <span>ORGANIZED BY</span>
-                        <strong>{ride.organizer}</strong>
-                      </div>
-
-                      <div className="card-countdown">
-                        {status === "UPCOMING" && !countdown.expired ? (
-                          <>
-                            <span>STARTS IN</span>
+                          <div>
+                            <small>RIDERS</small>
                             <strong>
-                              {countdown.days}D {countdown.hours}H{" "}
-                              {countdown.minutes}M
+                              {ride.riders}/{ride.maxRiders}
                             </strong>
-                          </>
-                        ) : (
-                          <strong>{status}</strong>
-                        )}
-                      </div>
-                    </div>
-                  </article>
-                );
-              })
-            ) : (
-              <div
-                style={{
-                  padding: "40px 20px",
-                  textAlign: "center",
-                  background: "rgba(255, 255, 255, 0.02)",
-                  border: "1px dashed rgba(255, 255, 255, 0.15)",
-                  borderRadius: "8px",
-                  color: "rgba(255, 255, 255, 0.7)",
-                }}
-              >
-                <div style={{ fontSize: "24px", marginBottom: "8px" }}>🏍</div>
-                <h3 style={{ fontSize: "14px", letterSpacing: "1px", color: "#fff", marginBottom: "6px" }}>
-                  NO UPCOMING RIDES IN DATABASE
-                </h3>
-                <p style={{ fontSize: "12px", color: "rgba(255, 255, 255, 0.5)", margin: 0 }}>
-                  Plan a ride using the AI Route Builder above to schedule your first journey!
-                </p>
-              </div>
-            )}
-          </div>
+                          </div>
+                        </div>
 
-          {selectedRide && (
-            <aside className="ride-detail-panel">
-              <div className="detail-topline">
-                <span>RIDE EVENT</span>
+                        <div className="capacity-wrapper">
+                          <div className="capacity-label">
+                            <span>RIDE CAPACITY</span>
+                            <span>{rawPercent}% ({ride.riders}/{ride.maxRiders} RIDERS)</span>
+                          </div>
 
-                <span
-                  className={`detail-status status-${selectedStatus.toLowerCase()}`}
-                >
-                  <span></span>
-                  {selectedStatus}
-                </span>
-              </div>
+                          <div className="capacity-track">
+                            <div
+                              className="capacity-fill"
+                              style={{ width: `${progressPercent}%` }}
+                            ></div>
+                          </div>
+                        </div>
 
-              <h3>{selectedRide.name}</h3>
+                        <div className="ride-card-bottom">
+                          <div className="ride-organizer">
+                            <span>ORGANIZED BY</span>
+                            <strong>{ride.organizer}</strong>
+                          </div>
 
-              <p className="detail-description">
-                {selectedRide.description}
-              </p>
-
-              <div className="ur-detail-route">
-                <div className="ur-route-point">
-                  <span className="ur-route-marker start"></span>
-
-                  <div className="ur-point-info">
-                    <small>START</small>
-                    <strong>{selectedRide.start}</strong>
-                  </div>
-                </div>
-
-                <div className="ur-route-connector"></div>
-
-                <div className="ur-route-point">
-                  <span className="ur-route-marker destination"></span>
-
-                  <div className="ur-point-info">
-                    <small>DESTINATION</small>
-                    <strong>{selectedRide.destination}</strong>
-                  </div>
-                </div>
-              </div>
-
-              <div className="detail-stats">
-                <div>
-                  <span>DATE</span>
-                  <strong>{formatDate(selectedRide.date)}</strong>
-                </div>
-
-                <div>
-                  <span>START TIME</span>
-                  <strong>{selectedRide.time}</strong>
-                </div>
-
-                <div>
-                  <span>DISTANCE</span>
-                  <strong>{selectedRide.distance}</strong>
-                </div>
-
-                <div>
-                  <span>DURATION</span>
-                  <strong>{selectedRide.duration}</strong>
-                </div>
-              </div>
-
-              {selectedStatus === "UPCOMING" && selectedCountdown && (
-                <div className="detail-countdown">
-                  <span>RIDE STARTS IN</span>
-
-                  <div className="countdown-grid">
-                    <div>
-                      <strong>
-                        {String(selectedCountdown.days).padStart(2, "0")}
-                      </strong>
-                      <small>DAYS</small>
-                    </div>
-
-                    <div>
-                      <strong>
-                        {String(selectedCountdown.hours).padStart(2, "0")}
-                      </strong>
-                      <small>HOURS</small>
-                    </div>
-
-                    <div>
-                      <strong>
-                        {String(selectedCountdown.minutes).padStart(2, "0")}
-                      </strong>
-                      <small>MIN</small>
-                    </div>
-
-                    <div>
-                      <strong>
-                        {String(selectedCountdown.seconds).padStart(2, "0")}
-                      </strong>
-                      <small>SEC</small>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="detail-section">
-                <span className="detail-label">ROUTE</span>
-
-                <p>{selectedRide.route}</p>
-              </div>
-
-              <div className="detail-section">
-                <span className="detail-label">RIDE PROFILE</span>
-
-                <div className="profile-tags">
-                  <span>{selectedRide.type}</span>
-                  <span>{selectedRide.difficulty}</span>
-                  <span>{selectedRide.organizerType}</span>
-                </div>
-              </div>
-
-              <div className="detail-section">
-                <span className="detail-label">REQUIREMENTS</span>
-
-                <ul className="requirements-list">
-                  {selectedRide.requirements.map((requirement) => (
-                    <li key={requirement}>
-                      <span>+</span>
-                      {requirement}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="detail-section safety-note">
-                <span className="detail-label">SAFETY NOTE</span>
-
-                <p>{selectedRide.safety}</p>
-              </div>
-
-              <div className="detail-participants">
-                <div>
-                  <span>PARTICIPANTS</span>
-                  <strong>
-                    {selectedRide.riders} / {selectedRide.maxRiders}
-                  </strong>
-                </div>
-
-                <div className="participant-dots">
-                  {Array.from({
-                    length: Math.min(selectedRide.riders, 8),
-                  }).map((_, index) => (
-                    <span key={index}>
-                      {index + 1}
-                    </span>
-                  ))}
-
-                  {selectedRide.riders > 8 && (
-                    <span className="more">
-                      +{selectedRide.riders - 8}
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              <button
-                className={`primary-ride-action ${
-                  selectedRide.isOrganizer
-                    ? "organizer-badge"
-                    : isJoined(selectedRide.id)
-                    ? "joined"
-                    : ""
-                }`}
-                onClick={() => handlePrimaryAction(selectedRide)}
-                disabled={
-                  selectedRide.isOrganizer ||
-                  (selectedRide.riders >= selectedRide.maxRiders &&
-                    !isJoined(selectedRide.id) &&
-                    !selectedRide.requestRequired)
-                }
-              >
-                {getButtonLabel(selectedRide)}
-                {!selectedRide.isOrganizer && <span>→</span>}
-              </button>
-
-              {selectedRide.requestRequired &&
-                isRequested(selectedRide.id) && (
-                  <div className="request-message">
-                    <span>✓</span>
-                    Your request has been recorded for this demo ride.
+                          <div className="card-countdown">
+                            {status === "UPCOMING" && !countdown.expired ? (
+                              <>
+                                <span>STARTS IN</span>
+                                <strong>
+                                  {countdown.days}D {countdown.hours}H{" "}
+                                  {countdown.minutes}M
+                                </strong>
+                              </>
+                            ) : (
+                              <strong>{status}</strong>
+                            )}
+                          </div>
+                        </div>
+                      </article>
+                    );
+                  })
+                ) : (
+                  <div
+                    style={{
+                      padding: "40px 20px",
+                      textAlign: "center",
+                      background: "rgba(255, 255, 255, 0.02)",
+                      border: "1px dashed rgba(255, 255, 255, 0.15)",
+                      borderRadius: "8px",
+                      color: "rgba(255, 255, 255, 0.7)",
+                    }}
+                  >
+                    <div style={{ fontSize: "24px", marginBottom: "8px" }}>🏍️</div>
+                    <h3 style={{ fontSize: "14px", letterSpacing: "1px", color: "#fff", marginBottom: "6px" }}>
+                      NO UPCOMING RIDES IN DATABASE
+                    </h3>
+                    <p style={{ fontSize: "12px", color: "rgba(255, 255, 255, 0.5)", margin: 0 }}>
+                      Plan a ride using the AI Route Builder above to schedule your first journey!
+                    </p>
                   </div>
                 )}
+              </div>
 
-              {isJoined(selectedRide.id) && (
-                <div className="joined-message">
-                  <span>✓</span>
-                  You are part of this ride. The next stage will be the Live
-                  Ride dashboard.
-                </div>
+              {selectedRide && (
+                <aside className="ride-detail-panel">
+                  <div className="detail-topline">
+                    <span>RIDE EVENT</span>
+
+                    <span
+                      className={`detail-status status-${selectedStatus.toLowerCase()}`}
+                    >
+                      <span></span>
+                      {selectedStatus}
+                    </span>
+                  </div>
+
+                  <h3>{selectedRide.name}</h3>
+
+                  <p className="detail-description">
+                    {selectedRide.description}
+                  </p>
+
+                  <div className="ur-detail-route">
+                    <div className="ur-route-point">
+                      <span className="ur-route-marker start"></span>
+
+                      <div className="ur-point-info">
+                        <small>START</small>
+                        <strong>{selectedRide.start}</strong>
+                      </div>
+                    </div>
+
+                    <div className="ur-route-connector"></div>
+
+                    <div className="ur-route-point">
+                      <span className="ur-route-marker destination"></span>
+
+                      <div className="ur-point-info">
+                        <small>DESTINATION</small>
+                        <strong>{selectedRide.destination}</strong>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="detail-stats">
+                    <div>
+                      <span>DATE</span>
+                      <strong>{formatDate(selectedRide.date)}</strong>
+                    </div>
+
+                    <div>
+                      <span>START TIME</span>
+                      <strong>{selectedRide.time}</strong>
+                    </div>
+
+                    <div>
+                      <span>DISTANCE</span>
+                      <strong>{selectedRide.distance}</strong>
+                    </div>
+
+                    <div>
+                      <span>DURATION</span>
+                      <strong>{selectedRide.duration}</strong>
+                    </div>
+                  </div>
+
+                  {selectedStatus === "UPCOMING" && selectedCountdown && (
+                    <div className="detail-countdown">
+                      <span>RIDE STARTS IN</span>
+
+                      <div className="countdown-grid">
+                        <div>
+                          <strong>
+                            {String(selectedCountdown.days).padStart(2, "0")}
+                          </strong>
+                          <small>DAYS</small>
+                        </div>
+
+                        <div>
+                          <strong>
+                            {String(selectedCountdown.hours).padStart(2, "0")}
+                          </strong>
+                          <small>HOURS</small>
+                        </div>
+
+                        <div>
+                          <strong>
+                            {String(selectedCountdown.minutes).padStart(2, "0")}
+                          </strong>
+                          <small>MIN</small>
+                        </div>
+
+                        <div>
+                          <strong>
+                            {String(selectedCountdown.seconds).padStart(2, "0")}
+                          </strong>
+                          <small>SEC</small>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="detail-section">
+                    <span className="detail-label">ROUTE</span>
+
+                    <p>{selectedRide.route}</p>
+                  </div>
+
+                  <div className="detail-section">
+                    <span className="detail-label">RIDE PROFILE</span>
+
+                    <div className="profile-tags">
+                      <span>{selectedRide.type}</span>
+                      <span>{selectedRide.difficulty}</span>
+                      <span>{selectedRide.organizerType}</span>
+                    </div>
+                  </div>
+
+                  <div className="detail-section">
+                    <span className="detail-label">REQUIREMENTS</span>
+
+                    <ul className="requirements-list">
+                      {selectedRide.requirements.map((requirement) => (
+                        <li key={requirement}>
+                          <span>+</span>
+                          {requirement}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="detail-section safety-note">
+                    <span className="detail-label">SAFETY NOTE</span>
+
+                    <p>{selectedRide.safety}</p>
+                  </div>
+
+                  <div className="detail-participants">
+                    <div>
+                      <span>PARTICIPANTS</span>
+                      <strong>
+                        {selectedRide.riders} / {selectedRide.maxRiders}
+                      </strong>
+                    </div>
+
+                    <div className="participant-dots">
+                      {Array.from({
+                        length: Math.min(selectedRide.riders, 8),
+                      }).map((_, index) => (
+                        <span key={index}>
+                          {index + 1}
+                        </span>
+                      ))}
+
+                      {selectedRide.riders > 8 && (
+                        <span className="more">
+                          +{selectedRide.riders - 8}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <button
+                    className={`primary-ride-action ${
+                      selectedRide.isOrganizer
+                        ? "organizer-badge"
+                        : isJoined(selectedRide.id)
+                        ? "joined"
+                        : ""
+                    }`}
+                    onClick={() => handlePrimaryAction(selectedRide)}
+                    disabled={
+                      selectedRide.isOrganizer ||
+                      (selectedRide.riders >= selectedRide.maxRiders &&
+                        !isJoined(selectedRide.id) &&
+                        !selectedRide.requestRequired)
+                    }
+                  >
+                    {getButtonLabel(selectedRide)}
+                    {!selectedRide.isOrganizer && <span>→</span>}
+                  </button>
+
+                  {selectedRide.requestRequired &&
+                    isRequested(selectedRide.id) && (
+                      <div className="request-message">
+                        <span>✓</span>
+                        Your request has been recorded for this demo ride.
+                      </div>
+                    )}
+
+                  {isJoined(selectedRide.id) && (
+                    <div className="joined-message">
+                      <span>✓</span>
+                      You are confirmed for this ride! You can now join the live tracking and chat with other members.
+                    </div>
+                  )}
+
+                  {(isJoined(selectedRide.id) || selectedRide.isOrganizer) && (
+                    <button
+                      type="button"
+                      className="live-chat-navigate-action"
+                      onClick={() => navigate(`/businesses/mototribe/ride/${selectedRide.id}/live`)}
+                    >
+                      <span>ENTER LIVE RIDE & GROUP CHAT</span>
+                      <span>💬 →</span>
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    className="view-details-navigate-action"
+                    onClick={() => navigate(`/businesses/mototribe/ride/${selectedRide.id}`)}
+                  >
+                    <span>VIEW FULL RIDE DETAILS</span>
+                    <span>↗</span>
+                  </button>
+                </aside>
               )}
-            </aside>
-          )}
-        </div>
-
-        <div className="ride-lifecycle">
-          <div className="lifecycle-heading">
-            <span className="section-eyebrow">EVENT LIFECYCLE</span>
-
-            <h3>EVERY RIDE HAS A JOURNEY</h3>
-          </div>
-
-          <div className="lifecycle-track">
-            <div className="lifecycle-step active">
-              <span>01</span>
-              <strong>UPCOMING</strong>
-              <small>Discover & Join</small>
             </div>
 
-            <div className="lifecycle-connector"></div>
+            <div className="ride-lifecycle">
+              <div className="lifecycle-heading">
+                <span className="section-eyebrow">EVENT LIFECYCLE</span>
 
-            <div className="lifecycle-step">
-              <span>02</span>
-              <strong>STARTING</strong>
-              <small>Prepare to Ride</small>
+                <h3>EVERY RIDE HAS A JOURNEY</h3>
+              </div>
+
+              <div className="lifecycle-track">
+                <div className="lifecycle-step active">
+                  <span>01</span>
+                  <strong>UPCOMING</strong>
+                  <small>Discover & Join</small>
+                </div>
+
+                <div className="lifecycle-connector"></div>
+
+                <div className="lifecycle-step">
+                  <span>02</span>
+                  <strong>STARTING</strong>
+                  <small>Prepare to Ride</small>
+                </div>
+
+                <div className="lifecycle-connector"></div>
+
+                <div className="lifecycle-step">
+                  <span>03</span>
+                  <strong>LIVE</strong>
+                  <small>Ride Together</small>
+                </div>
+
+                <div className="lifecycle-connector"></div>
+
+                <div className="lifecycle-step">
+                  <span>04</span>
+                  <strong>COMPLETED</strong>
+                  <small>Create Ride Record</small>
+                </div>
+              </div>
             </div>
-
-            <div className="lifecycle-connector"></div>
-
-            <div className="lifecycle-step">
-              <span>03</span>
-              <strong>LIVE</strong>
-              <small>Ride Together</small>
-            </div>
-
-            <div className="lifecycle-connector"></div>
-
-            <div className="lifecycle-step">
-              <span>04</span>
-              <strong>COMPLETED</strong>
-              <small>Create Ride Record</small>
-            </div>
-          </div>
-        </div>
-        </>
+          </>
         )}
       </div>
     </section>
-
-
   );
 }
 

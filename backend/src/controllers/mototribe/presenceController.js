@@ -247,7 +247,7 @@ const getRidersNearby = async (req, res, next) => {
         (await Vehicle.findOne({ userId: targetUserId }));
       const primaryVehicleName = defaultVehicle
         ? defaultVehicle.vehicleName
-        : "Rider Bike";
+        : null;
 
       // 8. Compute distance in km
       const riderLng = presence.location.coordinates[0];
@@ -336,7 +336,7 @@ const getRiderProfileCard = async (req, res, next) => {
       (await Vehicle.findOne({ userId: targetUserId }));
     const primaryVehicleName = defaultVehicle
       ? defaultVehicle.vehicleName
-      : "Rider Bike";
+      : null;
 
     const currentJourney = await getActiveOngoingJourney(targetUserId);
 

@@ -1,7 +1,8 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect } from "react";
 
 import { AuthProvider } from "./context/AuthContext";
+import { NotificationProvider } from "./context/NotificationContext";
 
 import Navbar from "./components/Navbar/Navbar";
 import ScrollToTopComponent from "./components/ScrollToTop";
@@ -130,6 +131,7 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <NotificationProvider>
         <AuthModal />
 
         <ScrollToTop />
@@ -579,6 +581,11 @@ function App() {
           />
 
           <Route
+            path="/businesses/mototribe/ride"
+            element={<Navigate to="/businesses/mototribe" replace />}
+          />
+
+          <Route
             path="/businesses/mototribe/ride/:rideId"
             element={<RideDetails />}
           />
@@ -611,6 +618,7 @@ function App() {
             }
           />
         </Routes>
+      </NotificationProvider>
       </AuthProvider>
     </BrowserRouter>
   );
