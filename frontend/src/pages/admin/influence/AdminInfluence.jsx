@@ -32,13 +32,7 @@ function AdminInfluence() {
 
     if (!confirmed) return;
 
-    const apiBase =
-      import.meta.env.VITE_API_BASE_URL ||
-      "http://localhost:5000/api/";
-
-    const endpoint = apiBase.endsWith("/")
-      ? `${apiBase}modasphere/influence/campaigns/${campaignId}`
-      : `${apiBase}/modasphere/influence/campaigns/${campaignId}`;
+    const endpoint = `/api/modasphere/influence/campaigns/${campaignId}`;
 
     try {
       const response = await fetch(endpoint, {
@@ -92,13 +86,7 @@ function AdminInfluence() {
       return;
     }
 
-    const apiBase =
-      import.meta.env.VITE_API_BASE_URL ||
-      "http://localhost:5000/api/";
-
-    const endpoint = apiBase.endsWith("/")
-      ? `${apiBase}modasphere/influence/campaigns/${selectedCampaign._id}/status`
-      : `${apiBase}/modasphere/influence/campaigns/${selectedCampaign._id}/status`;
+    const endpoint = `/api/modasphere/influence/campaigns/${selectedCampaign._id}/status`;
 
     try {
       setUpdatingStatus(true);
@@ -150,13 +138,7 @@ function AdminInfluence() {
 
   useEffect(() => {
     const loadCampaigns = async () => {
-      const apiBase =
-        import.meta.env.VITE_API_BASE_URL ||
-        "http://localhost:5000/api/";
-
-      const endpoint = apiBase.endsWith("/")
-        ? `${apiBase}modasphere/influence/campaigns`
-        : `${apiBase}/modasphere/influence/campaigns`;
+      const endpoint = "/api/modasphere/influence/campaigns";
 
       try {
         setLoading(true);

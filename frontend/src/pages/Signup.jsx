@@ -27,10 +27,7 @@ function Signup() {
     setSuccess("");
 
     try {
-      const apiBase = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api/";
-      const endpoint = apiBase.endsWith("/")
-        ? `${apiBase}v1/auth/signup`
-        : `${apiBase}/v1/auth/signup`;
+      const endpoint = "/api/v1/auth/signup";
 
       const response = await fetch(endpoint, {
         method: "POST",
