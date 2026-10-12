@@ -162,6 +162,7 @@ const createRide = async (req, res, next) => {
       title,
       origin,
       destination,
+      stops: Array.isArray(req.body.stops) ? req.body.stops.filter((s) => typeof s === "string" && s.trim()) : [],
       startDate,
       durationDays: durationDays || 1,
       distanceKm,

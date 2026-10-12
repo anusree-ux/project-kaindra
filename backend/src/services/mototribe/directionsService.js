@@ -289,7 +289,7 @@ const analyzeRoute = async (origin, destination, waypoints = []) => {
       const coordString = allCoords.map((c) => `${c.lon},${c.lat}`).join(";");
 
       const osrmRes = await fetch(
-        `https://router.project-osrm.org/route/v1/driving/${coordString}?overview=false`
+        `https://router.project-osrm.org/route/v1/driving/${coordString}?overview=full&geometries=geojson`
       );
       if (osrmRes.ok) {
         const data = await osrmRes.json();

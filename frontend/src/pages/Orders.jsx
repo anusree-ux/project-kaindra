@@ -7,6 +7,7 @@ import {
   ShoppingBag,
   Truck,
 } from "lucide-react";
+import apiClient from "../services/apiClient";
 import "./Orders.css";
 
 const ORDER_STEPS = [
@@ -24,27 +25,11 @@ function Orders() {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const token = localStorage.getItem("token");
-
-        const response = await fetch(
-          "http://localhost:5000/api/modasphere/orders/me",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.message || "Failed to load orders.");
-        }
-
-        setOrders(data.data?.orders || []);
+        const response = await apiClient.get("/api/modasphere/orders/me");
+        setOrders(response.data?.data?.orders || []);
       } catch (err) {
         console.error("Failed to load orders:", err);
-        setError(err.message);
+        setError(err.response?.data?.message || err.message || "Failed to load orders.");
       } finally {
         setLoading(false);
       }
@@ -267,16 +252,22 @@ function Orders() {
                       items.map((item, itemIndex) => (
                         <div
                           className="order-product"
-                          key={`${item.id}-${itemIndex}`}
+                          key={`${item._id || item.id || itemIndex}-${itemIndex}`}
                         >
                           <img
-  src={
-    products.find(
-      (product) => String(product.id) === String(item.id)
-    )?.images?.[0] || ""
-  }
-  alt={item.name}
-/>
+                            src={
+                              item.productId?.images?.[0]?.url ||
+                              (typeof item.productId?.images?.[0] === "string"
+                                ? item.productId.images[0]
+                                : "") ||
+                              item.image ||
+                              products.find(
+                                (product) => String(product.id) === String(item.productId?._id || item.id)
+                              )?.images?.[0] ||
+                              "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&q=80"
+                            }
+                            alt={item.name}
+                          />
 
                           <div className="order-product-info">
                             <h4>

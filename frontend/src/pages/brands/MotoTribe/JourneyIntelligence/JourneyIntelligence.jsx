@@ -180,13 +180,72 @@ function JourneyIntelligence() {
       document.head.appendChild(link);
     }
 
-    const initMap = () => {
+    const initMap = async () => {
       if (!window.L || !mapContainerRef.current) return;
 
-      const deviceLat = riderCoords?.lat || activeRide?.originLat || 12.9716;
-      const deviceLng = riderCoords?.lng || activeRide?.originLng || 77.5946;
-      const destLat = activeRide?.destLat;
-      const destLng = activeRide?.destLng;
+      const originStr = typeof activeRide?.origin === "object" ? activeRide.origin.name : activeRide?.origin || "";
+      const destStr = typeof activeRide?.destination === "object" ? activeRide.destination.name : activeRide?.destination || "";
+      const rideStops = Array.isArray(activeRide?.stops) ? activeRide.stops : [];
+
+      // Helper fast geocode function
+      const geocodeFast = async (placeQuery) => {
+        if (!placeQuery || typeof placeQuery !== "string") return null;
+        try {
+          const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(placeQuery)}&limit=1`);
+          if (res.ok) {
+            const data = await res.json();
+            const coords = data.features?.[0]?.geometry?.coordinates;
+            if (coords && Array.isArray(coords)) {
+              return { lat: coords[1], lng: coords[0] };
+            }
+          }
+        } catch {}
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(placeQuery)}&format=json&limit=1&countrycodes=in`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data?.[0]?.lat && data?.[0]?.lon) {
+              return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+            }
+          }
+        } catch {}
+        return null;
+      };
+
+      // Determine Origin Coord
+      let originCoord = null;
+      if (activeRide?.originLat && activeRide?.originLng) {
+        originCoord = { lat: activeRide.originLat, lng: activeRide.originLng };
+      } else if (originStr) {
+        originCoord = await geocodeFast(originStr);
+      }
+
+      // Fallback start location to rider device GPS or default Bengaluru
+      const startCoord = originCoord || {
+        lat: riderCoords?.lat || 12.9716,
+        lng: riderCoords?.lng || 77.5946,
+      };
+
+      // Determine Destination Coord
+      let destCoord = null;
+      if (activeRide?.destLat && activeRide?.destLng) {
+        destCoord = { lat: activeRide.destLat, lng: activeRide.destLng };
+      } else if (destStr) {
+        destCoord = await geocodeFast(destStr);
+      }
+
+      // Geocode intermediate stops
+      const stopCoordsList = [];
+      if (rideStops.length > 0) {
+        for (const stopName of rideStops) {
+          if (typeof stopName === "string" && stopName.trim()) {
+            const sc = await geocodeFast(stopName.trim());
+            if (sc) {
+              stopCoordsList.push({ ...sc, name: stopName.trim() });
+            }
+          }
+        }
+      }
 
       // Clean existing instance
       if (leafletInstanceRef.current) {
@@ -197,7 +256,7 @@ function JourneyIntelligence() {
       const map = window.L.map(mapContainerRef.current, {
         zoomControl: false,
         attributionControl: false,
-      }).setView([deviceLat, deviceLng], 12);
+      }).setView([startCoord.lat, startCoord.lng], 12);
 
       leafletInstanceRef.current = map;
 
@@ -219,6 +278,9 @@ function JourneyIntelligence() {
       }).addTo(map);
 
       // 🔵 Rider Device Location Marker
+      const riderLat = riderCoords?.lat || startCoord.lat;
+      const riderLng = riderCoords?.lng || startCoord.lng;
+
       const riderIconHtml = `
         <div style="position:relative; width:22px; height:22px;">
           <div style="position:absolute; inset:-8px; border-radius:50%; background:rgba(26,115,232,0.35); animation:ping 1.5s infinite;"></div>
@@ -233,17 +295,37 @@ function JourneyIntelligence() {
         iconAnchor: [11, 11],
       });
 
-      const riderMarker = window.L.marker([deviceLat, deviceLng], { icon: customRiderIcon }).addTo(map);
+      const riderMarker = window.L.marker([riderLat, riderLng], { icon: customRiderIcon }).addTo(map);
       riderMarker.bindPopup(`
         <div style="color:#111; font-family:sans-serif; font-size:12px; padding:4px;">
           <strong>📍 RIDER LIVE DEVICE GPS</strong><br/>
-          Latitude: ${deviceLat.toFixed(4)}°<br/>
-          Longitude: ${deviceLng.toFixed(4)}°
+          Latitude: ${riderLat.toFixed(4)}°<br/>
+          Longitude: ${riderLng.toFixed(4)}°
         </div>
       `);
 
-      // 🏁 Destination Marker & Real Turn Navigation
-      if (destLat && destLng) {
+      // 📍 Intermediate Stop Markers
+      stopCoordsList.forEach((stop, idx) => {
+        const stopIconHtml = `
+          <div style="width:20px; height:20px; border-radius:50%; background:#f59e0b; border:3px solid #ffffff; box-shadow:0 0 10px rgba(245,158,11,0.8); display:flex; align-items:center; justify-content:center; color:#000; font-size:10px; font-weight:bold;">${idx + 1}</div>
+        `;
+        const customStopIcon = window.L.divIcon({
+          html: stopIconHtml,
+          className: "custom-stop-pin",
+          iconSize: [20, 20],
+          iconAnchor: [10, 10],
+        });
+        const stopMarker = window.L.marker([stop.lat, stop.lng], { icon: customStopIcon }).addTo(map);
+        stopMarker.bindPopup(`
+          <div style="color:#111; font-family:sans-serif; font-size:12px; padding:4px;">
+            <strong>📍 STOP ${idx + 1}</strong><br/>
+            ${stop.name}
+          </div>
+        `);
+      });
+
+      // 🏁 Destination Marker
+      if (destCoord) {
         const destIconHtml = `
           <div style="width:20px; height:20px; border-radius:50%; background:#ea4335; border:3px solid #ffffff; box-shadow:0 0 12px rgba(234,67,53,0.8);"></div>
         `;
@@ -254,97 +336,103 @@ function JourneyIntelligence() {
           iconAnchor: [10, 10],
         });
 
-        const destMarker = window.L.marker([destLat, destLng], { icon: customDestIcon }).addTo(map);
-        const destName = typeof activeRide.destination === "object" ? activeRide.destination.name : activeRide.destination;
+        const destMarker = window.L.marker([destCoord.lat, destCoord.lng], { icon: customDestIcon }).addTo(map);
         destMarker.bindPopup(`
           <div style="color:#111; font-family:sans-serif; font-size:12px; padding:4px;">
             <strong>🏁 DESTINATION</strong><br/>
-            ${destName || "Ride Destination"}
+            ${destStr || "Ride Destination"}
           </div>
         `);
+      }
 
-        // Fetch OSRM Routing + Turn-by-Turn Maneuvers
-        const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${deviceLng},${deviceLat};${destLng},${destLat}?steps=true&overview=full&geometries=geojson`;
+      // Build Route Points: start -> stops... -> destination (or rider GPS -> stops... -> destination)
+      const endCoord = destCoord || (stopCoordsList.length > 0 ? stopCoordsList[stopCoordsList.length - 1] : null);
+      if (endCoord) {
+        const allWaypoints = [
+          { lat: riderLat, lng: riderLng },
+          ...stopCoordsList,
+          endCoord,
+        ];
 
-        fetch(osrmUrl)
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.routes && data.routes[0]) {
-              const routeObj = data.routes[0];
-              const geojsonCoords = routeObj.geometry.coordinates;
-              const latLngs = geojsonCoords.map((c) => [c[1], c[0]]);
+        const coordString = allWaypoints.map((c) => `${c.lng},${c.lat}`).join(";");
+        const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${coordString}?steps=true&overview=full&geometries=geojson`;
 
-              const roadPolyline = window.L.polyline(latLngs, {
-                color: "#1a73e8", // Google Maps Blue
-                weight: 6,
-                opacity: 0.9,
-              }).addTo(map);
+        try {
+          const res = await fetch(osrmUrl);
+          const data = await res.json();
+          if (data.routes && data.routes[0]) {
+            const routeObj = data.routes[0];
+            const geojsonCoords = routeObj.geometry.coordinates;
+            const latLngs = geojsonCoords.map((c) => [c[1], c[0]]);
 
-              map.fitBounds(roadPolyline.getBounds(), { padding: [50, 50] });
-
-              // Extract Real Step-by-Step Turn Maneuvers
-              if (routeObj.legs?.[0]?.steps) {
-                const parsedSteps = routeObj.legs[0].steps
-                  .filter((s) => s.distance > 30)
-                  .map((step) => {
-                    const type = step.maneuver?.type || "turn";
-                    const modifier = step.maneuver?.modifier || "";
-                    const street = step.name ? ` onto ${step.name}` : "";
-
-                    let icon = "⬆️";
-                    let title = `Continue straight${street}`;
-
-                    if (modifier.includes("left")) {
-                      icon = "↖️";
-                      title = `Turn left${street}`;
-                    } else if (modifier.includes("right")) {
-                      icon = "↗️";
-                      title = `Turn right${street}`;
-                    } else if (type === "depart") {
-                      icon = "📍";
-                      title = `Head out${street}`;
-                    } else if (type === "arrive") {
-                      icon = "🏁";
-                      title = "Arrive at destination";
-                    } else if (type === "roundabout" || type === "rotary") {
-                      icon = "🔄";
-                      title = `Take roundabout exit${street}`;
-                    }
-
-                    const distText =
-                      step.distance >= 1000
-                        ? `${(step.distance / 1000).toFixed(1)} km`
-                        : `${Math.round(step.distance)} m`;
-                    const durMin = Math.max(1, Math.round(step.duration / 60));
-
-                    return {
-                      icon,
-                      title,
-                      detail: `${distText} • ~${durMin} min`,
-                    };
-                  });
-
-                setLiveSteps(parsedSteps);
-              }
-            } else {
-              const polyline = window.L.polyline([[deviceLat, deviceLng], [destLat, destLng]], {
-                color: "#1a73e8",
-                weight: 5,
-                opacity: 0.85,
-                dashArray: "8, 8",
-              }).addTo(map);
-              map.fitBounds(polyline.getBounds(), { padding: [50, 50] });
-            }
-          })
-          .catch(() => {
-            const polyline = window.L.polyline([[deviceLat, deviceLng], [destLat, destLng]], {
+            const roadPolyline = window.L.polyline(latLngs, {
               color: "#1a73e8",
-              weight: 5,
-              opacity: 0.85,
-              dashArray: "8, 8",
+              weight: 6,
+              opacity: 0.9,
             }).addTo(map);
-            map.fitBounds(polyline.getBounds(), { padding: [50, 50] });
-          });
+
+            map.fitBounds(roadPolyline.getBounds(), { padding: [50, 50] });
+            setRouteStatus("success");
+
+            // Extract Step Maneuvers across all legs
+            const allSteps = [];
+            if (Array.isArray(routeObj.legs)) {
+              routeObj.legs.forEach((leg, legIdx) => {
+                if (leg.steps) {
+                  leg.steps.forEach((step) => {
+                    if (step.distance > 30) {
+                      const type = step.maneuver?.type || "turn";
+                      const modifier = step.maneuver?.modifier || "";
+                      const street = step.name ? ` onto ${step.name}` : "";
+
+                      let icon = "⬆️";
+                      let title = `Continue straight${street}`;
+                      if (modifier.includes("left")) {
+                        icon = "↖️";
+                        title = `Turn left${street}`;
+                      } else if (modifier.includes("right")) {
+                        icon = "↗️";
+                        title = `Turn right${street}`;
+                      } else if (type === "depart") {
+                        icon = legIdx === 0 ? "📍" : "🏁";
+                        title = legIdx === 0 ? `Head out${street}` : `Depart stop ${legIdx}`;
+                      } else if (type === "arrive") {
+                        icon = "🏁";
+                        title = legIdx === routeObj.legs.length - 1 ? "Arrive at destination" : `Arrive at stop ${legIdx + 1}`;
+                      }
+
+                      const distText =
+                        step.distance >= 1000
+                          ? `${(step.distance / 1000).toFixed(1)} km`
+                          : `${Math.round(step.distance)} m`;
+                      const durMin = Math.max(1, Math.round(step.duration / 60));
+
+                      allSteps.push({
+                        icon,
+                        title,
+                        detail: `${distText} • ~${durMin} min`,
+                      });
+                    }
+                  });
+                }
+              });
+            }
+            setLiveSteps(allSteps);
+          } else {
+            throw new Error("No OSRM route found");
+          }
+        } catch {
+          // Fallback straight-line polyline connecting all waypoints
+          const straightPoints = allWaypoints.map((c) => [c.lat, c.lng]);
+          const polyline = window.L.polyline(straightPoints, {
+            color: "#1a73e8",
+            weight: 5,
+            opacity: 0.85,
+            dashArray: "8, 8",
+          }).addTo(map);
+          map.fitBounds(polyline.getBounds(), { padding: [50, 50] });
+          setRouteStatus("success");
+        }
       }
     };
 

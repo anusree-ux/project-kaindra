@@ -29,6 +29,7 @@ import ProductDetails from "./pages/ProductDetails";
 import Cart from "./pages/Cart";
 import Wishlist from "./pages/Wishlist";
 import Checkout from "./pages/Checkout";
+import OrderConfirmation from "./pages/OrderConfirmation";
 import Orders from "./pages/Orders";
 import ModaDrop from "./pages/ModaDrop";
 import DropDetails from "./pages/DropDetails";
@@ -240,6 +241,33 @@ function App() {
             element={
               <PublicLayout>
                 <Checkout />
+              </PublicLayout>
+            }
+          />
+
+          <Route
+            path="/checkout"
+            element={
+              <PublicLayout>
+                <Checkout />
+              </PublicLayout>
+            }
+          />
+
+          <Route
+            path="/order-confirmation/:orderId"
+            element={
+              <PublicLayout>
+                <OrderConfirmation />
+              </PublicLayout>
+            }
+          />
+
+          <Route
+            path="/businesses/modamart/order-confirmation/:orderId"
+            element={
+              <PublicLayout>
+                <OrderConfirmation />
               </PublicLayout>
             }
           />

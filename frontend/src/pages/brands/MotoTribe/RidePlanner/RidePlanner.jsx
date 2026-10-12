@@ -1534,9 +1534,12 @@ function RidePlanner() {
                     2500
                   );
 
+                const hasStops = allCoordinates.length > 2;
+                const osrmQuery = hasStops ? "overview=full&geometries=geojson" : "alternatives=true&overview=full&geometries=geojson";
+
                 const osrmResponse =
                   await fetch(
-                    `https://router.project-osrm.org/route/v1/driving/${coordinateString}?alternatives=true&overview=false`,
+                    `https://router.project-osrm.org/route/v1/driving/${coordinateString}?${osrmQuery}`,
                     {
                       signal:
                         controller.signal,
@@ -2709,6 +2712,13 @@ function RidePlanner() {
 
               destination:
                 destination.trim(),
+
+              stops: stops.filter(
+                (s) =>
+                  typeof s ===
+                    "string" &&
+                  s.trim()
+              ),
 
               startDate:
                 futureDate,
