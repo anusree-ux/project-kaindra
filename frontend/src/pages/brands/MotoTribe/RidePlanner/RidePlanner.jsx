@@ -2458,27 +2458,69 @@ function RidePlanner() {
 
   /*
    * ---------------------------------------------------------
-   * RIDERS
+   * RIDERS & INVITATIONS
    * ---------------------------------------------------------
    */
 
-  const toggleRider = (
-    riderId
-  ) => {
-    setSelectedRiders(
-      (previous) =>
-        previous.includes(
-          riderId
-        )
-          ? previous.filter(
-              (id) =>
-                id !== riderId
-            )
-          : [
-              ...previous,
-              riderId,
-            ]
-    );
+  const maxInvitations = useMemo(
+    () => Math.max(0, (Number(riders) || 1) - 1),
+    [riders]
+  );
+
+  const handleRidersChange = (event) => {
+    const val = event.target.value;
+    if (val === "") {
+      setRiders("");
+      return;
+    }
+    const sanitized = val.replace(/[^0-9]/g, "");
+    if (!sanitized) return;
+    const num = parseInt(sanitized, 10);
+    if (num >= 1) {
+      setRiders(num);
+    }
+  };
+
+  const handleRidersBlur = () => {
+    if (!riders || Number(riders) < 1) {
+      setRiders(1);
+    }
+  };
+
+  const handleRidersKeyDown = (event) => {
+    if (["-", "+", "e", "E", "."].includes(event.key)) {
+      event.preventDefault();
+    }
+  };
+
+  const handleRidersStep = (delta) => {
+    const current = Number(riders) || 1;
+    const next = Math.max(1, current + delta);
+    setRiders(next);
+  };
+
+  useEffect(() => {
+    const num = Number(riders) || 1;
+    const limit = Math.max(0, num - 1);
+    setSelectedRiders((previous) => {
+      if (num <= 1) return [];
+      if (previous.length > limit) {
+        return previous.slice(0, limit);
+      }
+      return previous;
+    });
+  }, [riders]);
+
+  const toggleRider = (riderId) => {
+    setSelectedRiders((previous) => {
+      if (previous.includes(riderId)) {
+        return previous.filter((id) => id !== riderId);
+      }
+      if (previous.length >= maxInvitations) {
+        return previous;
+      }
+      return [...previous, riderId];
+    });
   };
 
   /*
@@ -2740,7 +2782,15 @@ function RidePlanner() {
               durationDays: 1,
 
               invitedRiderIds:
-                selectedRiders,
+                Number(riders) <= 1
+                  ? []
+                  : selectedRiders.slice(
+                      0,
+                      Math.max(
+                        0,
+                        Number(riders) - 1
+                      )
+                    ),
             }
           );
 
@@ -3345,43 +3395,46 @@ function RidePlanner() {
                       RIDERS
                     </span>
 
-                    <div className="number-control">
+                    <div className="riders-input-control">
                       <button
                         type="button"
+                        className="riders-step-btn"
                         onClick={() =>
-                          setRiders(
-                            (
-                              previous
-                            ) =>
-                              Math.max(
-                                1,
-                                previous -
-                                  1
-                              )
-                          )
+                          handleRidersStep(-1)
                         }
+                        disabled={
+                          Number(riders) <= 1
+                        }
+                        aria-label="Decrease riders"
                       >
                         −
                       </button>
 
-                      <strong>
-                        {riders}
-                      </strong>
+                      <input
+                        type="number"
+                        min="1"
+                        step="1"
+                        value={riders}
+                        onChange={
+                          handleRidersChange
+                        }
+                        onKeyDown={
+                          handleRidersKeyDown
+                        }
+                        onBlur={
+                          handleRidersBlur
+                        }
+                        placeholder="1"
+                        aria-label="Number of riders"
+                      />
 
                       <button
                         type="button"
+                        className="riders-step-btn"
                         onClick={() =>
-                          setRiders(
-                            (
-                              previous
-                            ) =>
-                              Math.min(
-                                20,
-                                previous +
-                                  1
-                              )
-                          )
+                          handleRidersStep(1)
                         }
+                        aria-label="Increase riders"
                       >
                         +
                       </button>
@@ -3516,120 +3569,94 @@ function RidePlanner() {
                   </label>
                 </div>
 
-                <div className="invite-riders">
-                  <div className="invite-riders-heading">
-                    <div>
-                      <span>
-                        CONNECT BEFORE
-                        YOU RIDE
-                      </span>
+                {Number(riders) > 1 && (
+                  <div className="invite-riders">
+                    <div className="invite-riders-heading">
+                      <div>
+                        <span>
+                          CONNECT BEFORE
+                          YOU RIDE
+                        </span>
 
-                      <strong>
-                        INVITE RIDERS
-                      </strong>
+                        <strong>
+                          INVITE RIDERS
+                        </strong>
+                      </div>
+
+                      <small>
+                        {selectedRiders.length} / {maxInvitations} SELECTED
+                        {maxInvitations === 1
+                          ? " (MAX 1)"
+                          : ` (MAX ${maxInvitations})`}
+                      </small>
                     </div>
 
-                    <small>
-                      {
-                        selectedRiders.length
-                      }{" "}
-                      SELECTED
-                    </small>
-                  </div>
-
-                  <div className="invite-rider-list">
-                    {dbRiders.length >
-                    0 ? (
-                      dbRiders.map(
-                        (
-                          rider
-                        ) => (
-                          <button
-                            type="button"
-                            key={
-                              rider.id
-                            }
-                            className={`invite-rider ${
-                              selectedRiders.includes(
-                                rider.id
-                              )
-                                ? "selected"
-                                : ""
-                            }`}
-                            onClick={() =>
-                              toggleRider(
-                                rider.id
-                              )
-                            }
-                          >
-                            <span className="invite-avatar">
-                              {rider.name
-                                .slice(
-                                  0,
-                                  2
-                                )
-                                .toUpperCase()}
-                            </span>
-
-                            <div>
-                              <strong>
-                                {
-                                  rider.name
-                                }
-                              </strong>
-
-                              <small>
-                                {
-                                  rider.bike
-                                }{" "}
-                                •{" "}
-                                {
-                                  rider.experience
-                                }
-                              </small>
-                            </div>
-
-                            <i>
-                              {selectedRiders.includes(
-                                rider.id
-                              )
-                                ? "✓"
-                                : "+"}
-                            </i>
-                          </button>
-                        )
-                      )
-                    ) : (
-                      <div
-                        style={{
-                          padding:
-                            "16px",
-                          background:
-                            "rgba(255, 255, 255, 0.03)",
-                          border:
-                            "1px dashed rgba(255, 255, 255, 0.15)",
-                          borderRadius:
-                            "6px",
-                          color:
-                            "rgba(255, 255, 255, 0.6)",
-                          fontSize:
-                            "12px",
-                          textAlign:
-                            "center",
-                          letterSpacing:
-                            "0.5px",
-                        }}
-                      >
-                        No discoverable
-                        riders found in
-                        database. Discover
-                        riders in MotoTribe
-                        Connect to build
-                        your network!
+                    {selectedRiders.length >= maxInvitations && (
+                      <div className="invite-limit-note">
+                        Group capacity reached ({selectedRiders.length}/{maxInvitations} invited for a party of {riders}).
                       </div>
                     )}
+
+                    <div className="invite-rider-list">
+                      {dbRiders.length > 0 ? (
+                        dbRiders.map((rider) => {
+                          const isSelected = selectedRiders.includes(rider.id);
+                          const isLimitReached =
+                            !isSelected &&
+                            selectedRiders.length >= maxInvitations;
+
+                          return (
+                            <button
+                              type="button"
+                              key={rider.id}
+                              className={`invite-rider ${
+                                isSelected ? "selected" : ""
+                              } ${
+                                isLimitReached ? "limit-reached" : ""
+                              }`}
+                              onClick={() => toggleRider(rider.id)}
+                              title={
+                                isLimitReached
+                                  ? `Maximum ${maxInvitations} rider${
+                                      maxInvitations > 1 ? "s" : ""
+                                    } already selected`
+                                  : ""
+                              }
+                            >
+                              <span className="invite-avatar">
+                                {rider.name.slice(0, 2).toUpperCase()}
+                              </span>
+
+                              <div>
+                                <strong>{rider.name}</strong>
+                                <small>
+                                  {rider.bike} • {rider.experience}
+                                </small>
+                              </div>
+
+                              <i>{isSelected ? "✓" : "+"}</i>
+                            </button>
+                          );
+                        })
+                      ) : (
+                        <div
+                          style={{
+                            padding: "16px",
+                            background: "rgba(255, 255, 255, 0.03)",
+                            border: "1px dashed rgba(255, 255, 255, 0.15)",
+                            borderRadius: "6px",
+                            color: "rgba(255, 255, 255, 0.6)",
+                            fontSize: "12px",
+                            textAlign: "center",
+                            letterSpacing: "0.5px",
+                          }}
+                        >
+                          No discoverable riders found in database. Discover riders in MotoTribe Connect to build your network!
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
               <aside className="route-analysis">

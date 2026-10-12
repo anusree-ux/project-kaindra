@@ -1,23 +1,55 @@
 import { useState, useEffect, useCallback } from "react";
+import { useAuth } from "../../../../context/AuthContext";
 import apiClient from "../../../../services/apiClient";
 import "./TrustedTribe.css";
 
 function TrustedTribe() {
+  const { user, isAuthenticated } = useAuth();
   const [activeFilter, setActiveFilter] = useState("ALL");
   const [selectedRider, setSelectedRider] = useState(0);
   const [following, setFollowing] = useState([]);
   const [riders, setRiders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [connectedList, setConnectedList] = useState({ ids: [], names: [] });
 
-  // Fetch live riders from backend
+  // Fetch live riders and user connections from backend
   const fetchRiders = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await apiClient.get(
-        "/api/mototribe/riders-nearby?lat=12.9716&lng=77.5946&radius=1000000&filter=all"
-      );
-      const rawList = res.data.data?.riders || [];
-      const formatted = rawList.map((r) => {
+      const [ridersRes, connRes] = await Promise.allSettled([
+        apiClient.get(
+          "/api/mototribe/riders-nearby?lat=12.9716&lng=77.5946&radius=1000000&filter=all"
+        ),
+        apiClient.get("/api/core/connections"),
+      ]);
+
+      if (connRes.status === "fulfilled" && connRes.value.data?.data) {
+        const conns = connRes.value.data.data.connections || [];
+        const ids = [];
+        const names = [];
+        conns.forEach((c) => {
+          const partner = c.otherUser || c.user || c.toUserId || c.fromUserId;
+          if (partner && typeof partner === "object") {
+            const uid = String(partner._id || partner.id || "");
+            if (uid) ids.push(uid);
+            if (partner.name) names.push(partner.name.toLowerCase().trim());
+          } else if (typeof partner === "string") {
+            ids.push(partner);
+          }
+        });
+        setConnectedList({ ids, names });
+      }
+
+      const rawList =
+        ridersRes.status === "fulfilled" && ridersRes.value.data?.data?.riders
+          ? ridersRes.value.data.data.riders
+          : [];
+
+      const filteredList = user?._id
+        ? rawList.filter((r) => String(r.userId || r._id) !== String(user._id))
+        : rawList;
+
+      const formatted = filteredList.map((r) => {
         const riderName = r.name || "Rider";
         const initials = riderName
           .split(" ")
@@ -33,7 +65,7 @@ function TrustedTribe() {
         else if (r.totalRidesCompleted > 3) expLabel = "INTERMEDIATE";
 
         return {
-          id: r.userId,
+          id: String(r.userId || r._id || ""),
           name: riderName.toUpperCase(),
           tag: `@${riderName.toLowerCase().replace(/\s+/g, "")}`,
           level: expLabel.toUpperCase(),
@@ -56,11 +88,33 @@ function TrustedTribe() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user?._id]);
 
   useEffect(() => {
     fetchRiders();
-  }, [fetchRiders]);
+  }, [fetchRiders, isAuthenticated]);
+
+  const isRiderConnected = useCallback(
+    (rider) => {
+      if (!rider) return false;
+      const rId = String(rider.id || "");
+      const rName = (rider.name || "").toLowerCase().trim();
+      const rTag = (rider.tag || "").toLowerCase().replace(/[@\s]/g, "");
+
+      if (rId && connectedList.ids.includes(rId)) return true;
+      if (rName && connectedList.names.includes(rName)) return true;
+      if (
+        rTag &&
+        connectedList.names.some(
+          (n) => n.replace(/\s+/g, "") === rTag
+        )
+      ) {
+        return true;
+      }
+      return false;
+    },
+    [connectedList]
+  );
 
   const filters = ["ALL", "NEARBY", "TOP RIDERS", "FOLLOWING"];
 
@@ -69,7 +123,7 @@ function TrustedTribe() {
     if (activeFilter === "NEARBY") return rider.category === "NEARBY";
     if (activeFilter === "TOP RIDERS") return rider.category === "TOP RIDER";
     if (activeFilter === "FOLLOWING") {
-      return following.includes(rider.tag);
+      return following.includes(rider.tag) || isRiderConnected(rider);
     }
     return true;
   });
@@ -77,6 +131,10 @@ function TrustedTribe() {
   const currentRider = riders[selectedRider] || riders[0] || null;
 
   const toggleFollow = (tag) => {
+    const targetRider = riders.find((r) => r.tag === tag);
+    if (isRiderConnected(targetRider)) {
+      return;
+    }
     setFollowing((previous) =>
       previous.includes(tag)
         ? previous.filter((item) => item !== tag)
@@ -149,6 +207,7 @@ function TrustedTribe() {
                   (item) => item.tag === rider.tag
                 );
 
+                const isConn = isRiderConnected(rider);
                 const isFollowing = following.includes(rider.tag);
 
                 return (
@@ -190,12 +249,15 @@ function TrustedTribe() {
 
                     <span
                       className={
-                        isFollowing
+                        isConn
+                          ? "follow-indicator connected"
+                          : isFollowing
                           ? "follow-indicator following"
                           : "follow-indicator"
                       }
+                      title={isConn ? "Connected Rider" : isFollowing ? "Following" : "Follow"}
                     >
-                      {isFollowing ? "✓" : "+"}
+                      {isConn || isFollowing ? "✓" : "+"}
                     </span>
                   </button>
                 );
@@ -273,20 +335,32 @@ function TrustedTribe() {
               </div>
 
               <div className="profile-actions">
-                <button
-                  className={
-                    following.includes(currentRider.tag)
-                      ? "profile-follow following"
-                      : "profile-follow"
-                  }
-                  onClick={() => toggleFollow(currentRider.tag)}
-                >
-                  {following.includes(currentRider.tag)
-                    ? "FOLLOWING ✓"
-                    : "FOLLOW RIDER +"}
-                </button>
+                {isRiderConnected(currentRider) ? (
+                  <button
+                    type="button"
+                    className="profile-connected"
+                    disabled
+                  >
+                    CONNECTED ✓
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className={
+                      following.includes(currentRider.tag)
+                        ? "profile-follow following"
+                        : "profile-follow"
+                    }
+                    onClick={() => toggleFollow(currentRider.tag)}
+                  >
+                    {following.includes(currentRider.tag)
+                      ? "FOLLOWING ✓"
+                      : "FOLLOW RIDER +"}
+                  </button>
+                )}
 
                 <button
+                  type="button"
                   className="profile-invite"
                   onClick={() =>
                     alert(
