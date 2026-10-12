@@ -4,7 +4,11 @@ const Cart = require("../../models/modasphere/Cart");
 const Product = require("../../models/modasphere/Product");
 const Drop = require("../../models/modasphere/Drop");
 const DiscountCode = require("../../models/modasphere/DiscountCode");
-const { getUserPurchaseCountInDrop } = require("../../services/modasphere/dropService");
+const {
+  getDropStatusAt,
+  getUserPurchaseCountInDrop,
+  isDropLiveAt,
+} = require("../../services/modasphere/dropService");
 const {
   createRazorpayOrder,
   verifyPaymentSignature,
@@ -48,43 +52,82 @@ const checkout = async (req, res, next) => {
       );
     }
 
-    // 1. Validate ModaDrop restrictions (drop status and maxPerUser limit)
-    const cartProductIds = cart.items.map((i) => (i.productId && i.productId._id) ? i.productId._id : i.productId);
-    const relevantDrops = await Drop.find({ productIds: { $in: cartProductIds } });
+    // Event dates, not product-level release dates or cached status, control availability.
+    const now = new Date();
+    const cartProductIds = cart.items
+      .filter((item) => item.productId && item.productId._id)
+      .map((item) => item.productId._id);
+    const relevantDrops = await Drop.find({
+      productIds: { $in: cartProductIds },
+    });
+    const dropsByProductId = new Map();
+    for (const drop of relevantDrops) {
+      for (const productId of drop.productIds) {
+        const key = productId.toString();
+        const productDrops = dropsByProductId.get(key) || [];
+        productDrops.push(drop);
+        dropsByProductId.set(key, productDrops);
+      }
+    }
 
-    if (relevantDrops.length > 0) {
-      for (const drop of relevantDrops) {
-        if (drop.status !== "live") {
-          return next(
-            new AppError(
-              `Cannot purchase items from drop "${drop.title}" because the drop is currently "${drop.status}". Purchases are only permitted during live drops.`,
-              400
-            )
-          );
-        }
+    const dropByProductId = new Map();
+    const quantityByDropId = new Map();
+    for (const item of cart.items) {
+      const product = item.productId;
+      if (!product || !product._id) {
+        continue;
+      }
 
-        const dropProductIds = drop.productIds.map((id) => id.toString());
-        let currentDropOrderQty = 0;
-        for (const item of cart.items) {
-          const pId = (item.productId && item.productId._id ? item.productId._id : item.productId).toString();
-          if (dropProductIds.includes(pId)) {
-            currentDropOrderQty += item.quantity;
-          }
-        }
+      const productDrops = dropsByProductId.get(product._id.toString()) || [];
+      const liveDrops = productDrops.filter((drop) => isDropLiveAt(drop, now));
+      const scheduledDrops = productDrops.filter(
+        (drop) => getDropStatusAt(drop, now) !== "ended"
+      );
 
-        const existingPurchasedCount = await getUserPurchaseCountInDrop(
-          req.user._id,
-          drop._id
+      if (!product.isDrop && scheduledDrops.length === 0) {
+        continue;
+      }
+
+      if (liveDrops.length !== 1) {
+        const status = liveDrops.length > 1
+          ? "assigned to multiple live ModaDrop events"
+          : productDrops.length === 0
+            ? "not assigned to a scheduled ModaDrop event"
+            : `currently "${getDropStatusAt(scheduledDrops[0] || productDrops[0], now)}"`;
+        return next(
+          new AppError(
+            `Cannot purchase "${product.name}" because its ModaDrop event is ${status}.`,
+            400
+          )
         );
+      }
 
-        if (existingPurchasedCount + currentDropOrderQty > drop.maxPerUser) {
-          return next(
-            new AppError(
-              `Purchase limit exceeded for drop "${drop.title}". Limit is ${drop.maxPerUser} per customer. You have already purchased ${existingPurchasedCount} and are attempting to checkout ${currentDropOrderQty}.`,
-              400
-            )
-          );
-        }
+      const drop = liveDrops[0];
+      dropByProductId.set(product._id.toString(), drop);
+      const dropKey = drop._id.toString();
+      quantityByDropId.set(
+        dropKey,
+        (quantityByDropId.get(dropKey) || 0) + item.quantity
+      );
+    }
+
+    for (const drop of relevantDrops) {
+      const currentDropOrderQty = quantityByDropId.get(drop._id.toString());
+      if (!currentDropOrderQty) {
+        continue;
+      }
+
+      const existingPurchasedCount = await getUserPurchaseCountInDrop(
+        req.user._id,
+        drop._id
+      );
+      if (existingPurchasedCount + currentDropOrderQty > drop.maxPerUser) {
+        return next(
+          new AppError(
+            `Purchase limit exceeded for drop "${drop.title}". Limit is ${drop.maxPerUser} per customer. You have already purchased ${existingPurchasedCount} and are attempting to checkout ${currentDropOrderQty}.`,
+            400
+          )
+        );
       }
     }
 
@@ -104,28 +147,8 @@ const checkout = async (req, res, next) => {
         );
       }
 
-      // ModaDrop validation
-      if (product.isDrop) {
-        if (!product.dropReleaseAt) {
-          return next(
-            new AppError(
-              `Drop "${product.name}" does not have a release date configured.`,
-              400
-            )
-          );
-        }
-
-        if (new Date() < new Date(product.dropReleaseAt)) {
-          return next(
-            new AppError(
-              `Drop "${product.name}" has not been released yet. It will be available on ${new Date(
-                product.dropReleaseAt
-              ).toISOString()}.`,
-              400
-            )
-          );
-        }
-
+      const associatedDrop = dropByProductId.get(product._id.toString());
+      if (associatedDrop) {
         if (
           product.dropStock === null ||
           product.dropStock === undefined ||
@@ -168,6 +191,8 @@ const checkout = async (req, res, next) => {
         name: product.name,
         price: itemPrice,
         quantity: item.quantity,
+        dropId: associatedDrop?._id || null,
+        isDrop: Boolean(associatedDrop),
       });
     }
 
@@ -364,11 +389,12 @@ const verifyPayment = async (req, res, next) => {
           );
         }
 
-        if (product.isDrop) {
+        const usesDropStock =
+          item.isDrop === undefined ? product.isDrop : item.isDrop;
+        if (usesDropStock) {
           const updatedProduct = await Product.findOneAndUpdate(
             {
               _id: item.productId,
-              isDrop: true,
               dropStock: { $gte: item.quantity },
             },
             {
@@ -393,7 +419,6 @@ const verifyPayment = async (req, res, next) => {
           const updatedProduct = await Product.findOneAndUpdate(
             {
               _id: item.productId,
-              isDrop: false,
               stock: { $gte: item.quantity },
             },
             {
@@ -720,7 +745,9 @@ const cancelOrder = async (req, res, next) => {
           continue;
         }
 
-        if (product.isDrop) {
+        const usesDropStock =
+          item.isDrop === undefined ? product.isDrop : item.isDrop;
+        if (usesDropStock) {
           await Product.findByIdAndUpdate(item.productId, {
             $inc: { dropStock: item.quantity },
           });

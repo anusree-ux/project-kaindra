@@ -12,6 +12,14 @@ const orderItemSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    dropId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Drop",
+      default: null,
+    },
+    isDrop: {
+      type: Boolean,
+    },
     name: {
       type: String,
       required: true,
