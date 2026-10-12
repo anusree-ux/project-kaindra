@@ -395,10 +395,12 @@ function RiderConnect() {
                   : "CONNECT"}
               </button>
               <button type="button" className="modal-secondary-button" onClick={() => openDirectMessage(selectedRider)}>MESSAGE</button>
-              <button type="button"
-                className={`modal-follow-button ${following.includes(selectedRider.id) ? "active" : ""}`}
-                onClick={() => toggleFollow(selectedRider.id)}
-              >{following.includes(selectedRider.id) ? "FOLLOWING" : "FOLLOW"}</button>
+              {getConnectionStatus(selectedRider.id) !== "CONNECTED" && (
+                <button type="button"
+                  className={`modal-follow-button ${following.includes(selectedRider.id) ? "active" : ""}`}
+                  onClick={() => toggleFollow(selectedRider.id)}
+                >{following.includes(selectedRider.id) ? "FOLLOWING" : "FOLLOW"}</button>
+              )}
             </div>
           </div>
         </div>

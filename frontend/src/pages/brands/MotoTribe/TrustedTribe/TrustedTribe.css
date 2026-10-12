@@ -227,6 +227,10 @@
   color: #d6a84f;
 }
 
+.follow-indicator.connected {
+  color: #75c987;
+}
+
 .rider-profile {
   position: relative;
   background: #090909;
@@ -348,13 +352,31 @@
 }
 
 .profile-follow,
-.profile-invite {
+.profile-invite,
+.profile-connected {
   flex: 1;
   padding: 14px;
-  cursor: pointer;
   font-size: 13px;
   letter-spacing: 1.5px;
   transition: 0.25s ease;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.profile-follow,
+.profile-invite {
+  cursor: pointer;
+}
+
+.profile-connected {
+  background: rgba(117, 201, 135, 0.08);
+  color: #75c987;
+  border: 1px solid rgba(117, 201, 135, 0.35);
+  cursor: default;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
 }
 
 .profile-follow {
