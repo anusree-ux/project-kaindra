@@ -1,6 +1,16 @@
 const Notification = require("../../models/core/Notification");
 const AppError = require("../../utils/AppError");
 
+const NOTIFICATION_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
+/**
+ * Delete all notifications older than 24 hours from the database
+ */
+const deleteExpiredNotifications = async () => {
+  const cutoff = new Date(Date.now() - NOTIFICATION_TTL_MS);
+  return await Notification.deleteMany({ createdAt: { $lt: cutoff } });
+};
+
 /**
  * Create a new notification
  */
@@ -29,10 +39,19 @@ const createNotification = async ({
 };
 
 /**
- * Get notifications for a user with unread count
+ * Get notifications for a user with unread count (only within the last 24 hours)
  */
 const getUserNotifications = async (userId, { brand, limit = 40 } = {}) => {
-  const query = { userId };
+  const cutoff = new Date(Date.now() - NOTIFICATION_TTL_MS);
+
+  // Proactively delete any notifications older than 24 hours from the database
+  await Notification.deleteMany({ createdAt: { $lt: cutoff } });
+
+  const query = {
+    userId,
+    createdAt: { $gte: cutoff },
+  };
+
   if (brand && brand !== "all") {
     query.brand = { $in: [brand, "core"] };
   }
@@ -42,7 +61,11 @@ const getUserNotifications = async (userId, { brand, limit = 40 } = {}) => {
       .populate("senderId", "name email role")
       .sort({ createdAt: -1 })
       .limit(Number(limit)),
-    Notification.countDocuments({ userId, isRead: false }),
+    Notification.countDocuments({
+      userId,
+      isRead: false,
+      createdAt: { $gte: cutoff },
+    }),
   ]);
 
   return { notifications, unreadCount };
@@ -52,9 +75,11 @@ const getUserNotifications = async (userId, { brand, limit = 40 } = {}) => {
  * Mark a single notification as read
  */
 const markAsRead = async (notificationId, userId) => {
+  const cutoff = new Date(Date.now() - NOTIFICATION_TTL_MS);
   const notification = await Notification.findOne({
     _id: notificationId,
     userId,
+    createdAt: { $gte: cutoff },
   });
 
   if (!notification) {
@@ -69,10 +94,11 @@ const markAsRead = async (notificationId, userId) => {
 };
 
 /**
- * Mark all notifications as read for a user
+ * Mark all notifications as read for a user (only within 24 hours)
  */
 const markAllAsRead = async (userId, brand) => {
-  const query = { userId, isRead: false };
+  const cutoff = new Date(Date.now() - NOTIFICATION_TTL_MS);
+  const query = { userId, isRead: false, createdAt: { $gte: cutoff } };
   if (brand && brand !== "all") {
     query.brand = { $in: [brand, "core"] };
   }
@@ -101,6 +127,8 @@ const deleteNotification = async (notificationId, userId) => {
 };
 
 module.exports = {
+  NOTIFICATION_TTL_MS,
+  deleteExpiredNotifications,
   createNotification,
   getUserNotifications,
   markAsRead,

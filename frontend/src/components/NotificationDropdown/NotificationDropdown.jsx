@@ -61,6 +61,10 @@ export default function NotificationDropdown({ brand = "mototribe" }) {
   };
 
   const filteredNotifications = notifications.filter((n) => {
+    if (n.createdAt) {
+      const ageMs = Date.now() - new Date(n.createdAt).getTime();
+      if (ageMs > 24 * 60 * 60 * 1000) return false;
+    }
     if (filter === "UNREAD") return !n.isRead;
     if (filter === "REQUESTS") return n.type === "CONNECTION_REQUEST";
     return true;

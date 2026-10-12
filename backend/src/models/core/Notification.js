@@ -62,4 +62,7 @@ const notificationSchema = new mongoose.Schema(
 // Index for efficient chronological polling per user
 notificationSchema.index({ userId: 1, createdAt: -1 });
 
+// TTL index: Automatically expire and delete notifications in MongoDB after 24 hours (86400 seconds)
+notificationSchema.index({ createdAt: 1 }, { expireAfterSeconds: 24 * 60 * 60 });
+
 module.exports = mongoose.model("Notification", notificationSchema);
