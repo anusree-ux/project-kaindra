@@ -42,9 +42,6 @@ services:
     env_file:
       - ../.env
 
-    environment:
-      DATABASE_URL: mongodb://mongodb:27017/kaindra
-
     depends_on:
       mongodb:
         condition: service_healthy
