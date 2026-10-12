@@ -22,6 +22,40 @@ function AdminAcademy() {
   const [loadingEnrollments, setLoadingEnrollments] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedEnrollment, setSelectedEnrollment] = useState(null);
+  const [courses, setCourses] = useState([]);
+  const [loadingCourses, setLoadingCourses] = useState(false);
+
+  useEffect(() => {
+    const loadCourses = async () => {
+      try {
+        setLoadingCourses(true);
+
+        const response = await fetch(
+          "/api/modasphere/academy/courses"
+        );
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          throw new Error(
+            result.message || "Failed to load courses"
+          );
+        }
+
+        setCourses(result.courses || []);
+      } catch (error) {
+        console.error(
+          "Failed to load ModaAcademy courses:",
+          error
+        );
+        setCourses([]);
+      } finally {
+        setLoadingCourses(false);
+      }
+    };
+
+    loadCourses();
+  }, []);
 
   /* =========================================
      LOAD ENROLLMENTS
@@ -177,11 +211,8 @@ function AdminAcademy() {
       Number(enrollment.progress) >= 100
   ).length;
 
-  const uniqueCourses = new Set(
-    enrollments.map(
-      (enrollment) => enrollment.courseId
-    )
-  ).size;
+  const totalCourses = courses.length;
+
 
   /* =========================================
      DATE FORMATTER
@@ -287,7 +318,7 @@ function AdminAcademy() {
               <span>Courses</span>
 
               <strong>
-                {uniqueCourses}
+                {totalCourses}
               </strong>
             </div>
           </div>

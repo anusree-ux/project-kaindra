@@ -43,6 +43,22 @@ const productSchema = new mongoose.Schema(
       default: 0,
       min: [0, "Stock cannot be negative"],
     },
+    isDrop: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+
+    dropReleaseAt: {
+      type: Date,
+      default: null,
+    },
+
+    dropStock: {
+      type: Number,
+      default: null,
+      min: [0, "Drop stock cannot be negative"],
+    },
     images: [
       {
         url: {

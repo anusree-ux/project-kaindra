@@ -30,3 +30,12 @@ dist-ssr
 # Postman
 .postman/
 postman/
+
+# Terraform local state and generated files
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfplan
+terraform.tfvars
+!terraform.tfvars.example
+crash.log

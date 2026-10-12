@@ -44,7 +44,9 @@ function LiveRiders() {
           });
           lat = pos.coords.latitude;
           lng = pos.coords.longitude;
-        } catch (err) { console.warn("Geolocation skipped:", err); }
+        } catch (_) {
+          // Intentionally suppress geolocation errors
+        }
       }
 
       const [nearbyRes, connRes, reqRes, incomingRes] = await Promise.allSettled([

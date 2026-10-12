@@ -38,13 +38,7 @@ function ModaInfluence() {
 
     const formData = new FormData(e.target);
 
-    const apiBase =
-      import.meta.env.VITE_API_BASE_URL ||
-      "http://localhost:5000/api/";
-
-    const endpoint = apiBase.endsWith("/")
-      ? `${apiBase}modasphere/influence/campaigns`
-      : `${apiBase}/modasphere/influence/campaigns`;
+    const endpoint = "/api/modasphere/influence/campaigns";
 
     try {
       const response = await fetch(endpoint, {

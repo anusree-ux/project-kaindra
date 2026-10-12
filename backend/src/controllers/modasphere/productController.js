@@ -3,6 +3,9 @@ const {
   uploadProductImage,
   deleteProductImage,
 } = require("../../services/modasphere/productUploadService");
+const {
+  notifyNextProductDropWaitlistUser,
+} = require("../../services/modasphere/dropService");
 const AppError = require("../../utils/AppError");
 
 /**
@@ -30,7 +33,39 @@ const parseTags = (tagsInput) => {
 const createProduct = async (req, res, next) => {
   const uploadedImages = [];
   try {
-    const { name, description, category, price, stock, tags } = req.body;
+    const { name, description, category, price, stock, isDrop, dropReleaseAt, dropStock, tags } = req.body;
+    const productIsDrop = isDrop === true || isDrop === "true";
+
+    if (productIsDrop) {
+      if (!dropReleaseAt) {
+        return next(
+          new AppError(
+            "Drop release date and time are required for a ModaDrop product.",
+            400
+          )
+        );
+      }
+
+      if (isNaN(new Date(dropReleaseAt).getTime())) {
+        return next(
+          new AppError("Drop release date and time is invalid.", 400)
+        );
+      }
+
+      if (
+        dropStock === undefined ||
+        dropStock === null ||
+        dropStock === "" ||
+        Number(dropStock) <= 0
+      ) {
+        return next(
+          new AppError(
+            "Drop stock must be greater than 0 for a ModaDrop product.",
+            400
+          )
+        );
+      }
+    }
 
     if (!name || name.trim() === "") {
       return next(new AppError("Product name is required.", 400));
@@ -55,6 +90,12 @@ const createProduct = async (req, res, next) => {
       tags: parseTags(tags),
       price: Number(price),
       stock: stock !== undefined && stock !== null ? Math.max(0, parseInt(stock, 10) || 0) : 0,
+      isDrop: isDrop === true || isDrop === "true",
+      dropReleaseAt: dropReleaseAt ? new Date(dropReleaseAt) : null,
+      dropStock:
+          dropStock !== undefined && dropStock !== null
+            ? Math.max(0, parseInt(dropStock, 10) || 0)
+            : null,
       images: uploadedImages,
       status: "draft",
     });
@@ -90,13 +131,38 @@ const updateProduct = async (req, res, next) => {
       return next(new AppError("Not authorized to update this product.", 403));
     }
 
-    const { name, description, category, price, stock, tags, status } = req.body;
+    const { name, description, category, price, stock, isDrop, dropReleaseAt, dropStock, tags, status } = req.body;
 
     if (name !== undefined) product.name = name.trim();
     if (description !== undefined) product.description = description.trim();
     if (category !== undefined) product.category = category.trim().toLowerCase();
     if (price !== undefined) product.price = Number(price);
     if (stock !== undefined) product.stock = Math.max(0, parseInt(stock, 10) || 0);
+    if (isDrop !== undefined) product.isDrop = isDrop === true || isDrop === "true";
+    if (dropReleaseAt !== undefined) {
+      product.dropReleaseAt = dropReleaseAt
+        ? new Date(dropReleaseAt)
+        : null;
+    }
+    let dropStockIncreased = false;
+
+    if (dropStock !== undefined) {
+      const newDropStock =
+        dropStock === null || dropStock === ""
+          ? null
+          : Math.max(0, parseInt(dropStock, 10) || 0);
+
+      if (
+        product.isDrop &&
+        product.dropStock !== null &&
+        newDropStock !== null &&
+        newDropStock > product.dropStock
+      ) {
+        dropStockIncreased = true;
+      }
+
+      product.dropStock = newDropStock;
+    }
     if (tags !== undefined) product.tags = parseTags(tags);
     if (status !== undefined && ["draft", "archived"].includes(status)) {
       product.status = status;
@@ -109,7 +175,49 @@ const updateProduct = async (req, res, next) => {
       }
     }
 
+    if (product.isDrop) {
+      if (!product.dropReleaseAt) {
+        return next(
+          new AppError(
+            "Drop release date and time are required for a ModaDrop product.",
+            400
+          )
+        );
+      }
+
+      if (isNaN(new Date(product.dropReleaseAt).getTime())) {
+        return next(
+          new AppError("Drop release date and time is invalid.", 400)
+        );
+      }
+
+      if (
+        product.dropStock === null ||
+        product.dropStock === undefined ||
+        product.dropStock < 0
+      ) {
+        return next(
+          new AppError(
+            "Drop stock cannot be negative for a ModaDrop product.",
+            400
+          )
+        );
+      }
+    }
+
     await product.save();
+
+    if (dropStockIncreased) {
+      const notificationResult =
+        await notifyNextProductDropWaitlistUser(product._id);
+
+      if (!notificationResult.success) {
+        console.warn(
+          `[ModaDrop Waitlist] Could not notify next user for ${product.name}:`,
+          notificationResult.error
+        );
+      }
+    }
 
     res.status(200).json({
       status: "success",
@@ -122,7 +230,7 @@ const updateProduct = async (req, res, next) => {
 };
 
 /**
- * @desc    Publish a product (sets status to "active" if stock > 0)
+ * @desc    Publish a product (sets status to "active" if available stock > 0)
  * @route   PATCH /api/modasphere/products/:id/publish
  * @access  Private (Seller only)
  */
@@ -140,11 +248,49 @@ const publishProduct = async (req, res, next) => {
     }
 
     if (!product.name || product.price === undefined || product.price === null) {
-      return next(new AppError("Product must have a name and price before publishing.", 400));
+      return next(
+        new AppError(
+          "Product must have a name and price before publishing.",
+          400
+        )
+      );
     }
 
-    if (!product.stock || product.stock <= 0) {
-      return next(new AppError("Cannot publish product with 0 stock. Please add stock first.", 400));
+    // ModaDrop products use dropStock
+    if (product.isDrop) {
+      if (!product.dropReleaseAt) {
+        return next(
+          new AppError(
+            "Drop release date and time are required for a drop product.",
+            400
+          )
+        );
+      }
+
+      if (isNaN(new Date(product.dropReleaseAt).getTime())) {
+        return next(
+          new AppError("Drop release date and time is invalid.", 400)
+        );
+      }
+
+      if (product.dropStock === null || product.dropStock <= 0) {
+        return next(
+          new AppError(
+            "Cannot publish drop product with 0 drop stock. Please add drop stock first.",
+            400
+          )
+        );
+      }
+    } else {
+      // Normal products use regular stock
+      if (!product.stock || product.stock <= 0) {
+        return next(
+          new AppError(
+            "Cannot publish product with 0 stock. Please add stock first.",
+            400
+          )
+        );
+      }
     }
 
     product.status = "active";
