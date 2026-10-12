@@ -199,7 +199,9 @@ function JourneyIntelligence() {
               return { lat: coords[1], lng: coords[0] };
             }
           }
-        } catch {}
+        } catch (_) {
+          // Suppress Photon geocoding error and fallback to Nominatim
+        }
         try {
           const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(placeQuery)}&format=json&limit=1&countrycodes=in`);
           if (res.ok) {
@@ -208,7 +210,9 @@ function JourneyIntelligence() {
               return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
             }
           }
-        } catch {}
+        } catch (_) {
+          // Suppress Nominatim geocoding error
+        }
         return null;
       };
 

@@ -606,6 +606,8 @@ const getSellerOrders = async (req, res, next) => {
 const shipOrder = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const { carrier, trackingNumber, estimatedDeliveryDate } = req.body || {};
+
     const order = await Order.findById(id);
 
     if (!order) {
@@ -636,15 +638,48 @@ const shipOrder = async (req, res, next) => {
       );
     }
 
+    if (!carrier) {
+      return next(new AppError("Carrier is required to ship an order.", 400));
+    }
+
+    if (!trackingNumber) {
+      return next(new AppError("Tracking number is required to ship an order.", 400));
+    }
+
     // Known simplification: updates the whole order's status to "shipped", rather
     // than per-item / per-seller shipment tracking. Out of scope for now as single-seller orders are the common case.
     order.status = "shipped";
     await order.save();
 
+    let shipment = await Shipment.findOne({ orderId: order._id });
+    if (!shipment) {
+      shipment = await Shipment.create({
+        orderId: order._id,
+        carrier,
+        trackingNumber,
+        estimatedDeliveryDate: estimatedDeliveryDate || null,
+        status: "pending_pickup",
+        timeline: [
+          {
+            status: "pending_pickup",
+            note: "Shipment order created by seller.",
+            timestamp: new Date(),
+          },
+        ],
+      });
+    } else {
+      shipment.carrier = carrier;
+      shipment.trackingNumber = trackingNumber;
+      if (estimatedDeliveryDate) {
+        shipment.estimatedDeliveryDate = estimatedDeliveryDate;
+      }
+      await shipment.save();
+    }
+
     res.status(200).json({
       status: "success",
       message: "Order marked as shipped.",
-      data: { order },
+      data: { order, shipment },
     });
   } catch (error) {
     next(error);
@@ -688,10 +723,21 @@ const deliverOrder = async (req, res, next) => {
     order.status = "delivered";
     await order.save();
 
+    let shipment = await Shipment.findOne({ orderId: order._id });
+    if (shipment) {
+      shipment.status = "delivered";
+      shipment.timeline.push({
+        status: "delivered",
+        note: "Confirmed received by buyer",
+        timestamp: new Date(),
+      });
+      await shipment.save();
+    }
+
     res.status(200).json({
       status: "success",
       message: "Order marked as delivered.",
-      data: { order },
+      data: { order, shipment: shipment || undefined },
     });
   } catch (error) {
     next(error);

@@ -35,12 +35,12 @@ describe("ModaSphere ModaLogix - Shipment & Logistics Tracking", () => {
 
     product = await Product.create({
       sellerId: seller.userId,
-      title: "Silk Embroidered Jacket",
+      name: "Silk Embroidered Jacket",
       description: "Luxury artisanal jacket",
       price: 4999,
       discountPrice: 4499,
       stock: 10,
-      images: ["https://example.com/jacket.jpg"],
+      images: [{ url: "https://example.com/jacket.jpg", publicId: "jacket1" }],
       category: "womenswear",
     });
 
@@ -50,7 +50,7 @@ describe("ModaSphere ModaLogix - Shipment & Logistics Tracking", () => {
         {
           productId: product._id,
           sellerId: seller.userId,
-          name: product.title,
+          name: product.name,
           price: 4499,
           quantity: 1,
         },

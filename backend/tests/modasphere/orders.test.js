@@ -384,7 +384,8 @@ describe("ModaSphere Orders & Razorpay Payment Integration (ModaPay)", () => {
     it("should allow relevant seller to ship a paid order", async () => {
       const res = await request(app)
         .patch(`/api/modasphere/orders/${paidOrderId}/ship`)
-        .set("Authorization", `Bearer ${seller.token}`);
+        .set("Authorization", `Bearer ${seller.token}`)
+        .send({ carrier: "Delhivery", trackingNumber: "DEL12345" });
 
       expect(res.status).toBe(200);
       expect(res.body.status).toBe("success");
@@ -417,7 +418,8 @@ describe("ModaSphere Orders & Razorpay Payment Integration (ModaPay)", () => {
       // First ship the paid order
       await request(app)
         .patch(`/api/modasphere/orders/${paidOrderId}/ship`)
-        .set("Authorization", `Bearer ${seller.token}`);
+        .set("Authorization", `Bearer ${seller.token}`)
+        .send({ carrier: "Delhivery", trackingNumber: "DEL12345" });
 
       // Buyer marks delivered
       const res = await request(app)
@@ -444,7 +446,8 @@ describe("ModaSphere Orders & Razorpay Payment Integration (ModaPay)", () => {
       // Ship order
       await request(app)
         .patch(`/api/modasphere/orders/${paidOrderId}/ship`)
-        .set("Authorization", `Bearer ${seller.token}`);
+        .set("Authorization", `Bearer ${seller.token}`)
+        .send({ carrier: "Delhivery", trackingNumber: "DEL12345" });
 
       const res = await request(app)
         .patch(`/api/modasphere/orders/${paidOrderId}/deliver`)
@@ -488,7 +491,8 @@ describe("ModaSphere Orders & Razorpay Payment Integration (ModaPay)", () => {
       // Ship the order
       await request(app)
         .patch(`/api/modasphere/orders/${paidOrderId}/ship`)
-        .set("Authorization", `Bearer ${seller.token}`);
+        .set("Authorization", `Bearer ${seller.token}`)
+        .send({ carrier: "Delhivery", trackingNumber: "DEL12345" });
 
       const res = await request(app)
         .patch(`/api/modasphere/orders/${paidOrderId}/cancel`)
