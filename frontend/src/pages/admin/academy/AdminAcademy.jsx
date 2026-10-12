@@ -24,15 +24,29 @@ function AdminAcademy() {
   const [selectedEnrollment, setSelectedEnrollment] = useState(null);
   const [courses, setCourses] = useState([]);
   const [loadingCourses, setLoadingCourses] = useState(false);
+  const [updatingCourseId, setUpdatingCourseId] = useState(null);
 
   useEffect(() => {
     const loadCourses = async () => {
       try {
         setLoadingCourses(true);
 
+
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+          throw new Error("You are not logged in.");
+        }
+
         const response = await fetch(
-          "/api/modasphere/academy/courses"
+          "/api/modasphere/academy/admin/courses",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
+
 
         const result = await response.json();
 
@@ -56,6 +70,49 @@ function AdminAcademy() {
 
     loadCourses();
   }, []);
+
+  const handleCourseStatusToggle = async (course) => {
+    const status = course.status === "published" ? "draft" : "published";
+
+    try {
+      setUpdatingCourseId(course._id);
+
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        throw new Error("You are not logged in.");
+      }
+
+      const response = await fetch(
+        `/api/modasphere/academy/courses/${course._id}/status`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ status }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "Failed to update course status");
+      }
+
+      setCourses((currentCourses) =>
+        currentCourses.map((currentCourse) =>
+          currentCourse._id === course._id ? result.course : currentCourse
+        )
+      );
+    } catch (error) {
+      console.error("Failed to update ModaAcademy course status:", error);
+      window.alert(error.message || "Failed to update course status");
+    } finally {
+      setUpdatingCourseId(null);
+    }
+  };
 
   /* =========================================
      LOAD ENROLLMENTS
@@ -324,6 +381,94 @@ function AdminAcademy() {
           </div>
 
         </div>
+
+        <section aria-labelledby="admin-academy-courses-heading">
+          <div className="admin-academy-toolbar">
+            <h2 id="admin-academy-courses-heading">Courses</h2>
+            <span className="admin-academy-result-count">
+              {totalCourses} course{totalCourses !== 1 ? "s" : ""}
+            </span>
+          </div>
+
+          {loadingCourses ? (
+            <div className="admin-academy-empty">
+              <GraduationCap size={42} />
+              <h2>Loading courses...</h2>
+              <p>Fetching ModaAcademy courses.</p>
+            </div>
+          ) : courses.length === 0 ? (
+            <div className="admin-academy-empty">
+              <GraduationCap size={42} />
+              <h2>No courses found</h2>
+              <p>ModaAcademy courses will appear here when they are created.</p>
+            </div>
+          ) : (
+            <div className="admin-academy-table-card">
+              <div className="admin-academy-table-wrapper">
+                <table className="admin-academy-table">
+                  <thead>
+                    <tr>
+                      <th>Course</th>
+                      <th>Status</th>
+                      <th>Enrolled Students</th>
+                      <th>Modules</th>
+                      <th>Duration</th>
+                      <th>Created</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {courses.map((course) => (
+                      <tr key={course._id}>
+                        <td>
+                          <div className="admin-academy-course">
+                            <BookOpen size={15} />
+                            <span>{course.title || "Untitled course"}</span>
+                          </div>
+                        </td>
+                        <td>
+                          <span className="admin-academy-level">
+                            {course.status || "draft"}
+                          </span>
+                        </td>
+                        <td>
+                          {loadingEnrollments
+                            ? "—"
+                            : enrollments.filter(
+                                (enrollment) =>
+                                  String(enrollment.courseId) === String(course._id)
+                              ).length}
+                        </td>
+                        <td>{course.modules?.length ?? 0}</td>
+                        <td>{Number(course.durationMinutes) || 0} min</td>
+                        <td>
+                          <span className="admin-academy-date">
+                            <CalendarDays size={14} />
+                            {formatDate(course.createdAt)}
+                          </span>
+                        </td>
+                        <td>
+                          <button
+                            type="button"
+                            className="admin-academy-view-button"
+                            onClick={() => handleCourseStatusToggle(course)}
+                            disabled={updatingCourseId === course._id}
+                          >
+                            {updatingCourseId === course._id
+                              ? "Updating..."
+                              : course.status === "published"
+                                ? "Move to draft"
+                                : "Publish"}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </section>
 
         {/* =================================
             SEARCH

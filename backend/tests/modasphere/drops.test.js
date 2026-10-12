@@ -5,6 +5,7 @@ const Cart = require("../../src/models/modasphere/Cart");
 const Order = require("../../src/models/modasphere/Order");
 const Drop = require("../../src/models/modasphere/Drop");
 const DropWaitlist = require("../../src/models/modasphere/DropWaitlist");
+const ProductDropWaitlist = require("../../src/models/modasphere/ProductDropWaitlist");
 const { updateDropStatuses } = require("../../src/services/modasphere/dropService");
 const { createTestUser } = require("../helpers/testUser");
 
@@ -47,6 +48,7 @@ describe("ModaSphere ModaDrop (Time-Limited Product Drops) API", () => {
     process.env.RAZORPAY_KEY_SECRET = "rzp_test_mockSecret789";
 
     await DropWaitlist.deleteMany({});
+    await ProductDropWaitlist.deleteMany({});
     await Drop.deleteMany({});
     await Order.deleteMany({});
     await Cart.deleteMany({});
@@ -65,6 +67,8 @@ describe("ModaSphere ModaDrop (Time-Limited Product Drops) API", () => {
       category: "apparel",
       price: 8999,
       stock: 50,
+      isDrop: true,
+      dropStock: 50,
       status: "active",
     });
 
@@ -102,6 +106,22 @@ describe("ModaSphere ModaDrop (Time-Limited Product Drops) API", () => {
       expect(res.body.data.drop.status).toBe("upcoming");
       expect(res.body.data.drop.title).toBe("Cyberpunk Autumn Drop");
       expect(res.body.data.drop.maxPerUser).toBe(2);
+
+      const detailResponse = await request(app).get(
+        `/api/modasphere/drops/${res.body.data.drop._id}`
+      );
+      expect(detailResponse.statusCode).toBe(200);
+      expect(detailResponse.body.data.drop.productIds[0]._id).toBe(
+        dropProduct._id.toString()
+      );
+
+      const listResponse = await request(app).get("/api/modasphere/drops");
+      expect(listResponse.statusCode).toBe(200);
+      expect(
+        listResponse.body.data.drops.some(
+          (drop) => drop._id === res.body.data.drop._id
+        )
+      ).toBe(true);
     });
 
     test("Seller cannot include products they do not own (403)", async () => {
@@ -111,6 +131,8 @@ describe("ModaSphere ModaDrop (Time-Limited Product Drops) API", () => {
         category: "apparel",
         price: 5000,
         stock: 10,
+        isDrop: true,
+        dropStock: 10,
         status: "active",
       });
 
@@ -127,6 +149,55 @@ describe("ModaSphere ModaDrop (Time-Limited Product Drops) API", () => {
 
       expect(res.statusCode).toBe(403);
       expect(res.body.status).toBe("fail");
+    });
+
+    test("Rejects duplicate, regular, or inactive products in event creation", async () => {
+      const startTime = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+      const duplicateProductRes = await request(app)
+        .post("/api/modasphere/drops")
+        .set("Authorization", `Bearer ${seller.token}`)
+        .send({
+          title: "Duplicate Product Event",
+          productIds: [dropProduct._id, dropProduct._id],
+          startTime,
+        });
+      expect(duplicateProductRes.statusCode).toBe(400);
+      expect(duplicateProductRes.body.message).toMatch(/once/i);
+
+      const regularProductRes = await request(app)
+        .post("/api/modasphere/drops")
+        .set("Authorization", `Bearer ${seller.token}`)
+        .send({
+          title: "Regular Product Event",
+          productIds: [regularProduct._id],
+          startTime,
+        });
+      expect(regularProductRes.statusCode).toBe(400);
+      expect(regularProductRes.body.message).toMatch(/active ModaDrop product/i);
+    });
+
+    test("Rejects overlapping schedules for the same product", async () => {
+      const existingStart = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      await Drop.create({
+        title: "Existing Event",
+        createdBy: seller.userId,
+        productIds: [dropProduct._id],
+        startTime: existingStart,
+        endTime: new Date(existingStart.getTime() + 2 * 60 * 60 * 1000),
+      });
+
+      const response = await request(app)
+        .post("/api/modasphere/drops")
+        .set("Authorization", `Bearer ${seller.token}`)
+        .send({
+          title: "Overlapping Event",
+          productIds: [dropProduct._id],
+          startTime: new Date(existingStart.getTime() + 60 * 60 * 1000),
+        });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body.message).toMatch(/overlapping/i);
     });
 
     test("Admin can curate drops containing any seller's products", async () => {
@@ -249,7 +320,32 @@ describe("ModaSphere ModaDrop (Time-Limited Product Drops) API", () => {
     });
   });
 
-  describe("4. Checkout Restrictions & Purchase Quotas (maxPerUser)", () => {
+  describe("4. Product Restock Waitlist Ordering", () => {
+    test("Waitlist position breaks joinedAt ties by entry ID", async () => {
+      const joinedAt = new Date();
+      await ProductDropWaitlist.create([
+        {
+          productId: dropProduct._id,
+          userId: buyer1.userId,
+          joinedAt,
+        },
+        {
+          productId: dropProduct._id,
+          userId: buyer2.userId,
+          joinedAt,
+        },
+      ]);
+
+      const response = await request(app)
+        .get(`/api/modasphere/drops/products/${dropProduct._id}/waitlist/position`)
+        .set("Authorization", `Bearer ${buyer2.token}`);
+
+      expect(response.statusCode).toBe(200);
+      expect(response.body.data.position).toBe(2);
+    });
+  });
+
+  describe("5. Checkout Restrictions & Purchase Quotas (maxPerUser)", () => {
     test("Checkout is blocked when product belongs to an 'upcoming' drop", async () => {
       await Drop.create({
         title: "Premature Drop",
@@ -260,11 +356,10 @@ describe("ModaSphere ModaDrop (Time-Limited Product Drops) API", () => {
         maxPerUser: 2,
       });
 
-      // Add drop product to cart via /api/modasphere/cart/items
-      await request(app)
-        .post("/api/modasphere/cart/items")
-        .set("Authorization", `Bearer ${buyer1.token}`)
-        .send({ productId: dropProduct._id, quantity: 1 });
+      await Cart.create({
+        userId: buyer1.userId,
+        items: [{ productId: dropProduct._id, quantity: 1 }],
+      });
 
       // Attempt checkout
       const res = await request(app)
@@ -287,10 +382,10 @@ describe("ModaSphere ModaDrop (Time-Limited Product Drops) API", () => {
         maxPerUser: 2,
       });
 
-      await request(app)
-        .post("/api/modasphere/cart/items")
-        .set("Authorization", `Bearer ${buyer1.token}`)
-        .send({ productId: dropProduct._id, quantity: 1 });
+      await Cart.create({
+        userId: buyer1.userId,
+        items: [{ productId: dropProduct._id, quantity: 1 }],
+      });
 
       const res = await request(app)
         .post("/api/modasphere/orders/checkout")

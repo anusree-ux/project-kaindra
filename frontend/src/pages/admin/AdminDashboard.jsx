@@ -35,6 +35,48 @@ function AdminDashboard() {
     communityMembers: 0,
     growth: "12%",
   });
+  const [academyEnrollmentCount, setAcademyEnrollmentCount] = useState(0);
+
+  useEffect(() => {
+    const loadAcademyEnrollmentCount = async () => {
+      try {
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+          console.error("No authentication token found.");
+          return;
+        }
+
+        const response = await fetch(
+          `${API_BASE}/api/modasphere/academy/enrollments`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          throw new Error(
+            result.message || "Failed to load ModaAcademy enrollments"
+          );
+        }
+
+        setAcademyEnrollmentCount(
+          Array.isArray(result.data) ? result.data.length : 0
+        );
+      } catch (error) {
+        console.error(
+          "Error fetching ModaAcademy enrollment count:",
+          error
+        );
+      }
+    };
+
+    loadAcademyEnrollmentCount();
+  }, []);
 
   useEffect(() => {
     fetch(`${API_BASE}/api/admin/stats`)
@@ -110,22 +152,6 @@ function AdminDashboard() {
   };
 
 
-
-  // =============================
-  // Load ModaAcademy Enrollments
-  // =============================
-  const getAcademyEnrollments = () => {
-    try {
-      const savedEnrollments = localStorage.getItem("modaAcademyEnrollments");
-      if (!savedEnrollments) return [];
-      const enrollments = JSON.parse(savedEnrollments);
-      return Array.isArray(enrollments) ? enrollments : [];
-    } catch (error) {
-      console.error("Unable to load ModaAcademy enrollments:", error);
-      return [];
-    }
-  };
-
   // =============================
   // Get Dashboard Data
   // =============================
@@ -133,12 +159,11 @@ function AdminDashboard() {
   const localCommunityMembers = getCommunityMembers();
   const productionRequests = getProductionRequests();
   const payments = getPayments();
-  const academyEnrollments = getAcademyEnrollments();
   const influenceCampaignsCount = statsData.modaInfluence || 0;
 
   const totalApplications = statsData.applications || localApplications.length;
   const totalCommunity = statsData.communityMembers || localCommunityMembers.length;
-  const enrollmentsCount = academyEnrollments.length;
+  const enrollmentsCount = academyEnrollmentCount;
 
   // =============================
   // Listen for Dashboard Updates
@@ -208,7 +233,7 @@ function AdminDashboard() {
     },
     {
       title: "ModaAcademy",
-      value: academyEnrollments.length,
+      value: academyEnrollmentCount,
       icon: GraduationCap,
     },
     {

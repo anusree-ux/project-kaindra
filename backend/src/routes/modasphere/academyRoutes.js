@@ -7,8 +7,10 @@ const {
 const {
   createCourse,
   getPublishedCourses,
+  getAllCoursesForAdmin,
   getPublishedCourseBySlug,
   publishCourse,
+  updateCourseStatus,
   updateCourse,
   deleteCourse
 } = require("../../controllers/modasphere/academyController");
@@ -23,6 +25,14 @@ const router = express.Router();
 
 // Public - Get published courses
 router.get("/courses", getPublishedCourses);
+
+// Admin - Get all courses, including drafts
+router.get(
+  "/admin/courses",
+  protect,
+  authorize("admin"),
+  getAllCoursesForAdmin
+);
 
 // Admin / Moderator - Create course
 router.post(
@@ -42,6 +52,14 @@ router.patch(
   protect,
   authorize("admin", "moderator"),
   publishCourse
+);
+
+// Admin / Moderator - Update course status
+router.patch(
+  "/courses/:id/status",
+  protect,
+  authorize("admin", "moderator"),
+  updateCourseStatus
 );
 
 // Admin / Moderator - Update course
