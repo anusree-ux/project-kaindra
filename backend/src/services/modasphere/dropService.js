@@ -4,6 +4,25 @@ const ProductDropWaitlist = require("../../models/modasphere/ProductDropWaitlist
 const Product = require("../../models/modasphere/Product");
 const { sendEmail } = require("../mototribe/emailService");
 
+const getDropStatusAt = (drop, now = new Date()) => {
+  if (drop.endTime && new Date(drop.endTime) <= now) {
+    return "ended";
+  }
+
+  if (new Date(drop.startTime) <= now) {
+    return "live";
+  }
+
+  return "upcoming";
+};
+
+const getDropsForProducts = (productIds) =>
+  Drop.find({ productIds: { $in: productIds } });
+
+const isDropLiveAt = (drop, now = new Date()) =>
+  new Date(drop.startTime) <= now &&
+  (!drop.endTime || new Date(drop.endTime) > now);
+
 /**
  * Recalculates and transitions drop statuses based on current time.
  * @returns {Promise<{ updatedToLive: number, updatedToEnded: number }>}
@@ -58,17 +77,25 @@ const getUserPurchaseCountInDrop = async (userId, dropId) => {
   }
 
   const dropProductIds = drop.productIds.map((id) => id.toString());
+  const createdAt = { $gte: drop.startTime };
+  if (drop.endTime) {
+    createdAt.$lt = drop.endTime;
+  }
 
   const orders = await Order.find({
     buyerId: userId,
     status: { $in: ["paid", "shipped", "delivered"] },
     "items.productId": { $in: drop.productIds },
+    createdAt,
   });
 
   let purchasedCount = 0;
   for (const order of orders) {
     for (const item of order.items) {
-      if (dropProductIds.includes(item.productId.toString())) {
+      const belongsToDrop = item.dropId
+        ? item.dropId.toString() === drop._id.toString()
+        : dropProductIds.includes(item.productId.toString());
+      if (belongsToDrop) {
         purchasedCount += item.quantity;
       }
     }
@@ -97,7 +124,7 @@ const notifyNextProductDropWaitlistUser = async (productId) => {
     const waitlistEntry = await ProductDropWaitlist.findOne({
       productId: product._id,
     })
-      .sort({ joinedAt: 1 })
+      .sort({ joinedAt: 1, _id: 1 })
       .populate("userId", "name email");
 
     if (!waitlistEntry || !waitlistEntry.userId) {
@@ -190,6 +217,9 @@ const notifyNextProductDropWaitlistUser = async (productId) => {
 };
 
 module.exports = {
+  getDropStatusAt,
+  isDropLiveAt,
+  getDropsForProducts,
   updateDropStatuses,
   getUserPurchaseCountInDrop,
   notifyNextProductDropWaitlistUser,

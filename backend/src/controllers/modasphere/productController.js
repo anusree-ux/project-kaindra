@@ -1,4 +1,5 @@
 const Product = require("../../models/modasphere/Product");
+const Drop = require("../../models/modasphere/Drop");
 const {
   uploadProductImage,
   deleteProductImage,
@@ -36,26 +37,18 @@ const createProduct = async (req, res, next) => {
     const { name, description, category, price, stock, isDrop, dropReleaseAt, dropStock, tags } = req.body;
     const productIsDrop = isDrop === true || isDrop === "true";
 
+    if (dropReleaseAt && isNaN(new Date(dropReleaseAt).getTime())) {
+      return next(
+        new AppError("Optional drop release date and time is invalid.", 400)
+      );
+    }
+
     if (productIsDrop) {
-      if (!dropReleaseAt) {
-        return next(
-          new AppError(
-            "Drop release date and time are required for a ModaDrop product.",
-            400
-          )
-        );
-      }
-
-      if (isNaN(new Date(dropReleaseAt).getTime())) {
-        return next(
-          new AppError("Drop release date and time is invalid.", 400)
-        );
-      }
-
       if (
         dropStock === undefined ||
         dropStock === null ||
         dropStock === "" ||
+        !Number.isInteger(Number(dropStock)) ||
         Number(dropStock) <= 0
       ) {
         return next(
@@ -138,8 +131,29 @@ const updateProduct = async (req, res, next) => {
     if (category !== undefined) product.category = category.trim().toLowerCase();
     if (price !== undefined) product.price = Number(price);
     if (stock !== undefined) product.stock = Math.max(0, parseInt(stock, 10) || 0);
-    if (isDrop !== undefined) product.isDrop = isDrop === true || isDrop === "true";
+    if (isDrop !== undefined) {
+      const requestedIsDrop = isDrop === true || isDrop === "true";
+      if (requestedIsDrop !== product.isDrop) {
+        const isScheduledInDrop = await Drop.exists({
+          productIds: product._id,
+        });
+        if (isScheduledInDrop) {
+          return next(
+            new AppError(
+              "A product assigned to a ModaDrop event cannot change its drop classification.",
+              400
+            )
+          );
+        }
+      }
+      product.isDrop = requestedIsDrop;
+    }
     if (dropReleaseAt !== undefined) {
+      if (dropReleaseAt && isNaN(new Date(dropReleaseAt).getTime())) {
+        return next(
+          new AppError("Optional drop release date and time is invalid.", 400)
+        );
+      }
       product.dropReleaseAt = dropReleaseAt
         ? new Date(dropReleaseAt)
         : null;
@@ -147,6 +161,13 @@ const updateProduct = async (req, res, next) => {
     let dropStockIncreased = false;
 
     if (dropStock !== undefined) {
+      if (
+        dropStock !== null &&
+        dropStock !== "" &&
+        (!Number.isInteger(Number(dropStock)) || Number(dropStock) < 0)
+      ) {
+        return next(new AppError("Drop stock must be a non-negative integer.", 400));
+      }
       const newDropStock =
         dropStock === null || dropStock === ""
           ? null
@@ -176,21 +197,6 @@ const updateProduct = async (req, res, next) => {
     }
 
     if (product.isDrop) {
-      if (!product.dropReleaseAt) {
-        return next(
-          new AppError(
-            "Drop release date and time are required for a ModaDrop product.",
-            400
-          )
-        );
-      }
-
-      if (isNaN(new Date(product.dropReleaseAt).getTime())) {
-        return next(
-          new AppError("Drop release date and time is invalid.", 400)
-        );
-      }
-
       if (
         product.dropStock === null ||
         product.dropStock === undefined ||
@@ -258,21 +264,6 @@ const publishProduct = async (req, res, next) => {
 
     // ModaDrop products use dropStock
     if (product.isDrop) {
-      if (!product.dropReleaseAt) {
-        return next(
-          new AppError(
-            "Drop release date and time are required for a drop product.",
-            400
-          )
-        );
-      }
-
-      if (isNaN(new Date(product.dropReleaseAt).getTime())) {
-        return next(
-          new AppError("Drop release date and time is invalid.", 400)
-        );
-      }
-
       if (product.dropStock === null || product.dropStock <= 0) {
         return next(
           new AppError(

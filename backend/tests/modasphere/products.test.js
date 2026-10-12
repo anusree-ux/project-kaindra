@@ -1,6 +1,7 @@
 const request = require("supertest");
 const app = require("../../src/app");
 const Product = require("../../src/models/modasphere/Product");
+const Drop = require("../../src/models/modasphere/Drop");
 const { createTestUser } = require("../helpers/testUser");
 
 describe("ModaSphere Products / Marketplace API (ModaMart)", () => {
@@ -9,6 +10,7 @@ describe("ModaSphere Products / Marketplace API (ModaMart)", () => {
   let otherSeller;
 
   beforeEach(async () => {
+    await Drop.deleteMany({});
     await Product.deleteMany({});
     seller = await createTestUser({ name: "Moda Designer", role: "user" });
     buyer = await createTestUser({ name: "Fashion Lover", role: "user" });
@@ -40,6 +42,30 @@ describe("ModaSphere Products / Marketplace API (ModaMart)", () => {
         expect.arrayContaining(["silk", "blazer", "sustainable"])
       );
       expect(res.body.data.product.sellerId.toString()).toBe(seller.userId.toString());
+    });
+
+    test("ModaDrop products can be created without a product release date", async () => {
+      const response = await request(app)
+        .post("/api/modasphere/products")
+        .set("Authorization", `Bearer ${seller.token}`)
+        .send({
+          name: "Scheduled Drop Jacket",
+          category: "apparel",
+          price: 7200,
+          isDrop: true,
+          dropStock: 8,
+        });
+
+      expect(response.statusCode).toBe(201);
+      expect(response.body.data.product.isDrop).toBe(true);
+      expect(response.body.data.product.dropReleaseAt).toBeNull();
+
+      const publishResponse = await request(app)
+        .patch(`/api/modasphere/products/${response.body.data.product._id}/publish`)
+        .set("Authorization", `Bearer ${seller.token}`);
+
+      expect(publishResponse.statusCode).toBe(200);
+      expect(publishResponse.body.data.product.status).toBe("active");
     });
 
     test("Rejects product creation without required name or price", async () => {
@@ -168,7 +194,36 @@ describe("ModaSphere Products / Marketplace API (ModaMart)", () => {
     });
   });
 
-  describe("4. Public Product Browsing, Filtering, Search & Pagination", () => {
+  describe("4. ModaDrop Event Product Integrity", () => {
+    test("A product assigned to an event cannot be reclassified as a regular product", async () => {
+      const product = await Product.create({
+        sellerId: seller.userId,
+        name: "Scheduled Event Product",
+        category: "apparel",
+        price: 2500,
+        stock: 10,
+        isDrop: true,
+        dropStock: 4,
+        status: "active",
+      });
+      await Drop.create({
+        title: "Scheduled Event",
+        createdBy: seller.userId,
+        productIds: [product._id],
+        startTime: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      });
+
+      const response = await request(app)
+        .patch(`/api/modasphere/products/${product._id}`)
+        .set("Authorization", `Bearer ${seller.token}`)
+        .send({ isDrop: false });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.body.message).toMatch(/cannot change its drop classification/i);
+    });
+  });
+
+  describe("5. Public Product Browsing, Filtering, Search & Pagination", () => {
     beforeEach(async () => {
       await Product.create([
         {
