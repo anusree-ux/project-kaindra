@@ -1,667 +1,716 @@
-/* =========================================================
-   MOTOTRIBE - RIDE ASSISTANT
-   ========================================================= */
+/* ==========================================
+   MOTOTRIBE RIDE ASSISTANT
+   Isolated component styles
+========================================== */
 
-.ride-assistant-section {
-  padding: 110px 0;
-  background: #080908;
-  color: #eeeae2;
+.mt-ride-assistant {
+  width: 100%;
+  padding: 80px 0;
+  background: #0b0c0b;
+  color: #e8e5de;
+  font-family: inherit;
 }
 
-.ride-assistant-container {
-  width: min(1380px, calc(100% - 50px));
-  margin: 0 auto;
-}
-
-.ride-assistant-section *,
-.ride-assistant-section *::before,
-.ride-assistant-section *::after {
+.mt-ride-assistant,
+.mt-ride-assistant * {
   box-sizing: border-box;
 }
 
-/* =========================================================
-   HEADER
-   ========================================================= */
+.mt-ride-assistant button {
+  font-family: inherit;
+}
 
-.ride-assistant-header {
+.mt-ride-container {
+  width: calc(100% - 64px);
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+/* ==========================================
+   HEADER
+========================================== */
+
+.mt-ride-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  gap: 40px;
-  padding-bottom: 45px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  gap: 32px;
+  padding-bottom: 35px;
+  border-bottom: 1px solid #292a27;
 }
 
-.assistant-eyebrow {
+.mt-ride-heading {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.mt-ride-eyebrow {
   display: block;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
   color: #c9a45d;
-  font-size: 8px;
-  font-weight: 800;
-  letter-spacing: 0.18em;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
 }
 
-.assistant-heading h2 {
+.mt-ride-heading h2 {
   margin: 0;
-  font-size: clamp(46px, 6vw, 80px);
-  line-height: 0.9;
-  letter-spacing: -0.05em;
+  color: #e8e5de;
+  font-size: clamp(38px, 5vw, 72px);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -2px;
   text-transform: uppercase;
 }
 
-.assistant-heading p {
-  max-width: 560px;
-  margin: 23px 0 0;
-  color: #6d6e68;
+.mt-ride-heading p {
+  max-width: 580px;
+  margin: 20px 0 0;
+  color: #858680;
   font-size: 13px;
   line-height: 1.8;
 }
 
-.assistant-status {
-  min-width: 145px;
+/* ==========================================
+   STATUS
+========================================== */
+
+.mt-ride-status {
+  flex: 0 0 auto;
+  min-width: 150px;
   padding-left: 18px;
   border-left: 1px solid #c9a45d;
 }
 
-.assistant-status-label {
+.mt-ride-status > span {
   display: block;
-  margin-bottom: 10px;
-  color: #555650;
-  font-size: 6px;
-  font-weight: 800;
-  letter-spacing: 0.13em;
+  margin-bottom: 12px;
+  color: #858680;
+  font-size: 9px;
+  letter-spacing: 1.5px;
 }
 
-.assistant-status-button {
-  display: flex;
+.mt-ride-assistant .mt-ride-status-button {
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
   padding: 0;
-  border: 0;
+  border: none;
   background: transparent;
   color: #c9a45d;
+  font-size: 10px;
+  font-weight: 700;
   cursor: pointer;
-  font-family: inherit;
-  font-size: 8px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
 }
 
-.assistant-status-button:hover {
-  color: #e1bc70;
-}
-
-.assistant-status-button:focus-visible {
-  outline: 1px solid #c9a45d;
-  outline-offset: 6px;
-}
-
-.status-dot {
-  width: 6px;
-  height: 6px;
+.mt-ride-status-dot {
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: #c9a45d;
-  box-shadow: 0 0 8px rgba(201, 164, 93, 0.7);
-  transition:
-    background 0.2s ease,
-    box-shadow 0.2s ease;
 }
 
-.assistant-status-button.active .status-dot {
-  background: #ddd9d1;
-  box-shadow: 0 0 8px rgba(221, 217, 209, 0.5);
-}
-
-/* =========================================================
+/* ==========================================
    NAVIGATION
-   ========================================================= */
+========================================== */
 
-.assistant-navigation {
+.mt-ride-navigation {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1px;
-  margin-top: 30px;
-  background: rgba(255, 255, 255, 0.06);
+  margin-top: 25px;
+  background: #292a27;
 }
 
-.assistant-nav-item {
-  position: relative;
+.mt-ride-assistant .mt-ride-nav-item {
   display: grid;
-  grid-template-columns: 28px 35px 1fr 20px;
+  grid-template-columns: 35px minmax(0, 1fr) 15px;
   align-items: center;
-  gap: 10px;
-  min-height: 75px;
-  padding: 15px;
-  border: 0;
-  background: #101110;
-  color: #777872;
-  cursor: pointer;
-  text-align: left;
-  font-family: inherit;
-  transition:
-    background 0.2s ease,
-    color 0.2s ease,
-    transform 0.2s ease;
-}
+  gap: 12px;
 
-.assistant-nav-item:hover {
-  background: #141512;
-  color: #aaa79f;
-}
-
-.assistant-nav-item:focus-visible {
-  z-index: 2;
-  outline: 1px solid #c9a45d;
-  outline-offset: -1px;
-}
-
-.assistant-nav-item.active {
-  background: #151512;
-  color: #c9a45d;
-}
-
-.assistant-nav-number {
-  color: #4f504b;
-  font-size: 7px;
-}
-
-.assistant-nav-icon {
-  color: #5e5f59;
-  font-size: 15px;
-}
-
-.assistant-nav-item.active .assistant-nav-icon {
-  color: #c9a45d;
-}
-
-.assistant-nav-title {
-  font-size: 8px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-}
-
-.assistant-nav-arrow {
-  color: #454640;
-  font-size: 12px;
-  transition:
-    transform 0.2s ease,
-    color 0.2s ease;
-}
-
-.assistant-nav-item:hover .assistant-nav-arrow,
-.assistant-nav-item.active .assistant-nav-arrow {
-  color: #c9a45d;
-}
-
-.assistant-nav-item:hover .assistant-nav-arrow {
-  transform: translateX(3px);
-}
-
-/* =========================================================
-   MAIN PANEL
-   ========================================================= */
-
-.assistant-main-panel {
-  display: grid;
-  grid-template-columns: 390px minmax(0, 1fr);
-  margin-top: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: #101110;
-}
-
-/* =========================================================
-   INTRO
-   ========================================================= */
-
-.assistant-panel-intro {
-  padding: 35px;
-  border-right: 1px solid rgba(255, 255, 255, 0.07);
-  background:
-    radial-gradient(
-      circle at 20% 20%,
-      rgba(201, 164, 93, 0.06),
-      transparent 45%
-    );
-}
-
-.assistant-panel-label {
-  color: #c9a45d;
-  font-size: 6px;
-  font-weight: 800;
-  letter-spacing: 0.13em;
-}
-
-.assistant-large-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 70px;
-  height: 70px;
-  margin-top: 50px;
-  border: 1px solid rgba(201, 164, 93, 0.35);
-  color: #c9a45d;
-  font-size: 26px;
-  transition:
-    border-color 0.2s ease,
-    transform 0.2s ease;
-}
-
-.assistant-panel-intro:hover .assistant-large-icon {
-  border-color: rgba(201, 164, 93, 0.6);
-  transform: translateY(-2px);
-}
-
-.assistant-panel-intro h3 {
-  margin: 24px 0 10px;
-  color: #ddd9d1;
-  font-size: 25px;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-}
-
-.assistant-panel-intro > p {
-  margin: 0;
-  color: #696a64;
-  font-size: 9px;
-  line-height: 1.8;
-}
-
-.assistant-progress {
-  margin-top: 45px;
-}
-
-.assistant-progress-header {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 9px;
-  color: #555650;
-  font-size: 6px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-}
-
-.assistant-progress-header strong {
-  color: #c9a45d;
-}
-
-.assistant-progress-bar {
   width: 100%;
-  height: 3px;
-  overflow: hidden;
-  background: #262722;
+  min-width: 0;
+  min-height: 65px;
+  padding: 16px;
+
+  border: none;
+  border-radius: 0;
+  background: #111210;
+  color: #858680;
+
+  text-align: left;
+  cursor: pointer;
 }
 
-.assistant-progress-bar span {
-  display: block;
-  height: 100%;
-  background: #c9a45d;
-  transition: width 0.3s ease;
+.mt-ride-assistant .mt-ride-nav-item.active {
+  background: #191a16;
+  color: #c9a45d;
 }
 
-.assistant-progress-percent {
-  display: block;
-  margin-top: 8px;
-  color: #454640;
-  font-size: 6px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
+.mt-ride-nav-number {
+  font-size: 10px;
+}
+
+.mt-ride-nav-title {
+  min-width: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.mt-ride-nav-arrow {
+  font-size: 20px;
   text-align: right;
 }
 
-.assistant-reset {
-  margin-top: 22px;
-  padding: 9px 0;
-  border: 0;
-  background: transparent;
-  color: #555650;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 6px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  transition: color 0.2s ease;
-}
+/* ==========================================
+   MAIN PANEL
+========================================== */
 
-.assistant-reset:hover:not(:disabled) {
-  color: #c9a45d;
-}
-
-.assistant-reset:focus-visible {
-  outline: 1px solid #c9a45d;
-  outline-offset: 5px;
-}
-
-.assistant-reset:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
-
-/* =========================================================
-   CHECKLIST
-   ========================================================= */
-
-.assistant-checklist {
-  min-width: 0;
-  padding: 30px 35px;
-}
-
-.checklist-heading {
-  display: flex;
-  justify-content: space-between;
-  padding-bottom: 15px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-  color: #555650;
-  font-size: 6px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-}
-
-.checklist-heading span:last-child {
-  color: #c9a45d;
-}
-
-.assistant-checklist-items {
-  width: 100%;
-}
-
-.assistant-check-item {
+.mt-ride-main {
   display: grid;
-  grid-template-columns: 35px 25px 1fr 25px;
-  align-items: center;
-  gap: 12px;
+
+  /* Left panel + flexible right panel */
+  grid-template-columns: minmax(0, 34%) minmax(0, 66%);
+
   width: 100%;
-  min-height: 80px;
-  padding: 10px 0;
-  border: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  background: transparent;
-  color: #777872;
-  cursor: pointer;
-  text-align: left;
-  font-family: inherit;
-  transition:
-    color 0.2s ease,
-    padding-left 0.2s ease;
+  min-width: 0;
+  margin-top: 18px;
+
+  border: 1px solid #292a27;
+  background: #101110;
 }
 
-.assistant-check-item:hover {
-  padding-left: 5px;
-  color: #b2afa7;
+/* ==========================================
+   LEFT INTRODUCTION PANEL
+========================================== */
+
+.mt-ride-intro {
+  min-width: 0;
+  padding: 38px;
+  border-right: 1px solid #292a27;
+  background: radial-gradient(
+    circle at 20% 20%,
+    rgba(201, 164, 93, 0.05),
+    transparent 55%
+  );
 }
 
-.assistant-check-item:focus-visible {
-  outline: 1px solid #c9a45d;
-  outline-offset: -1px;
+.mt-ride-label {
+  display: block;
+  color: #c9a45d;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
 }
 
-.check-number {
-  color: #555650;
-  font-size: 7px;
-  font-weight: 800;
-}
-
-.check-box {
+.mt-ride-number {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 17px;
-  height: 17px;
-  border: 1px solid #454640;
-  color: #090a09;
-  font-size: 9px;
-  transition:
-    background 0.2s ease,
-    border-color 0.2s ease,
-    transform 0.2s ease;
+
+  width: 88px;
+  height: 88px;
+  margin-top: 55px;
+
+  border: 1px solid #635337;
+  color: #c9a45d;
+  font-size: 32px;
+  font-weight: 400;
 }
 
-.assistant-check-item:hover .check-box {
-  border-color: #777872;
+.mt-ride-intro h3 {
+  margin: 30px 0 12px;
+  color: #e8e5de;
+  font-size: clamp(23px, 2vw, 34px);
+  font-weight: 500;
+  line-height: 1.2;
 }
 
-.assistant-check-item.completed .check-box {
+.mt-ride-description {
+  margin: 0;
+  color: #858680;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+/* ==========================================
+   PROGRESS
+========================================== */
+
+.mt-ride-progress {
+  margin-top: 55px;
+}
+
+.mt-ride-progress-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+  color: #858680;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.mt-ride-progress-heading strong {
+  color: #c9a45d;
+}
+
+.mt-ride-progress-track {
+  width: 100%;
+  height: 4px;
+  overflow: hidden;
+  background: #292a27;
+}
+
+.mt-ride-progress-fill {
+  height: 100%;
+  background: #c9a45d;
+  transition: width 0.25s ease;
+}
+
+.mt-ride-progress-text {
+  display: block;
+  margin-top: 12px;
+  color: #858680;
+  font-size: 10px;
+  text-align: right;
+  letter-spacing: 1px;
+}
+
+.mt-ride-assistant .mt-ride-reset {
+  margin-top: 25px;
+  padding: 8px 0;
+  border: none;
+  background: transparent;
+  color: #777872;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+}
+
+.mt-ride-assistant .mt-ride-reset:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+/* ==========================================
+   RIGHT CHECKLIST PANEL
+========================================== */
+
+.mt-ride-checklist {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 30px 34px;
+}
+
+/* Checklist heading */
+
+.mt-ride-checklist-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+
+  width: 100%;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #292a27;
+
+  color: #858680;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+.mt-ride-checklist-heading strong {
+  flex: 0 0 auto;
+  color: #c9a45d;
+}
+
+/*
+  CRITICAL FIX:
+  The checklist is a vertical flex container.
+  Each action is a full-width grid row.
+*/
+
+.mt-ride-actions {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+}
+
+/* Individual checklist action */
+
+.mt-ride-assistant .mt-ride-action {
+  display: grid !important;
+
+  grid-template-columns: 24px 22px minmax(0, 1fr) 18px !important;
+
+  align-items: center !important;
+  justify-content: initial !important;
+
+  column-gap: 16px !important;
+
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  min-height: 85px;
+
+  margin: 0 !important;
+  padding: 20px 4px !important;
+
+  border: none !important;
+  border-bottom: 1px solid #292a27 !important;
+  border-radius: 0 !important;
+
+  background: transparent !important;
+  color: #aaa79f !important;
+
+  font-family: inherit !important;
+  font-size: inherit !important;
+  font-weight: 400 !important;
+  line-height: normal !important;
+
+  text-align: left !important;
+  text-transform: none !important;
+  text-indent: 0 !important;
+
+  white-space: normal !important;
+  writing-mode: horizontal-tb !important;
+
+  cursor: pointer;
+  box-sizing: border-box !important;
+}
+
+/* Action number */
+
+.mt-ride-assistant .mt-ride-action-number {
+  display: block !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+
+  color: #777872;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+/* Checkbox */
+
+.mt-ride-assistant .mt-ride-checkbox {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+
+  width: 22px !important;
+  min-width: 22px !important;
+  max-width: 22px !important;
+  height: 22px !important;
+
+  border: 1px solid #555650;
+  color: #101110;
+  font-size: 13px;
+  line-height: 1;
+}
+
+/*
+  CRITICAL TEXT FIX:
+  The description gets the remaining width.
+  It cannot shrink to a fixed character-sized column.
+*/
+
+.mt-ride-assistant .mt-ride-action-text {
+  display: block !important;
+
+  grid-column: 3 !important;
+
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  color: #aaa79f;
+
+  font-family: inherit !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  line-height: 1.8 !important;
+
+  text-align: left !important;
+  text-indent: 0 !important;
+  text-transform: none !important;
+
+  white-space: normal !important;
+  word-break: normal !important;
+  overflow-wrap: break-word !important;
+  hyphens: none !important;
+
+  writing-mode: horizontal-tb !important;
+  transform: none !important;
+}
+
+/* Arrow */
+
+.mt-ride-assistant .mt-ride-action-arrow {
+  display: block !important;
+
+  width: auto !important;
+  min-width: 0 !important;
+
+  color: #777872;
+  font-size: 20px;
+  line-height: 1;
+  text-align: right;
+}
+
+/* Hover */
+
+.mt-ride-assistant .mt-ride-action:hover {
+  background: rgba(255, 255, 255, 0.025) !important;
+}
+
+.mt-ride-assistant .mt-ride-action:hover
+.mt-ride-action-arrow {
+  color: #c9a45d;
+}
+
+/* Completed item */
+
+.mt-ride-assistant .mt-ride-action.completed
+.mt-ride-checkbox {
   border-color: #c9a45d;
   background: #c9a45d;
-  transform: scale(1.05);
 }
 
-.check-text {
-  color: #858680;
-  font-size: 9px;
-  line-height: 1.6;
-  transition: color 0.2s ease;
-}
-
-.assistant-check-item.completed .check-text {
-  color: #555650;
+.mt-ride-assistant .mt-ride-action.completed
+.mt-ride-action-text {
+  color: #777872;
   text-decoration: line-through;
 }
 
-.check-arrow {
-  color: #41423d;
-  font-size: 12px;
-  transition:
-    color 0.2s ease,
-    transform 0.2s ease;
-}
-
-.assistant-check-item:hover .check-arrow {
-  color: #c9a45d;
-  transform: translateX(3px);
-}
-
-/* =========================================================
+/* ==========================================
    QUICK ASSISTANCE
-   ========================================================= */
+========================================== */
 
-.quick-assistance {
+.mt-ride-quick {
   display: grid;
-  grid-template-columns: 250px 1fr;
-  gap: 45px;
-  margin-top: 70px;
-  padding-top: 45px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 32px;
+
+  margin-top: 65px;
+  padding-top: 35px;
+
+  border-top: 1px solid #292a27;
 }
 
-.quick-assistance-heading > span {
+.mt-ride-quick-heading > span {
   color: #c9a45d;
-  font-size: 6px;
-  font-weight: 800;
-  letter-spacing: 0.14em;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
 }
 
-.quick-assistance-heading h3 {
-  margin: 16px 0 0;
-  color: #aaa79f;
-  font-size: 25px;
-  line-height: 1.1;
+.mt-ride-quick-heading h3 {
+  margin: 18px 0 0;
+  color: #e8e5de;
+  font-size: 30px;
   font-weight: 500;
+  line-height: 1.1;
 }
 
-.quick-assistance-grid {
+.mt-ride-quick-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1px;
-  background: rgba(255, 255, 255, 0.06);
+  background: #292a27;
 }
 
-.quick-card {
-  min-height: 165px;
+.mt-ride-quick-card {
+  min-width: 0;
   padding: 22px;
   background: #101110;
-  transition:
-    background 0.2s ease,
-    transform 0.2s ease;
 }
 
-.quick-card:hover {
-  background: #141512;
-  transform: translateY(-2px);
-}
-
-.quick-card > span {
+.mt-ride-quick-card > span {
   display: block;
   margin-bottom: 22px;
-  color: #555650;
-  font-size: 7px;
-  font-weight: 800;
+  color: #777872;
+  font-size: 10px;
 }
 
-.quick-card strong {
-  display: block;
+.mt-ride-quick-card h4 {
+  margin: 0;
   color: #c9a45d;
-  font-size: 8px;
-  letter-spacing: 0.1em;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
 }
 
-.quick-card p {
+.mt-ride-quick-card p {
   margin: 12px 0 0;
-  color: #61625c;
-  font-size: 8px;
-  line-height: 1.7;
+  color: #858680;
+  font-size: 12px;
+  line-height: 1.8;
 }
 
-/* =========================================================
+/* ==========================================
    FOOTER
-   ========================================================= */
+========================================== */
 
-.assistant-footer {
+.mt-ride-footer {
   display: flex;
   justify-content: space-between;
   gap: 20px;
+
   margin-top: 35px;
-  padding-top: 18px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 20px;
+
+  border-top: 1px solid #292a27;
 }
 
-.assistant-footer span {
-  color: #494a45;
-  font-size: 6px;
-  font-weight: 800;
-  letter-spacing: 0.13em;
-}
-
-.assistant-footer p {
+.mt-ride-footer span,
+.mt-ride-footer p {
   margin: 0;
-  color: #5c5d57;
-  font-size: 7px;
-  letter-spacing: 0.05em;
+  color: #777872;
+  font-size: 10px;
+  letter-spacing: 1px;
 }
 
-/* =========================================================
-   RESPONSIVE
-   ========================================================= */
+.mt-ride-footer span {
+  font-weight: 700;
+}
+
+/* ==========================================
+   TABLET
+========================================== */
 
 @media (max-width: 1050px) {
-  .assistant-main-panel {
-    grid-template-columns: 1fr;
+  .mt-ride-container {
+    width: calc(100% - 40px);
   }
 
-  .assistant-panel-intro {
-    border-right: 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  .mt-ride-main {
+    grid-template-columns: minmax(0, 34%) minmax(0, 66%);
   }
 
-  .quick-assistance {
-    grid-template-columns: 1fr;
+  .mt-ride-intro {
+    padding: 26px;
+  }
+
+  .mt-ride-checklist {
+    padding: 24px;
+  }
+
+  .mt-ride-assistant .mt-ride-action {
+    grid-template-columns: 20px 22px minmax(0, 1fr) 16px !important;
+    column-gap: 10px !important;
+  }
+
+  .mt-ride-quick {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+
+  .mt-ride-quick-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 800px) {
-  .assistant-navigation {
-    grid-template-columns: repeat(2, 1fr);
+/* ==========================================
+   MOBILE
+========================================== */
+
+@media (max-width: 700px) {
+  .mt-ride-assistant {
+    padding: 55px 0;
   }
 
-  .quick-assistance-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 600px) {
-  .ride-assistant-section {
-    padding: 80px 0;
+  .mt-ride-container {
+    width: calc(100% - 28px);
   }
 
-  .ride-assistant-container {
-    width: calc(100% - 30px);
-  }
-
-  .ride-assistant-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 30px;
-  }
-
-  .assistant-heading h2 {
-    font-size: 48px;
-  }
-
-  .assistant-heading p {
-    font-size: 12px;
-  }
-
-  .assistant-status {
-    min-width: 0;
-  }
-
-  .assistant-navigation {
-    grid-template-columns: 1fr;
-  }
-
-  .assistant-panel-intro,
-  .assistant-checklist {
-    padding: 25px 20px;
-  }
-
-  .assistant-large-icon {
-    margin-top: 35px;
-  }
-
-  .quick-assistance-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .assistant-footer {
+  .mt-ride-header {
     flex-direction: column;
     align-items: flex-start;
   }
+
+  .mt-ride-heading h2 {
+    font-size: clamp(36px, 9vw, 55px);
+  }
+
+  .mt-ride-navigation {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mt-ride-main {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mt-ride-intro {
+    border-right: none;
+    border-bottom: 1px solid #292a27;
+  }
+
+  .mt-ride-number {
+    margin-top: 32px;
+  }
+
+  .mt-ride-checklist {
+    width: 100%;
+    padding: 22px 16px;
+  }
+
+  .mt-ride-assistant .mt-ride-action {
+    grid-template-columns: 18px 22px minmax(0, 1fr) 14px !important;
+    column-gap: 9px !important;
+    min-height: 75px;
+    padding: 16px 0 !important;
+  }
+
+  .mt-ride-assistant .mt-ride-action-text {
+    font-size: 12px !important;
+    line-height: 1.7 !important;
+  }
+
+  .mt-ride-quick-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mt-ride-footer {
+    flex-direction: column;
+  }
 }
 
-@media (max-width: 420px) {
-  .ride-assistant-container {
-    width: calc(100% - 24px);
+/* ==========================================
+   SMALL MOBILE
+========================================== */
+
+@media (max-width: 400px) {
+  .mt-ride-navigation {
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .assistant-heading h2 {
-    font-size: 40px;
+  .mt-ride-quick-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .assistant-nav-item {
-    grid-template-columns: 24px 30px 1fr 15px;
-    gap: 8px;
-    padding: 13px;
+  .mt-ride-assistant .mt-ride-action {
+    grid-template-columns: 16px 20px minmax(0, 1fr) 12px !important;
+    column-gap: 7px !important;
   }
 
-  .assistant-check-item {
-    grid-template-columns: 25px 22px 1fr 15px;
-    gap: 8px;
-  }
-
-  .check-text {
-    font-size: 8px;
-  }
-}
-
-/* =========================================================
-   REDUCED MOTION
-   ========================================================= */
-
-@media (prefers-reduced-motion: reduce) {
-  .ride-assistant-section *,
-  .ride-assistant-section *::before,
-  .ride-assistant-section *::after {
-    scroll-behavior: auto !important;
-    transition: none !important;
-    animation: none !important;
+  .mt-ride-assistant .mt-ride-checkbox {
+    width: 20px !important;
+    min-width: 20px !important;
+    max-width: 20px !important;
+    height: 20px !important;
   }
 }

@@ -1,887 +1,1567 @@
 /* =========================================================
-   MOTOTRIBE - DIGITAL RIDE RECORD
-   ========================================================= */
+   MOTOTRIBE — DIGITAL RIDE RECORD
+   Premium charcoal, warm gold and editorial typography
+========================================================= */
 
 .digital-record-section {
-  padding: 110px 0;
-  background: #0b0c0b;
-  color: #eeeae2;
+  --record-bg: #0b0c0b;
+  --record-surface: #111210;
+  --record-surface-raised: #151612;
+  --record-border: rgba(238, 234, 226, 0.1);
+  --record-muted: #85857d;
+  --record-subtle: #595a53;
+  --record-text: #eeeae2;
+  --record-gold: #c9a45d;
+  --record-gold-light: #dfbd79;
+
+  padding: clamp(70px, 8vw, 112px) 0;
+  background: var(--record-bg);
+  color: var(--record-text);
+  font-family: inherit;
 }
 
-.digital-record-container {
-  width: min(1380px, calc(100% - 50px));
-  margin: 0 auto;
-}
-
-.digital-record-section * {
+.digital-record-section *,
+.digital-record-section *::before,
+.digital-record-section *::after {
   box-sizing: border-box;
 }
 
-/* =========================================================
-   HEADER
-   ========================================================= */
+.digital-record-section button,
+.digital-record-section input {
+  font: inherit;
+}
+
+.digital-record-container {
+  width: min(1440px, calc(100% - 64px));
+  margin-inline: auto;
+}
+
+/* ================= HEADER ================= */
 
 .digital-record-header {
   display: flex;
-  justify-content: space-between;
   align-items: flex-end;
+  justify-content: space-between;
+  gap: 48px;
+  padding-bottom: 48px;
+  border-bottom: 1px solid var(--record-border);
+}
 
-  gap: 40px;
+.digital-record-intro {
+  min-width: 0;
+}
 
-  padding-bottom: 45px;
-
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+.digital-record-eyebrow,
+.section-index {
+  display: block;
+  color: var(--record-gold);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.17em;
+  line-height: 1.6;
 }
 
 .digital-record-eyebrow {
-  display: block;
-
-  margin-bottom: 18px;
-
-  color: #c9a45d;
-
-  font-size: 8px;
-  font-weight: 800;
-
-  letter-spacing: 0.18em;
+  margin-bottom: 22px;
 }
 
 .digital-record-header h2 {
   margin: 0;
-
-  color: #eeeae2;
-
-  font-size: clamp(45px, 6vw, 80px);
-
-  line-height: 0.9;
-
-  letter-spacing: -0.05em;
-
+  color: var(--record-text);
+  font-size: clamp(44px, 6.1vw, 78px);
+  font-weight: 500;
+  line-height: 0.98;
+  letter-spacing: -0.065em;
   text-transform: uppercase;
 }
 
+.digital-record-header h2 span {
+  color: var(--record-gold);
+}
+
 .digital-record-header p {
-  max-width: 610px;
-
-  margin: 22px 0 0;
-
-  color: #74756f;
-
-  font-size: 13px;
-
-  line-height: 1.8;
+  max-width: 540px;
+  margin: 23px 0 0;
+  color: #92928a;
+  font-size: 14px;
+  line-height: 1.85;
 }
 
 .record-header-mark {
-  min-width: 145px;
-
-  padding: 18px 20px;
-
-  border-left: 1px solid #c9a45d;
+  flex: 0 0 190px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 8px 0 8px 24px;
+  border-left: 1px solid rgba(201, 164, 93, 0.55);
 }
 
-.record-header-mark span {
-  display: block;
+.record-mark-icon,
+.profile-emblem {
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(201, 164, 93, 0.5);
+  color: var(--record-gold);
+  font-family: Georgia, "Times New Roman", serif;
+}
 
+.record-mark-icon {
+  width: 46px;
+  height: 46px;
+  margin-bottom: 19px;
+  font-size: 25px;
+}
+
+.record-mark-caption {
   margin-bottom: 7px;
-
-  color: #62635d;
-
-  font-size: 6px;
-
-  font-weight: 800;
-
-  letter-spacing: 0.15em;
+  color: var(--record-muted);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
 }
 
-.record-header-mark strong {
-  color: #c9a45d;
-
-  font-size: 10px;
-
-  letter-spacing: 0.1em;
+.record-header-mark > strong {
+  color: var(--record-text);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
 }
 
-/* =========================================================
-   STATS
-   ========================================================= */
+.record-mark-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 17px;
+  color: var(--record-muted);
+  font-size: 8px;
+  letter-spacing: 0.08em;
+}
+
+.record-mark-status i,
+.ride-record-status i,
+.record-note-dot {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+  border-radius: 50%;
+  background: #9ab985;
+}
+
+/* ================= STATISTICS ================= */
 
 .digital-record-stats {
   display: grid;
-
-  grid-template-columns: repeat(4, 1fr);
-
-  margin-top: 30px;
-
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1px;
-
-  background: rgba(255,255,255,0.07);
+  margin-top: 30px;
+  overflow: hidden;
+  border: 1px solid var(--record-border);
+  background: var(--record-border);
 }
 
 .record-stat {
-  min-height: 125px;
-
-  padding: 22px;
-
-  background: #111211;
+  display: flex;
+  min-width: 0;
+  min-height: 150px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 25px clamp(18px, 2.2vw, 32px);
+  background: var(--record-surface);
+  transition: background 0.2s ease;
 }
 
-.record-stat span {
-  display: block;
-
-  margin-bottom: 15px;
-
-  color: #5d5e58;
-
-  font-size: 6px;
-
-  font-weight: 800;
-
-  letter-spacing: 0.14em;
+.record-stat:hover {
+  background: #171813;
 }
 
-.record-stat strong {
-  color: #d9d6ce;
+.record-stat-label {
+  margin-bottom: 18px;
+  color: var(--record-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+}
 
-  font-size: 30px;
-
+.record-stat > strong {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-width: 100%;
+  color: var(--record-text);
+  font-size: clamp(28px, 3vw, 39px);
   font-weight: 500;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
 }
 
-.record-stat strong small {
-  color: #777873;
-
-  font-size: 8px;
+.record-stat > strong small {
+  color: var(--record-gold);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
 }
 
-.record-stat-style {
-  color: #c9a45d !important;
-
-  font-size: 18px !important;
+.record-stat > strong.record-stat-style {
+  color: var(--record-gold);
+  font-size: clamp(17px, 1.7vw, 23px);
+  overflow-wrap: anywhere;
 }
 
-/* =========================================================
-   CONTROLS
-   ========================================================= */
+.record-stat-foot {
+  margin-top: 10px;
+  color: var(--record-subtle);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+/* ================= SEARCH & FILTERS ================= */
 
 .digital-record-controls {
   display: flex;
-
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 34px 0 30px;
+}
 
-  gap: 25px;
+.record-search {
+  display: flex;
+  width: min(360px, 100%);
+  min-width: 0;
+  height: 46px;
+  align-items: center;
+  gap: 12px;
+  padding: 0 14px;
+  border: 1px solid var(--record-border);
+  background: var(--record-surface);
+  transition: border-color 0.2s ease;
+}
 
-  padding: 28px 0;
+.record-search:focus-within {
+  border-color: rgba(201, 164, 93, 0.7);
+}
+
+.record-search-icon {
+  color: var(--record-gold);
+  font-size: 22px;
+  line-height: 1;
 }
 
 .record-search input {
-  width: 360px;
-  height: 43px;
-
-  padding: 0 14px;
-
-  border: 1px solid rgba(255,255,255,0.1);
-
-  outline: none;
-
-  background: #111211;
-
-  color: #ddd9d0;
-
-  font-family: inherit;
-
-  font-size: 9px;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--record-text);
+  font-size: 12px;
 }
 
 .record-search input::placeholder {
-  color: #53544f;
+  color: #77776f;
 }
 
-.record-search input:focus {
-  border-color: rgba(201,164,93,0.5);
+.record-search-shortcut {
+  flex-shrink: 0;
+  color: var(--record-subtle);
+  font-size: 9px;
+  letter-spacing: 0.08em;
 }
 
 .record-filters {
   display: flex;
-
   flex-wrap: wrap;
-
-  gap: 6px;
+  gap: 7px;
 }
 
 .record-filters button {
-  min-height: 34px;
-
-  padding: 0 13px;
-
-  border: 1px solid rgba(255,255,255,0.08);
-
+  min-height: 37px;
+  padding: 0 15px;
+  border: 1px solid var(--record-border);
   background: transparent;
-
-  color: #686963;
-
+  color: #a1a198;
   cursor: pointer;
-
-  font-family: inherit;
-
-  font-size: 6px;
-
-  font-weight: 800;
-
-  letter-spacing: 0.1em;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  transition:
+    color 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .record-filters button:hover {
-  color: #c9a45d;
-
-  border-color: rgba(201,164,93,0.4);
+  border-color: var(--record-gold);
+  color: var(--record-gold-light);
 }
 
 .record-filters button.active {
-  background: #c9a45d;
-
-  border-color: #c9a45d;
-
-  color: #0b0c0b;
+  border-color: var(--record-gold);
+  background: var(--record-gold);
+  color: #14130f;
 }
 
-/* =========================================================
-   CONTENT
-   ========================================================= */
+/* ================= MAIN CONTENT ================= */
 
 .digital-record-content {
   display: grid;
-
-  grid-template-columns: minmax(0, 1fr) 330px;
-
-  gap: 20px;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  align-items: start;
+  gap: 25px;
 }
 
 .record-list {
-  border-top: 1px solid rgba(255,255,255,0.08);
+  min-width: 0;
 }
 
 .record-list-heading {
   display: flex;
-
+  align-items: flex-end;
   justify-content: space-between;
-
-  padding: 14px 0;
-
-  color: #5d5e58;
-
-  font-size: 6px;
-
-  font-weight: 800;
-
-  letter-spacing: 0.13em;
+  gap: 16px;
+  padding: 22px 0 20px;
+  border-top: 1px solid var(--record-border);
 }
 
-/* =========================================================
-   RIDE CARD
-   ========================================================= */
+.record-list-heading h3 {
+  margin: 7px 0 0;
+  color: var(--record-text);
+  font-size: 25px;
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  text-transform: uppercase;
+}
+
+.record-count {
+  flex-shrink: 0;
+  padding-bottom: 4px;
+  color: var(--record-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+/* ================= RIDE CARDS ================= */
 
 .digital-ride-card {
   display: grid;
-
-  grid-template-columns: 55px 1fr auto;
-
+  grid-template-columns: 46px minmax(0, 1fr) auto;
   align-items: center;
-
-  gap: 20px;
-
-  min-height: 145px;
-
-  padding: 22px 20px;
-
-  margin-bottom: 7px;
-
-  border: 1px solid rgba(255,255,255,0.07);
-
-  background: #101110;
-
+  gap: 22px;
+  min-width: 0;
+  margin-bottom: 12px;
+  padding: 27px 25px;
+  border: 1px solid var(--record-border);
+  background: var(--record-surface);
   transition:
-    transform 0.2s ease,
-    border-color 0.2s ease;
+    border-color 0.25s ease,
+    background 0.25s ease,
+    transform 0.25s ease;
 }
 
 .digital-ride-card:hover {
-  transform: translateX(4px);
-
-  border-color: rgba(201,164,93,0.35);
+  transform: translateY(-2px);
+  border-color: rgba(201, 164, 93, 0.45);
+  background: #141511;
 }
 
 .ride-record-number {
-  color: #474843;
+  align-self: start;
+  padding-top: 2px;
+  color: #65655d;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 24px;
+  font-weight: 400;
+}
 
-  font-size: 15px;
-
-  font-weight: 700;
+.ride-record-main {
+  min-width: 0;
 }
 
 .ride-record-top {
   display: flex;
-
-  gap: 12px;
-
+  flex-wrap: wrap;
   align-items: center;
-
-  margin-bottom: 9px;
+  gap: 12px;
+  margin-bottom: 11px;
 }
 
 .ride-record-type {
-  color: #c9a45d;
-
-  font-size: 6px;
-
+  color: var(--record-gold);
+  font-size: 10px;
   font-weight: 800;
-
   letter-spacing: 0.13em;
 }
 
 .ride-record-status {
-  color: #6e6f69;
-
-  font-size: 6px;
-
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #99998f;
+  font-size: 9px;
   font-weight: 700;
+  letter-spacing: 0.09em;
+}
 
-  letter-spacing: 0.1em;
+.ride-record-status i {
+  width: 5px;
+  height: 5px;
+  flex-basis: 5px;
 }
 
 .ride-record-main h3 {
   margin: 0;
-
-  color: #dcd9d1;
-
-  font-size: 20px;
-
+  color: #e7e3da;
+  font-size: clamp(19px, 2vw, 25px);
   font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+  overflow-wrap: anywhere;
 }
 
 .ride-record-route {
   display: flex;
-
+  flex-wrap: wrap;
+  align-items: center;
   gap: 9px;
-
-  margin: 7px 0 14px;
-
-  color: #777873;
-
-  font-size: 9px;
+  margin: 10px 0 22px;
+  color: #a0a097;
+  font-size: 12px;
+  line-height: 1.5;
 }
 
-.ride-record-route span {
-  color: #c9a45d;
+.ride-record-route .route-arrow {
+  color: var(--record-gold);
+  font-size: 15px;
 }
 
 .ride-record-meta {
   display: flex;
-
-  gap: 18px;
-
-  color: #555650;
-
-  font-size: 6px;
-
-  font-weight: 700;
-
-  letter-spacing: 0.08em;
+  flex-wrap: wrap;
+  gap: 16px 28px;
 }
 
-.ride-record-view {
-  min-width: 75px;
+.ride-record-meta > span {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #d1cec5;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+}
 
-  min-height: 38px;
-
-  border: 1px solid rgba(201,164,93,0.35);
-
-  background: transparent;
-
-  color: #c9a45d;
-
-  cursor: pointer;
-
-  font-family: inherit;
-
-  font-size: 6px;
-
-  font-weight: 800;
-
+.ride-record-meta > span small {
+  color: var(--record-muted);
+  font-size: 9px;
+  font-weight: 700;
   letter-spacing: 0.1em;
 }
 
-.ride-record-view:hover {
-  background: #c9a45d;
-
-  color: #0b0c0b;
+.ride-record-view {
+  display: inline-flex;
+  min-width: 130px;
+  min-height: 43px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  align-self: center;
+  padding: 0 14px;
+  border: 1px solid rgba(201, 164, 93, 0.6);
+  background: transparent;
+  color: var(--record-gold-light);
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
 }
 
-/* =========================================================
-   EMPTY
-   ========================================================= */
+.ride-record-view:hover {
+  border-color: var(--record-gold);
+  background: var(--record-gold);
+  color: #11110e;
+}
+
+.view-arrow {
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* ================= EMPTY STATE ================= */
 
 .record-empty {
-  min-height: 280px;
-
   display: flex;
-
+  min-height: 300px;
   flex-direction: column;
-
-  justify-content: center;
-
   align-items: center;
-
-  border: 1px solid rgba(255,255,255,0.07);
-
+  justify-content: center;
+  padding: 35px 24px;
+  border: 1px solid var(--record-border);
+  background: var(--record-surface);
   text-align: center;
 }
 
-.record-empty span {
-  color: #c9a45d;
-
-  font-size: 7px;
-
-  font-weight: 800;
-
-  letter-spacing: 0.14em;
+.empty-icon {
+  display: grid;
+  width: 45px;
+  height: 45px;
+  place-items: center;
+  margin-bottom: 20px;
+  border: 1px solid rgba(201, 164, 93, 0.4);
+  color: var(--record-gold);
+  font-size: 22px;
 }
 
 .record-empty h3 {
-  margin: 14px 0 7px;
-
-  color: #777873;
-
-  font-size: 16px;
-
+  margin: 12px 0 7px;
+  color: var(--record-text);
+  font-size: 21px;
   font-weight: 500;
 }
 
 .record-empty p {
+  max-width: 360px;
   margin: 0;
-
-  color: #51524d;
-
-  font-size: 8px;
+  color: var(--record-muted);
+  font-size: 12px;
+  line-height: 1.7;
 }
 
-/* =========================================================
-   SIDE PANEL
-   ========================================================= */
+.record-empty button {
+  min-height: 39px;
+  margin-top: 22px;
+  padding: 0 16px;
+  border: 1px solid rgba(201, 164, 93, 0.5);
+  background: transparent;
+  color: var(--record-gold);
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.record-empty button:hover {
+  background: var(--record-gold);
+  color: #11110e;
+}
+
+/* ================= SIDE PANEL ================= */
 
 .record-side-panel {
   display: flex;
-
+  min-width: 0;
   flex-direction: column;
-
-  gap: 10px;
+  gap: 13px;
+  padding-top: 1px;
 }
 
 .record-side-card {
-  padding: 27px;
-
-  border: 1px solid rgba(255,255,255,0.08);
-
-  background: #101110;
-}
-
-.record-side-card.compact {
-  min-height: 175px;
+  min-width: 0;
+  padding: 25px;
+  border: 1px solid var(--record-border);
+  background: var(--record-surface);
 }
 
 .side-card-label {
   display: block;
-
-  margin-bottom: 18px;
-
-  color: #c9a45d;
-
-  font-size: 6px;
-
+  margin-bottom: 24px;
+  color: var(--record-gold);
+  font-size: 9px;
   font-weight: 800;
-
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
 }
 
-.record-side-card h3 {
-  margin: 0;
-
-  color: #dcd9d1;
-
-  font-size: 25px;
-
-  line-height: 1.05;
-
-  font-weight: 500;
-}
-
-.record-side-card p {
-  margin: 17px 0 0;
-
-  color: #666762;
-
-  font-size: 8px;
-
-  line-height: 1.7;
-}
-
-.profile-progress {
-  margin-top: 28px;
-}
-
-.profile-progress > div:first-child {
+.profile-heading {
   display: flex;
-
+  align-items: flex-start;
   justify-content: space-between;
-
-  margin-bottom: 9px;
+  gap: 12px;
 }
 
-.profile-progress span {
-  color: #565751;
-
-  font-size: 6px;
-
-  font-weight: 800;
-
+.profile-kicker {
+  color: var(--record-muted);
+  font-size: 9px;
+  font-weight: 700;
   letter-spacing: 0.1em;
 }
 
-.profile-progress strong {
-  color: #c9a45d;
+.record-side-card h3 {
+  margin: 11px 0 0;
+  color: var(--record-text);
+  font-size: 29px;
+  font-weight: 500;
+  line-height: 1.08;
+  letter-spacing: -0.045em;
+  text-transform: uppercase;
+}
 
-  font-size: 8px;
+.profile-emblem {
+  width: 43px;
+  height: 43px;
+  flex-shrink: 0;
+  font-size: 23px;
+}
+
+.record-side-card p {
+  margin: 19px 0 0;
+  color: #92928a;
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.profile-progress {
+  margin-top: 30px;
+}
+
+.profile-progress-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 11px;
+}
+
+.profile-progress-heading span {
+  color: var(--record-muted);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.profile-progress-heading strong {
+  color: var(--record-gold);
+  font-size: 12px;
 }
 
 .progress-track {
-  height: 2px;
-
-  background: #252624;
+  height: 4px;
+  overflow: hidden;
+  background: #292a25;
 }
 
 .progress-track span {
   display: block;
-
   height: 100%;
+  background: var(--record-gold);
+  transition: width 0.3s ease;
+}
 
-  background: #c9a45d;
+.profile-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 25px;
+  padding-top: 16px;
+  border-top: 1px solid var(--record-border);
+}
+
+.profile-footer span {
+  color: var(--record-subtle);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.average-card {
+  padding-top: 23px;
+  padding-bottom: 20px;
+}
+
+.average-card .side-card-label {
+  margin-bottom: 17px;
 }
 
 .average-distance {
-  color: #ddd9d1;
-
-  font-size: 38px;
-
-  font-weight: 400;
+  display: block;
+  color: var(--record-text);
+  font-size: clamp(35px, 3vw, 45px);
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
 }
 
 .average-distance small {
-  color: #777873;
-
-  font-size: 8px;
+  color: var(--record-gold);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
 }
 
-/* =========================================================
-   MODAL
-   ========================================================= */
+.average-card p {
+  margin-top: 12px;
+}
+
+.average-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 21px;
+  padding-top: 14px;
+  border-top: 1px solid var(--record-border);
+}
+
+.average-card-footer span:first-child {
+  color: var(--record-muted);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.average-card-footer span:last-child {
+  color: var(--record-gold);
+  font-size: 16px;
+}
+
+.record-side-note {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 2px;
+  color: var(--record-muted);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.record-note-dot {
+  width: 5px;
+  height: 5px;
+  flex-basis: 5px;
+  background: var(--record-gold);
+}
+
+/* ================= DETAIL MODAL ================= */
 
 .ride-record-overlay {
   position: fixed;
-
   inset: 0;
-
   z-index: 9999;
-
   display: flex;
-
-  justify-content: center;
   align-items: center;
-
-  padding: 25px;
-
-  background: rgba(0,0,0,0.8);
-
-  backdrop-filter: blur(7px);
+  justify-content: center;
+  overflow-y: auto;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .ride-record-modal {
   position: relative;
-
   width: min(620px, 100%);
-
-  max-height: 90vh;
-
+  max-height: min(85vh, 850px);
   overflow-y: auto;
-
-  padding: 40px;
-
-  border: 1px solid rgba(201,164,93,0.25);
-
-  background: #101110;
+  padding: clamp(25px, 5vw, 42px);
+  border: 1px solid rgba(201, 164, 93, 0.4);
+  background: #111210;
+  box-shadow: 0 25px 90px rgba(0, 0, 0, 0.4);
 }
 
 .record-modal-close {
   position: absolute;
-
-  top: 14px;
-  right: 17px;
-
-  width: 35px;
-  height: 35px;
-
-  border: 0;
-
+  top: 13px;
+  right: 15px;
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid var(--record-border);
   background: transparent;
-
-  color: #686963;
-
+  color: #aaa99f;
   cursor: pointer;
-
   font-size: 25px;
 }
 
 .record-modal-close:hover {
-  color: #c9a45d;
+  border-color: var(--record-gold);
+  color: var(--record-gold);
 }
 
 .modal-record-label {
-  color: #c9a45d;
-
-  font-size: 6px;
-
+  display: block;
+  padding-right: 35px;
+  color: var(--record-gold);
+  font-size: 10px;
   font-weight: 800;
-
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
+  line-height: 1.7;
 }
 
 .ride-record-modal h2 {
-  margin: 13px 0 8px;
-
-  color: #e4e1d9;
-
-  font-size: 30px;
-
+  margin: 18px 0 12px;
+  color: var(--record-text);
+  font-size: clamp(27px, 5vw, 37px);
   font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -0.04em;
+  overflow-wrap: anywhere;
 }
 
 .modal-route {
   display: flex;
-
+  flex-wrap: wrap;
+  align-items: center;
   gap: 10px;
-
-  color: #777873;
-
-  font-size: 10px;
+  color: #aaa99f;
+  font-size: 13px;
 }
 
-.modal-route span {
-  color: #c9a45d;
+.modal-route span:nth-child(2) {
+  color: var(--record-gold);
 }
 
 .modal-record-grid {
   display: grid;
-
-  grid-template-columns: repeat(2, 1fr);
-
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1px;
-
   margin-top: 30px;
-
-  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--record-border);
+  background: var(--record-border);
 }
 
-.modal-record-grid div {
-  padding: 18px;
-
-  background: #141514;
+.modal-record-grid > div {
+  min-width: 0;
+  padding: 19px;
+  background: #151612;
 }
 
 .modal-record-grid span,
 .modal-route-info > span {
   display: block;
-
-  margin-bottom: 8px;
-
-  color: #595a54;
-
-  font-size: 6px;
-
+  margin-bottom: 9px;
+  color: var(--record-muted);
+  font-size: 9px;
   font-weight: 800;
-
-  letter-spacing: 0.12em;
+  letter-spacing: 0.11em;
 }
 
 .modal-record-grid strong {
-  color: #bdbab2;
-
-  font-size: 12px;
-
+  color: #e0ddd4;
+  font-size: 14px;
   font-weight: 500;
+  overflow-wrap: anywhere;
 }
 
 .modal-route-info {
   margin-top: 20px;
-
-  padding: 17px;
-
-  border-left: 2px solid #c9a45d;
-
-  background: rgba(201,164,93,0.035);
+  padding: 19px;
+  border-left: 2px solid var(--record-gold);
+  background: rgba(201, 164, 93, 0.045);
 }
 
 .modal-route-info p {
   margin: 0;
-
-  color: #797a74;
-
-  font-size: 9px;
-
-  line-height: 1.7;
+  color: #b0afa6;
+  font-size: 12px;
+  line-height: 1.8;
 }
 
 .modal-record-actions {
   display: flex;
-
-  gap: 8px;
-
-  margin-top: 20px;
+  gap: 10px;
+  margin-top: 22px;
 }
 
 .modal-record-actions button {
+  display: inline-flex;
+  min-height: 44px;
   flex: 1;
-
-  min-height: 42px;
-
-  border: 1px solid rgba(201,164,93,0.4);
-
+  align-items: center;
+  justify-content: center;
+  padding: 10px 14px;
+  border: 1px solid rgba(201, 164, 93, 0.5);
   background: transparent;
-
-  color: #c9a45d;
-
+  color: var(--record-gold);
   cursor: pointer;
-
-  font-family: inherit;
-
-  font-size: 6px;
-
+  font-size: 10px;
   font-weight: 800;
-
-  letter-spacing: 0.1em;
+  letter-spacing: 0.07em;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
 }
 
 .modal-record-actions button:hover {
-  background: #c9a45d;
-
-  color: #0b0c0b;
+  background: var(--record-gold);
+  color: #11110e;
 }
 
 .modal-record-actions .delete-record {
-  border-color: rgba(190,90,90,0.4);
-
-  color: #c77b7b;
+  border-color: rgba(199, 123, 123, 0.5);
+  color: #d48d8d;
 }
 
-/* =========================================================
-   RESPONSIVE
-   ========================================================= */
+.modal-record-actions .delete-record:hover {
+  border-color: #b85e5e;
+  background: #b85e5e;
+  color: #fff;
+}
 
-@media (max-width: 1050px) {
+/* ================= KEYBOARD ACCESSIBILITY ================= */
+
+.digital-record-section button:focus-visible,
+.digital-record-section input:focus-visible {
+  outline: 2px solid var(--record-gold-light);
+  outline-offset: 3px;
+}
+
+/* ================= TABLET ================= */
+
+@media (max-width: 1100px) {
   .digital-record-content {
-    grid-template-columns: 1fr;
-  }
-
-  .record-side-panel {
-    display: grid;
-
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-@media (max-width: 800px) {
-  .digital-record-header {
-    flex-direction: column;
-
-    align-items: flex-start;
-  }
-
-  .digital-record-stats {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .digital-record-controls {
-    flex-direction: column;
-
-    align-items: stretch;
-  }
-
-  .record-search input {
-    width: 100%;
-  }
-
-  .record-filters {
-    width: 100%;
-  }
-}
-
-@media (max-width: 600px) {
-  .digital-record-section {
-    padding: 80px 0;
-  }
-
-  .digital-record-container {
-    width: calc(100% - 30px);
-  }
-
-  .digital-record-header h2 {
-    font-size: 47px;
-  }
-
-  .digital-record-stats {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr) 260px;
+    gap: 18px;
   }
 
   .digital-ride-card {
-    grid-template-columns: 35px 1fr;
+    grid-template-columns: 32px minmax(0, 1fr);
+    gap: 15px;
+    padding: 23px 20px;
+  }
 
-    gap: 12px;
+  .ride-record-number {
+    font-size: 19px;
   }
 
   .ride-record-view {
     grid-column: 2;
-
-    width: 100%;
-  }
-
-  .record-side-panel {
-    grid-template-columns: 1fr;
+    width: fit-content;
+    min-width: 135px;
+    margin-top: 3px;
   }
 
   .ride-record-meta {
-    flex-wrap: wrap;
-
-    gap: 8px 14px;
+    gap: 14px 20px;
   }
 
-  .ride-record-modal {
-    padding: 30px 20px;
+  .record-side-card {
+    padding: 21px;
   }
 }
 
-@media (max-width: 420px) {
+/* ================= SMALL TABLET ================= */
+
+@media (max-width: 850px) {
+  .digital-record-container {
+    width: min(100% - 40px, 720px);
+  }
+
+  .digital-record-header {
+    gap: 25px;
+  }
+
+  .record-header-mark {
+    flex-basis: 155px;
+    padding-left: 18px;
+  }
+
+  .digital-record-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .digital-record-content {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .record-side-panel {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .profile-card {
+    grid-row: span 2;
+  }
+
+  .record-side-note {
+    grid-column: 1 / -1;
+  }
+
+  .digital-record-controls {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 17px;
+  }
+
+  .record-search {
+    width: 100%;
+  }
+}
+
+/* ================= MOBILE ================= */
+
+@media (max-width: 560px) {
+  .digital-record-section {
+    padding: 64px 0;
+  }
+
+  .digital-record-container {
+    width: calc(100% - 32px);
+  }
+
+  .digital-record-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 28px;
+    padding-bottom: 30px;
+  }
+
+  .digital-record-eyebrow {
+    margin-bottom: 17px;
+    font-size: 9px;
+  }
+
   .digital-record-header h2 {
-    font-size: 39px;
+    font-size: clamp(40px, 12vw, 57px);
+  }
+
+  .digital-record-header p {
+    margin-top: 17px;
+    font-size: 13px;
+  }
+
+  .record-header-mark {
+    display: grid;
+    width: 100%;
+    grid-template-columns: 43px 1fr;
+    align-items: center;
+    column-gap: 14px;
+    row-gap: 5px;
+    padding: 0;
+    border-left: 0;
+  }
+
+  .record-mark-icon {
+    grid-row: span 3;
+    width: 43px;
+    height: 43px;
+    margin: 0;
+  }
+
+  .record-mark-caption,
+  .record-header-mark > strong,
+  .record-mark-status {
+    margin: 0;
+  }
+
+  .record-mark-caption {
+    align-self: end;
+  }
+
+  .record-header-mark > strong {
+    align-self: start;
+  }
+
+  .record-mark-status {
+    grid-column: 2;
+  }
+
+  .digital-record-stats {
+    margin-top: 20px;
+  }
+
+  .record-stat {
+    min-height: 123px;
+    padding: 17px;
+  }
+
+  .record-stat-label {
+    margin-bottom: 13px;
+    font-size: 9px;
+  }
+
+  .record-stat > strong {
+    font-size: 29px;
+  }
+
+  .record-stat > strong.record-stat-style {
+    font-size: 18px;
+  }
+
+  .record-stat-foot {
+    font-size: 10px;
+  }
+
+  .digital-record-controls {
+    padding: 25px 0 22px;
+  }
+
+  .record-filters {
+    display: flex;
+    gap: 7px;
   }
 
   .record-filters button {
-    flex: 1;
+    min-height: 36px;
+    padding-inline: 11px;
+    font-size: 9px;
   }
 
-  .modal-record-grid {
-    grid-template-columns: 1fr;
+  .record-search-shortcut {
+    display: none;
+  }
+
+  .record-list-heading {
+    padding: 19px 0 16px;
+  }
+
+  .record-list-heading h3 {
+    font-size: 22px;
+  }
+
+  .record-count {
+    font-size: 9px;
+  }
+
+  .digital-ride-card {
+    grid-template-columns: 27px minmax(0, 1fr);
+    gap: 12px;
+    padding: 20px 15px;
+  }
+
+  .ride-record-number {
+    padding-top: 0;
+    font-size: 17px;
+  }
+
+  .ride-record-top {
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .ride-record-type {
+    font-size: 9px;
+  }
+
+  .ride-record-status {
+    font-size: 8px;
+  }
+
+  .ride-record-main h3 {
+    font-size: 22px;
+    line-height: 1.25;
+  }
+
+  .ride-record-route {
+    gap: 7px;
+    margin: 9px 0 19px;
+    font-size: 12px;
+  }
+
+  .ride-record-meta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 12px;
+  }
+
+  .ride-record-meta > span {
+    font-size: 11px;
+  }
+
+  .ride-record-view {
+    grid-column: 2;
+    width: 100%;
+    min-height: 43px;
+    margin-top: 6px;
+  }
+
+  .record-side-panel {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .profile-card {
+    grid-row: auto;
+  }
+
+  .record-side-note {
+    grid-column: auto;
+  }
+
+  .record-side-card {
+    padding: 24px;
+  }
+
+  .record-side-card h3 {
+    font-size: 29px;
+  }
+
+  .average-distance {
+    font-size: 40px;
+  }
+
+  .ride-record-overlay {
+    align-items: flex-start;
+    padding: 15px;
+  }
+
+  .ride-record-modal {
+    margin-block: auto;
+    padding: 28px 20px;
+  }
+
+  .modal-record-grid > div {
+    padding: 15px;
   }
 
   .modal-record-actions {
     flex-direction: column;
+  }
+}
+
+/* ================= EXTRA SMALL MOBILE ================= */
+
+@media (max-width: 360px) {
+  .digital-record-container {
+    width: calc(100% - 24px);
+  }
+
+  .digital-record-header h2 {
+    font-size: 37px;
+  }
+
+  .record-stat {
+    padding: 13px;
+  }
+
+  .record-stat > strong {
+    font-size: 25px;
+  }
+
+  .record-filters button {
+    padding-inline: 8px;
+    font-size: 8px;
+  }
+
+  .digital-ride-card {
+    grid-template-columns: 22px minmax(0, 1fr);
+    gap: 9px;
+    padding: 16px 11px;
+  }
+
+  .ride-record-main h3 {
+    font-size: 19px;
+  }
+
+  .ride-record-meta {
+    gap: 14px 8px;
+  }
+
+  .ride-record-view {
+    min-width: 0;
+    padding-inline: 10px;
+  }
+}
+
+/* ================= REDUCED MOTION ================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .digital-record-section *,
+  .digital-record-section *::before,
+  .digital-record-section *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* =====================================================
+   DIGITAL RIDE RECORD — CARD LAYOUT FIX
+   Add this at the VERY END of DigitalRideRecord.css
+===================================================== */
+
+.digital-record-section .digital-ride-card {
+  display: grid !important;
+  grid-template-columns: 46px minmax(0, 1fr) 145px !important;
+  align-items: center !important;
+  gap: 24px !important;
+
+  width: 100%;
+  min-width: 0;
+  min-height: 190px;
+  padding: 28px 26px;
+}
+
+.digital-record-section .ride-record-number {
+  grid-column: 1;
+  align-self: start;
+  padding-top: 3px;
+}
+
+.digital-record-section .ride-record-main {
+  grid-column: 2;
+  grid-row: 1;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+}
+
+.digital-record-section .ride-record-main h3 {
+  display: block;
+  width: 100%;
+  max-width: none;
+
+  margin: 0;
+  font-size: 25px;
+  line-height: 1.3;
+
+  overflow-wrap: normal;
+  word-break: normal;
+  white-space: normal;
+}
+
+.digital-record-section .ride-record-route {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+
+  width: 100%;
+  margin: 12px 0 20px;
+}
+
+.digital-record-section .ride-record-meta {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 18px 30px;
+
+  width: 100%;
+}
+
+.digital-record-section .ride-record-meta > span {
+  min-width: 85px;
+}
+
+.digital-record-section .ride-record-view {
+  grid-column: 3 !important;
+  grid-row: 1 !important;
+  align-self: center;
+  justify-self: end;
+
+  display: inline-flex !important;
+  width: 145px !important;
+  min-width: 145px !important;
+  max-width: 145px !important;
+  min-height: 44px;
+
+  margin: 0;
+  padding: 0 12px;
+}
+
+/* Tablet */
+@media (max-width: 900px) {
+  .digital-record-section .digital-ride-card {
+    grid-template-columns: 35px minmax(0, 1fr) 125px !important;
+    gap: 16px !important;
+    padding: 22px 18px;
+  }
+
+  .digital-record-section .ride-record-view {
+    width: 125px !important;
+    min-width: 125px !important;
+    max-width: 125px !important;
+  }
+
+  .digital-record-section .ride-record-main h3 {
+    font-size: 21px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .digital-record-section .digital-ride-card {
+    grid-template-columns: 25px minmax(0, 1fr) !important;
+    gap: 12px !important;
+    padding: 20px 15px;
+  }
+
+  .digital-record-section .ride-record-number {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .digital-record-section .ride-record-main {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .digital-record-section .ride-record-main h3 {
+    font-size: 21px;
+  }
+
+  .digital-record-section .ride-record-view {
+    grid-column: 2 !important;
+    grid-row: 2 !important;
+    justify-self: start;
+
+    width: 145px !important;
+    min-width: 145px !important;
+    max-width: 145px !important;
+    margin-top: 8px;
+  }
+}
+
+/* ==========================================
+   RIDE HISTORY — TWO COLUMN LAYOUT
+========================================== */
+
+/* Display ride cards in two columns */
+.digital-record-content .record-list {
+  min-width: 0;
+}
+
+.digital-record-content .record-list-heading {
+  grid-column: 1 / -1;
+}
+
+.digital-record-content .record-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-content: start;
+}
+
+/* Heading spans both columns */
+.digital-record-content .record-list-heading {
+  grid-column: 1 / -1;
+  margin-bottom: 0;
+}
+
+/* Each ride card */
+.digital-record-content .digital-ride-card {
+  display: flex !important;
+  flex-direction: column;
+  align-items: stretch !important;
+  gap: 18px !important;
+
+  min-width: 0;
+  min-height: 290px;
+  height: 100%;
+  margin: 0;
+  padding: 26px;
+
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: #101110;
+
+  transition: border-color 0.25s ease,
+              background 0.25s ease;
+}
+
+.digital-record-content .digital-ride-card:hover {
+  transform: none;
+  border-color: rgba(201, 164, 93, 0.55);
+  background: #141511;
+}
+
+/* Hide the number to give content more room */
+.digital-record-content .ride-record-number {
+  display: none;
+}
+
+/* Ride information */
+.digital-record-content .ride-record-main {
+  width: 100%;
+  min-width: 0;
+}
+
+.digital-record-content .ride-record-main h3 {
+  margin: 12px 0;
+  font-size: clamp(19px, 1.8vw, 25px);
+  line-height: 1.3;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+/* Route */
+.digital-record-content .ride-record-route {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 24px;
+  font-size: 13px;
+}
+
+/* Date, distance and duration */
+.digital-record-content .ride-record-meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.digital-record-content .ride-record-meta span {
+  min-width: 0;
+  font-size: 10px;
+  line-height: 1.6;
+  overflow-wrap: break-word;
+}
+
+/* View details button */
+.digital-record-content .ride-record-view {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  min-height: 44px;
+
+  margin-top: auto;
+  padding: 0 15px;
+
+  font-size: 10px;
+  letter-spacing: 0.12em;
+}
+
+/* Empty state occupies both columns */
+.digital-record-content .record-empty {
+  grid-column: 1 / -1;
+}
+
+/* Tablet: one column */
+@media (max-width: 900px) {
+  .digital-record-content {
+    grid-template-columns: 1fr;
+  }
+
+  .digital-record-content .record-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Mobile: one column */
+@media (max-width: 600px) {
+  .digital-record-content .record-list {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .digital-record-content .digital-ride-card {
+    min-height: 260px;
+    padding: 22px;
+  }
+
+  .digital-record-content .ride-record-main h3 {
+    font-size: 22px;
+  }
+
+  .digital-record-content .ride-record-meta {
+    gap: 8px;
   }
 }
