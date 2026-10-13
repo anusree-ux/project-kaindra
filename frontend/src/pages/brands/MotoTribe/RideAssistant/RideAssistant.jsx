@@ -9,7 +9,6 @@ const assistantOptions = [
     number: "01",
     title: "ROUTE ASSIST",
     shortTitle: "Route",
-    icon: "MAP",
     description:
       "Get quick guidance for planning and managing your riding route.",
     tips: [
@@ -24,12 +23,11 @@ const assistantOptions = [
     number: "02",
     title: "FUEL CHECK",
     shortTitle: "Fuel",
-    icon: "FUEL",
     description:
-      "Keep your motorcycle ready by planning fuel stops before the journey.",
+      "Plan your fuel stops before starting your journey.",
     tips: [
       "Refuel before entering long remote sections.",
-      "Do not rely on the last available fuel station.",
+      "Identify fuel stations along your route.",
       "Monitor your motorcycle's average mileage.",
       "Keep enough fuel reserve for unexpected detours.",
     ],
@@ -39,14 +37,13 @@ const assistantOptions = [
     number: "03",
     title: "SERVICE HELP",
     shortTitle: "Service",
-    icon: "SVC",
     description:
-      "Prepare for common motorcycle service requirements during a ride.",
+      "Prepare your motorcycle before and during your journey.",
     tips: [
       "Check tyre pressure before departure.",
-      "Inspect chain condition and lubrication.",
+      "Inspect the chain condition and lubrication.",
       "Check engine oil and coolant levels.",
-      "Know the nearest service points on long routes.",
+      "Identify nearby motorcycle service centres.",
     ],
   },
   {
@@ -54,27 +51,26 @@ const assistantOptions = [
     number: "04",
     title: "SAFETY CHECK",
     shortTitle: "Safety",
-    icon: "SOS",
     description:
-      "Run through a simple safety checklist before getting on the road.",
+      "Follow these essential safety checks before riding.",
     tips: [
       "Wear a certified helmet and protective gear.",
-      "Carry your driving and vehicle documents.",
+      "Carry your driving licence and vehicle documents.",
       "Keep emergency contacts accessible.",
       "Avoid riding when excessively tired.",
     ],
   },
 ];
 
-function getStoredChecks() {
+function loadChecklist() {
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const saved = localStorage.getItem(STORAGE_KEY);
 
-    if (!stored) {
+    if (!saved) {
       return [];
     }
 
-    const parsed = JSON.parse(stored);
+    const parsed = JSON.parse(saved);
 
     return Array.isArray(parsed)
       ? parsed.filter((item) => typeof item === "string")
@@ -84,11 +80,15 @@ function getStoredChecks() {
   }
 }
 
-function RideAssistant() {
+export default function RideAssistant() {
   const [activeOption, setActiveOption] = useState("route");
-  const [completedChecks, setCompletedChecks] = useState(getStoredChecks);
+
+  const [completedChecks, setCompletedChecks] =
+    useState(loadChecklist);
+
   const [assistantMode, setAssistantMode] = useState("READY");
 
+  // Save checklist progress.
   useEffect(() => {
     try {
       localStorage.setItem(
@@ -96,7 +96,7 @@ function RideAssistant() {
         JSON.stringify(completedChecks)
       );
     } catch {
-      // Ignore localStorage errors.
+      // Storage may be unavailable in some browsers.
     }
   }, [completedChecks]);
 
@@ -108,59 +108,51 @@ function RideAssistant() {
   const getCheckId = (index) =>
     `${activeOption}-${index}`;
 
+  // Complete or uncomplete an action.
   const toggleCheck = (index) => {
     const checkId = getCheckId(index);
 
-    setCompletedChecks((current) =>
-      current.includes(checkId)
-        ? current.filter((item) => item !== checkId)
-        : [...current, checkId]
+    setCompletedChecks((previous) =>
+      previous.includes(checkId)
+        ? previous.filter((item) => item !== checkId)
+        : [...previous, checkId]
     );
   };
 
-  const completedForCurrent = selectedOption.tips.filter(
+  const completedCount = selectedOption.tips.filter(
     (_, index) =>
       completedChecks.includes(getCheckId(index))
   ).length;
 
-  const progressPercentage =
-    selectedOption.tips.length > 0
-      ? Math.round(
-          (completedForCurrent /
-            selectedOption.tips.length) *
-            100
-        )
-      : 0;
+  const progress = Math.round(
+    (completedCount / selectedOption.tips.length) * 100
+  );
 
-  const resetChecks = () => {
-    setCompletedChecks((current) =>
-      current.filter(
+  // Reset only the selected category.
+  const resetChecklist = () => {
+    setCompletedChecks((previous) =>
+      previous.filter(
         (item) => !item.startsWith(`${activeOption}-`)
       )
     );
   };
 
-  const toggleAssistantMode = () => {
-    setAssistantMode((current) =>
-      current === "READY" ? "ACTIVE" : "READY"
-    );
-  };
-
   return (
     <section
-      className="ride-assistant-section"
+      className="mt-ride-assistant"
       id="ride-assistant"
-      aria-labelledby="ride-assistant-title"
     >
-      <div className="ride-assistant-container">
-        {/* HEADER */}
-        <div className="ride-assistant-header">
-          <div className="assistant-heading">
-            <span className="assistant-eyebrow">
+      <div className="mt-ride-container">
+
+        {/* Header */}
+
+        <header className="mt-ride-header">
+          <div className="mt-ride-heading">
+            <span className="mt-ride-eyebrow">
               MOTOTRIBE / RIDE ASSISTANT
             </span>
 
-            <h2 id="ride-assistant-title">
+            <h2>
               Your ride.
               <br />
               Your co-pilot.
@@ -168,199 +160,179 @@ function RideAssistant() {
 
             <p>
               Practical guidance for every stage of your
-              Practical guidance for every stage of your journey — from preparation to the road ahead.
+              journey — from preparation to the road ahead.
             </p>
           </div>
 
-          <div className="assistant-status">
-            <span className="assistant-status-label">
-              ASSISTANT STATUS
-            </span>
+          <div className="mt-ride-status">
+            <span>ASSISTANT STATUS</span>
 
             <button
               type="button"
-              className={`assistant-status-button ${assistantMode.toLowerCase()}`}
-              onClick={toggleAssistantMode}
+              className="mt-ride-status-button"
+              onClick={() =>
+                setAssistantMode((current) =>
+                  current === "READY" ? "ACTIVE" : "READY"
+                )
+              }
               aria-pressed={assistantMode === "ACTIVE"}
-              aria-label={`Ride assistant status: ${assistantMode}. Click to change.`}
             >
-              <span
-                className="status-dot"
-                aria-hidden="true"
-              />
+              <span className="mt-ride-status-dot" />
               {assistantMode}
             </button>
           </div>
-        </div>
+        </header>
 
-        {/* ASSISTANT NAVIGATION */}
+        {/* Navigation */}
+
         <nav
-          className="assistant-navigation"
+          className="mt-ride-navigation"
           aria-label="Ride assistant categories"
         >
           {assistantOptions.map((option) => (
             <button
-              key={option.id}
               type="button"
-              className={`assistant-nav-item ${
+              key={option.id}
+              className={`mt-ride-nav-item ${
                 activeOption === option.id ? "active" : ""
               }`}
               onClick={() => setActiveOption(option.id)}
-              aria-current={
-                activeOption === option.id
-                  ? "page"
-                  : undefined
-              }
+              aria-pressed={activeOption === option.id}
             >
-              <span className="assistant-nav-number">
+              <span className="mt-ride-nav-number">
                 {option.number}
               </span>
 
-              <span
-                className="assistant-nav-icon"
-                aria-hidden="true"
-              > {option.shortTitle[0]} </span>
-
-              <span className="assistant-nav-title">
+              <span className="mt-ride-nav-title">
                 {option.shortTitle}
               </span>
 
-              <span
-                className="assistant-nav-arrow"
-                aria-hidden="true"
-              >
-                &#8250;
+              <span className="mt-ride-nav-arrow">
+                ›
               </span>
             </button>
           ))}
         </nav>
 
-        {/* MAIN ASSISTANT PANEL */}
-        <div className="assistant-main-panel">
-          {/* LEFT PANEL */}
-          <div className="assistant-panel-intro">
-            <span className="assistant-panel-label">
+        {/* Main panel */}
+
+        <div className="mt-ride-main">
+
+          {/* Left panel */}
+
+          <aside className="mt-ride-intro">
+            <span className="mt-ride-label">
               ACTIVE ASSISTANCE / {selectedOption.number}
             </span>
 
-            <div
-              className="assistant-large-icon"
-              aria-hidden="true"
-            >
+            <div className="mt-ride-number">
               {selectedOption.number}
             </div>
 
             <h3>{selectedOption.title}</h3>
 
-            <p>{selectedOption.description}</p>
+            <p className="mt-ride-description">
+              {selectedOption.description}
+            </p>
 
-            <div className="assistant-progress">
-              <div className="assistant-progress-header">
+            <div className="mt-ride-progress">
+              <div className="mt-ride-progress-heading">
                 <span>CHECKLIST PROGRESS</span>
 
                 <strong>
-                  {completedForCurrent}/
-                  {selectedOption.tips.length}
+                  {completedCount}/{selectedOption.tips.length}
                 </strong>
               </div>
 
               <div
-                className="assistant-progress-bar"
+                className="mt-ride-progress-track"
                 role="progressbar"
-                aria-valuemin="0"
-                aria-valuemax="100"
-                aria-valuenow={progressPercentage}
-                aria-label="Checklist completion"
+                aria-label="Checklist progress"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={progress}
               >
-                <span
-                  style={{
-                    width: `${progressPercentage}%`,
-                  }}
+                <div
+                  className="mt-ride-progress-fill"
+                  style={{ width: `${progress}%` }}
                 />
               </div>
 
-              <span className="assistant-progress-percent">
-                {progressPercentage}% COMPLETE
+              <span className="mt-ride-progress-text">
+                {progress}% COMPLETE
               </span>
             </div>
 
             <button
               type="button"
-              className="assistant-reset"
-              onClick={resetChecks}
-              disabled={completedForCurrent === 0}
+              className="mt-ride-reset"
+              onClick={resetChecklist}
+              disabled={completedCount === 0}
             >
               RESET CHECKLIST
             </button>
-          </div>
+          </aside>
 
-          {/* RIGHT CHECKLIST */}
-          <div className="assistant-checklist">
-            <div className="checklist-heading">
+          {/* Right panel */}
+
+          <div className="mt-ride-checklist">
+            <div className="mt-ride-checklist-heading">
               <span>RECOMMENDED ACTIONS</span>
 
-              <span>
-                {String(
-                  selectedOption.tips.length
-                ).padStart(2, "0")}
-              </span>
+              <strong>
+                {String(selectedOption.tips.length).padStart(2, "0")}
+              </strong>
             </div>
 
-            <div className="assistant-checklist-items">
-              {selectedOption.tips.map(
-                (tip, index) => {
-                  const checkId = getCheckId(index);
+            <div className="mt-ride-actions">
+              {selectedOption.tips.map((tip, index) => {
+                const checkId = getCheckId(index);
 
-                  const isComplete =
-                    completedChecks.includes(checkId);
+                const isComplete =
+                  completedChecks.includes(checkId);
 
-                  return (
-                    <button
-                      key={checkId}
-                      type="button"
-                      className={`assistant-check-item ${
-                        isComplete ? "completed" : ""
-                      }`}
-                      onClick={() =>
-                        toggleCheck(index)
-                      }
-                      aria-pressed={isComplete}
+                return (
+                  <button
+                    key={checkId}
+                    type="button"
+                    className={`mt-ride-action ${
+                      isComplete ? "completed" : ""
+                    }`}
+                    onClick={() => toggleCheck(index)}
+                    aria-pressed={isComplete}
+                  >
+                    <span className="mt-ride-action-number">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+
+                    <span
+                      className="mt-ride-checkbox"
+                      aria-hidden="true"
                     >
-                      <span className="check-number">
-                        {String(index + 1).padStart(
-                          2,
-                          "0"
-                        )}
-                      </span>
+                      {isComplete ? "✓" : ""}
+                    </span>
 
-                      <span
-                        className="check-box"
-                        aria-hidden="true"
-                      >
-                        {isComplete ? "✓" : ""}
-                      </span>
+                    <span className="mt-ride-action-text">
+                      {tip}
+                    </span>
 
-                      <span className="check-text">
-                        {tip}
-                      </span>
-
-                      <span
-                        className="check-arrow"
-                        aria-hidden="true"
-                      >
-                        &rsaquo;
-                      </span>
-                    </button>
-                  );
-                }
-              )}
+                    <span
+                      className="mt-ride-action-arrow"
+                      aria-hidden="true"
+                    >
+                      ›
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
 
-        {/* QUICK ASSISTANCE */}
-        <div className="quick-assistance">
-          <div className="quick-assistance-heading">
+        {/* Quick assistance */}
+
+        <section className="mt-ride-quick">
+          <div className="mt-ride-quick-heading">
             <span>QUICK ASSISTANCE</span>
 
             <h3>
@@ -370,66 +342,53 @@ function RideAssistant() {
             </h3>
           </div>
 
-          <div className="quick-assistance-grid">
-            <div className="quick-card">
+          <div className="mt-ride-quick-grid">
+            <article className="mt-ride-quick-card">
               <span>01</span>
-
-              <strong>DOCUMENTS</strong>
-
+              <h4>DOCUMENTS</h4>
               <p>
-                Keep your license, registration and
-                insurance documents accessible.
+                Keep your licence, registration and insurance
+                documents accessible.
               </p>
-            </div>
+            </article>
 
-            <div className="quick-card">
+            <article className="mt-ride-quick-card">
               <span>02</span>
-
-              <strong>GEAR</strong>
-
+              <h4>RIDING GEAR</h4>
               <p>
-                Helmet, gloves, riding jacket and
-                protective equipment should be ready.
+                Prepare your helmet, gloves, jacket and
+                protective equipment.
               </p>
-            </div>
+            </article>
 
-            <div className="quick-card">
+            <article className="mt-ride-quick-card">
               <span>03</span>
-
-              <strong>MOTORCYCLE</strong>
-
+              <h4>MOTORCYCLE</h4>
               <p>
-                Inspect tyres, brakes, lights, chain
-                and essential fluid levels.
+                Inspect tyres, brakes, lights, chain and
+                essential fluid levels.
               </p>
-            </div>
+            </article>
 
-            <div className="quick-card">
+            <article className="mt-ride-quick-card">
               <span>04</span>
-
-              <strong>CONTACT</strong>
-
+              <h4>EMERGENCY CONTACT</h4>
               <p>
-                Let someone you trust know your planned
-                route and expected arrival.
+                Share your planned route and expected arrival
+                with someone you trust.
               </p>
-            </div>
+            </article>
           </div>
-        </div>
+        </section>
 
-        {/* FOOTER */}
-        <div className="assistant-footer">
+        {/* Footer */}
+
+        <footer className="mt-ride-footer">
           <span>MOTOTRIBE RIDE ASSISTANT</span>
+          <p>Ride prepared. Ride aware. Ride together.</p>
+        </footer>
 
-          <p>
-            Ride prepared. Ride aware. Ride together.
-          </p>
-        </div>
       </div>
     </section>
   );
 }
-
-export default RideAssistant;
-
-

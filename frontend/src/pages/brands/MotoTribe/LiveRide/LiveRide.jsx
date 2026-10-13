@@ -1,753 +1,532 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import apiClient from "../../../../services/apiClient";
-import { formatMongoRide } from "../../../../utils/mototribeRideAdapter";
-
-import "./LiveRide.css";
-import RideMap from "../RideMap/RideMap";
-import LiveLocation from "../LiveLocation/LiveLocation";
-import LiveRideChat from "../LiveRideChat/LiveRideChat";
-import SafetySOS from "../SafetySOS/SafetySOS";
-import Navigation from "../Navigation/Navigation";
-import RideCall from "../RideCall/RideCall";
 import {
   getMotoRideById,
   getMotoRideStatus,
   getMotoRideCountdown,
 } from "../../../../data/motoRides";
+import "./LiveRide.css";
 
 function LiveRide() {
   const { rideId } = useParams();
   const navigate = useNavigate();
 
-  const [now, setNow] = useState(() => new Date());
-  const [ride, setRide] = useState(() => getMotoRideById(rideId));
-  const [loading, setLoading] = useState(() => !getMotoRideById(rideId));
+  const [ride, setRide] = useState(null);
+  const [status, setStatus] = useState("UPCOMING");
+  const [countdown, setCountdown] = useState(null);
 
-  // Keep the clock updated without setting ride-related state in an effect.
   useEffect(() => {
+    const selectedRide = getMotoRideById(rideId);
+
+    if (selectedRide) {
+      setRide(selectedRide);
+      setStatus(getMotoRideStatus(selectedRide));
+      setCountdown(getMotoRideCountdown(selectedRide));
+    }
+  }, [rideId]);
+
+  useEffect(() => {
+    if (!ride) return;
+
     const timer = setInterval(() => {
-      setNow(new Date());
+      const now = new Date();
+
+      setStatus(getMotoRideStatus(ride, now));
+      setCountdown(getMotoRideCountdown(ride, now));
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
-    let isMounted = true;
-    const staticRide = getMotoRideById(rideId);
-    if (staticRide) {
-      setRide(staticRide);
-      setLoading(false);
-      return;
-    }
-
-    async function fetchRide() {
-      try {
-        setLoading(true);
-        const res = await apiClient.get(`/api/mototribe/rides/${rideId}`);
-        const raw = res.data.data?.ride || res.data.data;
-        if (isMounted && raw) {
-          setRide(formatMongoRide(raw));
-        }
-      } catch (err) {
-        console.error("Error fetching live ride from DB:", err);
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    }
-
-    fetchRide();
-    return () => {
-      isMounted = false;
-    };
-  }, [rideId]);
-
-  // Derive status and countdown directly from ride + current time.
-  const status = ride
-    ? getMotoRideStatus(ride, now)
-    : "UPCOMING";
-
-  const countdown = ride
-    ? getMotoRideCountdown(ride, now)
-    : {
-        totalSeconds: 0,
-        days: 0,
-        hours: 0,
-        minutes: 0,
-        seconds: 0,
-      };
-
-  // --------------------------------------------------
-  // LOADING / RIDE NOT FOUND
-  // --------------------------------------------------
-
-  if (loading) {
-    return (
-      <section className="live-ride-page">
-        <div className="live-ride-not-found" style={{ borderColor: "rgba(185, 145, 69, 0.4)" }}>
-          <span className="live-ride-not-found-label">MOTOTRIBE / LIVE RIDE</span>
-          <h2 style={{ color: "#d4a03e", fontSize: "1.4rem", letterSpacing: "0.08em" }}>CONNECTING TO LIVE RIDE CONSOLE...</h2>
-          <p style={{ color: "#888" }}>Syncing ride route, GPS location channels, and rider group chat...</p>
-        </div>
-      </section>
-    );
-  }
-
-  // --------------------------------------------------
-  // RIDE NOT FOUND
-  // --------------------------------------------------
+  }, [ride]);
 
   if (!ride) {
     return (
-      <section className="live-ride-page">
+      <div className="live-ride-page">
         <div className="live-ride-not-found">
-          <span className="live-ride-not-found-label">
-            MOTOTRIBE / LIVE RIDE
-          </span>
-
-          <h1>Ride Not Found</h1>
-
-          <p>
-            The requested ride could not be found. Please return to the
-            MotoTribe rides and select a valid ride.
-          </p>
+          <span>RIDE NOT FOUND</span>
+          <h1>This ride does not exist.</h1>
 
           <button
-            type="button"
-            onClick={() =>
-              navigate("/businesses/mototribe")
-            }
-            className="live-ride-back-button"
+            onClick={() => navigate("/businesses/mototribe")}
           >
-            ← BACK TO MOTOTRIBE
+            BACK TO MOTOTRIBE
           </button>
         </div>
-      </section>
+      </div>
     );
   }
 
-  // --------------------------------------------------
-  // HELPERS
-  // --------------------------------------------------
+  const confirmedRiders =
+    ride.participants?.filter(
+      (participant) => participant.confirmed
+    ) || [];
 
-  const formatCountdown = () => {
-    if (status === "COMPLETED") {
-      return "RIDE COMPLETED";
-    }
-
-    if (status === "LIVE") {
-      return "RIDE IN PROGRESS";
-    }
-
-    if (status === "STARTING") {
-      return "STARTING SOON";
-    }
-
-    if (countdown.days > 0) {
-      return `${countdown.days}D ${String(
-        countdown.hours
-      ).padStart(2, "0")}H ${String(
-        countdown.minutes
-      ).padStart(2, "0")}M`;
-    }
-
-    return `${String(
-      countdown.hours
-    ).padStart(2, "0")}:${String(
-      countdown.minutes
-    ).padStart(2, "0")}:${String(
-      countdown.seconds
-    ).padStart(2, "0")}`;
-  };
-
-  const statusClass = status.toLowerCase();
-
-  const handleBack = () => {
-    navigate(
-      `/businesses/mototribe/ride/${ride.id}`
-    );
-  };
-
-  const handleExpenses = () => {
-    navigate(
-      `/businesses/mototribe/ride/${ride.id}/expenses`
-    );
-  };
-
-  // --------------------------------------------------
-  // COMPLETE RIDE
-  // --------------------------------------------------
-
-  const handleCompleteRide = () => {
-    navigate(
-      `/businesses/mototribe/ride/${ride.id}/complete`
-    );
-  };
-
-  // --------------------------------------------------
-  // RENDER
-  // --------------------------------------------------
+  const isLive = status === "LIVE";
+  const isStarting = status === "STARTING";
+  const isCompleted = status === "COMPLETED";
 
   return (
-    <section className="live-ride-page">
-      {/* HEADER */}
+    <div className="live-ride-page">
 
-      <header className="live-ride-header">
+      {/* =====================================================
+          TOP HEADER
+      ===================================================== */}
+
+      <header className="live-ride-topbar">
+
         <button
-          type="button"
-          className="live-ride-header-back"
-          onClick={handleBack}
+          className="live-ride-back"
+          onClick={() =>
+            navigate(
+              `/businesses/mototribe/ride/${ride.id}`
+            )
+          }
         >
           ← BACK TO RIDE
         </button>
 
-        <div className="live-ride-header-center">
-          <span className="live-ride-header-label">
-            MOTOTRIBE / LIVE RIDE
-          </span>
-
-          <span
-            className={`live-ride-status ${statusClass}`}
-          >
-            <span className="live-ride-status-dot" />
-            {status}
-          </span>
+        <div className="live-ride-brand">
+          MOTOTRIBE
+          <span>/ LIVE RIDE</span>
         </div>
 
-        <div className="live-ride-header-actions">
-          <button
-            type="button"
-            className="live-ride-expenses-button"
-            onClick={handleExpenses}
-          >
-            EXPENSES
-          </button>
+        <div className="live-ride-status-badge">
 
-          <button
-            type="button"
-            className="live-ride-complete-button"
-            onClick={handleCompleteRide}
-          >
-            COMPLETE RIDE
-          </button>
+          {isLive && (
+            <>
+              <span className="live-status-dot"></span>
+              LIVE NOW
+            </>
+          )}
+
+          {isStarting && "STARTING SOON"}
+
+          {isCompleted && "COMPLETED"}
+
+          {status === "UPCOMING" && "UPCOMING"}
         </div>
+
       </header>
 
-      {/* HERO */}
+      {/* =====================================================
+          HERO
+      ===================================================== */}
 
-      <div className="live-ride-hero">
+      <section className="live-ride-hero">
+
         <div className="live-ride-hero-content">
-          <div className="live-ride-meta">
-            <span>{ride.type || "RIDE"}</span>
-            <span>•</span>
-            <span>
-              {ride.difficulty || "STANDARD"}
-            </span>
-          </div>
+
+          <span className="live-ride-kicker">
+            {ride.type} / {ride.difficulty}
+          </span>
 
           <h1>{ride.name}</h1>
 
-          <p className="live-ride-route">
-            {ride.start} → {ride.destination}
-          </p>
-
-          <p className="live-ride-organizer">
-            Organized by{" "}
-            <strong>{ride.organizer}</strong>
-          </p>
-        </div>
-
-        <div
-          className={`live-ride-hero-status ${statusClass}`}
-        >
-          <span className="live-ride-hero-status-label">
-            CURRENT STATUS
-          </span>
-
-          <strong>{status}</strong>
-
-          <div className="live-ride-countdown">
-            {formatCountdown()}
+          <div className="live-ride-route-title">
+            <strong>{ride.start}</strong>
+            <span>→</span>
+            <strong>{ride.destination}</strong>
           </div>
+
         </div>
-      </div>
 
-      {/* STATS */}
+        <div className="live-ride-hero-side">
 
-      <div className="live-ride-stats">
-        <div className="live-ride-stat">
-          <span className="live-ride-stat-label">
-            DISTANCE
-          </span>
+          <span>ORGANIZED BY</span>
 
+          <strong>{ride.organizer}</strong>
+
+          <small>{ride.organizerType}</small>
+
+        </div>
+
+      </section>
+
+      {/* =====================================================
+          RIDE STATS
+      ===================================================== */}
+
+      <section className="live-ride-stats">
+
+        <div className="live-stat">
+          <span>DISTANCE</span>
+          <strong>{ride.distanceLabel}</strong>
+        </div>
+
+        <div className="live-stat">
+          <span>DURATION</span>
+          <strong>{ride.duration}</strong>
+        </div>
+
+        <div className="live-stat">
+          <span>RIDERS</span>
           <strong>
-            {ride.distanceLabel ||
-              `${ride.distance} km`}
+            {ride.riders} / {ride.maxRiders}
           </strong>
         </div>
 
-        <div className="live-ride-stat">
-          <span className="live-ride-stat-label">
-            DURATION
-          </span>
-
+        <div className="live-stat">
+          <span>RIDE BUDGET</span>
           <strong>
-            {ride.duration || "—"}
+            ₹{ride.budget.toLocaleString()}
           </strong>
         </div>
 
-        <div className="live-ride-stat">
-          <span className="live-ride-stat-label">
-            RIDERS
-          </span>
-
-          <strong>
-            {ride.participants?.length ||
-              ride.riders ||
-              0}
-            /
-            {ride.maxRiders || "—"}
+        <div className="live-stat">
+          <span>STATUS</span>
+          <strong
+            className={`stat-status stat-${status.toLowerCase()}`}
+          >
+            {status}
           </strong>
         </div>
 
-        <div className="live-ride-stat">
-          <span className="live-ride-stat-label">
-            BUDGET
-          </span>
+      </section>
 
-          <strong>
-            {ride.budget || "—"}
-          </strong>
-        </div>
+      {/* =====================================================
+          MAIN DASHBOARD
+      ===================================================== */}
 
-        <div className="live-ride-stat">
-          <span className="live-ride-stat-label">
-            STATUS
-          </span>
+      <main className="live-dashboard">
 
-          <strong>{status}</strong>
-        </div>
-      </div>
+        {/* LEFT COLUMN */}
 
-      {/* MAIN CONTENT */}
+        <div className="live-dashboard-main">
 
-      <div className="live-ride-content">
-        <main className="live-ride-main">
           {/* ROUTE */}
 
-          <section className="live-ride-card">
-            <div className="live-ride-card-header">
+          <section className="live-panel route-panel">
+
+            <div className="panel-heading">
+
               <div>
-                <span className="live-ride-section-label">
-                  JOURNEY ROUTE
-                </span>
-
-                <h2>Live Route</h2>
+                <span>01 / LIVE ROUTE</span>
+                <h2>Journey route</h2>
               </div>
 
-              <span className="live-ride-route-badge">
-                {ride.distanceLabel ||
-                  `${ride.distance} km`}
+              <span className="tracking-state">
+                {isLive
+                  ? "● TRACKING ACTIVE"
+                  : "○ TRACKING READY"}
               </span>
+
             </div>
 
-            <div className="live-ride-route-list">
-              <div className="live-ride-route-point start">
-                <span className="live-ride-route-marker" />
+            <div className="route-list">
 
-                <div>
+              {/* START */}
+
+              <div className="route-row">
+
+                <div className="route-marker route-start">
+                  <span></span>
+                </div>
+
+                <div className="route-content">
+
                   <span>START</span>
+
                   <strong>{ride.start}</strong>
+
                 </div>
+
               </div>
 
-              {ride.stops?.map(
-                (stop, index) => (
-                  <div
-                    className="live-ride-route-point"
-                    key={typeof stop === 'object' ? `${stop.name || index}-${index}` : `${stop}-${index}`}
-                  >
-                    <span className="live-ride-route-marker" />
+              {ride.stops.map((stop, index) => (
+                <div
+                  className="route-row"
+                  key={`${stop}-${index}`}
+                >
 
-                    <div>
-                      <span>
-                        STOP {index + 1}
-                      </span>
-
-                      <strong>{typeof stop === 'object' ? (stop.name || JSON.stringify(stop)) : stop}</strong>
-                    </div>
+                  <div className="route-marker">
+                    <span></span>
                   </div>
-                )
-              )}
 
-              <div className="live-ride-route-point destination">
-                <span className="live-ride-route-marker" />
+                  <div className="route-content">
 
-                <div>
-                  <span>DESTINATION</span>
-                  <strong>
-                    {ride.destination}
-                  </strong>
+                    <span>
+                      STOP {String(index + 1).padStart(2, "0")}
+                    </span>
+
+                    <strong>{stop}</strong>
+
+                  </div>
+
                 </div>
+              ))}
+
+              {/* DESTINATION */}
+
+              <div className="route-row">
+
+                <div className="route-marker route-end">
+                  <span></span>
+                </div>
+
+                <div className="route-content">
+
+                  <span>DESTINATION</span>
+
+                  <strong>{ride.destination}</strong>
+
+                </div>
+
               </div>
+
             </div>
 
-            {ride.route && (
-              <div className="live-ride-route-summary">
-                <span>FULL ROUTE</span>
-                <p>{ride.route}</p>
-              </div>
-            )}
+            <div className="route-full-path">
+
+              <span>FULL ROUTE</span>
+
+              <p>{ride.route}</p>
+
+            </div>
+
           </section>
 
-          {/* PARTICIPANTS */}
+          {/* RIDERS */}
 
-          <section className="live-ride-card">
-            <div className="live-ride-card-header">
+          <section className="live-panel">
+
+            <div className="panel-heading">
+
               <div>
-                <span className="live-ride-section-label">
-                  RIDE GROUP
-                </span>
-
-                <h2>Confirmed Riders</h2>
+                <span>02 / RIDER GROUP</span>
+                <h2>Riders on this journey</h2>
               </div>
 
-              <span className="live-ride-count">
-                {ride.participants?.length ||
-                  0}{" "}
-                RIDERS
-              </span>
+              <strong className="panel-count">
+                {confirmedRiders.length} CONFIRMED
+              </strong>
+
             </div>
 
-            <div className="live-ride-participants">
-              {ride.participants?.length > 0 ? (
-                ride.participants.map(
-                  (participant, index) => {
-                    const participantName =
-                      typeof participant ===
-                      "string"
-                        ? participant
-                        : participant.name ||
-                          `Rider ${
-                            index + 1
-                          }`;
+            <div className="riders-grid">
 
-                    const participantBike =
-                      typeof participant ===
-                      "object"
-                        ? participant.vehicle ||
-                          participant.bike
-                        : null;
+              {confirmedRiders.map((rider) => (
+                <div
+                  className="ride-rider-card"
+                  key={rider.id}
+                >
 
-                    return (
-                      <div
-                        className="live-ride-participant"
-                        key={`${participantName}-${index}`}
-                      >
-                        <div className="live-ride-avatar">
-                          {participantName
-                            .charAt(0)
-                            .toUpperCase()}
-                        </div>
+                  <div className="rider-avatar">
+                    {rider.name
+                      .charAt(0)
+                      .toUpperCase()}
+                  </div>
 
-                        <div className="live-ride-participant-info">
-                          <strong>
-                            {participantName}
-                          </strong>
+                  <div className="rider-info">
 
-                          {participantBike && (
-                            <span>
-                              {
-                                participantBike
-                              }
-                            </span>
-                          )}
-                        </div>
+                    <strong>{rider.name}</strong>
 
-                        <span className="live-ride-participant-status">
-                          CONFIRMED
-                        </span>
-                      </div>
-                    );
-                  }
-                )
-              ) : (
-                <div className="live-ride-empty">
-                  No participant details
-                  available yet.
+                    <span>{rider.role}</span>
+
+                  </div>
+
+                  <div className="rider-state">
+                    CONFIRMED
+                  </div>
+
                 </div>
-              )}
+              ))}
+
             </div>
+
+          </section>
+
+        </div>
+
+        {/* RIGHT COLUMN */}
+
+        <aside className="live-dashboard-sidebar">
+
+          {/* STATUS */}
+
+          <section className="live-panel status-panel">
+
+            <span className="sidebar-label">
+              CURRENT STATUS
+            </span>
+
+            <div
+              className={`status-display status-${status.toLowerCase()}`}
+            >
+
+              <div className="status-icon">
+
+                {isLive && "●"}
+
+                {isStarting && "◐"}
+
+                {status === "UPCOMING" && "○"}
+
+                {isCompleted && "✓"}
+
+              </div>
+
+              <div>
+
+                <strong>
+                  {isLive
+                    ? "Ride is Live"
+                    : isStarting
+                    ? "Starting Soon"
+                    : isCompleted
+                    ? "Ride Completed"
+                    : "Ride Upcoming"}
+                </strong>
+
+                <p>
+                  {isLive
+                    ? "Live ride tracking is currently active."
+                    : isStarting
+                    ? "The ride is about to begin."
+                    : isCompleted
+                    ? "This journey has been completed."
+                    : "Live tracking activates when the ride begins."}
+                </p>
+
+              </div>
+
+            </div>
+
+            {countdown && !countdown.expired && (
+              <div className="live-countdown">
+
+                <span>STARTS IN</span>
+
+                <div className="countdown-values">
+
+                  <div>
+                    <strong>{countdown.days}</strong>
+                    <small>DAYS</small>
+                  </div>
+
+                  <div>
+                    <strong>{countdown.hours}</strong>
+                    <small>HRS</small>
+                  </div>
+
+                  <div>
+                    <strong>{countdown.minutes}</strong>
+                    <small>MIN</small>
+                  </div>
+
+                </div>
+
+              </div>
+            )}
+
           </section>
 
           {/* JOURNEY INTELLIGENCE */}
 
-          {ride.journeyIntelligence && (
-            <section className="live-ride-card">
-              <div className="live-ride-card-header">
-                <div>
-                  <span className="live-ride-section-label">
-                    JOURNEY INTELLIGENCE
-                  </span>
+          <section className="live-panel">
 
-                  <h2>Ride Conditions</h2>
-                </div>
+            <div className="panel-heading sidebar-heading">
+
+              <div>
+                <span>03 / INTELLIGENCE</span>
+                <h2>Journey insights</h2>
               </div>
 
-              <div className="live-ride-intelligence-grid">
-                {ride.journeyIntelligence
-                  .weather && (
-                  <div className="live-ride-intelligence-item">
-                    <span>
-                      WEATHER
-                    </span>
+            </div>
 
-                    <strong>
-                      {
-                        ride
-                          .journeyIntelligence
-                          .weather
-                      }
-                    </strong>
-                  </div>
-                )}
+            <div className="intelligence-list">
 
-                {ride.journeyIntelligence
-                  .traffic && (
-                  <div className="live-ride-intelligence-item">
-                    <span>
-                      TRAFFIC
-                    </span>
-
-                    <strong>
-                      {
-                        ride
-                          .journeyIntelligence
-                          .traffic
-                      }
-                    </strong>
-                  </div>
-                )}
-
-                {ride.journeyIntelligence
-                  .fuel && (
-                  <div className="live-ride-intelligence-item">
-                    <span>FUEL</span>
-
-                    <strong>
-                      {
-                        ride
-                          .journeyIntelligence
-                          .fuel
-                      }
-                    </strong>
-                  </div>
-                )}
-
-                {ride.journeyIntelligence
-                  .roadCondition && (
-                  <div className="live-ride-intelligence-item">
-                    <span>
-                      ROAD CONDITION
-                    </span>
-
-                    <strong>
-                      {
-                        ride
-                          .journeyIntelligence
-                          .roadCondition
-                      }
-                    </strong>
-                  </div>
-                )}
+              <div>
+                <span>FUEL STOPS</span>
+                <strong>
+                  {ride.journeyIntelligence.fuelStops}
+                </strong>
               </div>
-            </section>
-          )}
+
+              <div>
+                <span>REST STOPS</span>
+                <strong>
+                  {ride.journeyIntelligence.restStops}
+                </strong>
+              </div>
+
+              <div>
+                <span>SERVICE STOPS</span>
+                <strong>
+                  {ride.journeyIntelligence.serviceStops}
+                </strong>
+              </div>
+
+              <div>
+                <span>SCENIC STOPS</span>
+                <strong>
+                  {ride.journeyIntelligence.scenicStops}
+                </strong>
+              </div>
+
+            </div>
+
+          </section>
 
           {/* VEHICLE */}
 
-          {ride.vehicle && (
-            <section className="live-ride-card">
-              <div className="live-ride-card-header">
-                <div>
-                  <span className="live-ride-section-label">
-                    VEHICLE
-                  </span>
+          <section className="live-panel vehicle-panel">
 
-                  <h2>Ride Vehicle</h2>
-                </div>
-              </div>
-
-              <div className="live-ride-vehicle">
-                <div>
-                  <span>MODEL</span>
-
-                  <strong>
-                    {ride.vehicle.name ||
-                      ride.vehicle.model ||
-                      "Ride Vehicle"}
-                  </strong>
-                </div>
-
-                {ride.vehicle
-                  .registrationNumber && (
-                  <div>
-                    <span>
-                      REGISTRATION
-                    </span>
-
-                    <strong>
-                      {
-                        ride.vehicle
-                          .registrationNumber
-                      }
-                    </strong>
-                  </div>
-                )}
-
-                {ride.vehicle.fuelType && (
-                  <div>
-                    <span>
-                      FUEL TYPE
-                    </span>
-
-                    <strong>
-                      {
-                        ride.vehicle
-                          .fuelType
-                      }
-                    </strong>
-                  </div>
-                )}
-
-                {ride.vehicle.mileage && (
-                  <div>
-                    <span>
-                      MILEAGE
-                    </span>
-
-                    <strong>
-                      {ride.vehicle.mileage}{" "}
-                      km/l
-                    </strong>
-                  </div>
-                )}
-              </div>
-            </section>
-          )}
-
-          {/* LIVE RIDE FEATURES */}
-
-          <LiveLocation ride={ride} />
-
-          <RideMap ride={ride} />
-
-          <Navigation ride={ride} />
-
-          <RideCall ride={ride} />
-
-          <LiveRideChat ride={ride} />
-
-          <SafetySOS ride={ride} />
-        </main>
-
-        {/* SIDEBAR */}
-
-        <aside className="live-ride-sidebar">
-          <div
-            className={`live-ride-status-panel ${statusClass}`}
-          >
-            <span className="live-ride-section-label">
-              RIDE STATUS
+            <span className="sidebar-label">
+              RIDE VEHICLE
             </span>
 
-            <strong>{status}</strong>
+            <h3>{ride.vehicle.name}</h3>
 
-            <div className="live-ride-sidebar-countdown">
-              {formatCountdown()}
+            <div className="vehicle-details">
+
+              <div>
+                <span>FUEL</span>
+                <strong>{ride.vehicle.fuelType}</strong>
+              </div>
+
+              <div>
+                <span>MILEAGE</span>
+                <strong>
+                  {ride.vehicle.mileage} KM/L
+                </strong>
+              </div>
+
             </div>
 
-            <p>
-              {status === "LIVE"
-                ? "The ride is currently in progress."
-                : status === "STARTING"
-                ? "The ride is about to begin."
-                : status === "COMPLETED"
-                ? "This ride has been completed."
-                : "The ride is scheduled and waiting to start."}
-            </p>
-          </div>
+          </section>
 
-          <div className="live-ride-sidebar-card">
-            <span className="live-ride-section-label">
-              ORGANIZER
-            </span>
-
-            <strong>
-              {ride.organizer}
-            </strong>
-
-            {ride.organizerType && (
-              <span>
-                {ride.organizerType}
-              </span>
-            )}
-          </div>
-
-          {ride.safety && (
-            <div className="live-ride-sidebar-card">
-              <span className="live-ride-section-label">
-                SAFETY
-              </span>
-
-              <p>{ride.safety}</p>
-            </div>
-          )}
         </aside>
-      </div>
 
-      {/* SAFETY BAR */}
+      </main>
 
-      <div className="live-ride-safety-bar">
+      {/* =====================================================
+          SAFETY BAR
+      ===================================================== */}
+
+      <section className="live-safety-bar">
+
         <div>
-          <span className="live-ride-safety-icon">
-            !
-          </span>
 
-          <div>
-            <strong>RIDE SAFE</strong>
+          <span>SAFETY NOTICE</span>
 
-            <p>
-              Stay alert, follow the group
-              instructions and keep emergency
-              contacts accessible.
-            </p>
-          </div>
+          <p>
+            Maintain safe riding distance, follow the route,
+            stay with the group and keep emergency equipment
+            accessible.
+          </p>
+
         </div>
 
-        <div className="live-ride-bottom-actions">
-          <button
-            type="button"
-            onClick={() =>
-              navigate(
-                `/businesses/mototribe/ride/${ride.id}/expenses`
-              )
-            }
-          >
-            MANAGE EXPENSES →
-          </button>
+        <button
+          onClick={() =>
+            navigate("/businesses/mototribe")
+          }
+        >
+          MOTOTRIBE SAFETY →
+        </button>
 
-          <button
-            type="button"
-            className="live-ride-complete-bottom-button"
-            onClick={handleCompleteRide}
-          >
-            COMPLETE RIDE →
-          </button>
-        </div>
-      </div>
-    </section>
+      </section>
+
+    </div>
   );
 }
 
