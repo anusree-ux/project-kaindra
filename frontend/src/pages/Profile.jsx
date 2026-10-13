@@ -252,11 +252,28 @@ function Profile() {
                 Previous purchases, deliveries, and pre-orders across Kaindra & ModaSphere
               </p>
             </div>
-            {orders.length > 0 && (
-              <span className="kp-order-count-chip">
-                {orders.length} {orders.length === 1 ? "Order" : "Orders"}
-              </span>
-            )}
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              {orders.length > 0 && (
+                <span className="kp-order-count-chip">
+                  {orders.length} {orders.length === 1 ? "Order" : "Orders"}
+                </span>
+              )}
+              <Link
+                to="/businesses/modamart/orders"
+                style={{
+                  fontSize: "12px",
+                  fontWeight: 700,
+                  color: "#0f172a",
+                  textDecoration: "none",
+                  padding: "4px 10px",
+                  borderRadius: "6px",
+                  background: "#f1f5f9",
+                  border: "1px solid #e2e8f0",
+                }}
+              >
+                ModaMart Orders →
+              </Link>
+            </div>
           </div>
 
           {ordersLoading ? (
@@ -305,7 +322,17 @@ function Profile() {
                     return (
                       <tr key={ord._id || orderId || idx}>
                         <td className="kp-order-id-cell">
-                          <strong>{orderId}</strong>
+                          {ord._id ? (
+                            <Link
+                              to={`/businesses/modamart/orders/${ord._id}`}
+                              style={{ color: "#0f172a", textDecoration: "none", fontWeight: 700 }}
+                              title="View Order Details"
+                            >
+                              <strong>{orderId}</strong>
+                            </Link>
+                          ) : (
+                            <strong>{orderId}</strong>
+                          )}
                         </td>
                         <td>
                           <span className={`kp-brand-pill kp-brand-${brandName.toLowerCase()}`}>

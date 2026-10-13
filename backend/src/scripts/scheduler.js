@@ -8,6 +8,9 @@ const {
 const {
   deleteExpiredNotifications,
 } = require("../services/core/notificationService");
+const {
+  expireStaleOrders,
+} = require("../services/modasphere/orderFinalizationService");
 
 /**
  * Initializes background cron jobs for Kaindra (MotoTribe, ModaSphere & Core).
@@ -43,6 +46,15 @@ const initScheduler = () => {
       await updateDropStatuses();
     } catch (err) {
       console.error("[Scheduler] Error in updateDropStatuses cron execution:", err.message || err);
+    }
+  });
+
+  // ModaSphere: Expire stale pending_payment orders every 15 minutes
+  cron.schedule("*/15 * * * *", async () => {
+    try {
+      await expireStaleOrders();
+    } catch (err) {
+      console.error("[Scheduler] Error in expireStaleOrders cron execution:", err.message || err);
     }
   });
 

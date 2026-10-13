@@ -8,6 +8,7 @@ const {
   getDropStatusAt,
   getUserPurchaseCountInDrop,
   isDropLiveAt,
+  notifyNextProductDropWaitlistUser,
 } = require("../../services/modasphere/dropService");
 const {
   createRazorpayOrder,
@@ -15,8 +16,9 @@ const {
   initiateRefund,
 } = require("../../services/modasphere/paymentService");
 const {
-  notifyNextProductDropWaitlistUser,
-} = require("../../services/modasphere/dropService");
+  finalizePaidOrder,
+  refundCancelledOrderPayment,
+} = require("../../services/modasphere/orderFinalizationService");
 const AppError = require("../../utils/AppError");
 
 /**
@@ -339,12 +341,27 @@ const verifyPayment = async (req, res, next) => {
     const { id } = req.params;
     const { razorpayPaymentId, razorpaySignature } = req.body;
 
+    if (!razorpayPaymentId || !razorpaySignature) {
+      return next(
+        new AppError(
+          "Payment verification requires razorpayPaymentId and razorpaySignature.",
+          400
+        )
+      );
+    }
+
     const order = await Order.findById(id);
     if (!order) {
       return next(new AppError("Order not found.", 404));
     }
 
-    if (order.buyerId.toString() !== req.user._id.toString()) {
+    // 1. Buyer ownership check BEFORE any other logic
+    const isBuyer =
+      order.buyerId &&
+      (order.buyerId._id || order.buyerId).toString() ===
+        req.user._id.toString();
+
+    if (!isBuyer) {
       return next(
         new AppError("Not authorized to verify payment for this order.", 403)
       );
@@ -375,106 +392,61 @@ const verifyPayment = async (req, res, next) => {
       );
     }
 
-    // Reserve/decrement inventory before marking the order as paid.
-    const updatedStockItems = [];
+    const { order: finalizedOrder, outcome } = await finalizePaidOrder(
+      order._id,
+      razorpayPaymentId,
+      razorpaySignature
+    );
 
-    try {
-      for (const item of order.items) {
-        const product = await Product.findById(item.productId);
-
-        if (!product) {
-          throw new AppError(
-            `Product "${item.name}" no longer exists.`,
-            400
-          );
-        }
-
-        const usesDropStock =
-          item.isDrop === undefined ? product.isDrop : item.isDrop;
-        if (usesDropStock) {
-          const updatedProduct = await Product.findOneAndUpdate(
-            {
-              _id: item.productId,
-              dropStock: { $gte: item.quantity },
-            },
-            {
-              $inc: { dropStock: -item.quantity },
-            },
-            { new: true }
-          );
-
-          if (!updatedProduct) {
-            throw new AppError(
-              `Insufficient drop stock for "${item.name}". The drop may have sold out.`,
-              400
-            );
-          }
-
-          updatedStockItems.push({
-            productId: item.productId,
-            quantity: item.quantity,
-            isDrop: true,
-          });
-        } else {
-          const updatedProduct = await Product.findOneAndUpdate(
-            {
-              _id: item.productId,
-              stock: { $gte: item.quantity },
-            },
-            {
-              $inc: { stock: -item.quantity },
-            },
-            { new: true }
-          );
-
-          if (!updatedProduct) {
-            throw new AppError(
-              `Insufficient stock for "${item.name}". The product may have sold out.`,
-              400
-            );
-          }
-
-          updatedStockItems.push({
-            productId: item.productId,
-            quantity: item.quantity,
-            isDrop: false,
-          });
-        }
-      }
-    } catch (stockError) {
-      // Restore inventory if a later item failed.
-      for (const item of updatedStockItems) {
-        if (item.isDrop) {
-          await Product.findByIdAndUpdate(item.productId, {
-            $inc: { dropStock: item.quantity },
-          });
-        } else {
-          await Product.findByIdAndUpdate(item.productId, {
-            $inc: { stock: item.quantity },
-          });
-        }
-      }
-
-      return next(stockError);
+    if (outcome === "paid") {
+      return res.status(200).json({
+        status: "success",
+        message: "Payment verified successfully. Order confirmed.",
+        data: { order: finalizedOrder },
+      });
     }
 
-    // Only mark the order as paid after all inventory was successfully reserved.
-    order.status = "paid";
-    order.razorpayPaymentId = razorpayPaymentId;
-    order.razorpaySignature = razorpaySignature;
-    await order.save();
-
-    // Clear user's Cart
-    const cart = await Cart.findOne({ userId: req.user._id });
-    if (cart) {
-      cart.items = [];
-      await cart.save();
+    if (outcome === "already_paid") {
+      return res.status(200).json({
+        status: "success",
+        message: "Order is already paid.",
+        data: { order: finalizedOrder },
+      });
     }
 
-    res.status(200).json({
-      status: "success",
-      message: "Payment verified successfully. Order confirmed.",
-      data: { order },
+    if (outcome === "out_of_stock") {
+      return res.status(409).json({
+        status: "fail",
+        message: "Item sold out. Your payment is being refunded.",
+        data: { order: finalizedOrder },
+      });
+    }
+
+    if (outcome === "not_pending") {
+      if (finalizedOrder.status === "cancelled") {
+        const refundResult = await refundCancelledOrderPayment(
+          finalizedOrder._id,
+          razorpayPaymentId
+        );
+        const refOrder = refundResult?.order || finalizedOrder;
+        return res.status(409).json({
+          status: "fail",
+          message: "This order expired. Your payment is being refunded.",
+          data: { order: refOrder },
+        });
+      }
+
+      return res.status(409).json({
+        status: "fail",
+        message: `Order cannot be paid. Current status is "${finalizedOrder.status}".`,
+        data: { order: finalizedOrder },
+      });
+    }
+
+    return res.status(400).json({
+      status: "fail",
+      message: "Order payment could not be finalized.",
+      data: { order: finalizedOrder },
     });
   } catch (error) {
     next(error);

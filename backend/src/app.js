@@ -40,6 +40,7 @@ const dropRoutes = require("./routes/modasphere/dropRoutes");
 const designRoutes = require("./routes/modasphere/designRoutes");
 const manufacturerRoutes = require("./routes/modasphere/manufacturerRoutes");
 const productionRequestRoutes = require("./routes/modasphere/productionRequestRoutes");
+const webhookRoutes = require("./routes/modasphere/webhookRoutes");
 const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
@@ -55,8 +56,14 @@ app.use(
   })
 );
 
-// Body parser
-app.use(express.json());
+// Body parser with raw body buffer capture for webhook signature verification
+app.use(
+  express.json({
+    verify: (req, res, buf) => {
+      req.rawBody = buf;
+    },
+  })
+);
 
 // Cookie parser
 app.use(cookieParser());
@@ -124,6 +131,9 @@ app.use("/api/v1/modasphere/cart", cartRoutes);
 
 app.use("/api/modasphere/orders", modasphereOrderRoutes);
 app.use("/api/v1/modasphere/orders", modasphereOrderRoutes);
+
+app.use("/api/modasphere/webhooks", webhookRoutes);
+app.use("/api/v1/modasphere/webhooks", webhookRoutes);
 
 app.use("/api/modasphere/wishlist", wishlistRoutes);
 app.use("/api/v1/modasphere/wishlist", wishlistRoutes);
