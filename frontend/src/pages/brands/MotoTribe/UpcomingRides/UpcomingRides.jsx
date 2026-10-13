@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../../context/AuthContext";
-import { motoRides } from "../../../../data/motoRides";
 import apiClient from "../../../../services/apiClient";
 import "./UpcomingRides.css";
 
@@ -127,36 +126,10 @@ function UpcomingRides() {
         };
       });
 
-      const sampleFormatted = motoRides.map((r) => ({
-        id: r.id,
-        name: r.name,
-        start: r.start,
-        destination: r.destination,
-        date: r.date,
-        time: r.time,
-        type: r.type,
-        difficulty: r.difficulty,
-        organizer: r.organizer,
-        organizerType: r.organizerType,
-        riders: r.riders,
-        maxRiders: r.maxRiders,
-        requestRequired: r.requestRequired,
-        distance: r.distanceLabel || `${r.distance} KM`,
-        duration: r.duration,
-        route: r.route,
-        description: r.description,
-        requirements: r.requirements,
-        safety: r.safety,
-        status: "UPCOMING",
-        isUserRide: false,
-      }));
-
-      const combined = [...dbFormatted, ...sampleFormatted];
-
-      setRides(combined);
+      setRides(dbFormatted);
       setSelectedRide((prev) => {
-        if (!prev) return combined.length > 0 ? combined[0] : null;
-        return combined.find((item) => item.id === prev.id) || (combined.length > 0 ? combined[0] : null);
+        if (!dbFormatted || dbFormatted.length === 0) return null;
+        return dbFormatted.find((item) => item.id === prev?.id) || dbFormatted[0];
       });
     } catch (err) {
       console.error("Error fetching live upcoming rides:", err);
@@ -359,12 +332,17 @@ function UpcomingRides() {
     });
   };
 
-  const selectedCountdown = selectedRide
-    ? getCountdown(selectedRide)
+  const activeSelectedRide = useMemo(() => {
+    if (!filteredRides || filteredRides.length === 0) return null;
+    return filteredRides.find((item) => item.id === selectedRide?.id) || filteredRides[0];
+  }, [filteredRides, selectedRide]);
+
+  const selectedCountdown = activeSelectedRide
+    ? getCountdown(activeSelectedRide)
     : null;
 
-  const selectedStatus = selectedRide
-    ? getCurrentStatusHelper(selectedRide, now)
+  const selectedStatus = activeSelectedRide
+    ? getCurrentStatusHelper(activeSelectedRide, now)
     : "UPCOMING";
 
   return (
@@ -442,7 +420,7 @@ function UpcomingRides() {
               ))}
             </div>
 
-            <div className="upcoming-rides-layout">
+            <div className={`upcoming-rides-layout ${filteredRides.length === 0 ? "no-rides" : ""}`}>
               <div className="ride-list">
                 <div className="ride-list-header">
                   <span>
@@ -476,7 +454,7 @@ function UpcomingRides() {
                       <article
                         key={ride.id}
                         className={`ride-card ${
-                          selectedRide?.id === ride.id ? "selected" : ""
+                          activeSelectedRide?.id === ride.id ? "selected" : ""
                         }`}
                         onClick={() => setSelectedRide(ride)}
                       >
@@ -590,7 +568,7 @@ function UpcomingRides() {
                 )}
               </div>
 
-              {selectedRide && (
+              {activeSelectedRide && filteredRides.length > 0 && (
                 <aside className="ride-detail-panel">
                   <div className="detail-topline">
                     <span>RIDE EVENT</span>
@@ -603,10 +581,10 @@ function UpcomingRides() {
                     </span>
                   </div>
 
-                  <h3>{selectedRide.name}</h3>
+                  <h3>{activeSelectedRide.name}</h3>
 
                   <p className="detail-description">
-                    {selectedRide.description}
+                    {activeSelectedRide.description}
                   </p>
 
                   <div className="ur-detail-route">
@@ -615,7 +593,7 @@ function UpcomingRides() {
 
                       <div className="ur-point-info">
                         <small>START</small>
-                        <strong>{selectedRide.start}</strong>
+                        <strong>{activeSelectedRide.start}</strong>
                       </div>
                     </div>
 
@@ -626,7 +604,7 @@ function UpcomingRides() {
 
                       <div className="ur-point-info">
                         <small>DESTINATION</small>
-                        <strong>{selectedRide.destination}</strong>
+                        <strong>{activeSelectedRide.destination}</strong>
                       </div>
                     </div>
                   </div>
@@ -634,22 +612,22 @@ function UpcomingRides() {
                   <div className="detail-stats">
                     <div>
                       <span>DATE</span>
-                      <strong>{formatDate(selectedRide.date)}</strong>
+                      <strong>{formatDate(activeSelectedRide.date)}</strong>
                     </div>
 
                     <div>
                       <span>START TIME</span>
-                      <strong>{selectedRide.time}</strong>
+                      <strong>{activeSelectedRide.time}</strong>
                     </div>
 
                     <div>
                       <span>DISTANCE</span>
-                      <strong>{selectedRide.distance}</strong>
+                      <strong>{activeSelectedRide.distance}</strong>
                     </div>
 
                     <div>
                       <span>DURATION</span>
-                      <strong>{selectedRide.duration}</strong>
+                      <strong>{activeSelectedRide.duration}</strong>
                     </div>
                   </div>
 
@@ -692,16 +670,16 @@ function UpcomingRides() {
                   <div className="detail-section">
                     <span className="detail-label">ROUTE</span>
 
-                    <p>{selectedRide.route}</p>
+                    <p>{activeSelectedRide.route}</p>
                   </div>
 
                   <div className="detail-section">
                     <span className="detail-label">RIDE PROFILE</span>
 
                     <div className="profile-tags">
-                      <span>{selectedRide.type}</span>
-                      <span>{selectedRide.difficulty}</span>
-                      <span>{selectedRide.organizerType}</span>
+                      <span>{activeSelectedRide.type}</span>
+                      <span>{activeSelectedRide.difficulty}</span>
+                      <span>{activeSelectedRide.organizerType}</span>
                     </div>
                   </div>
 
@@ -709,7 +687,7 @@ function UpcomingRides() {
                     <span className="detail-label">REQUIREMENTS</span>
 
                     <ul className="requirements-list">
-                      {selectedRide.requirements.map((requirement) => (
+                      {activeSelectedRide.requirements.map((requirement) => (
                         <li key={requirement}>
                           <span>+</span>
                           {requirement}
@@ -721,29 +699,29 @@ function UpcomingRides() {
                   <div className="detail-section safety-note">
                     <span className="detail-label">SAFETY NOTE</span>
 
-                    <p>{selectedRide.safety}</p>
+                    <p>{activeSelectedRide.safety}</p>
                   </div>
 
                   <div className="detail-participants">
                     <div>
                       <span>PARTICIPANTS</span>
                       <strong>
-                        {selectedRide.riders} / {selectedRide.maxRiders}
+                        {activeSelectedRide.riders} / {activeSelectedRide.maxRiders}
                       </strong>
                     </div>
 
                     <div className="participant-dots">
                       {Array.from({
-                        length: Math.min(selectedRide.riders, 8),
+                        length: Math.min(activeSelectedRide.riders, 8),
                       }).map((_, index) => (
                         <span key={index}>
                           {index + 1}
                         </span>
                       ))}
 
-                      {selectedRide.riders > 8 && (
+                      {activeSelectedRide.riders > 8 && (
                         <span className="more">
-                          +{selectedRide.riders - 8}
+                          +{activeSelectedRide.riders - 8}
                         </span>
                       )}
                     </div>
@@ -751,44 +729,44 @@ function UpcomingRides() {
 
                   <button
                     className={`primary-ride-action ${
-                      selectedRide.isOrganizer
+                      activeSelectedRide.isOrganizer
                         ? "organizer-badge"
-                        : isJoined(selectedRide.id)
+                        : isJoined(activeSelectedRide.id)
                         ? "joined"
                         : ""
                     }`}
-                    onClick={() => handlePrimaryAction(selectedRide)}
+                    onClick={() => handlePrimaryAction(activeSelectedRide)}
                     disabled={
-                      selectedRide.isOrganizer ||
-                      (selectedRide.riders >= selectedRide.maxRiders &&
-                        !isJoined(selectedRide.id) &&
-                        !selectedRide.requestRequired)
+                      activeSelectedRide.isOrganizer ||
+                      (activeSelectedRide.riders >= activeSelectedRide.maxRiders &&
+                        !isJoined(activeSelectedRide.id) &&
+                        !activeSelectedRide.requestRequired)
                     }
                   >
-                    {getButtonLabel(selectedRide)}
-                    {!selectedRide.isOrganizer && <span>→</span>}
+                    {getButtonLabel(activeSelectedRide)}
+                    {!activeSelectedRide.isOrganizer && <span>→</span>}
                   </button>
 
-                  {selectedRide.requestRequired &&
-                    isRequested(selectedRide.id) && (
+                  {activeSelectedRide.requestRequired &&
+                    isRequested(activeSelectedRide.id) && (
                       <div className="request-message">
                         <span>✓</span>
                         Your request has been recorded for this demo ride.
                       </div>
                     )}
 
-                  {isJoined(selectedRide.id) && (
+                  {isJoined(activeSelectedRide.id) && (
                     <div className="joined-message">
                       <span>✓</span>
                       You are confirmed for this ride! You can now join the live tracking and chat with other members.
                     </div>
                   )}
 
-                  {(isJoined(selectedRide.id) || selectedRide.isOrganizer) && (
+                  {(isJoined(activeSelectedRide.id) || activeSelectedRide.isOrganizer) && (
                     <button
                       type="button"
                       className="live-chat-navigate-action"
-                      onClick={() => navigate(`/businesses/mototribe/ride/${selectedRide.id}/live`)}
+                      onClick={() => navigate(`/businesses/mototribe/ride/${activeSelectedRide.id}/live`)}
                     >
                       <span>ENTER LIVE RIDE & GROUP CHAT</span>
                       <span>💬 →</span>
@@ -798,7 +776,7 @@ function UpcomingRides() {
                   <button
                     type="button"
                     className="view-details-navigate-action"
-                    onClick={() => navigate(`/businesses/mototribe/ride/${selectedRide.id}`)}
+                    onClick={() => navigate(`/businesses/mototribe/ride/${activeSelectedRide.id}`)}
                   >
                     <span>VIEW FULL RIDE DETAILS</span>
                     <span>↗</span>
