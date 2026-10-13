@@ -504,26 +504,26 @@ const executeCompleteRideOps = async (ride, sessionOpts = {}) => {
     sessionOpts
   );
 
-  const userIds = confirmedParticipants.map((p) => p.userId);
+  const participantIds = confirmedParticipants.map((p) => p.userId);
+  const userIds = Array.from(new Set([String(ride.organizerId), ...participantIds.map(String)]));
   let updatedProfilesCount = 0;
 
   if (userIds.length > 0) {
-    const updateResult = await RiderProfile.updateMany(
-      { userId: { $in: userIds } },
-      {
-        $inc: {
-          totalRidesCompleted: 1,
-          totalDistanceKm: ride.distanceKm,
-        },
-        $addToSet: {
-          regionsExplored: ride.destination,
-        },
-      },
-      sessionOpts
-    );
-    updatedProfilesCount = updateResult.modifiedCount || updateResult.nModified || 0;
-
     for (const uId of userIds) {
+      const res = await RiderProfile.updateOne(
+        { userId: uId },
+        {
+          $inc: {
+            totalRidesCompleted: 1,
+            totalDistanceKm: ride.distanceKm,
+          },
+          $addToSet: {
+            regionsExplored: ride.destination,
+          },
+        },
+        { upsert: true, ...sessionOpts }
+      );
+      if (res.modifiedCount || res.upsertedCount) updatedProfilesCount++;
       await checkAndAwardBadges(uId, sessionOpts.session);
     }
   }
