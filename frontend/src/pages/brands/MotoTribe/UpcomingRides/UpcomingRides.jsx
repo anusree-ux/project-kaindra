@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../../context/AuthContext";
+import { motoRides } from "../../../../data/motoRides";
 import apiClient from "../../../../services/apiClient";
 import "./UpcomingRides.css";
 
@@ -126,10 +127,36 @@ function UpcomingRides() {
         };
       });
 
-      setRides(dbFormatted);
+      const sampleFormatted = motoRides.map((r) => ({
+        id: r.id,
+        name: r.name,
+        start: r.start,
+        destination: r.destination,
+        date: r.date,
+        time: r.time,
+        type: r.type,
+        difficulty: r.difficulty,
+        organizer: r.organizer,
+        organizerType: r.organizerType,
+        riders: r.riders,
+        maxRiders: r.maxRiders,
+        requestRequired: r.requestRequired,
+        distance: r.distanceLabel || `${r.distance} KM`,
+        duration: r.duration,
+        route: r.route,
+        description: r.description,
+        requirements: r.requirements,
+        safety: r.safety,
+        status: "UPCOMING",
+        isUserRide: false,
+      }));
+
+      const combined = [...dbFormatted, ...sampleFormatted];
+
+      setRides(combined);
       setSelectedRide((prev) => {
-        if (!prev) return dbFormatted.length > 0 ? dbFormatted[0] : null;
-        return dbFormatted.find((item) => item.id === prev.id) || (dbFormatted.length > 0 ? dbFormatted[0] : null);
+        if (!prev) return combined.length > 0 ? combined[0] : null;
+        return combined.find((item) => item.id === prev.id) || (combined.length > 0 ? combined[0] : null);
       });
     } catch (err) {
       console.error("Error fetching live upcoming rides:", err);
