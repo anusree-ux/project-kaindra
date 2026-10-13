@@ -126,7 +126,8 @@ function DigitalRideRecord() {
   );
 
   return (
-    <section className="digital-record-section" id="records">
+    <section className="digital-record-section" id="ride-record">
+      <span id="records" style={{ position: "relative", top: -80, visibility: "hidden" }} />
       <div className="record-container">
 
         {/* HEADER */}

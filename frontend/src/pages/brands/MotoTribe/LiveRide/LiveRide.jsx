@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import apiClient from "../../../../services/apiClient";
+import { formatMongoRide } from "../../../../utils/mototribeRideAdapter";
 import {
   getMotoRideById,
   getMotoRideStatus,
@@ -16,13 +18,36 @@ function LiveRide() {
   const [countdown, setCountdown] = useState(null);
 
   useEffect(() => {
+    let isMounted = true;
     const selectedRide = getMotoRideById(rideId);
 
     if (selectedRide) {
       setRide(selectedRide);
       setStatus(getMotoRideStatus(selectedRide));
       setCountdown(getMotoRideCountdown(selectedRide));
+      return;
     }
+
+    async function fetchRideFromDb() {
+      try {
+        const res = await apiClient.get(`/api/mototribe/rides/${rideId}`);
+        const raw = res.data.data?.ride || res.data.data;
+        if (isMounted && raw) {
+          const formatted = formatMongoRide(raw);
+          setRide(formatted);
+          setStatus(getMotoRideStatus(formatted));
+          setCountdown(getMotoRideCountdown(formatted));
+        }
+      } catch (err) {
+        console.error("Error fetching live ride from DB:", err);
+      }
+    }
+
+    if (rideId) {
+      fetchRideFromDb();
+    }
+
+    return () => { isMounted = false; };
   }, [rideId]);
 
   useEffect(() => {
