@@ -271,6 +271,39 @@ const getRidersNearby = async (req, res, next) => {
       });
     }
 
+    // Also include other registered community riders from User & RiderProfile in the database
+    const existingUserIds = new Set(ridersList.map((r) => r.userId.toString()));
+    existingUserIds.add(req.user._id.toString());
+
+    const otherUsers = await User.find({ _id: { $nin: Array.from(existingUserIds) } })
+      .select("name city email createdAt")
+      .limit(10)
+      .lean();
+
+    for (const otherUser of otherUsers) {
+      const targetUserId = otherUser._id;
+      const profile = await RiderProfile.findOne({ userId: targetUserId }).lean();
+      const defaultVehicle =
+        (await Vehicle.findOne({ userId: targetUserId, isDefault: true }).lean()) ||
+        (await Vehicle.findOne({ userId: targetUserId }).lean());
+      const primaryVehicleName = defaultVehicle ? defaultVehicle.vehicleName : null;
+      const trustScore = await calculateTrustScore(targetUserId);
+
+      ridersList.push({
+        userId: targetUserId,
+        name: otherUser.name || "Rider",
+        location: otherUser.city || "Active Community",
+        preferredRideType: (profile?.preferredRideType) || "adventure",
+        trustScore,
+        primaryVehicleName: primaryVehicleName || (profile?.motorcycle) || "Motorcycle",
+        totalRidesCompleted: profile ? profile.totalRidesCompleted || 0 : 0,
+        distanceKm: 25,
+        status: "idle",
+        visibility: "community",
+        currentJourney: null,
+      });
+    }
+
     res.status(200).json({
       status: "success",
       results: ridersList.length,

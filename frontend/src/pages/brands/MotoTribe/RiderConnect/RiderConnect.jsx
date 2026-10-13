@@ -3,75 +3,6 @@ import { useAuth } from "../../../../context/AuthContext";
 import apiClient from "../../../../services/apiClient";
 import "./RiderConnect.css";
 
-const initialCommunityRiders = [
-  {
-    id: "rc-001",
-    name: "Arjun",
-    location: "Delhi",
-    bike: "Royal Enfield Himalayan",
-    style: "ADVENTURE",
-    experience: "ADVANCED",
-    rides: 42,
-    mutual: 8,
-    bio: "Long-distance adventure rider exploring mountain routes and challenging terrain.",
-  },
-  {
-    id: "rc-002",
-    name: "Rahul",
-    location: "Chandigarh",
-    bike: "KTM Adventure 390",
-    style: "ADVENTURE",
-    experience: "INTERMEDIATE",
-    rides: 27,
-    mutual: 5,
-    bio: "Weekend explorer interested in mountain roads and group expeditions.",
-  },
-  {
-    id: "rc-003",
-    name: "Meera",
-    location: "Bengaluru",
-    bike: "Yamaha MT-15",
-    style: "TOURING",
-    experience: "INTERMEDIATE",
-    rides: 31,
-    mutual: 11,
-    bio: "Touring enthusiast who enjoys scenic routes and relaxed community rides.",
-  },
-  {
-    id: "rc-004",
-    name: "Vikram",
-    location: "Visakhapatnam",
-    bike: "Royal Enfield Classic 350",
-    style: "CRUISER",
-    experience: "ADVANCED",
-    rides: 56,
-    mutual: 14,
-    bio: "Coastal rider and community organizer focused on safe group riding.",
-  },
-  {
-    id: "rc-005",
-    name: "Kiran",
-    location: "Hyderabad",
-    bike: "Bajaj Dominar 400",
-    style: "TOURING",
-    experience: "INTERMEDIATE",
-    rides: 19,
-    mutual: 4,
-    bio: "Highway touring rider looking for new routes and riding communities.",
-  },
-  {
-    id: "rc-006",
-    name: "Aditya",
-    location: "Mysuru",
-    bike: "KTM Duke 390",
-    style: "SPORT",
-    experience: "ADVANCED",
-    rides: 38,
-    mutual: 7,
-    bio: "Sport rider interested in technical roads, weekend rides and rider meets.",
-  },
-];
-
 function RiderConnect() {
   const { isAuthenticated, openAuthModal, user } = useAuth();
 
@@ -81,7 +12,7 @@ function RiderConnect() {
   const [selectedRider, setSelectedRider] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Live state from MongoDB backend
+  // Real data exclusively from MongoDB backend
   const [dbRiders, setDbRiders] = useState([]);
   const [connections, setConnections] = useState([]);
   const [outgoingRequests, setOutgoingRequests] = useState([]);
@@ -102,7 +33,7 @@ function RiderConnect() {
     }
   }, [following]);
 
-  // Fetch live network data from backend
+  // Fetch real rider network data from backend
   const fetchRiderNetwork = useCallback(async () => {
     if (!isAuthenticated) {
       setDbRiders([]);
@@ -190,7 +121,7 @@ function RiderConnect() {
       }
       setIncomingRequests(incList);
 
-      // 4. Discoverable nearby riders from MongoDB
+      // 4. Discoverable real riders from MongoDB
       let discoverList = [];
       if (nearbyRes.status === "fulfilled" && nearbyRes.value.data?.data?.riders) {
         discoverList = nearbyRes.value.data.data.riders
@@ -198,7 +129,7 @@ function RiderConnect() {
           .map((r) => ({
             id: String(r.userId || r._id),
             name: r.name || "Rider",
-            location: r.distanceKm ? `${Math.round(r.distanceKm)} km away` : "India",
+            location: r.location || (r.distanceKm ? `${Math.round(r.distanceKm)} km away` : "India"),
             bike: r.primaryVehicleName || "Motorcycle",
             style: (r.preferredRideType || "ADVENTURE").toUpperCase(),
             experience: r.totalRidesCompleted > 10 ? "ADVANCED" : "INTERMEDIATE",
@@ -224,17 +155,6 @@ function RiderConnect() {
     return () => { window.removeEventListener("kaindra:connection_updated", handleUpdate); };
   }, [fetchRiderNetwork]);
 
-  // Combined master pool for discovery (DB riders + Community riders fallback)
-  const masterRiders = useMemo(() => {
-    const list = [...dbRiders];
-    initialCommunityRiders.forEach((cr) => {
-      if (!list.some((r) => String(r.id) === String(cr.id))) {
-        list.push(cr);
-      }
-    });
-    return list;
-  }, [dbRiders]);
-
   const getConnectionStatus = useCallback((riderId) => {
     const rId = String(riderId);
     if (connections.some((c) => String(c.id) === rId)) return "CONNECTED";
@@ -243,21 +163,20 @@ function RiderConnect() {
     return "CONNECT";
   }, [connections, incomingRequests, outgoingRequests]);
 
-  // Tab Filtering
+  // Tab Filtering — using exclusively live data
   const activeTabRiders = useMemo(() => {
     if (activeTab === "CONNECTIONS") {
       return connections;
     }
     if (activeTab === "REQUESTS") {
-      // Show incoming first, followed by outgoing
       return [...incomingRequests, ...outgoingRequests];
     }
-    // DISCOVER: Riders who are not yet connected
-    return masterRiders.filter((r) => {
+    // DISCOVER: Registered database riders who are not already connected
+    return dbRiders.filter((r) => {
       const status = getConnectionStatus(r.id);
       return status !== "CONNECTED";
     });
-  }, [activeTab, connections, incomingRequests, outgoingRequests, masterRiders, getConnectionStatus]);
+  }, [activeTab, connections, incomingRequests, outgoingRequests, dbRiders, getConnectionStatus]);
 
   const filteredRiders = useMemo(() => {
     return activeTabRiders.filter((rider) => {
@@ -275,7 +194,7 @@ function RiderConnect() {
     });
   }, [activeTabRiders, search, styleFilter]);
 
-  // Handlers for real backend interactions
+  // Real backend actions
   const sendConnectionRequest = async (riderId) => {
     if (!isAuthenticated) {
       openAuthModal("login");
@@ -288,8 +207,6 @@ function RiderConnect() {
       await fetchRiderNetwork();
     } catch (err) {
       console.error("Failed to send connection request:", err);
-      // Fallback local visual update
-      setOutgoingRequests((prev) => [...prev, { id: String(riderId), name: "Rider" }]);
     }
   };
 
@@ -537,7 +454,13 @@ function RiderConnect() {
           ) : (
             <div className="connection-empty">
               <span>NO RIDERS FOUND</span>
-              <h3>There are no riders in this view yet.</h3>
+              <h3>
+                {activeTab === "DISCOVER"
+                  ? "No new riders to discover right now."
+                  : activeTab === "CONNECTIONS"
+                  ? "No accepted connections in your tribe yet."
+                  : "No pending connection requests."}
+              </h3>
             </div>
           )}
         </div>
