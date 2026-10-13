@@ -1765,3 +1765,51 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* =========================================
+   MORE RIDES EXPAND / COLLAPSE BUTTON
+========================================= */
+
+.record-more-rides-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 28px;
+  padding: 12px 0 6px;
+}
+
+.record-more-rides-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: #0d0d0d;
+  color: #b99145;
+  border: 1px solid rgba(185, 145, 69, 0.45);
+  padding: 13px 32px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
+}
+
+.record-more-rides-btn:hover {
+  background: #b99145;
+  color: #070707;
+  border-color: #b99145;
+  box-shadow: 0 6px 24px rgba(185, 145, 69, 0.3);
+  transform: translateY(-2px);
+}
+
+.record-more-rides-btn:active {
+  transform: translateY(0);
+}
+
+.record-more-icon {
+  font-size: 0.85rem;
+  line-height: 1;
+}

@@ -1,4 +1,4 @@
-﻿import {
+import {
   useCallback,
   useEffect,
   useMemo,
@@ -36,6 +36,7 @@ function DigitalRideRecord() {
   const [activeFilter, setActiveFilter] = useState("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showAllRides, setShowAllRides] = useState(false);
 
   const fetchRecords = useCallback(async () => {
     if (!isAuthenticated) {
@@ -80,6 +81,9 @@ function DigitalRideRecord() {
         notes: r.description || "Scenic journey logged on MotoTribe network.",
       }));
 
+      // Sort recent rides first
+      formatted.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
       setRides(formatted);
     } catch (err) {
       console.error("Failed to load digital ride records from DB:", err);
@@ -110,6 +114,11 @@ function DigitalRideRecord() {
       return matchesFilter && matchesSearch;
     });
   }, [activeFilter, rides, searchQuery]);
+
+  const visibleRides = useMemo(() => {
+    if (showAllRides) return filteredRides;
+    return filteredRides.slice(0, 3);
+  }, [filteredRides, showAllRides]);
 
   const selectedRide = useMemo(
     () => rides.find((r) => r.id === selectedRecordId) || null,
@@ -213,7 +222,7 @@ function DigitalRideRecord() {
               </button>
             </div>
 
-            {filteredRides.map((ride) => (
+            {visibleRides.map((ride) => (
               <div
                 className={`digital-record-card ${selectedRecordId === ride.id ? "selected" : ""}`}
                 key={ride.id}
@@ -277,6 +286,19 @@ function DigitalRideRecord() {
                 </div>
               </div>
             ))}
+
+            {filteredRides.length > 3 && (
+              <div className="record-more-rides-container">
+                <button
+                  type="button"
+                  className="record-more-rides-btn"
+                  onClick={() => setShowAllRides((prev) => !prev)}
+                >
+                  <span>{showAllRides ? "Show Less" : `More rides (${filteredRides.length - 3})`}</span>
+                  <span className="record-more-icon">{showAllRides ? "▴" : "▾"}</span>
+                </button>
+              </div>
+            )}
           </div>
         ) : (
           <div className="record-empty">
