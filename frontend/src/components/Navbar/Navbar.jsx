@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ShieldCheck, ShoppingBag } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { useCart } from "../../context/CartContext";
+import NotificationDropdown from "../NotificationDropdown/NotificationDropdown";
 import "./Navbar.css";
 
 function Navbar() {
@@ -9,6 +11,7 @@ function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const navbarRef = useRef(null);
   const { user, isAuthenticated, logout, openAuthModal, loading } = useAuth();
+  const { cartCount } = useCart();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -40,6 +43,8 @@ function Navbar() {
     setOpenDropdown(null);
     setMenuOpen(false);
   };
+
+  const isAdmin = isAuthenticated && user?.role === "admin";
 
   return (
     <nav className="navbar" ref={navbarRef}>
@@ -240,8 +245,28 @@ function Navbar() {
                 >
                   Login
                 </button>
+              ) : isAdmin ? (
+                <div className="mobile-user-area">
+                  <Link
+                    to="/admin"
+                    className="mobile-user-name"
+                    onClick={closeDropdown}
+                  >
+                    🛡️ Admin Panel
+                  </Link>
+                  <button
+                    className="mobile-logout-btn"
+                    onClick={() => {
+                      closeDropdown();
+                      logout();
+                    }}
+                  >
+                    Logout
+                  </button>
+                </div>
               ) : (
                 <div className="mobile-user-area">
+                  <NotificationDropdown brand="modasphere" />
                   <Link
                     to="/profile"
                     className="mobile-user-name"
@@ -273,8 +298,31 @@ function Navbar() {
             >
               Login
             </button>
+          ) : isAdmin ? (
+            <div className="navbar-user-area">
+              <NotificationDropdown brand="modasphere" />
+              <Link
+                to="/admin"
+                className="navbar-user-name"
+                style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
+              >
+                <ShieldCheck size={16} /> Admin Panel
+              </Link>
+              <button className="navbar-logout-btn" onClick={logout}>
+                Logout
+              </button>
+            </div>
           ) : (
             <div className="navbar-user-area">
+              <NotificationDropdown brand="modasphere" />
+              <Link
+                to="/businesses/modamart/cart"
+                className="navbar-cart-icon"
+                title="View Cart"
+              >
+                <ShoppingBag size={18} />
+                {cartCount > 0 && <span className="navbar-cart-badge">{cartCount}</span>}
+              </Link>
               <Link
                 to="/profile"
                 className="navbar-user-name"

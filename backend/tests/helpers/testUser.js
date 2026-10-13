@@ -2,18 +2,17 @@ const User = require("../../src/models/core/User");
 const Vehicle = require("../../src/models/mototribe/Vehicle");
 const { signAccessToken } = require("../../src/utils/jwt");
 
-let phoneCounter = 9000000000;
-let regCounter = 1000;
+let userCounter = 0;
 
 /**
  * Creates a vehicle for a test user
  */
 const createTestVehicle = async (userId, data = {}) => {
-  regCounter += 1;
+  const uniqueSuffix = `${Date.now().toString().slice(-6)}${Math.floor(Math.random() * 10000)}`;
   const defaultVehicle = {
     userId,
     vehicleName: "Test Royal Enfield 350",
-    registrationNumber: `KA01MT${regCounter}`,
+    registrationNumber: `KA01MT${uniqueSuffix}`,
     fuelType: "petrol",
     mileageKmpl: 40,
     isDefault: true,
@@ -27,12 +26,13 @@ const createTestVehicle = async (userId, data = {}) => {
  * @returns {Promise<{user: Object, token: string, userId: string, vehicle: Object, vehicleId: string}>}
  */
 const createTestUser = async (data = {}) => {
-  phoneCounter += 1;
+  userCounter += 1;
+  const randomDigits = Math.floor(100000000 + Math.random() * 900000000);
   const defaultUser = {
     name: "Test Rider",
-    email: `rider.${Date.now()}.${Math.floor(Math.random() * 10000)}@example.com`,
+    email: `rider.${Date.now()}.${userCounter}.${Math.floor(Math.random() * 100000)}@example.com`,
     password: "password123",
-    phoneNumber: `+91${phoneCounter}`,
+    phoneNumber: `919${randomDigits}`,
     isPhoneVerified: true,
     role: "user",
   };

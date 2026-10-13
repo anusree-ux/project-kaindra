@@ -55,3 +55,7 @@ docker compose -f docker/docker-compose.prod.yml down
 ``` 
 
 Access : http://localhost
+
+## AWS Development Server
+
+Terraform configuration and instructions for creating the personal-account development EC2 server are in [terraform/dev](./terraform/dev/README.md). The server is not created until you review and apply the Terraform plan.

@@ -1,26 +1,82 @@
 const mongoose = require("mongoose");
 
-const courseEnrollmentSchema = new mongoose.Schema(
+const modaAcademyEnrollmentSchema = new mongoose.Schema(
   {
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: [true, "User is required"],
+    enrollmentId: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
     },
 
-    course: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "ModaCourse",
-      required: [true, "Course is required"],
+    // Course information comes from the selected frontend course
+    courseId: {
+      type: String,
+      required: true,
+      trim: true,
     },
 
-    completedModules: {
-      type: [
-        {
-          type: mongoose.Schema.Types.ObjectId,
-        },
-      ],
-      default: [],
+    courseName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    category: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    level: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    duration: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    instructor: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    // Student information comes from the enrollment form
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 100,
+    },
+
+    email: {
+      type: String,
+      required: true,
+      trim: true,
+      lowercase: true,
+    },
+
+    phone: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    experience: {
+      type: String,
+      required: true,
+      enum: ["Beginner", "Intermediate", "Advanced"],
+    },
+
+    status: {
+      type: String,
+      enum: ["Enrolled", "Completed"],
+      default: "Enrolled",
     },
 
     progress: {
@@ -30,20 +86,9 @@ const courseEnrollmentSchema = new mongoose.Schema(
       default: 0,
     },
 
-    status: {
-      type: String,
-      enum: ["enrolled", "completed"],
-      default: "enrolled",
-    },
-
     enrolledAt: {
       type: Date,
       default: Date.now,
-    },
-
-    completedAt: {
-      type: Date,
-      default: null,
     },
   },
   {
@@ -51,14 +96,9 @@ const courseEnrollmentSchema = new mongoose.Schema(
   }
 );
 
-courseEnrollmentSchema.index(
-  { user: 1, course: 1 },
-  { unique: true }
+const ModaAcademyEnrollment = mongoose.model(
+  "ModaAcademyEnrollment",
+  modaAcademyEnrollmentSchema
 );
 
-const CourseEnrollment = mongoose.model(
-  "CourseEnrollment",
-  courseEnrollmentSchema
-);
-
-module.exports = CourseEnrollment;
+module.exports = ModaAcademyEnrollment;

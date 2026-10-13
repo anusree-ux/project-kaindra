@@ -2,6 +2,9 @@ const Career = require("../../models/core/Career");
 const JobApplication = require("../../models/core/JobApplication");
 const CommunityMember = require("../../models/core/CommunityMember");
 const ModaTales = require("../../models/modasphere/ModaTales");
+const InfluenceCampaign = require(
+  "../../models/modasphere/modainfluence/InfluenceCampaign"
+);
 const { seedInitialCareers } = require("../../scripts/seedCareers");
 
 // @desc    Get dashboard metrics for Admin dashboard
@@ -25,6 +28,9 @@ exports.getAdminStats = async (req, res, next) => {
     const talesCount =
       await ModaTales.countDocuments();
 
+    const influenceCampaignsCount =
+      await InfluenceCampaign.countDocuments();
+
     res.status(200).json({
       status: "success",
       data: {
@@ -32,6 +38,7 @@ exports.getAdminStats = async (req, res, next) => {
         applications: applicationsCount,
         communityMembers: communityMembersCount,
         modaTales: talesCount,
+        modaInfluence: influenceCampaignsCount,
         growth: "12%",
       },
     });

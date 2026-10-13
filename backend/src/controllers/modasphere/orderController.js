@@ -1,0 +1,985 @@
+const Order = require("../../models/modasphere/Order");
+const Shipment = require("../../models/modasphere/Shipment");
+const Cart = require("../../models/modasphere/Cart");
+const Product = require("../../models/modasphere/Product");
+const Drop = require("../../models/modasphere/Drop");
+const DiscountCode = require("../../models/modasphere/DiscountCode");
+const {
+  getDropStatusAt,
+  getUserPurchaseCountInDrop,
+  isDropLiveAt,
+} = require("../../services/modasphere/dropService");
+const {
+  createRazorpayOrder,
+  verifyPaymentSignature,
+  initiateRefund,
+} = require("../../services/modasphere/paymentService");
+const {
+  notifyNextProductDropWaitlistUser,
+} = require("../../services/modasphere/dropService");
+const AppError = require("../../utils/AppError");
+
+/**
+ * @desc    Initiate checkout from user's Cart & generate Razorpay order
+ * @route   POST /api/modasphere/orders/checkout
+ * @access  Private
+ */
+const checkout = async (req, res, next) => {
+  let order = null;
+  try {
+    const { shippingAddress, discountCode } = req.body;
+
+    if (
+      !shippingAddress ||
+      !shippingAddress.name ||
+      !shippingAddress.phone ||
+      !shippingAddress.addressLine1 ||
+      !shippingAddress.city ||
+      !shippingAddress.state ||
+      !shippingAddress.pincode
+    ) {
+      return next(
+        new AppError("Complete shipping address is required for checkout.", 400)
+      );
+    }
+
+    const cart = await Cart.findOne({ userId: req.user._id }).populate(
+      "items.productId"
+    );
+    if (!cart || !cart.items || cart.items.length === 0) {
+      return next(
+        new AppError("Your cart is empty. Add products before checking out.", 400)
+      );
+    }
+
+    // Event dates, not product-level release dates or cached status, control availability.
+    const now = new Date();
+    const cartProductIds = cart.items
+      .filter((item) => item.productId && item.productId._id)
+      .map((item) => item.productId._id);
+    const relevantDrops = await Drop.find({
+      productIds: { $in: cartProductIds },
+    });
+    const dropsByProductId = new Map();
+    for (const drop of relevantDrops) {
+      for (const productId of drop.productIds) {
+        const key = productId.toString();
+        const productDrops = dropsByProductId.get(key) || [];
+        productDrops.push(drop);
+        dropsByProductId.set(key, productDrops);
+      }
+    }
+
+    const dropByProductId = new Map();
+    const quantityByDropId = new Map();
+    for (const item of cart.items) {
+      const product = item.productId;
+      if (!product || !product._id) {
+        continue;
+      }
+
+      const productDrops = dropsByProductId.get(product._id.toString()) || [];
+      const liveDrops = productDrops.filter((drop) => isDropLiveAt(drop, now));
+      const scheduledDrops = productDrops.filter(
+        (drop) => getDropStatusAt(drop, now) !== "ended"
+      );
+
+      if (!product.isDrop && scheduledDrops.length === 0) {
+        continue;
+      }
+
+      if (liveDrops.length !== 1) {
+        const status = liveDrops.length > 1
+          ? "assigned to multiple live ModaDrop events"
+          : productDrops.length === 0
+            ? "not assigned to a scheduled ModaDrop event"
+            : `currently "${getDropStatusAt(scheduledDrops[0] || productDrops[0], now)}"`;
+        return next(
+          new AppError(
+            `Cannot purchase "${product.name}" because its ModaDrop event is ${status}.`,
+            400
+          )
+        );
+      }
+
+      const drop = liveDrops[0];
+      dropByProductId.set(product._id.toString(), drop);
+      const dropKey = drop._id.toString();
+      quantityByDropId.set(
+        dropKey,
+        (quantityByDropId.get(dropKey) || 0) + item.quantity
+      );
+    }
+
+    for (const drop of relevantDrops) {
+      const currentDropOrderQty = quantityByDropId.get(drop._id.toString());
+      if (!currentDropOrderQty) {
+        continue;
+      }
+
+      const existingPurchasedCount = await getUserPurchaseCountInDrop(
+        req.user._id,
+        drop._id
+      );
+      if (existingPurchasedCount + currentDropOrderQty > drop.maxPerUser) {
+        return next(
+          new AppError(
+            `Purchase limit exceeded for drop "${drop.title}". Limit is ${drop.maxPerUser} per customer. You have already purchased ${existingPurchasedCount} and are attempting to checkout ${currentDropOrderQty}.`,
+            400
+          )
+        );
+      }
+    }
+
+    const orderItems = [];
+    let subtotalAmount = 0;
+
+    // Validate stock and build order snapshot
+    for (const item of cart.items) {
+      const product = item.productId;
+
+      if (!product || product.status !== "active") {
+        return next(
+          new AppError(
+            `Product "${item.productId}" is no longer available.`,
+            400
+          )
+        );
+      }
+
+      const associatedDrop = dropByProductId.get(product._id.toString());
+      if (associatedDrop) {
+        if (
+          product.dropStock === null ||
+          product.dropStock === undefined ||
+          product.dropStock <= 0
+        ) {
+          return next(
+            new AppError(
+              `Drop "${product.name}" is sold out.`,
+              400
+            )
+          );
+        }
+
+        if (item.quantity > product.dropStock) {
+          return next(
+            new AppError(
+              `Insufficient drop stock for "${product.name}". Available drop stock: ${product.dropStock}.`,
+              400
+            )
+          );
+        }
+      } else {
+        // Normal product validation
+        if (item.quantity > product.stock) {
+          return next(
+            new AppError(
+              `Insufficient stock for "${product.name}". Available stock: ${product.stock}.`,
+              400
+            )
+          );
+        }
+      }
+
+      const itemPrice = Number(product.price);
+      subtotalAmount += itemPrice * item.quantity;
+
+      orderItems.push({
+        productId: product._id,
+        sellerId: product.sellerId,
+        name: product.name,
+        price: itemPrice,
+        quantity: item.quantity,
+        dropId: associatedDrop?._id || null,
+        isDrop: Boolean(associatedDrop),
+      });
+    }
+
+    let discountAmount = 0;
+    let appliedDiscountCode = null;
+
+    if (discountCode && discountCode.trim()) {
+      const normalizedDiscountCode = discountCode.trim().toUpperCase();
+
+      const discount = await DiscountCode.findOne({
+        code: normalizedDiscountCode,
+      });
+
+      if (!discount) {
+        return next(new AppError("Invalid discount code.", 400));
+      }
+
+      if (!discount.isActive) {
+        return next(
+          new AppError("This discount code is inactive.", 400)
+        );
+      }
+
+      if (
+        discount.expiryDate &&
+        new Date() > discount.expiryDate
+      ) {
+        return next(
+          new AppError("This discount code has expired.", 400)
+        );
+      }
+
+      if (subtotalAmount < discount.minOrderAmount) {
+        return next(
+          new AppError(
+            `Minimum order amount for this discount is ${discount.minOrderAmount}.`,
+            400
+          )
+        );
+      }
+
+      // Check total usage limit
+      if (discount.maxTotalUses !== null) {
+        const totalUsed = await Order.countDocuments({
+          discountCode: discount.code,
+          status: { $in: ["paid", "shipped", "delivered"] },
+        });
+
+        if (totalUsed >= discount.maxTotalUses) {
+          return next(
+            new AppError(
+              "This discount code has reached its maximum usage limit.",
+              400
+            )
+          );
+        }
+      }
+
+      // Check per-user usage limit
+      if (discount.maxUsesPerUser !== null) {
+        const userUsed = await Order.countDocuments({
+          buyerId: req.user._id,
+          discountCode: discount.code,
+          status: { $in: ["paid", "shipped", "delivered"] },
+        });
+
+        if (userUsed >= discount.maxUsesPerUser) {
+          return next(
+            new AppError(
+              "You have already reached the usage limit for this discount code.",
+              400
+            )
+          );
+        }
+      }
+
+      if (discount.discountType === "percentage") {
+        discountAmount =
+          (subtotalAmount * discount.discountValue) / 100;
+      } else {
+        discountAmount = discount.discountValue;
+      }
+
+      discountAmount = Math.min(discountAmount, subtotalAmount);
+
+      appliedDiscountCode = discount.code;
+    }
+
+    const totalAmount = Math.max(
+      subtotalAmount - discountAmount,
+      0
+    );
+
+    // Create pending order
+    order = await Order.create({
+      buyerId: req.user._id,
+      items: orderItems,
+      subtotalAmount,
+      discountCode: appliedDiscountCode,
+      discountAmount,
+      totalAmount,
+      status: "pending_payment",
+      shippingAddress,
+    });
+
+    // Create Razorpay Order
+    const amountInPaise = Math.round(totalAmount * 100);
+    const razorpayOrder = await createRazorpayOrder(amountInPaise, order._id);
+
+    order.razorpayOrderId = razorpayOrder.razorpayOrderId;
+    await order.save();
+
+    res.status(201).json({
+      status: "success",
+      message: "Order initiated. Please complete Razorpay payment.",
+      data: {
+        orderId: order._id,
+        razorpayOrderId: razorpayOrder.razorpayOrderId,
+        amount: razorpayOrder.amount,
+        currency: razorpayOrder.currency,
+        key: process.env.RAZORPAY_KEY_ID || "",
+      },
+    });
+  } catch (error) {
+    // If Razorpay API call fails after order was created in DB, clean up the orphaned pending order
+    if (order && order._id && !order.razorpayOrderId) {
+      try {
+        await Order.findByIdAndDelete(order._id);
+      } catch (cleanupError) {
+        console.error("Failed to clean up orphaned pending order:", cleanupError);
+      }
+    }
+    next(error);
+  }
+};
+
+/**
+ * @desc    Verify Razorpay payment signature & finalize order
+ * @route   POST /api/modasphere/orders/:id/verify-payment
+ * @access  Private
+ */
+const verifyPayment = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { razorpayPaymentId, razorpaySignature } = req.body;
+
+    const order = await Order.findById(id);
+    if (!order) {
+      return next(new AppError("Order not found.", 404));
+    }
+
+    if (order.buyerId.toString() !== req.user._id.toString()) {
+      return next(
+        new AppError("Not authorized to verify payment for this order.", 403)
+      );
+    }
+
+    if (order.status === "paid") {
+      return res.status(200).json({
+        status: "success",
+        message: "Order is already paid.",
+        data: { order },
+      });
+    }
+
+    const isValid = verifyPaymentSignature(
+      order.razorpayOrderId,
+      razorpayPaymentId,
+      razorpaySignature
+    );
+
+    if (!isValid) {
+      order.status = "cancelled";
+      await order.save();
+      return next(
+        new AppError(
+          "Invalid payment signature verification. Order cancelled.",
+          400
+        )
+      );
+    }
+
+    // Reserve/decrement inventory before marking the order as paid.
+    const updatedStockItems = [];
+
+    try {
+      for (const item of order.items) {
+        const product = await Product.findById(item.productId);
+
+        if (!product) {
+          throw new AppError(
+            `Product "${item.name}" no longer exists.`,
+            400
+          );
+        }
+
+        const usesDropStock =
+          item.isDrop === undefined ? product.isDrop : item.isDrop;
+        if (usesDropStock) {
+          const updatedProduct = await Product.findOneAndUpdate(
+            {
+              _id: item.productId,
+              dropStock: { $gte: item.quantity },
+            },
+            {
+              $inc: { dropStock: -item.quantity },
+            },
+            { new: true }
+          );
+
+          if (!updatedProduct) {
+            throw new AppError(
+              `Insufficient drop stock for "${item.name}". The drop may have sold out.`,
+              400
+            );
+          }
+
+          updatedStockItems.push({
+            productId: item.productId,
+            quantity: item.quantity,
+            isDrop: true,
+          });
+        } else {
+          const updatedProduct = await Product.findOneAndUpdate(
+            {
+              _id: item.productId,
+              stock: { $gte: item.quantity },
+            },
+            {
+              $inc: { stock: -item.quantity },
+            },
+            { new: true }
+          );
+
+          if (!updatedProduct) {
+            throw new AppError(
+              `Insufficient stock for "${item.name}". The product may have sold out.`,
+              400
+            );
+          }
+
+          updatedStockItems.push({
+            productId: item.productId,
+            quantity: item.quantity,
+            isDrop: false,
+          });
+        }
+      }
+    } catch (stockError) {
+      // Restore inventory if a later item failed.
+      for (const item of updatedStockItems) {
+        if (item.isDrop) {
+          await Product.findByIdAndUpdate(item.productId, {
+            $inc: { dropStock: item.quantity },
+          });
+        } else {
+          await Product.findByIdAndUpdate(item.productId, {
+            $inc: { stock: item.quantity },
+          });
+        }
+      }
+
+      return next(stockError);
+    }
+
+    // Only mark the order as paid after all inventory was successfully reserved.
+    order.status = "paid";
+    order.razorpayPaymentId = razorpayPaymentId;
+    order.razorpaySignature = razorpaySignature;
+    await order.save();
+
+    // Clear user's Cart
+    const cart = await Cart.findOne({ userId: req.user._id });
+    if (cart) {
+      cart.items = [];
+      await cart.save();
+    }
+
+    res.status(200).json({
+      status: "success",
+      message: "Payment verified successfully. Order confirmed.",
+      data: { order },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Get logged-in buyer's own orders
+ * @route   GET /api/modasphere/orders/me
+ * @access  Private
+ */
+const getMyOrders = async (req, res, next) => {
+  try {
+    const orders = await Order.find({ buyerId: req.user._id })
+      .populate("items.productId", "images category")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      status: "success",
+      data: { orders },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Get single order detail (Buyer, relevant Seller, or Admin)
+ * @route   GET /api/modasphere/orders/:id
+ * @access  Private
+ */
+const getOrderById = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const order = await Order.findById(id).populate(
+      "buyerId",
+      "name email phoneNumber"
+    );
+
+    if (!order) {
+      return next(new AppError("Order not found.", 404));
+    }
+
+    const isBuyer =
+      order.buyerId &&
+      (order.buyerId._id || order.buyerId).toString() ===
+        req.user._id.toString();
+    const isSeller =
+      order.items &&
+      order.items.some(
+        (item) =>
+          item.sellerId &&
+          item.sellerId.toString() === req.user._id.toString()
+      );
+    const isAdmin = req.user.role === "admin";
+
+    if (!isBuyer && !isSeller && !isAdmin) {
+      return next(new AppError("Not authorized to view this order.", 403));
+    }
+
+    let responseData = order.toObject();
+
+    // Data privacy: if caller is a seller (not buyer or admin), restrict items and total to their own sold items
+    if (isSeller && !isBuyer && !isAdmin) {
+      const sellerItems = order.items.filter(
+        (item) =>
+          item.sellerId &&
+          item.sellerId.toString() === req.user._id.toString()
+      );
+      const sellerSubtotal = sellerItems.reduce(
+        (sum, item) => sum + item.price * item.quantity,
+        0
+      );
+      responseData.items = sellerItems;
+      responseData.sellerSubtotal = sellerSubtotal;
+    }
+
+    res.status(200).json({
+      status: "success",
+      data: { order: responseData },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Get orders containing products sold by the logged-in seller
+ * @route   GET /api/modasphere/orders/seller/me
+ * @access  Private
+ */
+const getSellerOrders = async (req, res, next) => {
+  try {
+    const orders = await Order.find({ "items.sellerId": req.user._id })
+      .populate("buyerId", "name email")
+      .sort({ createdAt: -1 });
+
+    // Isolate only items belonging to this seller for each order
+    const sellerOrders = orders.map((order) => {
+      const orderObj = order.toObject();
+      const sellerItems = (order.items || []).filter(
+        (item) =>
+          item.sellerId &&
+          item.sellerId.toString() === req.user._id.toString()
+      );
+      const sellerSubtotal = sellerItems.reduce(
+        (sum, item) => sum + item.price * item.quantity,
+        0
+      );
+      orderObj.items = sellerItems;
+      orderObj.sellerSubtotal = sellerSubtotal;
+      return orderObj;
+    });
+
+    res.status(200).json({
+      status: "success",
+      data: { orders: sellerOrders },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Ship an order (Seller only)
+ * @route   PATCH /api/modasphere/orders/:id/ship
+ * @access  Private
+ */
+const shipOrder = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { carrier, trackingNumber, estimatedDeliveryDate } = req.body || {};
+
+    const order = await Order.findById(id);
+
+    if (!order) {
+      return next(new AppError("Order not found.", 404));
+    }
+
+    const isSeller =
+      order.items &&
+      order.items.some(
+        (item) =>
+          item.sellerId &&
+          item.sellerId.toString() === req.user._id.toString()
+      );
+    const isAdmin = req.user.role === "admin";
+
+    if (!isSeller && !isAdmin) {
+      return next(
+        new AppError("Not authorized to update shipment status for this order.", 403)
+      );
+    }
+
+    if (order.status !== "paid") {
+      return next(
+        new AppError(
+          `Cannot mark order as shipped. Current status is "${order.status}", but status must be "paid".`,
+          400
+        )
+      );
+    }
+
+    if (!carrier) {
+      return next(new AppError("Carrier is required to ship an order.", 400));
+    }
+
+    if (!trackingNumber) {
+      return next(new AppError("Tracking number is required to ship an order.", 400));
+    }
+
+    // Known simplification: updates the whole order's status to "shipped", rather
+    // than per-item / per-seller shipment tracking. Out of scope for now as single-seller orders are the common case.
+    order.status = "shipped";
+    await order.save();
+
+    let shipment = await Shipment.findOne({ orderId: order._id });
+    if (!shipment) {
+      shipment = await Shipment.create({
+        orderId: order._id,
+        carrier,
+        trackingNumber,
+        estimatedDeliveryDate: estimatedDeliveryDate || null,
+        status: "pending_pickup",
+        timeline: [
+          {
+            status: "pending_pickup",
+            note: "Shipment order created by seller.",
+            timestamp: new Date(),
+          },
+        ],
+      });
+    } else {
+      shipment.carrier = carrier;
+      shipment.trackingNumber = trackingNumber;
+      if (estimatedDeliveryDate) {
+        shipment.estimatedDeliveryDate = estimatedDeliveryDate;
+      }
+      await shipment.save();
+    }
+
+    res.status(200).json({
+      status: "success",
+      message: "Order marked as shipped.",
+      data: { order, shipment },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Confirm delivery / receipt of an order (Buyer only)
+ * @route   PATCH /api/modasphere/orders/:id/deliver
+ * @access  Private
+ */
+const deliverOrder = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const order = await Order.findById(id);
+
+    if (!order) {
+      return next(new AppError("Order not found.", 404));
+    }
+
+    const isBuyer =
+      order.buyerId &&
+      (order.buyerId._id || order.buyerId).toString() ===
+        req.user._id.toString();
+
+    if (!isBuyer) {
+      return next(
+        new AppError("Not authorized to confirm delivery for this order.", 403)
+      );
+    }
+
+    if (order.status !== "shipped") {
+      return next(
+        new AppError(
+          `Cannot mark order as delivered. Current status is "${order.status}", but status must be "shipped".`,
+          400
+        )
+      );
+    }
+
+    order.status = "delivered";
+    await order.save();
+
+    let shipment = await Shipment.findOne({ orderId: order._id });
+    if (shipment) {
+      shipment.status = "delivered";
+      shipment.timeline.push({
+        status: "delivered",
+        note: "Confirmed received by buyer",
+        timestamp: new Date(),
+      });
+      await shipment.save();
+    }
+
+    res.status(200).json({
+      status: "success",
+      message: "Order marked as delivered.",
+      data: { order, shipment: shipment || undefined },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Cancel an order (Buyer only)
+ * @route   PATCH /api/modasphere/orders/:id/cancel
+ * @access  Private
+ */
+const cancelOrder = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const order = await Order.findById(id);
+
+    if (!order) {
+      return next(new AppError("Order not found.", 404));
+    }
+
+    const isBuyer =
+      order.buyerId &&
+      (order.buyerId._id || order.buyerId).toString() ===
+        req.user._id.toString();
+
+    if (!isBuyer) {
+      return next(
+        new AppError("Not authorized to cancel this order.", 403)
+      );
+    }
+
+    if (order.status !== "pending_payment" && order.status !== "paid") {
+      return next(
+        new AppError(
+          `Cannot cancel order. Current status is "${order.status}". Orders can only be cancelled when in "pending_payment" or "paid" status.`,
+          400
+        )
+      );
+    }
+
+    // If cancelling a paid order, restore product stock/drop stock
+    // and initiate Razorpay refund.
+    if (order.status === "paid") {
+      for (const item of order.items) {
+        const product = await Product.findById(item.productId);
+
+        if (!product) {
+          console.warn(
+            `[ModaSphere Cancellation] Product ${item.productId} no longer exists.`
+          );
+          continue;
+        }
+
+        const usesDropStock =
+          item.isDrop === undefined ? product.isDrop : item.isDrop;
+        if (usesDropStock) {
+          await Product.findByIdAndUpdate(item.productId, {
+            $inc: { dropStock: item.quantity },
+          });
+
+          // Notify the first person waiting for this drop.
+          const notificationResult =
+            await notifyNextProductDropWaitlistUser(item.productId);
+
+          if (!notificationResult.success) {
+            console.warn(
+              `[ModaDrop Waitlist] Could not notify next user for ${product.name}:`,
+              notificationResult.error
+            );
+          }
+        } else {
+          await Product.findByIdAndUpdate(item.productId, {
+            $inc: { stock: item.quantity },
+          });
+        }
+      }
+
+      order.status = "cancelled";
+
+      if (order.razorpayPaymentId) {
+        order.refundStatus = "pending";
+        try {
+          const amountInPaise = Math.round(order.totalAmount * 100);
+          const refundResult = await initiateRefund(
+            order.razorpayPaymentId,
+            amountInPaise
+          );
+          order.refundStatus = "processed";
+          order.refundId = refundResult.refundId;
+          order.refundAmount = order.totalAmount;
+          order.refundedAt = new Date();
+        } catch (refundError) {
+          console.error(
+            `[ModaSphere Refund Error] Failed to process refund for order ${order._id}:`,
+            refundError
+          );
+          // Do NOT roll back order cancellation or stock restoration
+          order.refundStatus = "failed";
+        }
+      }
+    } else {
+      // For pending_payment orders, no payment occurred so skip refund
+      order.status = "cancelled";
+    }
+
+    await order.save();
+
+    res.status(200).json({
+      status: "success",
+      message: "Order cancelled successfully.",
+      data: { order },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Get refund status of an order (Buyer or Admin only)
+ * @route   GET /api/modasphere/orders/:id/refund-status
+ * @access  Private
+ */
+const getRefundStatus = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const order = await Order.findById(id);
+
+    if (!order) {
+      return next(new AppError("Order not found.", 404));
+    }
+
+    const isBuyer =
+      order.buyerId &&
+      (order.buyerId._id || order.buyerId).toString() ===
+        req.user._id.toString();
+    const isAdmin = req.user.role === "admin";
+
+    if (!isBuyer && !isAdmin) {
+      return next(
+        new AppError("Not authorized to view refund status for this order.", 403)
+      );
+    }
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        orderId: order._id,
+        refundStatus: order.refundStatus,
+        refundId: order.refundId,
+        refundAmount: order.refundAmount,
+        refundedAt: order.refundedAt,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Retry a failed refund (Admin only)
+ * @route   POST /api/modasphere/orders/:id/retry-refund
+ * @access  Private (Admin)
+ */
+const retryRefund = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const order = await Order.findById(id);
+
+    if (!order) {
+      return next(new AppError("Order not found.", 404));
+    }
+
+    if (order.status !== "cancelled") {
+      return next(
+        new AppError(
+          `Only cancelled orders can be refunded. Current status is "${order.status}".`,
+          400
+        )
+      );
+    }
+
+    if (order.refundStatus === "processed") {
+      return next(
+        new AppError("Refund has already been processed for this order.", 400)
+      );
+    }
+
+    if (!order.razorpayPaymentId) {
+      return next(
+        new AppError("Cannot process refund: No Razorpay Payment ID found on order.", 400)
+      );
+    }
+
+    order.refundStatus = "pending";
+    try {
+      const amountInPaise = Math.round(order.totalAmount * 100);
+      const refundResult = await initiateRefund(
+        order.razorpayPaymentId,
+        amountInPaise
+      );
+      order.refundStatus = "processed";
+      order.refundId = refundResult.refundId;
+      order.refundAmount = order.totalAmount;
+      order.refundedAt = new Date();
+      await order.save();
+
+      res.status(200).json({
+        status: "success",
+        message: "Refund retried and processed successfully.",
+        data: {
+          orderId: order._id,
+          refundStatus: order.refundStatus,
+          refundId: order.refundId,
+          refundAmount: order.refundAmount,
+          refundedAt: order.refundedAt,
+        },
+      });
+    } catch (refundError) {
+      console.error(
+        `[ModaSphere Retry Refund Error] Failed to retry refund for order ${order._id}:`,
+        refundError
+      );
+      order.refundStatus = "failed";
+      await order.save();
+      return next(
+        new AppError(`Refund retry failed: ${refundError.message}`, 500)
+      );
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = {
+  checkout,
+  verifyPayment,
+  getMyOrders,
+  getOrderById,
+  getSellerOrders,
+  shipOrder,
+  deliverOrder,
+  cancelOrder,
+  getRefundStatus,
+  retryRefund,
+};

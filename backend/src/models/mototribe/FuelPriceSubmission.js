@@ -13,6 +13,11 @@ const fuelPriceSubmissionSchema = new mongoose.Schema(
       trim: true,
       index: true,
     },
+    city: {
+      type: String,
+      trim: true,
+      index: true,
+    },
     station: {
       type: String,
       trim: true,
@@ -33,6 +38,22 @@ const fuelPriceSubmissionSchema = new mongoose.Schema(
       required: [true, "Price per liter is required"],
       min: [0.1, "Price must be positive"],
     },
+    validationStatus: {
+      type: String,
+      enum: ["PENDING", "ACCEPTED", "SUSPICIOUS", "REJECTED"],
+      default: "ACCEPTED",
+      index: true,
+    },
+    confidenceScore: {
+      type: Number,
+      default: 0.8,
+      min: 0.0,
+      max: 1.0,
+    },
+    deviationPct: {
+      type: Number,
+      default: 0.0,
+    },
     submittedAt: {
       type: Date,
       default: Date.now,
@@ -45,7 +66,7 @@ const fuelPriceSubmissionSchema = new mongoose.Schema(
 );
 
 // Compound index for efficient 7-day state + fuelType queries
-fuelPriceSubmissionSchema.index({ state: 1, fuelType: 1, submittedAt: -1 });
+fuelPriceSubmissionSchema.index({ state: 1, fuelType: 1, validationStatus: 1, submittedAt: -1 });
 
 const FuelPriceSubmission = mongoose.model(
   "FuelPriceSubmission",

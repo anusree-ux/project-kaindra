@@ -20,10 +20,10 @@ const checkAndSendReminders = async () => {
     const in24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
     const in1h = new Date(now.getTime() + 1 * 60 * 60 * 1000);
 
-    // 1. Rides starting within 24h
+    // 1. Rides starting between 1h and 24h
     const rides24h = await Ride.find({
       status: { $in: ["planning", "ongoing"] },
-      startDate: { $gte: now, $lte: in24h },
+      startDate: { $gt: in1h, $lte: in24h },
     });
 
     // 2. Rides starting within 1h

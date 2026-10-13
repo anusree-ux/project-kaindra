@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Lock, Mail, Eye, EyeOff, LogIn } from "lucide-react";
 import "./AdminLogin.css";
@@ -14,7 +14,6 @@ function AdminLogin() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     setError("");
     setLoading(true);
 
@@ -44,33 +43,17 @@ function AdminLogin() {
       }
 
       if (user.role !== "admin") {
-        throw new Error(
-          "You are not authorized to access the admin panel."
-        );
+        throw new Error("You are not authorized to access the admin panel.");
       }
 
-      sessionStorage.setItem(
-        "kaindraAdminAccessToken",
-        accessToken
-      );
-
-      sessionStorage.setItem(
-        "kaindraAdminAuthenticated",
-        "true"
-      );
-
-      sessionStorage.setItem(
-        "kaindraAdminUser",
-        JSON.stringify(user)
-      );
+      sessionStorage.setItem("kaindraAdminAuthenticated", "true");
+      sessionStorage.setItem("kaindraAdminAccessToken", accessToken);
+      sessionStorage.setItem("kaindraAdminUser", JSON.stringify(user));
 
       navigate("/admin");
     } catch (error) {
       console.error("Admin login error:", error);
-
-      setError(
-        error.message || "Login failed. Please try again."
-      );
+      setError(error.message || "Login failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -79,10 +62,7 @@ function AdminLogin() {
   return (
     <div className="admin-login-page">
       <div className="admin-login-card">
-
-        <div className="admin-login-brand">
-          KAINDRA
-        </div>
+        <div className="admin-login-brand">KAINDRA</div>
 
         <div className="admin-login-icon">
           <Lock size={24} />
@@ -90,27 +70,16 @@ function AdminLogin() {
 
         <div className="admin-login-header">
           <span>ADMIN PORTAL</span>
-
           <h1>Welcome back</h1>
-
-          <p>
-            Sign in to access the Kaindra administration panel.
-          </p>
+          <p>Sign in to access the Kaindra administration panel.</p>
         </div>
 
-        <form
-          className="admin-login-form"
-          onSubmit={handleSubmit}
-        >
-
+        <form className="admin-login-form" onSubmit={handleSubmit}>
           <div className="admin-login-field">
-            <label htmlFor="admin-email">
-              Email
-            </label>
+            <label htmlFor="admin-email">Email</label>
 
             <div className="admin-login-input-wrapper">
               <Mail size={18} />
-
               <input
                 id="admin-email"
                 type="email"
@@ -124,13 +93,10 @@ function AdminLogin() {
           </div>
 
           <div className="admin-login-field">
-            <label htmlFor="admin-password">
-              Password
-            </label>
+            <label htmlFor="admin-password">Password</label>
 
             <div className="admin-login-input-wrapper">
               <Lock size={18} />
-
               <input
                 id="admin-password"
                 type={showPassword ? "text" : "password"}
@@ -144,25 +110,16 @@ function AdminLogin() {
               <button
                 type="button"
                 className="admin-password-toggle"
-                onClick={() =>
-                  setShowPassword(!showPassword)
-                }
+                onClick={() => setShowPassword(!showPassword)}
                 disabled={loading}
+                aria-label="Toggle password visibility"
               >
-                {showPassword ? (
-                  <EyeOff size={18} />
-                ) : (
-                  <Eye size={18} />
-                )}
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
           </div>
 
-          {error && (
-            <div className="admin-login-error">
-              {error}
-            </div>
-          )}
+          {error && <div className="admin-login-error">{error}</div>}
 
           <button
             type="submit"
@@ -170,16 +127,11 @@ function AdminLogin() {
             disabled={loading}
           >
             <LogIn size={18} />
-
             {loading ? "Signing in..." : "Sign In"}
           </button>
-
         </form>
 
-        <p className="admin-login-footer">
-          Kaindra Administration
-        </p>
-
+        <p className="admin-login-footer">Kaindra Administration</p>
       </div>
     </div>
   );

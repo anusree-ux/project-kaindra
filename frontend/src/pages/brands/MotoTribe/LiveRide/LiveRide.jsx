@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import apiClient from "../../../../services/apiClient";
+import { formatMongoRide } from "../../../../utils/mototribeRideAdapter";
 
 import "./LiveRide.css";
 import RideMap from "../RideMap/RideMap";
@@ -19,6 +21,8 @@ function LiveRide() {
   const navigate = useNavigate();
 
   const [now, setNow] = useState(() => new Date());
+  const [ride, setRide] = useState(() => getMotoRideById(rideId));
+  const [loading, setLoading] = useState(() => !getMotoRideById(rideId));
 
   // Keep the clock updated without setting ride-related state in an effect.
   useEffect(() => {
@@ -29,8 +33,35 @@ function LiveRide() {
     return () => clearInterval(timer);
   }, []);
 
-  // Derive ride directly from the route parameter.
-  const ride = getMotoRideById(rideId);
+  useEffect(() => {
+    let isMounted = true;
+    const staticRide = getMotoRideById(rideId);
+    if (staticRide) {
+      setRide(staticRide);
+      setLoading(false);
+      return;
+    }
+
+    async function fetchRide() {
+      try {
+        setLoading(true);
+        const res = await apiClient.get(`/api/mototribe/rides/${rideId}`);
+        const raw = res.data.data?.ride || res.data.data;
+        if (isMounted && raw) {
+          setRide(formatMongoRide(raw));
+        }
+      } catch (err) {
+        console.error("Error fetching live ride from DB:", err);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    }
+
+    fetchRide();
+    return () => {
+      isMounted = false;
+    };
+  }, [rideId]);
 
   // Derive status and countdown directly from ride + current time.
   const status = ride
@@ -46,6 +77,22 @@ function LiveRide() {
         minutes: 0,
         seconds: 0,
       };
+
+  // --------------------------------------------------
+  // LOADING / RIDE NOT FOUND
+  // --------------------------------------------------
+
+  if (loading) {
+    return (
+      <section className="live-ride-page">
+        <div className="live-ride-not-found" style={{ borderColor: "rgba(185, 145, 69, 0.4)" }}>
+          <span className="live-ride-not-found-label">MOTOTRIBE / LIVE RIDE</span>
+          <h2 style={{ color: "#d4a03e", fontSize: "1.4rem", letterSpacing: "0.08em" }}>CONNECTING TO LIVE RIDE CONSOLE...</h2>
+          <p style={{ color: "#888" }}>Syncing ride route, GPS location channels, and rider group chat...</p>
+        </div>
+      </section>
+    );
+  }
 
   // --------------------------------------------------
   // RIDE NOT FOUND
@@ -319,7 +366,7 @@ function LiveRide() {
                 (stop, index) => (
                   <div
                     className="live-ride-route-point"
-                    key={`${stop}-${index}`}
+                    key={typeof stop === 'object' ? `${stop.name || index}-${index}` : `${stop}-${index}`}
                   >
                     <span className="live-ride-route-marker" />
 
@@ -328,7 +375,7 @@ function LiveRide() {
                         STOP {index + 1}
                       </span>
 
-                      <strong>{stop}</strong>
+                      <strong>{typeof stop === 'object' ? (stop.name || JSON.stringify(stop)) : stop}</strong>
                     </div>
                   </div>
                 )

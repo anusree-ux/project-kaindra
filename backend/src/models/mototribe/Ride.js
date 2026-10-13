@@ -50,6 +50,12 @@ const rideSchema = new mongoose.Schema(
       required: [true, "Destination is required"],
       trim: true,
     },
+    stops: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
     originLat: { type: Number },
     originLng: { type: Number },
     destLat: { type: Number },

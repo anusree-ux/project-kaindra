@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -6,34 +6,141 @@ import {
   Minus,
   Plus,
   ShoppingBag,
+  Loader2,
 } from "lucide-react";
-import products from "../data/products";
+import apiClient from "../services/apiClient";
+import { useAuth } from "../context/AuthContext";
+import { useCart } from "../context/CartContext";
 import "./ProductDetails.css";
 
 function ProductDetails() {
   const { productId } = useParams();
+  const { isAuthenticated, openAuthModal } = useAuth();
+  const { addToCart: addToCartContext } = useCart();
 
-  const product = products.find(
-    (item) => String(item.id) === String(productId)
-  );
-
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+  const [toastMessage, setToastMessage] = useState("");
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [isWishlisted, setIsWishlisted] = useState(false);
 
-  if (!product) {
+  useEffect(() => {
+    let isMounted = true;
+    const fetchProductDetail = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await apiClient.get(`/api/modasphere/products/${productId}`);
+        if (isMounted) {
+          setProduct(res.data?.data?.product || null);
+        }
+
+        // Check wishlist status
+        try {
+          const checkRes = await apiClient.get(`/api/modasphere/wishlist/check/${productId}`);
+          if (isMounted) {
+            setIsWishlisted(!!checkRes.data?.data?.inWishlist);
+          }
+        } catch {
+          // User may not be logged in
+        }
+      } catch (err) {
+        if (isMounted) {
+          console.error("Error loading product detail:", err);
+          setError("Product not found or unavailable.");
+          setProduct(null);
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    if (productId) {
+      fetchProductDetail();
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [productId]);
+
+  const toggleWishlist = async () => {
+    if (!productId) return;
+    const nextState = !isWishlisted;
+    setIsWishlisted(nextState);
+
+    try {
+      if (nextState) {
+        await apiClient.post(`/api/modasphere/wishlist/${productId}`);
+      } else {
+        await apiClient.delete(`/api/modasphere/wishlist/${productId}`);
+      }
+    } catch (err) {
+      console.error("Failed to toggle wishlist in details:", err);
+      setIsWishlisted(!nextState); // Rollback on error
+    }
+  };
+
+  // Increase quantity
+  const increaseQuantity = () => {
+    if (product?.stock && quantity >= product.stock) return;
+    setQuantity((current) => current + 1);
+  };
+
+  // Decrease quantity
+  const decreaseQuantity = () => {
+    setQuantity((current) => (current > 1 ? current - 1 : 1));
+  };
+
+  // Add product to cart
+  const addToCart = async () => {
+    if (!product) return;
+    if (!isAuthenticated) {
+      openAuthModal("login");
+      return;
+    }
+
+    setSubmitting(true);
+    setToastMessage("");
+
+    const targetId = product._id || product.id;
+    const result = await addToCartContext(targetId, quantity);
+    setSubmitting(false);
+
+    if (result.success) {
+      setToastMessage(`${product.name} added to cart!`);
+      setTimeout(() => setToastMessage(""), 3000);
+    } else {
+      setToastMessage(result.message || "Failed to add to cart.");
+      setTimeout(() => setToastMessage(""), 4000);
+    }
+  };
+
+  if (loading) {
+    return (
+      <main className="product-details-page">
+        <div className="product-details-container" style={{ textAlign: "center", padding: "100px 0" }}>
+          <Loader2 size={40} className="animate-spin" style={{ margin: "0 auto 16px", color: "#b89552", animation: "spin 1s linear infinite" }} />
+          <p style={{ color: "#777", fontSize: 16 }}>Loading product details...</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (!product || error) {
     return (
       <main className="product-details-page">
         <div className="product-not-found">
           <h1>Product Not Found</h1>
           <p>
-            The product you are looking for does not exist.
+            {error || "The product you are looking for does not exist or has been removed."}
           </p>
 
-          <Link
-            to="/businesses/modamart/shop"
-            className="back-to-shop"
-          >
+          <Link to="/businesses/modamart/shop" className="back-to-shop">
             <ArrowLeft size={18} />
             Back to ModaMart
           </Link>
@@ -42,91 +149,31 @@ function ProductDetails() {
     );
   }
 
-  // Increase quantity
-  const increaseQuantity = () => {
-    setQuantity((current) => current + 1);
-  };
+  const rawImages = Array.isArray(product.images) && product.images.length > 0
+    ? product.images.map((img) => (typeof img === "object" ? img.url : img))
+    : [product.image || "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&q=80"];
 
-  // Decrease quantity
-  const decreaseQuantity = () => {
-    setQuantity((current) =>
-      current > 1 ? current - 1 : 1
-    );
-  };
-
-  // Add product to cart
-  const addToCart = () => {
-    const existingCart = JSON.parse(
-      localStorage.getItem("modamartCart") || "[]"
-    );
-
-    const existingProduct = existingCart.find(
-      (item) => String(item.id) === String(product.id)
-    );
-
-    let updatedCart;
-
-    if (existingProduct) {
-      updatedCart = existingCart.map((item) =>
-        String(item.id) === String(product.id)
-          ? {
-              ...item,
-              image: item.image || product.images[0],
-              images: product.images,
-              quantity: item.quantity + quantity,
-            }
-          : item
-      );
-    } else {
-      updatedCart = [
-        ...existingCart,
-        {
-          ...product,
-
-          // Cart uses this image
-          image: product.images[0],
-
-          // Keep all product images too
-          images: product.images,
-
-          quantity,
-        },
-      ];
-    }
-
-    localStorage.setItem(
-      "modamartCart",
-      JSON.stringify(updatedCart)
-    );
-
-    alert(`${product.name} added to cart`);
-  };
+  const currentImageUrl = rawImages[selectedImage] || rawImages[0];
+  const brandName = product.sellerId?.name || product.brand || "ModaSphere Studio";
 
   return (
     <main className="product-details-page">
       <div className="product-details-container">
-
         {/* BACK */}
-        <Link
-          to="/businesses/modamart/shop"
-          className="product-back-link"
-        >
+        <Link to="/businesses/modamart/shop" className="product-back-link">
           <ArrowLeft size={18} />
           Back to ModaMart
         </Link>
 
         <section className="product-details">
-
           {/* ================= IMAGE GALLERY ================= */}
-
           <div className="product-gallery">
-
             {/* THUMBNAILS */}
             <div className="product-thumbnails">
-              {product.images.map((image, index) => (
+              {rawImages.map((image, index) => (
                 <button
                   type="button"
-                  key={`${product.id}-${index}`}
+                  key={`${product._id || product.id}-${index}`}
                   className={`product-thumbnail ${
                     selectedImage === index ? "active" : ""
                   }`}
@@ -143,70 +190,56 @@ function ProductDetails() {
             {/* MAIN IMAGE */}
             <div className="product-main-image">
               <img
-                src={
-                  product.images[selectedImage] ||
-                  product.images[0]
-                }
+                src={currentImageUrl}
                 alt={product.name}
               />
             </div>
-
           </div>
 
           {/* ================= PRODUCT INFORMATION ================= */}
-
           <div className="product-info">
-
-            <p className="product-category">
+            <p className="product-category" style={{ textTransform: "capitalize" }}>
               {product.category}
             </p>
 
             <h1>{product.name}</h1>
 
-            <p className="product-brand">
-              {product.brand}
-            </p>
+            <p className="product-brand">{brandName}</p>
 
             <div className="product-price">
-              ₹{product.price}
+              ₹{product.price?.toLocaleString("en-IN")}
             </div>
 
             <div className="product-divider" />
 
             <p className="product-description">
-              Discover the {product.name}, designed with
-              contemporary fashion, quality materials, and
-              ModaSphere's modern design philosophy.
+              {product.description ||
+                `Discover the ${product.name}, designed with contemporary fashion, quality materials, and ModaSphere's modern design philosophy.`}
             </p>
 
             {/* PRODUCT META */}
             <div className="product-meta">
-
               <div>
                 <span>Category</span>
-                <strong>{product.category}</strong>
+                <strong style={{ textTransform: "capitalize" }}>{product.category}</strong>
               </div>
 
               <div>
                 <span>Brand</span>
-                <strong>{product.brand}</strong>
+                <strong>{brandName}</strong>
               </div>
 
               <div>
                 <span>Availability</span>
-                <strong>In Stock</strong>
+                <strong>{product.stock > 0 ? `In Stock (${product.stock} left)` : "Out of Stock"}</strong>
               </div>
-
             </div>
 
             {/* ================= QUANTITY ================= */}
-
             <div className="product-quantity">
-
               <span>Quantity</span>
 
               <div className="quantity-controls">
-
                 <button
                   type="button"
                   onClick={decreaseQuantity}
@@ -221,25 +254,44 @@ function ProductDetails() {
                   type="button"
                   onClick={increaseQuantity}
                   aria-label="Increase quantity"
+                  disabled={product.stock <= quantity}
                 >
                   <Plus size={16} />
                 </button>
-
               </div>
-
             </div>
 
+            {toastMessage && (
+              <div
+                style={{
+                  background: "#111",
+                  color: "#fff",
+                  padding: "10px 16px",
+                  borderRadius: "6px",
+                  marginBottom: "16px",
+                  fontSize: "14px",
+                  fontWeight: 500,
+                  borderLeft: "4px solid #c9964a",
+                }}
+              >
+                {toastMessage}
+              </div>
+            )}
+
             {/* ================= ACTIONS ================= */}
-
             <div className="product-actions">
-
               <button
                 type="button"
                 className="add-to-cart-button"
                 onClick={addToCart}
+                disabled={product.stock <= 0 || submitting}
               >
                 <ShoppingBag size={19} />
-                Add to Cart
+                {submitting
+                  ? "Adding..."
+                  : product.stock > 0
+                  ? "Add to Cart"
+                  : "Out of Stock"}
               </button>
 
               <button
@@ -247,27 +299,19 @@ function ProductDetails() {
                 className={`wishlist-button ${
                   isWishlisted ? "active" : ""
                 }`}
-                onClick={() =>
-                  setIsWishlisted((current) => !current)
-                }
+                onClick={toggleWishlist}
                 aria-label="Add to wishlist"
               >
                 <Heart
                   size={20}
-                  fill={
-                    isWishlisted
-                      ? "currentColor"
-                      : "none"
-                  }
+                  fill={isWishlisted ? "currentColor" : "none"}
                 />
               </button>
-
             </div>
 
             <div className="product-note">
               Free shipping on orders above ₹5,000
             </div>
-
           </div>
         </section>
       </div>

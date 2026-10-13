@@ -1,8 +1,6 @@
 services:
   backend:
-    build:
-      context: ../backend
-      target: production
+    image: ${ECR_REGISTRY}/kaindra-backend:${IMAGE_TAG}
     container_name: kaindra-backend
 
     expose:
@@ -14,21 +12,19 @@ services:
     restart: unless-stopped
 
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:5000/"]
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:5000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 10s
 
   frontend:
-    build:
-      context: ../frontend
-      target: production
+    image: ${ECR_REGISTRY}/kaindra-frontend:${IMAGE_TAG}
     container_name: kaindra-frontend
-    
+
     expose:
       - "8080"
-    
+
     depends_on:
       backend:
         condition: service_healthy

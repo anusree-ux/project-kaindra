@@ -30,6 +30,19 @@ const fuelPriceSchema = new mongoose.Schema(
       required: [true, "Diesel price (₹/L) is required"],
       min: [0, "Price cannot be negative"],
     },
+    source: {
+      type: String,
+      required: [true, "Price source is required"],
+      trim: true,
+      default: "IOCL",
+      index: true,
+    },
+    sourceType: {
+      type: String,
+      enum: ["official", "community", "third_party"],
+      default: "official",
+      index: true,
+    },
     isEstimate: {
       type: Boolean,
       default: false,
@@ -40,6 +53,16 @@ const fuelPriceSchema = new mongoose.Schema(
       default: Date.now,
       index: true,
     },
+    fetchedAt: {
+      type: Date,
+      default: Date.now,
+    },
+    confidence: {
+      type: Number,
+      default: 1.0,
+      min: 0.0,
+      max: 1.0,
+    },
     isLatest: {
       type: Boolean,
       default: true,
@@ -48,7 +71,7 @@ const fuelPriceSchema = new mongoose.Schema(
     note: {
       type: String,
       trim: true,
-      default: "City-level price used as state-level approximation.",
+      default: "Official benchmark price.",
     },
   },
   {
@@ -56,8 +79,8 @@ const fuelPriceSchema = new mongoose.Schema(
   }
 );
 
-// Idempotency constraint: Only one price record per location per effective date
-fuelPriceSchema.index({ location: 1, effectiveDate: 1 }, { unique: true });
+// Idempotency constraint: Only one price record per location per effective date per source
+fuelPriceSchema.index({ location: 1, effectiveDate: 1, source: 1 }, { unique: true });
 
 const FuelPrice = mongoose.model("FuelPrice", fuelPriceSchema);
 

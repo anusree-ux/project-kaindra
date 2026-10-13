@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import "./AdminCommunity.css";
 
-const API_BASE = (import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "http://localhost:5000").replace(/\/api\/?$/, "");
+const API_BASE = "";
 
 function AdminCommunity() {
   const [members, setMembers] = useState([]);

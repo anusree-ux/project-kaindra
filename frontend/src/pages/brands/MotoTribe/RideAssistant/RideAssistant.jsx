@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import "./RideAssistant.css";
 
 const STORAGE_KEY = "mototribeAssistantChecks";
@@ -9,7 +9,7 @@ const assistantOptions = [
     number: "01",
     title: "ROUTE ASSIST",
     shortTitle: "Route",
-    icon: "↗",
+    icon: "MAP",
     description:
       "Get quick guidance for planning and managing your riding route.",
     tips: [
@@ -24,7 +24,7 @@ const assistantOptions = [
     number: "02",
     title: "FUEL CHECK",
     shortTitle: "Fuel",
-    icon: "◉",
+    icon: "FUEL",
     description:
       "Keep your motorcycle ready by planning fuel stops before the journey.",
     tips: [
@@ -39,7 +39,7 @@ const assistantOptions = [
     number: "03",
     title: "SERVICE HELP",
     shortTitle: "Service",
-    icon: "⚙",
+    icon: "SVC",
     description:
       "Prepare for common motorcycle service requirements during a ride.",
     tips: [
@@ -54,7 +54,7 @@ const assistantOptions = [
     number: "04",
     title: "SAFETY CHECK",
     shortTitle: "Safety",
-    icon: "✦",
+    icon: "SOS",
     description:
       "Run through a simple safety checklist before getting on the road.",
     tips: [
@@ -168,7 +168,7 @@ function RideAssistant() {
 
             <p>
               Practical guidance for every stage of your
-              journey — from preparation to the road ahead.
+              Practical guidance for every stage of your journey — from preparation to the road ahead.
             </p>
           </div>
 
@@ -219,9 +219,7 @@ function RideAssistant() {
               <span
                 className="assistant-nav-icon"
                 aria-hidden="true"
-              >
-                {option.icon}
-              </span>
+              > {option.shortTitle[0]} </span>
 
               <span className="assistant-nav-title">
                 {option.shortTitle}
@@ -231,7 +229,7 @@ function RideAssistant() {
                 className="assistant-nav-arrow"
                 aria-hidden="true"
               >
-                →
+                &#8250;
               </span>
             </button>
           ))}
@@ -249,7 +247,7 @@ function RideAssistant() {
               className="assistant-large-icon"
               aria-hidden="true"
             >
-              {selectedOption.icon}
+              {selectedOption.number}
             </div>
 
             <h3>{selectedOption.title}</h3>
@@ -350,7 +348,7 @@ function RideAssistant() {
                         className="check-arrow"
                         aria-hidden="true"
                       >
-                        →
+                        &rsaquo;
                       </span>
                     </button>
                   );
@@ -433,3 +431,5 @@ function RideAssistant() {
 }
 
 export default RideAssistant;
+
+

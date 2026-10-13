@@ -95,6 +95,30 @@ const getPublishedCourses = async (req, res) => {
   }
 };
 
+
+ // Get all courses for admin dashboard
+const getAllCoursesForAdmin = async (req, res) => {
+  try {
+    const courses = await ModaCourse.find({})
+      .populate("instructor", "name email")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: courses.length,
+      courses,
+    });
+  } catch (error) {
+    console.error("Get all academy courses error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch academy courses",
+    });
+  }
+};
+
+
 // Get published course by slug
 const getPublishedCourseBySlug = async (req, res) => {
   try {
@@ -154,6 +178,48 @@ const publishCourse = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to publish course",
+    });
+  }
+};
+
+// Update course status
+const updateCourseStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+
+    if (!["draft", "published"].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Status must be either draft or published",
+      });
+    }
+
+    const course = await ModaCourse.findById(req.params.id);
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found",
+      });
+    }
+
+    if (course.status !== status) {
+      course.status = status;
+      course.publishedAt = status === "published" ? new Date() : null;
+      await course.save();
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `Course ${status === "published" ? "published" : "moved to draft"} successfully`,
+      course,
+    });
+  } catch (error) {
+    console.error("Update academy course status error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to update course status",
     });
   }
 };
@@ -272,8 +338,10 @@ const deleteCourse = async (req, res) => {
 module.exports = {
   createCourse,
   getPublishedCourses,
+  getAllCoursesForAdmin,
   getPublishedCourseBySlug,
   publishCourse,
+  updateCourseStatus,
   updateCourse,
   deleteCourse
 };

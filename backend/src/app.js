@@ -19,6 +19,7 @@ const expenseRoutes = require("./routes/mototribe/expenseRoutes");
 const routeReportRoutes = require("./routes/mototribe/routeReportRoutes");
 const presenceRoutes = require("./routes/mototribe/presenceRoutes");
 const connectionRoutes = require("./routes/core/connectionRoutes");
+const notificationRoutes = require("./routes/core/notificationRoutes");
 const careerRoutes = require("./routes/core/careerRoutes");
 const applicationRoutes = require("./routes/core/applicationRoutes");
 const communityRoutes = require("./routes/core/communityRoutes");
@@ -27,6 +28,18 @@ const orderRoutes = require("./routes/core/orderRoutes");
 const talesRoutes = require("./routes/modasphere/talesRoutes");
 const academyRoutes = require("./routes/modasphere/academyRoutes");
 const influenceRoutes = require("./routes/modasphere/modainfluence/influenceRoutes");
+const productRoutes = require("./routes/modasphere/productRoutes");
+const discountCodeRoutes = require("./routes/modasphere/discountCodeRoutes");
+const shipmentRoutes = require("./routes/modasphere/shipmentRoutes");
+const cartRoutes = require("./routes/modasphere/cartRoutes");
+const modasphereOrderRoutes = require("./routes/modasphere/orderRoutes");
+const wishlistRoutes = require("./routes/modasphere/wishlistRoutes");
+const reviewRoutes = require("./routes/modasphere/reviewRoutes");
+const insightsRoutes = require("./routes/modasphere/insightsRoutes");
+const dropRoutes = require("./routes/modasphere/dropRoutes");
+const designRoutes = require("./routes/modasphere/designRoutes");
+const manufacturerRoutes = require("./routes/modasphere/manufacturerRoutes");
+const productionRequestRoutes = require("./routes/modasphere/productionRequestRoutes");
 const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
@@ -66,6 +79,9 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/auth", authRoutes);
 
 // Core Connection & Operations Routes
+app.use("/api/v1/core/notifications", notificationRoutes);
+app.use("/api/core/notifications", notificationRoutes);
+
 app.use("/api/v1/core", connectionRoutes);
 app.use("/api/core", connectionRoutes);
 
@@ -86,9 +102,49 @@ app.use("/api/orders", orderRoutes);
 
 // ModaSphere Routes
 app.use("/api/modasphere/tales", talesRoutes);
+app.use("/api/v1/modasphere/tales", talesRoutes);
+
 app.use("/api/modasphere/academy", academyRoutes);
+app.use("/api/v1/modasphere/academy", academyRoutes);
+
 app.use("/api/modasphere/influence", influenceRoutes);
-  +
+app.use("/api/v1/modasphere/influence", influenceRoutes);
+
+app.use("/api/modasphere/products", productRoutes);
+app.use("/api/v1/modasphere/products", productRoutes);
+
+app.use("/api/modasphere/shipments", shipmentRoutes);
+app.use("/api/v1/modasphere/shipments", shipmentRoutes);
+
+app.use("/api/modasphere/discount-codes", discountCodeRoutes);
+app.use("/api/v1/modasphere/discount-codes", discountCodeRoutes);
+
+app.use("/api/modasphere/cart", cartRoutes);
+app.use("/api/v1/modasphere/cart", cartRoutes);
+
+app.use("/api/modasphere/orders", modasphereOrderRoutes);
+app.use("/api/v1/modasphere/orders", modasphereOrderRoutes);
+
+app.use("/api/modasphere/wishlist", wishlistRoutes);
+app.use("/api/v1/modasphere/wishlist", wishlistRoutes);
+
+app.use("/api/modasphere/drops", dropRoutes);
+app.use("/api/v1/modasphere/drops", dropRoutes);
+
+app.use("/api/modasphere/insights", insightsRoutes);
+app.use("/api/v1/modasphere/insights", insightsRoutes);
+
+app.use("/api/modasphere", reviewRoutes);
+app.use("/api/v1/modasphere", reviewRoutes);
+
+app.use("/api/modasphere", designRoutes);
+app.use("/api/v1/modasphere", designRoutes);
+
+app.use("/api/modasphere", manufacturerRoutes);
+app.use("/api/v1/modasphere", manufacturerRoutes);
+
+app.use("/api/modasphere", productionRequestRoutes);
+app.use("/api/v1/modasphere", productionRequestRoutes);
 
 // MotoTribe Routes (supports both /api/mototribe and /api/v1/mototribe)
 app.use("/api/v1/mototribe", directionsRoutes);

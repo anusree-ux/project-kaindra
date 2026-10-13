@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
+import apiClient from "../../../../services/apiClient";
+import { formatMongoRide } from "../../../../utils/mototribeRideAdapter";
 import {
   getMotoRideById,
   getMotoRideStatus,
@@ -139,7 +141,38 @@ function RideDetails() {
 -------------------------------------------------- */
 
 function RideDetailsContent({ rideId, navigate }) {
-  const ride = getMotoRideById(rideId);
+  const [ride, setRide] = useState(() => getMotoRideById(rideId));
+  const [loading, setLoading] = useState(() => !getMotoRideById(rideId));
+
+  useEffect(() => {
+    let isMounted = true;
+    const staticRide = getMotoRideById(rideId);
+    if (staticRide) {
+      setRide(staticRide);
+      setLoading(false);
+      return;
+    }
+
+    async function fetchRide() {
+      try {
+        setLoading(true);
+        const res = await apiClient.get(`/api/mototribe/rides/${rideId}`);
+        const raw = res.data.data?.ride || res.data.data;
+        if (isMounted && raw) {
+          setRide(formatMongoRide(raw));
+        }
+      } catch (err) {
+        console.error("Error fetching ride details from DB:", err);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    }
+
+    fetchRide();
+    return () => {
+      isMounted = false;
+    };
+  }, [rideId]);
 
   /* --------------------------------------------------
      INITIAL PARTICIPANTS
@@ -288,8 +321,20 @@ function RideDetailsContent({ rideId, navigate }) {
   }, [messages, rideId]);
 
   /* --------------------------------------------------
-     NOT FOUND
+     LOADING & NOT FOUND
   -------------------------------------------------- */
+
+  if (loading) {
+    return (
+      <section className="ride-details-page">
+        <div className="ride-details-not-found" style={{ borderColor: "rgba(185, 145, 69, 0.4)" }}>
+          <span className="section-eyebrow">MOTOTRIBE / RIDE NETWORK</span>
+          <h2 style={{ color: "#d4a03e", fontSize: "1.4rem", letterSpacing: "0.08em" }}>LOADING RIDE DETAILS...</h2>
+          <p style={{ color: "#888" }}>Syncing ride route, itinerary and participant data from database...</p>
+        </div>
+      </section>
+    );
+  }
 
   if (!ride) {
     return (
@@ -797,7 +842,7 @@ function RideDetailsContent({ rideId, navigate }) {
                   {(ride.stops || []).map(
                     (stop, index) => (
                       <span
-                        key={`${stop}-${index}`}
+                        key={typeof stop === 'object' ? `${stop.name || index}-${index}` : `${stop}-${index}`}
                       >
                         <b>
                           {String(

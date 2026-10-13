@@ -70,7 +70,10 @@ export function AuthProvider({ children }) {
         updateToken(accessToken);
         setUser(user);
         closeAuthModal();
-        return { success: true };
+        return {
+          success: true,
+          user,
+        };
       }
       return {
         success: false,

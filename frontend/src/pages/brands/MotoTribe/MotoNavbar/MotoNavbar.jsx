@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../../../context/AuthContext";
+import NotificationDropdown from "../../../../components/NotificationDropdown/NotificationDropdown";
 import "./MotoNavbar.css";
 
 function MotoNavbar() {
@@ -66,16 +67,19 @@ function MotoNavbar() {
     }
 
     return (
-      <div className="moto-user-pill">
-        <Link
-          to="/businesses/mototribe/profile-setup"
-          className="moto-user-name"
-        >
-          👤 {user?.name || "Rider"}
-        </Link>
-        <button className="moto-logout-btn" onClick={logout}>
-          LOGOUT
-        </button>
+      <div className="moto-auth-user-wrap" style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+        <NotificationDropdown brand="mototribe" />
+        <div className="moto-user-pill">
+          <Link
+            to="/businesses/mototribe/profile-setup"
+            className="moto-user-name"
+          >
+            👤 {user?.name || "Rider"}
+          </Link>
+          <button className="moto-logout-btn" onClick={logout}>
+            LOGOUT
+          </button>
+        </div>
       </div>
     );
   };

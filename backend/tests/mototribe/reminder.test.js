@@ -11,6 +11,10 @@ describe("MotoTribe Email Ride Reminders & Scheduler Service", () => {
   let ride24h, ride1h;
 
   beforeEach(async () => {
+    await RideReminder.deleteMany({});
+    await RideParticipant.deleteMany({});
+    await Ride.deleteMany({});
+
     // 1. Create users
     const u1 = await createTestUser({ name: "Reminder Rider 1" });
     user1 = u1.user;
@@ -64,24 +68,22 @@ describe("MotoTribe Email Ride Reminders & Scheduler Service", () => {
     const res = await checkAndSendReminders();
 
     // ride24h: 2 confirmed participants -> 2 x 24h reminders sent
-    // ride1h: 1 confirmed participant -> 1 x 24h reminder sent AND 1 x 1h reminder sent
-    // Total sent = 4
-    expect(res.sentCount).toBe(4);
+    // ride1h: 1 confirmed participant -> 1 x 1h reminder sent (no 24h reminder for imminent rides)
+    // Total sent = 3
+    expect(res.sentCount).toBe(3);
     expect(res.skippedCount).toBe(0);
     expect(res.failedCount).toBe(0);
 
     const remindersInDb = await RideReminder.find({});
-    expect(remindersInDb.length).toBe(4);
+    expect(remindersInDb.length).toBe(3);
 
-    // Confirm user1 received BOTH 24h and 1h reminders for ride1h (overlap verification)
+    // Confirm user1 received only the 1h reminder for ride1h (and NOT the 24h reminder)
     const user1Ride1hReminders = await RideReminder.find({
       rideId: ride1h._id,
       userId: user1._id,
     });
-    expect(user1Ride1hReminders.length).toBe(2);
-    const types = user1Ride1hReminders.map((r) => r.reminderType);
-    expect(types).toContain("24h");
-    expect(types).toContain("1h");
+    expect(user1Ride1hReminders.length).toBe(1);
+    expect(user1Ride1hReminders[0].reminderType).toBe("1h");
   });
 
   test("Skips sending when RideReminder already exists (idempotency)", async () => {
@@ -92,7 +94,7 @@ describe("MotoTribe Email Ride Reminders & Scheduler Service", () => {
     const secondRun = await checkAndSendReminders();
 
     expect(secondRun.sentCount).toBe(0);
-    expect(secondRun.skippedCount).toBe(4);
+    expect(secondRun.skippedCount).toBe(3);
     expect(secondRun.failedCount).toBe(0);
   });
 

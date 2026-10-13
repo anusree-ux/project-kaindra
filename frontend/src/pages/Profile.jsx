@@ -1,15 +1,25 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import apiClient from "../services/apiClient";
 import "./Profile.css";
 
 function Profile() {
+  const navigate = useNavigate();
   const { user, isAuthenticated, loading, logout, openAuthModal } = useAuth();
   const [orders, setOrders] = useState([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
 
-  // Fetch orders from database (with localStorage fallback)
+  const handleBack = () => {
+    if (window.history.length > 2) {
+      navigate(-1);
+    } else {
+      navigate("/");
+    }
+  };
+
+  // Fetch orders from database
   useEffect(() => {
     if (!isAuthenticated) return;
 
@@ -17,27 +27,35 @@ function Profile() {
     const fetchOrders = async () => {
       try {
         setOrdersLoading(true);
-        const res = await apiClient.get("/api/orders/my-orders");
-        const dbOrders = res.data?.data?.orders || [];
-        if (isMounted) {
-          if (dbOrders.length > 0) {
-            setOrders(dbOrders);
-          } else {
-            // Check local fallback
-            const localModaMart = JSON.parse(localStorage.getItem("modamartOrders") || "[]");
-            const localModaDrop = JSON.parse(localStorage.getItem("modadropOrders") || "[]");
-            const combined = [...localModaMart, ...localModaDrop];
-            setOrders(combined);
+        let allOrders = [];
+
+        try {
+          const resModa = await apiClient.get("/api/modasphere/orders/me");
+          const modaOrders = resModa.data?.data?.orders || [];
+          allOrders = [...allOrders, ...modaOrders];
+        } catch (e) {
+          console.warn("[Profile] ModaSphere orders fetch error:", e);
+        }
+
+        try {
+          const resCore = await apiClient.get("/api/orders/my-orders");
+          const coreOrders = resCore.data?.data?.orders || [];
+          const seen = new Set(allOrders.map((o) => String(o._id || o.id)));
+          for (const co of coreOrders) {
+            const coId = String(co._id || co.id);
+            if (coId && !seen.has(coId)) {
+              allOrders.push(co);
+            }
           }
+        } catch (e) {
+          // ignore core fallback errors
         }
-      } catch {
+
         if (isMounted) {
-          // Fallback to local storage if network error
-          const localModaMart = JSON.parse(localStorage.getItem("modamartOrders") || "[]");
-          const localModaDrop = JSON.parse(localStorage.getItem("modadropOrders") || "[]");
-          const combined = [...localModaMart, ...localModaDrop];
-          setOrders(combined);
+          setOrders(allOrders);
         }
+      } catch (err) {
+        console.error("Error fetching orders:", err);
       } finally {
         if (isMounted) setOrdersLoading(false);
       }
@@ -69,6 +87,10 @@ function Profile() {
     return (
       <div className="kp-page">
         <div className="kp-container">
+          <button onClick={handleBack} className="kp-back-btn" aria-label="Go back">
+            <ArrowLeft size={18} />
+            <span>Back</span>
+          </button>
           <div className="kp-unauth-card">
             <div className="kp-unauth-icon">🔒</div>
             <h2>Account Sign In Required</h2>
@@ -148,6 +170,13 @@ function Profile() {
   return (
     <div className="kp-page">
       <div className="kp-container">
+        {/* Navigation / Back Button */}
+        <div className="kp-top-bar">
+          <button onClick={handleBack} className="kp-back-btn" aria-label="Go back">
+            <ArrowLeft size={18} />
+            <span>Back</span>
+          </button>
+        </div>
         
         {/* Main Header Banner */}
         <div className="kp-header-card">
@@ -261,14 +290,17 @@ function Profile() {
                 </thead>
                 <tbody>
                   {orders.map((ord, idx) => {
-                    const orderId = ord.orderNumber || ord.id || `ORD-${idx + 1}`;
+                    const orderId =
+                      ord.orderNumber ||
+                      (ord._id ? `MS-${ord._id.slice(-6).toUpperCase()}` : `ORD-${idx + 1}`);
                     const brandName = ord.brand || (ord.dropTitle ? "ModaDrop" : "ModaMart");
                     const dateVal = ord.createdAt || ord.date || ord.orderDate;
                     const itemsSummary = Array.isArray(ord.items) && ord.items.length > 0
                       ? ord.items.map((it) => `${it.name || "Item"} (x${it.quantity || 1})`).join(", ")
                       : ord.productName || ord.dropTitle || "Product Item";
                     const totalVal = ord.totalAmount || ord.total || ord.price || 0;
-                    const statusVal = ord.orderStatus || ord.status || "Processing";
+                    const rawStatus = ord.orderStatus || ord.status || "Processing";
+                    const statusVal = rawStatus.replace("_", " ").toUpperCase();
 
                     return (
                       <tr key={ord._id || orderId || idx}>

@@ -1,7 +1,9 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect } from "react";
 
 import { AuthProvider } from "./context/AuthContext";
+import { CartProvider } from "./context/CartContext";
+import { NotificationProvider } from "./context/NotificationContext";
 
 import Navbar from "./components/Navbar/Navbar";
 import ScrollToTopComponent from "./components/ScrollToTop";
@@ -25,7 +27,9 @@ import Ecosystem from "./pages/brands/ModaSphere/Ecosystem/Ecosystem";
 import ModaMart from "./pages/ModaMart";
 import ProductDetails from "./pages/ProductDetails";
 import Cart from "./pages/Cart";
+import Wishlist from "./pages/Wishlist";
 import Checkout from "./pages/Checkout";
+import OrderConfirmation from "./pages/OrderConfirmation";
 import Orders from "./pages/Orders";
 import ModaDrop from "./pages/ModaDrop";
 import DropDetails from "./pages/DropDetails";
@@ -129,13 +133,15 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <AuthModal />
+        <CartProvider>
+          <NotificationProvider>
+            <AuthModal />
 
-        <ScrollToTop />
+            <ScrollToTop />
 
-        <ScrollToTopComponent />
+            <ScrollToTopComponent />
 
-        <Routes>
+            <Routes>
           {/* =========================
               KAINDRA PUBLIC WEBSITE
           ========================= */}
@@ -222,10 +228,46 @@ function App() {
           />
 
           <Route
+            path="/businesses/modamart/wishlist"
+            element={
+              <PublicLayout>
+                <Wishlist />
+              </PublicLayout>
+            }
+          />
+
+          <Route
             path="/businesses/modamart/checkout"
             element={
               <PublicLayout>
                 <Checkout />
+              </PublicLayout>
+            }
+          />
+
+          <Route
+            path="/checkout"
+            element={
+              <PublicLayout>
+                <Checkout />
+              </PublicLayout>
+            }
+          />
+
+          <Route
+            path="/order-confirmation/:orderId"
+            element={
+              <PublicLayout>
+                <OrderConfirmation />
+              </PublicLayout>
+            }
+          />
+
+          <Route
+            path="/businesses/modamart/order-confirmation/:orderId"
+            element={
+              <PublicLayout>
+                <OrderConfirmation />
               </PublicLayout>
             }
           />
@@ -569,6 +611,11 @@ function App() {
           />
 
           <Route
+            path="/businesses/mototribe/ride"
+            element={<Navigate to="/businesses/mototribe" replace />}
+          />
+
+          <Route
             path="/businesses/mototribe/ride/:rideId"
             element={<RideDetails />}
           />
@@ -601,6 +648,8 @@ function App() {
             }
           />
         </Routes>
+          </NotificationProvider>
+        </CartProvider>
       </AuthProvider>
     </BrowserRouter>
   );

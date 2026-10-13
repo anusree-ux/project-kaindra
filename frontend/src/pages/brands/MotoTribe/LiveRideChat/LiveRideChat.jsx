@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+﻿import { useEffect, useRef, useState } from "react";
 import "./LiveRideChat.css";
 
 const getStorageKey = (rideId) =>
@@ -206,7 +206,7 @@ function LiveRideChat({ ride }) {
 
                 {message.type === "SYSTEM" ? (
                   <div className="live-ride-chat-system-message">
-                    <span>✦</span>
+                    <span>âœ¦</span>
 
                     <p>{message.text}</p>
 

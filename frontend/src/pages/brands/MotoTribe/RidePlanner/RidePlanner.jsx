@@ -111,9 +111,7 @@ function RidePlanner() {
   ] = useState(null);
 
   const [motorcycle, setMotorcycle] =
-    useState(
-      "ROYAL ENFIELD HIMALAYAN"
-    );
+    useState("");
 
   const [riders, setRiders] =
     useState(1);
@@ -381,8 +379,7 @@ function RidePlanner() {
 
           setMotorcycle(
             String(
-              defaultVehicle.name ||
-                "ROYAL ENFIELD HIMALAYAN"
+              defaultVehicle.name || ""
             ).toUpperCase()
           );
 
@@ -487,7 +484,7 @@ function RidePlanner() {
 
                     bike: (
                       rider.primaryVehicleName ||
-                      "ROYAL ENFIELD"
+                      "MOTORCYCLE"
                     ).toUpperCase(),
 
                     experience:
@@ -1537,9 +1534,12 @@ function RidePlanner() {
                     2500
                   );
 
+                const hasStops = allCoordinates.length > 2;
+                const osrmQuery = hasStops ? "overview=full&geometries=geojson" : "alternatives=true&overview=full&geometries=geojson";
+
                 const osrmResponse =
                   await fetch(
-                    `https://router.project-osrm.org/route/v1/driving/${coordinateString}?alternatives=true&overview=false`,
+                    `https://router.project-osrm.org/route/v1/driving/${coordinateString}?${osrmQuery}`,
                     {
                       signal:
                         controller.signal,
@@ -2538,7 +2538,7 @@ function RidePlanner() {
                   vehicleName:
                     foundVehicle?.name ||
                     motorcycle ||
-                    "Royal Enfield Himalayan",
+                    "",
 
                   registrationNumber:
                     foundVehicle?.registrationNumber ||
@@ -2712,6 +2712,13 @@ function RidePlanner() {
 
               destination:
                 destination.trim(),
+
+              stops: stops.filter(
+                (s) =>
+                  typeof s ===
+                    "string" &&
+                  s.trim()
+              ),
 
               startDate:
                 futureDate,
@@ -3048,6 +3055,7 @@ function RidePlanner() {
                       }
                       placeholder="Enter starting point"
                       icon="●"
+                      allowCurrentLocation={true}
                     />
                   </div>
 
@@ -3071,6 +3079,7 @@ function RidePlanner() {
                       }
                       placeholder="Where do you want to ride?"
                       icon="◎"
+                      allowCurrentLocation={false}
                     />
                   </div>
                 </div>
@@ -3325,7 +3334,7 @@ function RidePlanner() {
                       ) : (
                         <option value="">
                           {motorcycle ||
-                            "ROYAL ENFIELD HIMALAYAN (28 KM/L)"}
+                            "Add your vehicle above"}
                         </option>
                       )}
                     </select>

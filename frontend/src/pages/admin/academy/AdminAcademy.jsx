@@ -18,105 +18,204 @@ import {
 import "./AdminAcademy.css";
 
 function AdminAcademy() {
-  const [enrollments, setEnrollments] = useState(() => {
+  const [enrollments, setEnrollments] = useState([]);
+  const [loadingEnrollments, setLoadingEnrollments] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedEnrollment, setSelectedEnrollment] = useState(null);
+  const [courses, setCourses] = useState([]);
+  const [loadingCourses, setLoadingCourses] = useState(false);
+  const [updatingCourseId, setUpdatingCourseId] = useState(null);
+
+  useEffect(() => {
+    const loadCourses = async () => {
+      try {
+        setLoadingCourses(true);
+
+
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+          throw new Error("You are not logged in.");
+        }
+
+        const response = await fetch(
+          "/api/modasphere/academy/admin/courses",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          throw new Error(
+            result.message || "Failed to load courses"
+          );
+        }
+
+        setCourses(result.courses || []);
+      } catch (error) {
+        console.error(
+          "Failed to load ModaAcademy courses:",
+          error
+        );
+        setCourses([]);
+      } finally {
+        setLoadingCourses(false);
+      }
+    };
+
+    loadCourses();
+  }, []);
+
+  const handleCourseStatusToggle = async (course) => {
+    const status = course.status === "published" ? "draft" : "published";
+
     try {
-      const savedEnrollments = JSON.parse(
-        localStorage.getItem(
-          "modaAcademyEnrollments"
-        ) || "[]"
+      setUpdatingCourseId(course._id);
+
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        throw new Error("You are not logged in.");
+      }
+
+      const response = await fetch(
+        `/api/modasphere/academy/courses/${course._id}/status`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ status }),
+        }
       );
 
-      return Array.isArray(savedEnrollments)
-        ? savedEnrollments
-        : [];
-    } catch {
-      return [];
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "Failed to update course status");
+      }
+
+      setCourses((currentCourses) =>
+        currentCourses.map((currentCourse) =>
+          currentCourse._id === course._id ? result.course : currentCourse
+        )
+      );
+    } catch (error) {
+      console.error("Failed to update ModaAcademy course status:", error);
+      window.alert(error.message || "Failed to update course status");
+    } finally {
+      setUpdatingCourseId(null);
     }
-  });
-
-  const [searchTerm, setSearchTerm] = useState("");
-
-  const [selectedEnrollment, setSelectedEnrollment] =
-    useState(null);
+  };
 
   /* =========================================
      LOAD ENROLLMENTS
   ========================================= */
 
   useEffect(() => {
-    const loadEnrollments = () => {
+    const loadEnrollments = async () => {
       try {
-        const savedEnrollments = JSON.parse(
-          localStorage.getItem(
-            "modaAcademyEnrollments"
-          ) || "[]"
+        setLoadingEnrollments(true);
+
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+          throw new Error("You are not logged in.");
+        }
+
+        const response = await fetch(
+          "/api/modasphere/academy/enrollments",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
 
-        setEnrollments(
-          Array.isArray(savedEnrollments)
-            ? savedEnrollments
-            : []
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          throw new Error(
+            result.message || "Failed to load enrollments"
+          );
+        }
+
+        setEnrollments(result.data || []);
+      } catch (error) {
+        console.error(
+          "Failed to load ModaAcademy enrollments:",
+          error
         );
-      } catch {
+
         setEnrollments([]);
+      } finally {
+        setLoadingEnrollments(false);
       }
     };
 
-    window.addEventListener(
-      "modaAcademyEnrollmentsUpdated",
-      loadEnrollments
-    );
-
-    window.addEventListener(
-      "storage",
-      loadEnrollments
-    );
-
-    return () => {
-      window.removeEventListener(
-        "modaAcademyEnrollmentsUpdated",
-        loadEnrollments
-      );
-
-      window.removeEventListener(
-        "storage",
-        loadEnrollments
-      );
-    };
+    loadEnrollments();
   }, []);
 
   /* =========================================
      DELETE ENROLLMENT
   ========================================= */
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     const confirmed = window.confirm(
       "Are you sure you want to delete this enrollment?"
     );
 
     if (!confirmed) return;
 
-    const updatedEnrollments =
-      enrollments.filter(
-        (enrollment) =>
-          enrollment.id !== id
+    try {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        throw new Error("You are not logged in.");
+      }
+
+      const response = await fetch(
+        `/api/modasphere/academy/enrollments/${id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
-    setEnrollments(updatedEnrollments);
+      const result = await response.json();
 
-    localStorage.setItem(
-      "modaAcademyEnrollments",
-      JSON.stringify(updatedEnrollments)
-    );
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.message || "Failed to delete enrollment"
+        );
+      }
 
-    window.dispatchEvent(
-      new Event("modaAcademyEnrollmentsUpdated")
-    );
+      setEnrollments((currentEnrollments) =>
+        currentEnrollments.filter(
+          (enrollment) => enrollment._id !== id
+        )
+      );
 
-    if (
-      selectedEnrollment?.id === id
-    ) {
-      setSelectedEnrollment(null);
+      if (selectedEnrollment?._id === id) {
+        setSelectedEnrollment(null);
+      }
+    } catch (error) {
+      console.error(
+        "Failed to delete ModaAcademy enrollment:",
+        error
+      );
+
+      window.alert(
+        error.message || "Failed to delete enrollment"
+      );
     }
   };
 
@@ -124,15 +223,14 @@ function AdminAcademy() {
      SEARCH
   ========================================= */
 
-  const filteredEnrollments =
-    enrollments.filter((enrollment) => {
-      const search =
-        searchTerm.toLowerCase().trim();
+  const filteredEnrollments = enrollments.filter(
+    (enrollment) => {
+      const search = searchTerm.toLowerCase().trim();
 
       if (!search) return true;
 
       return (
-        enrollment.id
+        enrollment.enrollmentId
           ?.toLowerCase()
           .includes(search) ||
         enrollment.name
@@ -151,38 +249,50 @@ function AdminAcademy() {
           ?.toLowerCase()
           .includes(search)
       );
-    });
+    }
+  );
 
   /* =========================================
      STATS
   ========================================= */
 
-  const totalEnrollments =
-    enrollments.length;
+  const totalEnrollments = enrollments.length;
 
-  const activeEnrollments =
-    enrollments.filter(
-      (enrollment) =>
-        enrollment.status === "Enrolled"
-    ).length;
+  const activeEnrollments = enrollments.filter(
+    (enrollment) =>
+      enrollment.status === "Enrolled"
+  ).length;
 
-  const completedEnrollments =
-    enrollments.filter(
-      (enrollment) =>
-        Number(enrollment.progress) >= 100
-    ).length;
+  const completedEnrollments = enrollments.filter(
+    (enrollment) =>
+      Number(enrollment.progress) >= 100
+  ).length;
 
-  const uniqueCourses =
-    new Set(
-      enrollments.map(
-        (enrollment) =>
-          enrollment.courseId
-      )
-    ).size;
+  const totalCourses = courses.length;
+
+
+  /* =========================================
+     DATE FORMATTER
+  ========================================= */
+
+  const formatDate = (date) => {
+    if (!date) return "—";
+
+    const parsedDate = new Date(date);
+
+    if (Number.isNaN(parsedDate.getTime())) {
+      return date;
+    }
+
+    return parsedDate.toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
 
   return (
     <div className="admin-academy-page">
-
       <div className="admin-academy-container">
 
         {/* =================================
@@ -190,15 +300,12 @@ function AdminAcademy() {
         ================================= */}
 
         <div className="admin-academy-header">
-
           <div>
             <span className="admin-academy-eyebrow">
               KAINDRA ADMIN
             </span>
 
-            <h1>
-              ModaAcademy
-            </h1>
+            <h1>ModaAcademy</h1>
 
             <p>
               View and manage course enrollments
@@ -209,7 +316,6 @@ function AdminAcademy() {
           <div className="admin-academy-header-icon">
             <GraduationCap size={32} />
           </div>
-
         </div>
 
         {/* =================================
@@ -219,78 +325,150 @@ function AdminAcademy() {
         <div className="admin-academy-stats">
 
           <div className="admin-academy-stat-card">
-
             <div className="admin-academy-stat-icon">
               <Users size={21} />
             </div>
 
             <div>
-              <span>
-                Total Enrollments
-              </span>
+              <span>Total Enrollments</span>
 
               <strong>
                 {totalEnrollments}
               </strong>
             </div>
-
           </div>
 
           <div className="admin-academy-stat-card">
-
             <div className="admin-academy-stat-icon">
               <BookOpen size={21} />
             </div>
 
             <div>
-              <span>
-                Active Learners
-              </span>
+              <span>Active Learners</span>
 
               <strong>
                 {activeEnrollments}
               </strong>
             </div>
-
           </div>
 
           <div className="admin-academy-stat-card">
-
             <div className="admin-academy-stat-icon">
               <GraduationCap size={21} />
             </div>
 
             <div>
-              <span>
-                Completed
-              </span>
+              <span>Completed</span>
 
               <strong>
                 {completedEnrollments}
               </strong>
             </div>
-
           </div>
 
           <div className="admin-academy-stat-card">
-
             <div className="admin-academy-stat-icon">
               <BarChart3 size={21} />
             </div>
 
             <div>
-              <span>
-                Courses
-              </span>
+              <span>Courses</span>
 
               <strong>
-                {uniqueCourses}
+                {totalCourses}
               </strong>
             </div>
-
           </div>
 
         </div>
+
+        <section aria-labelledby="admin-academy-courses-heading">
+          <div className="admin-academy-toolbar">
+            <h2 id="admin-academy-courses-heading">Courses</h2>
+            <span className="admin-academy-result-count">
+              {totalCourses} course{totalCourses !== 1 ? "s" : ""}
+            </span>
+          </div>
+
+          {loadingCourses ? (
+            <div className="admin-academy-empty">
+              <GraduationCap size={42} />
+              <h2>Loading courses...</h2>
+              <p>Fetching ModaAcademy courses.</p>
+            </div>
+          ) : courses.length === 0 ? (
+            <div className="admin-academy-empty">
+              <GraduationCap size={42} />
+              <h2>No courses found</h2>
+              <p>ModaAcademy courses will appear here when they are created.</p>
+            </div>
+          ) : (
+            <div className="admin-academy-table-card">
+              <div className="admin-academy-table-wrapper">
+                <table className="admin-academy-table">
+                  <thead>
+                    <tr>
+                      <th>Course</th>
+                      <th>Status</th>
+                      <th>Enrolled Students</th>
+                      <th>Modules</th>
+                      <th>Duration</th>
+                      <th>Created</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {courses.map((course) => (
+                      <tr key={course._id}>
+                        <td>
+                          <div className="admin-academy-course">
+                            <BookOpen size={15} />
+                            <span>{course.title || "Untitled course"}</span>
+                          </div>
+                        </td>
+                        <td>
+                          <span className="admin-academy-level">
+                            {course.status || "draft"}
+                          </span>
+                        </td>
+                        <td>
+                          {loadingEnrollments
+                            ? "—"
+                            : enrollments.filter(
+                                (enrollment) =>
+                                  String(enrollment.courseId) === String(course._id)
+                              ).length}
+                        </td>
+                        <td>{course.modules?.length ?? 0}</td>
+                        <td>{Number(course.durationMinutes) || 0} min</td>
+                        <td>
+                          <span className="admin-academy-date">
+                            <CalendarDays size={14} />
+                            {formatDate(course.createdAt)}
+                          </span>
+                        </td>
+                        <td>
+                          <button
+                            type="button"
+                            className="admin-academy-view-button"
+                            onClick={() => handleCourseStatusToggle(course)}
+                            disabled={updatingCourseId === course._id}
+                          >
+                            {updatingCourseId === course._id
+                              ? "Updating..."
+                              : course.status === "published"
+                                ? "Move to draft"
+                                : "Publish"}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </section>
 
         {/* =================================
             SEARCH
@@ -299,7 +477,6 @@ function AdminAcademy() {
         <div className="admin-academy-toolbar">
 
           <div className="admin-academy-search">
-
             <Search size={18} />
 
             <input
@@ -307,12 +484,9 @@ function AdminAcademy() {
               placeholder="Search student, email, course or enrollment ID..."
               value={searchTerm}
               onChange={(event) =>
-                setSearchTerm(
-                  event.target.value
-                )
+                setSearchTerm(event.target.value)
               }
             />
-
           </div>
 
           <span className="admin-academy-result-count">
@@ -325,29 +499,32 @@ function AdminAcademy() {
         </div>
 
         {/* =================================
-            TABLE
+            TABLE / LOADING / EMPTY
         ================================= */}
 
-        {filteredEnrollments.length === 0 ? (
-
+        {loadingEnrollments ? (
           <div className="admin-academy-empty">
-
             <GraduationCap size={42} />
 
-            <h2>
-              No enrollments found
-            </h2>
+            <h2>Loading enrollments...</h2>
 
             <p>
-              ModaAcademy enrollments will
-              appear here when students register
-              for a course.
+              Fetching ModaAcademy enrollments.
             </p>
-
           </div>
+        ) : filteredEnrollments.length === 0 ? (
+          <div className="admin-academy-empty">
+            <GraduationCap size={42} />
 
+            <h2>No enrollments found</h2>
+
+            <p>
+              ModaAcademy enrollments will appear
+              here when students register for a
+              course.
+            </p>
+          </div>
         ) : (
-
           <div className="admin-academy-table-card">
 
             <div className="admin-academy-table-wrapper">
@@ -356,37 +533,14 @@ function AdminAcademy() {
 
                 <thead>
                   <tr>
-                    <th>
-                      Enrollment
-                    </th>
-
-                    <th>
-                      Student
-                    </th>
-
-                    <th>
-                      Course
-                    </th>
-
-                    <th>
-                      Level
-                    </th>
-
-                    <th>
-                      Status
-                    </th>
-
-                    <th>
-                      Progress
-                    </th>
-
-                    <th>
-                      Date
-                    </th>
-
-                    <th>
-                      Action
-                    </th>
+                    <th>Enrollment</th>
+                    <th>Student</th>
+                    <th>Course</th>
+                    <th>Level</th>
+                    <th>Status</th>
+                    <th>Progress</th>
+                    <th>Date</th>
+                    <th>Action</th>
                   </tr>
                 </thead>
 
@@ -395,17 +549,17 @@ function AdminAcademy() {
                   {filteredEnrollments.map(
                     (enrollment) => (
                       <tr
-                        key={enrollment.id}
+                        key={enrollment._id}
                       >
 
                         <td>
                           <strong className="admin-academy-id">
-                            {enrollment.id}
+                            {enrollment.enrollmentId ||
+                              "—"}
                           </strong>
                         </td>
 
                         <td>
-
                           <div className="admin-academy-student">
 
                             <strong>
@@ -419,16 +573,12 @@ function AdminAcademy() {
                             </span>
 
                           </div>
-
                         </td>
 
                         <td>
-
                           <div className="admin-academy-course">
 
-                            <BookOpen
-                              size={15}
-                            />
+                            <BookOpen size={15} />
 
                             <span>
                               {enrollment.courseName ||
@@ -436,7 +586,6 @@ function AdminAcademy() {
                             </span>
 
                           </div>
-
                         </td>
 
                         <td>
@@ -448,16 +597,13 @@ function AdminAcademy() {
                         </td>
 
                         <td>
-
                           <span className="admin-academy-status">
                             {enrollment.status ||
                               "Enrolled"}
                           </span>
-
                         </td>
 
                         <td>
-
                           <div className="admin-academy-progress">
 
                             <div className="admin-academy-progress-top">
@@ -489,24 +635,23 @@ function AdminAcademy() {
                             </div>
 
                           </div>
-
                         </td>
 
                         <td>
-
                           <span className="admin-academy-date">
+
                             <CalendarDays
                               size={14}
                             />
 
-                            {enrollment.enrolledAt ||
-                              "—"}
-                          </span>
+                            {formatDate(
+                              enrollment.enrolledAt
+                            )}
 
+                          </span>
                         </td>
 
                         <td>
-
                           <div className="admin-academy-actions">
 
                             <button
@@ -518,10 +663,7 @@ function AdminAcademy() {
                                 )
                               }
                             >
-                              <Eye
-                                size={15}
-                              />
-
+                              <Eye size={15} />
                               View
                             </button>
 
@@ -530,18 +672,15 @@ function AdminAcademy() {
                               className="admin-academy-delete-button"
                               onClick={() =>
                                 handleDelete(
-                                  enrollment.id
+                                  enrollment._id
                                 )
                               }
                               aria-label="Delete enrollment"
                             >
-                              <Trash2
-                                size={15}
-                              />
+                              <Trash2 size={15} />
                             </button>
 
                           </div>
-
                         </td>
 
                       </tr>
@@ -553,9 +692,7 @@ function AdminAcademy() {
               </table>
 
             </div>
-
           </div>
-
         )}
 
       </div>
@@ -565,7 +702,6 @@ function AdminAcademy() {
       ================================= */}
 
       {selectedEnrollment && (
-
         <div
           className="admin-academy-modal-overlay"
           onClick={() =>
@@ -616,7 +752,8 @@ function AdminAcademy() {
                 </span>
 
                 <strong>
-                  {selectedEnrollment.id}
+                  {selectedEnrollment.enrollmentId ||
+                    "—"}
                 </strong>
 
               </div>
@@ -668,6 +805,7 @@ function AdminAcademy() {
 
                 <strong className="admin-academy-detail-with-icon">
                   <Mail size={15} />
+
                   {selectedEnrollment.email ||
                     "—"}
                 </strong>
@@ -682,6 +820,7 @@ function AdminAcademy() {
 
                 <strong className="admin-academy-detail-with-icon">
                   <Phone size={15} />
+
                   {selectedEnrollment.phone ||
                     "—"}
                 </strong>
@@ -709,6 +848,7 @@ function AdminAcademy() {
 
                 <strong className="admin-academy-detail-with-icon">
                   <Clock size={15} />
+
                   {selectedEnrollment.duration ||
                     "—"}
                 </strong>
@@ -735,8 +875,9 @@ function AdminAcademy() {
                 </span>
 
                 <strong>
-                  {selectedEnrollment.enrolledAt ||
-                    "—"}
+                  {formatDate(
+                    selectedEnrollment.enrolledAt
+                  )}
                 </strong>
 
               </div>
@@ -786,7 +927,7 @@ function AdminAcademy() {
                 className="admin-academy-modal-delete"
                 onClick={() =>
                   handleDelete(
-                    selectedEnrollment.id
+                    selectedEnrollment._id
                   )
                 }
               >
@@ -799,7 +940,6 @@ function AdminAcademy() {
           </div>
 
         </div>
-
       )}
 
     </div>

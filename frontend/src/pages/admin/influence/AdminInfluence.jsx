@@ -10,59 +10,172 @@ import {
 import "./AdminInfluence.css";
 
 function AdminInfluence() {
-  const [campaigns, setCampaigns] = useState(() => {
-    try {
-      const savedCampaigns = JSON.parse(
-        localStorage.getItem("modaInfluenceCampaigns") || "[]"
-      );
-
-      return Array.isArray(savedCampaigns)
-        ? savedCampaigns
-        : [];
-    } catch {
-      return [];
-    }
-  });
+  const [campaigns, setCampaigns] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const [selectedCampaign, setSelectedCampaign] =
     useState(null);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
+
+  const handleDeleteCampaign = async (campaignId) => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      alert("You are not logged in.");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this campaign request?"
+    );
+
+    if (!confirmed) return;
+
+    const endpoint = `/api/modasphere/influence/campaigns/${campaignId}`;
+
+    try {
+      const response = await fetch(endpoint, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(
+          data.message ||
+            "Failed to delete campaign request"
+        );
+      }
+
+      setCampaigns((currentCampaigns) =>
+        currentCampaigns.filter(
+          (campaign) => campaign._id !== campaignId
+        )
+      );
+
+      if (
+        selectedCampaign &&
+        selectedCampaign._id === campaignId
+      ) {
+        setSelectedCampaign(null);
+      }
+    } catch (error) {
+      console.error(
+        "Delete campaign error:",
+        error
+      );
+
+      alert(
+        error.message ||
+          "Failed to delete campaign request"
+      );
+    }
+  };
+
+  const handleStatusChange = async (newStatus) => {
+    if (!selectedCampaign) return;
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      alert("You are not logged in.");
+      return;
+    }
+
+    const endpoint = `/api/modasphere/influence/campaigns/${selectedCampaign._id}/status`;
+
+    try {
+      setUpdatingStatus(true);
+
+      const response = await fetch(endpoint, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          status: newStatus,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || "Failed to update campaign status"
+        );
+      }
+
+      const updatedCampaign = data.data;
+
+      setCampaigns((currentCampaigns) =>
+        currentCampaigns.map((campaign) =>
+          campaign._id === updatedCampaign._id
+            ? updatedCampaign
+            : campaign
+        )
+      );
+
+      setSelectedCampaign(updatedCampaign);
+    } catch (error) {
+      console.error(
+        "Update campaign status error:",
+        error
+      );
+
+      alert(
+        error.message ||
+          "Failed to update campaign status"
+      );
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
 
   useEffect(() => {
-    const loadCampaigns = () => {
-      try {
-        const savedCampaigns = JSON.parse(
-          localStorage.getItem("modaInfluenceCampaigns") || "[]"
-        );
+    const loadCampaigns = async () => {
+      const endpoint = "/api/modasphere/influence/campaigns";
 
-        setCampaigns(
-          Array.isArray(savedCampaigns)
-            ? savedCampaigns
-            : []
+      try {
+        setLoading(true);
+        setError("");
+
+        const token = localStorage.getItem("token");
+
+          if (!token) {
+            throw new Error("You are not logged in.");
+          }
+
+          const response = await fetch(endpoint, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+          throw new Error(
+            data.message || "Failed to load campaigns"
+          );
+        }
+
+        setCampaigns(data.data || []);
+      } catch (error) {
+        console.error("Load campaigns error:", error);
+        setError(
+          error.message || "Failed to load campaigns"
         );
-      } catch {
-        setCampaigns([]);
+      } finally {
+        setLoading(false);
       }
     };
 
-    window.addEventListener(
-      "modaInfluenceCampaignsUpdated",
-      loadCampaigns
-    );
-
-    window.addEventListener("storage", loadCampaigns);
-
-    return () => {
-      window.removeEventListener(
-        "modaInfluenceCampaignsUpdated",
-        loadCampaigns
-      );
-
-      window.removeEventListener(
-        "storage",
-        loadCampaigns
-      );
-    };
-  }, []);
+    loadCampaigns();
+    }, []);
 
   return (
     <div className="admin-influence-page">
@@ -88,7 +201,16 @@ function AdminInfluence() {
           </div>
         </div>
 
-        {campaigns.length === 0 ? (
+        {loading ? (
+          <div className="admin-influence-empty">
+            <h2>Loading campaigns...</h2>
+          </div>
+        ) : error ? (
+          <div className="admin-influence-empty">
+            <h2>Unable to load campaigns</h2>
+            <p>{error}</p>
+          </div>
+        ) : campaigns.length === 0 ? (
           <div className="admin-influence-empty">
             <Megaphone size={40} />
 
@@ -118,7 +240,7 @@ function AdminInfluence() {
 
                 <tbody>
                   {campaigns.map((campaign) => (
-                    <tr key={campaign.id}>
+                    <tr key={campaign._id}>
 
                       <td>
                         <strong>
@@ -149,7 +271,9 @@ function AdminInfluence() {
                       <td>
                         <span className="admin-influence-date">
                           <CalendarDays size={13} />
-                          {campaign.submittedAt || "—"}
+                          {campaign.createdAt
+                            ? new Date(campaign.createdAt).toLocaleString()
+                            : "—"}
                         </span>
                       </td>
 
@@ -241,15 +365,33 @@ function AdminInfluence() {
               <div>
                 <span>SUBMITTED DATE</span>
                 <strong>
-                  {selectedCampaign.submittedAt || "—"}
+                  {selectedCampaign.createdAt
+                    ? new Date(
+                        selectedCampaign.createdAt
+                      ).toLocaleString()
+                    : "—"}
                 </strong>
               </div>
 
               <div>
                 <span>STATUS</span>
-                <strong>
-                  {selectedCampaign.status || "New"}
-                </strong>
+                <select
+                  value={selectedCampaign.status || "New"}
+                  onChange={(e) =>
+                    handleStatusChange(e.target.value)
+                  }
+                  disabled={updatingStatus}
+                >
+                  <option value="New">New</option>
+                  <option value="Contacted">Contacted</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Rejected">Rejected</option>
+                </select>
+
+                {updatingStatus && (
+                  <small>Updating...</small>
+                )}
               </div>
 
               <div className="admin-influence-detail-message">
@@ -257,6 +399,18 @@ function AdminInfluence() {
                 <p>
                   {selectedCampaign.message || "—"}
                 </p>
+              </div>
+
+              <div className="admin-influence-delete-section">
+                <button
+                  type="button"
+                  className="admin-influence-delete-button"
+                  onClick={() =>
+                    handleDeleteCampaign(selectedCampaign._id)
+                  }
+                >
+                  Delete Campaign
+                </button>
               </div>
 
             </div>

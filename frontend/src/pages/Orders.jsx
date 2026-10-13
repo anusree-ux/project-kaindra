@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import products from "../data/products";
 import {
@@ -7,6 +7,7 @@ import {
   ShoppingBag,
   Truck,
 } from "lucide-react";
+import apiClient from "../services/apiClient";
 import "./Orders.css";
 
 const ORDER_STEPS = [
@@ -17,27 +18,51 @@ const ORDER_STEPS = [
 ];
 
 function Orders() {
-  const [orders] = useState(() => {
-    try {
-      const savedOrders = localStorage.getItem("modamartOrders");
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-      if (!savedOrders) {
-        return [];
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const response = await apiClient.get("/api/modasphere/orders/me");
+        setOrders(response.data?.data?.orders || []);
+      } catch (err) {
+        console.error("Failed to load orders:", err);
+        setError(err.response?.data?.message || err.message || "Failed to load orders.");
+      } finally {
+        setLoading(false);
       }
+    };
 
-      const parsedOrders = JSON.parse(savedOrders);
-
-      return Array.isArray(parsedOrders) ? parsedOrders : [];
-    } catch {
-      return [];
-    }
-  });
+    fetchOrders();
+  }, []);
 
   const getStatusStep = (status) => {
     const index = ORDER_STEPS.indexOf(status);
 
     return index >= 0 ? index : 0;
   };
+
+  if (loading) {
+    return (
+      <main className="orders-page">
+        <div className="orders-container">
+          <p>Loading orders...</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main className="orders-page">
+        <div className="orders-container">
+          <p>{error}</p>
+        </div>
+      </main>
+    );
+  }
 
   if (orders.length === 0) {
     return (
@@ -102,16 +127,23 @@ function Orders() {
             .reverse()
             .map((order, orderIndex) => {
               const orderNumber =
-                order.orderNumber || `MS-${1001 + orderIndex}`;
+                order.orderNumber || `MS-${String(order._id || "").slice(-6).toUpperCase()}`;
+
+              const statusMap = {
+                pending_payment: "Order Placed",
+                paid: "Processing",
+                shipped: "Shipped",
+                delivered: "Delivered",
+              };
 
               const status =
-                order.status || "Order Placed";
+                statusMap[order.status] || "Order Placed";
 
               const items = Array.isArray(order.items)
                 ? order.items
                 : [];
 
-              const customer = order.customer || {};
+              const customer = order.shippingAddress || {};
 
               const currentStep = getStatusStep(status);
 
@@ -156,7 +188,7 @@ function Orders() {
                       <span>Total</span>
 
                       <strong>
-                        ₹{Number(order.total || 0)}
+                        ₹{Number(order.totalAmount || 0)}
                       </strong>
                     </div>
 
@@ -220,16 +252,22 @@ function Orders() {
                       items.map((item, itemIndex) => (
                         <div
                           className="order-product"
-                          key={`${item.id}-${itemIndex}`}
+                          key={`${item._id || item.id || itemIndex}-${itemIndex}`}
                         >
                           <img
-  src={
-    products.find(
-      (product) => String(product.id) === String(item.id)
-    )?.images?.[0] || ""
-  }
-  alt={item.name}
-/>
+                            src={
+                              item.productId?.images?.[0]?.url ||
+                              (typeof item.productId?.images?.[0] === "string"
+                                ? item.productId.images[0]
+                                : "") ||
+                              item.image ||
+                              products.find(
+                                (product) => String(product.id) === String(item.productId?._id || item.id)
+                              )?.images?.[0] ||
+                              "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&q=80"
+                            }
+                            alt={item.name}
+                          />
 
                           <div className="order-product-info">
                             <h4>
@@ -273,7 +311,7 @@ function Orders() {
                       <span>Order Total</span>
 
                       <strong>
-                        ₹{Number(order.total || 0)}
+                        ₹{Number(order.totalAmount || 0)}
                       </strong>
                     </div>
                   </div>
