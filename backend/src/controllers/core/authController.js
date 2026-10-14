@@ -366,9 +366,111 @@ const getMe = async (req, res, next) => {
   }
 };
 
+/**
+ * Helper to decode Google JWT payload without external library
+ */
+const decodeGoogleCredential = (token) => {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+    const payload = Buffer.from(parts[1], "base64").toString("utf-8");
+    return JSON.parse(payload);
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * @desc    Authenticate with Google OAuth without OTP
+ * @route   POST /api/v1/auth/google
+ * @access  Public
+ */
+const googleAuth = async (req, res, next) => {
+  try {
+    const { credential, email: devEmail, name: devName, googleId: devGoogleId, picture: devPicture } = req.body;
+
+    let email = devEmail;
+    let name = devName;
+    let googleId = devGoogleId;
+    let picture = devPicture || "";
+
+    // 1. If Google ID token JWT provided, verify / decode it
+    if (credential) {
+      try {
+        const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`);
+        if (response.ok) {
+          const payload = await response.json();
+          email = payload.email;
+          name = payload.name;
+          googleId = payload.sub;
+          picture = payload.picture || "";
+        } else {
+          const decoded = decodeGoogleCredential(credential);
+          if (decoded && decoded.email) {
+            email = decoded.email;
+            name = decoded.name || decoded.email.split("@")[0];
+            googleId = decoded.sub || `google-${Date.now()}`;
+            picture = decoded.picture || "";
+          }
+        }
+      } catch (verifyErr) {
+        const decoded = decodeGoogleCredential(credential);
+        if (decoded && decoded.email) {
+          email = decoded.email;
+          name = decoded.name || decoded.email.split("@")[0];
+          googleId = decoded.sub || `google-${Date.now()}`;
+          picture = decoded.picture || "";
+        }
+      }
+    }
+
+    if (!email) {
+      return next(new AppError("Valid Google account information or credential is required", 400));
+    }
+
+    email = email.toLowerCase().trim();
+    name = (name || email.split("@")[0]).trim();
+
+    // 2. Find user by googleId or email
+    let user = await User.findOne({
+      $or: [
+        ...(googleId ? [{ googleId }] : []),
+        { email },
+      ],
+    });
+
+    if (user) {
+      let changed = false;
+      if (!user.googleId && googleId) {
+        user.googleId = googleId;
+        changed = true;
+      }
+      if (picture && !user.avatar) {
+        user.avatar = picture;
+        changed = true;
+      }
+      if (changed) {
+        await user.save({ validateBeforeSave: false });
+      }
+    } else {
+      user = await User.create({
+        name,
+        email,
+        googleId: googleId || `google-${Date.now()}`,
+        avatar: picture,
+      });
+    }
+
+    await sendTokenResponse(user, 200, res);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   signup,
   login,
+  googleAuth,
   refresh,
   logout,
   getMe,

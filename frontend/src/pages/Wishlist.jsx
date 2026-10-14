@@ -2,15 +2,15 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Heart, ShoppingBag, ArrowLeft, Loader2, Sparkles, Trash2 } from "lucide-react";
 import apiClient from "../services/apiClient";
+import { useCart } from "../context/CartContext";
 import "./Wishlist.css";
 
 function Wishlist() {
+  const { addToCart: addToCartContext, cartCount } = useCart();
   const [wishlistItems, setWishlistItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [cart, setCart] = useState(() => {
-    return JSON.parse(localStorage.getItem("modamartCart") || "[]");
-  });
+  const [addingId, setAddingId] = useState(null);
 
   const fetchWishlist = async () => {
     setLoading(true);
@@ -43,53 +43,14 @@ function Wishlist() {
     }
   };
 
-  const addToCart = (product) => {
-    setCart((currentCart) => {
-      const productId = product._id || product.id;
-      const existingProduct = currentCart.find(
-        (item) => String(item.id || item._id) === String(productId)
-      );
-
-      const productImage =
-        product.images?.[0]?.url ||
-        (typeof product.images?.[0] === "string" ? product.images[0] : "") ||
-        product.image ||
-        "";
-
-      const brandName =
-        product.sellerId?.name || product.brand || "ModaSphere Studio";
-
-      let updatedCart;
-
-      if (existingProduct) {
-        updatedCart = currentCart.map((item) =>
-          String(item.id || item._id) === String(productId)
-            ? {
-                ...item,
-                quantity: item.quantity + 1,
-              }
-            : item
-        );
-      } else {
-        updatedCart = [
-          ...currentCart,
-          {
-            id: productId,
-            _id: productId,
-            name: product.name,
-            price: product.price,
-            category: product.category,
-            brand: brandName,
-            image: productImage,
-            images: product.images,
-            quantity: 1,
-          },
-        ];
-      }
-
-      localStorage.setItem("modamartCart", JSON.stringify(updatedCart));
-      return updatedCart;
-    });
+  const addToCart = async (product) => {
+    const productId = product._id || product.id;
+    setAddingId(productId);
+    const result = await addToCartContext(productId, 1);
+    setAddingId(null);
+    if (!result?.success) {
+      console.error("[Wishlist] addToCart failed:", result?.message);
+    }
   };
 
   return (
@@ -123,7 +84,7 @@ function Wishlist() {
 
             <Link to="/businesses/modamart/cart" className="wishlist-cart-link">
               <ShoppingBag size={18} />
-              <span>Cart ({cart.reduce((total, item) => total + item.quantity, 0)})</span>
+              <span>Cart ({cartCount})</span>
             </Link>
           </div>
 
@@ -225,8 +186,10 @@ function Wishlist() {
                         <button
                           className="wishlist-add-cart-btn"
                           onClick={() => addToCart(product)}
+                          disabled={addingId === productId}
                         >
-                          <ShoppingBag size={15} /> Add to Cart
+                          <ShoppingBag size={15} />
+                          {addingId === productId ? "Adding..." : "Add to Cart"}
                         </button>
                       </div>
                     </div>

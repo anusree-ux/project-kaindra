@@ -102,6 +102,47 @@ export function AuthProvider({ children }) {
     }
   }, [closeAuthModal, openAuthModal, updateToken]);
 
+  // Google OAuth Login handler (bypasses OTP completely)
+  const loginWithGoogle = useCallback(async (googleData) => {
+    try {
+      const res = await apiClient.post("/api/auth/google", googleData);
+      const accessToken = res.data?.accessToken;
+      const user = res.data?.data?.user || res.data?.user;
+
+      if (accessToken && user) {
+        updateToken(accessToken);
+        setUser(user);
+        closeAuthModal();
+
+        try {
+          const mtUser = {
+            id: user._id || user.id,
+            name: user.name || "Google User",
+            email: user.email || "",
+            role: user.role || "user",
+          };
+          localStorage.setItem("mototribe_user", JSON.stringify(mtUser));
+        } catch {}
+
+        return {
+          success: true,
+          user,
+        };
+      }
+
+      return {
+        success: false,
+        message: "Google login failed: Missing token or user profile.",
+      };
+    } catch (error) {
+      const resp = error.response?.data;
+      return {
+        success: false,
+        message: resp?.message || "Google authentication failed. Please try again.",
+      };
+    }
+  }, [closeAuthModal, updateToken]);
+
   // Signup handler
   const signup = useCallback(async (formData) => {
     try {
@@ -192,6 +233,7 @@ export function AuthProvider({ children }) {
       openAuthModal,
       closeAuthModal,
       login,
+      loginWithGoogle,
       signup,
       verifyOtp,
       resendOtp,
@@ -207,6 +249,7 @@ export function AuthProvider({ children }) {
       openAuthModal,
       closeAuthModal,
       login,
+      loginWithGoogle,
       signup,
       verifyOtp,
       resendOtp,

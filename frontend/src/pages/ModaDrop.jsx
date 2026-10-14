@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, Clock, Package, ShoppingBag } from "lucide-react";
+import apiClient from "../services/apiClient";
 import "./ModaDrop.css";
 
 const sampleDrops = [
@@ -47,21 +48,20 @@ function ModaDrop() {
         setLoadingDrops(true);
         setError("");
 
-        const response = await fetch("/api/modasphere/drops");
-        const result = await response.json();
-
-        if (!response.ok || result.status !== "success") {
-          throw new Error(result.message || "Failed to fetch ModaDrop events.");
-        }
+        const res = await apiClient.get("/api/modasphere/drops");
 
         setDrops(
-          (result.data?.drops || []).filter((drop) =>
+          (res.data?.data?.drops || []).filter((drop) =>
             ["upcoming", "live"].includes(drop.status)
           )
         );
       } catch (fetchError) {
         console.error("Unable to load ModaDrop events:", fetchError);
-        setError(fetchError.message || "Failed to load ModaDrop events.");
+        setError(
+          fetchError.response?.data?.message ||
+          fetchError.message ||
+          "Failed to load ModaDrop events."
+        );
       } finally {
         setLoadingDrops(false);
       }

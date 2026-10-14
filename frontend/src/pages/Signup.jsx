@@ -1,68 +1,10 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import GoogleAuthButton from "../components/GoogleAuthButton/GoogleAuthButton";
 
 function Signup() {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-  });
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-    setError("");
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    setSuccess("");
-
-    try {
-      const endpoint = "/api/v1/auth/signup";
-
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Signup failed. Please try again.");
-      }
-
-      // Store tokens
-      if (data.accessToken) {
-        localStorage.setItem("token", data.accessToken);
-        localStorage.setItem("user", JSON.stringify(data.data.user));
-      }
-
-      setSuccess("Account created successfully! Redirecting...");
-      setTimeout(() => {
-        navigate("/");
-      }, 1500);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <main
@@ -81,19 +23,24 @@ function Signup() {
           padding: "35px",
           background: "#fff",
           border: "1px solid #ddd",
-          borderRadius: "8px",
+          borderRadius: "12px",
+          boxShadow: "0 4px 20px rgba(0,0,0,0.06)",
+          textAlign: "center",
         }}
       >
-        <h1>Create Account</h1>
+        <h1 style={{ marginBottom: "8px", fontSize: "26px", fontWeight: "700" }}>Create Account</h1>
+        <p style={{ color: "#6b7280", fontSize: "14px", marginBottom: "28px" }}>
+          Create your Kaindra account instantly with Google OAuth. No passwords or phone numbers required.
+        </p>
 
         {error && (
           <div
             style={{
               padding: "10px",
-              marginTop: "15px",
+              marginBottom: "20px",
               background: "#fee2e2",
               color: "#991b1b",
-              borderRadius: "5px",
+              borderRadius: "6px",
               fontSize: "14px",
             }}
           >
@@ -101,87 +48,35 @@ function Signup() {
           </div>
         )}
 
-        {success && (
-          <div
-            style={{
-              padding: "10px",
-              marginTop: "15px",
-              background: "#dcfce7",
-              color: "#166534",
-              borderRadius: "5px",
-              fontSize: "14px",
-            }}
-          >
-            {success}
-          </div>
-        )}
+        <GoogleAuthButton
+          theme="light"
+          buttonText="Sign up with Google"
+          onSuccess={() => navigate("/")}
+          onError={(err) => setError(err)}
+        />
 
-        <form
-          onSubmit={handleSubmit}
+        <p
           style={{
-            display: "grid",
-            gap: "15px",
-            marginTop: "25px",
+            marginTop: "28px",
+            fontSize: "13px",
+            color: "#6b7280",
           }}
         >
-          <input
-            type="text"
-            name="name"
-            placeholder="Full name"
-            value={formData.name}
-            onChange={handleChange}
-            required
-            style={inputStyle}
-          />
-
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-            style={inputStyle}
-          />
-
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-            minLength={6}
-            style={inputStyle}
-          />
-
-          <button type="submit" disabled={loading} style={buttonStyle}>
-            {loading ? "Creating Account..." : "Create Account"}
-          </button>
-        </form>
-
-        <p style={{ marginTop: "20px", fontSize: "14px" }}>
           Already have an account?{" "}
-          <Link to="/login">Login</Link>
+          <Link
+            to="/login"
+            style={{
+              color: "#111827",
+              fontWeight: "600",
+              textDecoration: "underline",
+            }}
+          >
+            Sign in with Google
+          </Link>
         </p>
       </div>
     </main>
   );
 }
-
-const inputStyle = {
-  padding: "14px",
-  border: "1px solid #ddd",
-  borderRadius: "5px",
-};
-
-const buttonStyle = {
-  padding: "14px",
-  background: "#111",
-  color: "#fff",
-  border: 0,
-  borderRadius: "5px",
-  cursor: "pointer",
-};
 
 export default Signup;

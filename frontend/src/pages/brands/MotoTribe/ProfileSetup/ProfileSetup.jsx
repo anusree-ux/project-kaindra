@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../../../context/AuthContext";
+import apiClient from "../../../../services/apiClient";
 import "./ProfileSetup.css";
 
 const MAX_CONTACTS = 3;
@@ -67,11 +69,44 @@ function getInitialProfile() {
 
 function ProfileSetup() {
   const navigate = useNavigate();
+  const { isAuthenticated, user } = useAuth();
 
   const [profile, setProfile] = useState(getInitialProfile);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+
+  // Sync with backend rider profile if authenticated
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const fetchBackendProfile = async () => {
+      try {
+        const res = await apiClient.get("/api/mototribe/rider-profile/me");
+        const backendProf = res.data?.data?.profile;
+        if (backendProf) {
+          setProfile((prev) => {
+            const remoteContacts = (backendProf.emergencyContacts || []).map((c) => ({
+              name: c.name || "",
+              phone: c.phoneNumber || "",
+              relationship: c.relationship || "",
+            }));
+
+            return {
+              ...prev,
+              name: prev.name || user?.name || "",
+              contacts: remoteContacts.length > 0 ? remoteContacts : prev.contacts,
+            };
+          });
+        }
+      } catch (err) {
+        // Silent fallback to local storage
+        console.warn("Could not fetch remote rider profile:", err);
+      }
+    };
+
+    fetchBackendProfile();
+  }, [isAuthenticated, user?.name]);
 
   // Handle profile information changes
   const handleProfileChange = (event) => {
@@ -236,7 +271,7 @@ function ProfileSetup() {
   };
 
   // Save profile information
-  const handleSave = (event) => {
+  const handleSave = async (event) => {
     event.preventDefault();
 
     if (isSaving) {
@@ -302,6 +337,22 @@ function ProfileSetup() {
             "Unable to update MotoTribe user:",
             error
           );
+        }
+      }
+
+      // Sync to real backend if authenticated
+      if (isAuthenticated) {
+        try {
+          await apiClient.post("/api/mototribe/rider-profile", {
+            vehicleNumber: "PENDING",
+            emergencyContacts: profileToSave.contacts.map((c) => ({
+              name: c.name,
+              phoneNumber: c.phone,
+              relationship: c.relationship,
+            })),
+          });
+        } catch (apiErr) {
+          console.warn("Unable to sync rider profile to API:", apiErr);
         }
       }
 

@@ -2,6 +2,7 @@ const express = require("express");
 const {
   signup,
   login,
+  googleAuth,
   refresh,
   logout,
   getMe,
@@ -19,6 +20,7 @@ const {
 
 const router = express.Router();
 
+router.post("/google", googleAuth);
 router.post("/signup", signupValidationRules, validate, signup);
 router.post("/login", loginValidationRules, validate, login);
 router.post("/verify-otp", verifyOtpValidationRules, validate, verifyOtp);
