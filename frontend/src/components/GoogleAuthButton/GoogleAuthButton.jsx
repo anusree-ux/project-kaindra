@@ -11,8 +11,6 @@ export default function GoogleAuthButton({
   const { loginWithGoogle } = useAuth();
   const [loading, setLoading] = useState(false);
   const [showSimulatedModal, setShowSimulatedModal] = useState(false);
-  const [simulatedEmail, setSimulatedEmail] = useState("rider.demo@gmail.com");
-  const [simulatedName, setSimulatedName] = useState("Kaindra Rider");
   const googleBtnContainerRef = useRef(null);
 
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
@@ -109,18 +107,17 @@ export default function GoogleAuthButton({
     }
   };
 
-  // Submit simulated Google OAuth (no OTP needed)
-  const handleSimulatedSubmit = async (e) => {
-    e.preventDefault();
+  // Direct 1-click Google account simulator
+  const authenticateSimulated = async (email, name) => {
     setLoading(true);
     setShowSimulatedModal(false);
 
     try {
       const res = await loginWithGoogle({
-        email: simulatedEmail.trim(),
-        name: simulatedName.trim(),
+        email: email.trim(),
+        name: name.trim(),
         googleId: `google_dev_${Date.now()}`,
-        picture: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(simulatedEmail)}`,
+        picture: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(email)}`,
       });
 
       if (res.success) {
@@ -202,10 +199,8 @@ export default function GoogleAuthButton({
               <button
                 type="button"
                 className="google-sim-account-item"
-                onClick={() => {
-                  setSimulatedEmail("rider.kaindra@gmail.com");
-                  setSimulatedName("Kaindra Rider");
-                }}
+                disabled={loading}
+                onClick={() => authenticateSimulated("rider.kaindra@gmail.com", "Kaindra Rider")}
               >
                 <div className="google-sim-avatar">KR</div>
                 <div className="google-sim-acc-info">
@@ -217,10 +212,8 @@ export default function GoogleAuthButton({
               <button
                 type="button"
                 className="google-sim-account-item"
-                onClick={() => {
-                  setSimulatedEmail("shreya120956@gmail.com");
-                  setSimulatedName("Shreya");
-                }}
+                disabled={loading}
+                onClick={() => authenticateSimulated("shreya120956@gmail.com", "Shreya")}
               >
                 <div className="google-sim-avatar" style={{ background: "#8e24aa" }}>S</div>
                 <div className="google-sim-acc-info">
@@ -228,48 +221,30 @@ export default function GoogleAuthButton({
                   <span>shreya120956@gmail.com</span>
                 </div>
               </button>
+
+              <button
+                type="button"
+                className="google-sim-account-item"
+                disabled={loading}
+                onClick={() => authenticateSimulated("user@kaindra.com", "Kaindra User")}
+              >
+                <div className="google-sim-avatar" style={{ background: "#0284c7" }}>KU</div>
+                <div className="google-sim-acc-info">
+                  <strong>Kaindra User</strong>
+                  <span>user@kaindra.com</span>
+                </div>
+              </button>
             </div>
 
-            <form onSubmit={handleSimulatedSubmit} className="google-sim-form">
-              <div className="google-sim-field">
-                <label>Or enter custom Google account name</label>
-                <input
-                  type="text"
-                  value={simulatedName}
-                  onChange={(e) => setSimulatedName(e.target.value)}
-                  placeholder="Your Name"
-                  required
-                />
-              </div>
-
-              <div className="google-sim-field">
-                <label>Google Account Email</label>
-                <input
-                  type="email"
-                  value={simulatedEmail}
-                  onChange={(e) => setSimulatedEmail(e.target.value)}
-                  placeholder="name@gmail.com"
-                  required
-                />
-              </div>
-
-              <div className="google-sim-actions">
-                <button
-                  type="button"
-                  className="google-sim-btn-cancel"
-                  onClick={() => setShowSimulatedModal(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="google-sim-btn-confirm"
-                  disabled={loading}
-                >
-                  {loading ? "Authenticating..." : "Continue as Google User"}
-                </button>
-              </div>
-            </form>
+            <div className="google-sim-actions" style={{ justifyContent: "center", marginTop: "16px" }}>
+              <button
+                type="button"
+                className="google-sim-btn-cancel"
+                onClick={() => setShowSimulatedModal(false)}
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}

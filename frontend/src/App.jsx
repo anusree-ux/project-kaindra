@@ -620,7 +620,7 @@ function App() {
 
           <Route
             path="/businesses/mototribe/verify-otp"
-            element={<OTPVerification />}
+            element={<Navigate to="/businesses/mototribe/login" replace />}
           />
 
           <Route
