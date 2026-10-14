@@ -136,6 +136,10 @@
   align-items: start;
 }
 
+.upcoming-rides-layout.no-rides {
+  grid-template-columns: 1fr;
+}
+
 .ride-list {
   min-width: 0;
 }

@@ -1,10 +1,15 @@
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, Clock, Package, ShoppingBag } from "lucide-react";
 import { useEffect, useState } from "react";
+import apiClient from "../services/apiClient";
+import { useAuth } from "../context/AuthContext";
+import { useCart } from "../context/CartContext";
 import "./DropDetails.css";
 
 function DropDetails() {
   const { dropId } = useParams();
+  const { isAuthenticated, openAuthModal } = useAuth();
+  const { addToCart: addToCartContext } = useCart();
   const [drop, setDrop] = useState(null);
   const [loadingDrop, setLoadingDrop] = useState(true);
   const [error, setError] = useState("");
@@ -15,6 +20,7 @@ function DropDetails() {
   const [waitlistJoined, setWaitlistJoined] = useState(false);
   const [waitlistPosition, setWaitlistPosition] = useState(null);
   const [joiningWaitlist, setJoiningWaitlist] = useState(false);
+  const [addToCartError, setAddToCartError] = useState("");
 
   useEffect(() => {
     const fetchDrop = async () => {
@@ -23,13 +29,8 @@ function DropDetails() {
         setError("");
         setDrop(null);
 
-        const response = await fetch(`/api/modasphere/drops/${dropId}`);
-        const result = await response.json();
-        if (!response.ok || result.status !== "success") {
-          throw new Error(result.message || "Failed to fetch ModaDrop event.");
-        }
-
-        const event = result.data?.drop;
+        const res = await apiClient.get(`/api/modasphere/drops/${dropId}`);
+        const event = res.data?.data?.drop;
         setDrop(event || null);
         setSelectedProductId(
           event?.productIds?.find((product) => product?.status === "active")
@@ -37,7 +38,11 @@ function DropDetails() {
         );
       } catch (fetchError) {
         console.error("Unable to load ModaDrop event:", fetchError);
-        setError(fetchError.message || "Failed to load ModaDrop event.");
+        setError(
+          fetchError.response?.data?.message ||
+          fetchError.message ||
+          "Failed to load ModaDrop event."
+        );
       } finally {
         setLoadingDrop(false);
       }
@@ -70,63 +75,44 @@ function DropDetails() {
   }, [selectedProduct?._id]);
 
   useEffect(() => {
-    if (!selectedProduct?.isDrop || !isSoldOut) {
-      return;
-    }
-
-    const accessToken = localStorage.getItem("token");
-    if (!accessToken) {
+    if (!selectedProduct?.isDrop || !isSoldOut || !isAuthenticated) {
       return;
     }
 
     const fetchWaitlistPosition = async () => {
       try {
-        const response = await fetch(
-          `/api/modasphere/drops/products/${selectedProduct._id}/waitlist/position`,
-          { headers: { Authorization: `Bearer ${accessToken}` } }
+        const res = await apiClient.get(
+          `/api/modasphere/drops/products/${selectedProduct._id}/waitlist/position`
         );
-        const result = await response.json();
-        if (response.ok && result.status === "success") {
-          setWaitlistJoined(true);
-          setWaitlistPosition(result.data?.position ?? null);
-        } else if (response.status !== 404) {
-          throw new Error(result.message || "Failed to fetch waitlist position.");
+        setWaitlistJoined(true);
+        setWaitlistPosition(res.data?.data?.position ?? null);
+      } catch (err) {
+        // 404 means not on waitlist yet — silent
+        if (err.response?.status !== 404) {
+          console.error("Unable to check ModaDrop waitlist position:", err);
         }
-      } catch (fetchError) {
-        console.error("Unable to check ModaDrop waitlist position:", fetchError);
       }
     };
 
     fetchWaitlistPosition();
-  }, [selectedProduct, isSoldOut]);
+  }, [selectedProduct, isSoldOut, isAuthenticated]);
 
   const handleAddToCart = async () => {
-    const accessToken = localStorage.getItem("token");
-    if (!accessToken) {
-      alert("Please log in to add this drop to your cart.");
+    if (!isAuthenticated) {
+      openAuthModal("login");
       return;
     }
+    if (!selectedProduct) return;
 
+    setAddToCartError("");
     try {
-      const response = await fetch("/api/modasphere/cart/items", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({
-          productId: selectedProduct._id,
-          quantity,
-        }),
-      });
-      const result = await response.json();
-      if (!response.ok || result.status !== "success") {
-        throw new Error(result.message || "Failed to add the drop to your cart.");
+      const result = await addToCartContext(selectedProduct._id, quantity);
+      if (!result?.success) {
+        setAddToCartError(result?.message || "Failed to add to cart.");
       }
-      alert("Drop added to your cart.");
-    } catch (requestError) {
-      console.error("Unable to add ModaDrop to cart:", requestError);
-      alert(requestError.message || "Failed to add the drop to your cart.");
+    } catch (err) {
+      console.error("Unable to add ModaDrop to cart:", err);
+      setAddToCartError(err.message || "Failed to add to cart.");
     }
   };
 
@@ -135,70 +121,58 @@ function DropDetails() {
       return;
     }
 
-    const accessToken = localStorage.getItem("token");
-    if (!accessToken) {
-      alert("Please log in to join the waitlist.");
+    if (!isAuthenticated) {
+      openAuthModal("login");
       return;
     }
 
     try {
       setJoiningWaitlist(true);
-      const response = await fetch(
-        `/api/modasphere/drops/products/${selectedProduct._id}/waitlist`,
-        {
-          method: "POST",
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
+      await apiClient.post(
+        `/api/modasphere/drops/products/${selectedProduct._id}/waitlist`
       );
-      const result = await response.json();
-      if (!response.ok || result.status !== "success") {
-        throw new Error(result.message || "Failed to join the waitlist.");
-      }
 
       setWaitlistJoined(true);
-      const positionResponse = await fetch(
-        `/api/modasphere/drops/products/${selectedProduct._id}/waitlist/position`,
-        { headers: { Authorization: `Bearer ${accessToken}` } }
-      );
-      const positionResult = await positionResponse.json();
-      if (!positionResponse.ok || positionResult.status !== "success") {
-        throw new Error(
-          positionResult.message || "Joined, but could not fetch waitlist position."
+      try {
+        const posRes = await apiClient.get(
+          `/api/modasphere/drops/products/${selectedProduct._id}/waitlist/position`
         );
+        setWaitlistPosition(posRes.data?.data?.position ?? null);
+      } catch {
+        // Position fetch is best-effort; waitlist join already succeeded
       }
-      setWaitlistPosition(positionResult.data?.position ?? null);
     } catch (requestError) {
       console.error("Unable to join ModaDrop waitlist:", requestError);
-      alert(requestError.message || "Failed to join the waitlist.");
+      alert(
+        requestError.response?.data?.message ||
+        requestError.message ||
+        "Failed to join the waitlist."
+      );
     } finally {
       setJoiningWaitlist(false);
     }
   };
 
   const handleEventWaitlist = async () => {
-    const accessToken = localStorage.getItem("token");
-    if (!accessToken) {
-      alert("Please log in to join the event waitlist.");
+    if (!isAuthenticated) {
+      openAuthModal("login");
       return;
     }
 
     try {
       setJoiningEventWaitlist(true);
-      const response = await fetch(
-        `/api/modasphere/drops/${drop._id}/waitlist`,
-        {
-          method: eventWaitlistJoined ? "DELETE" : "POST",
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
-      const result = await response.json();
-      if (!response.ok || result.status !== "success") {
-        throw new Error(result.message || "Failed to update event waitlist.");
-      }
+      await apiClient({
+        method: eventWaitlistJoined ? "delete" : "post",
+        url: `/api/modasphere/drops/${drop._id}/waitlist`,
+      });
       setEventWaitlistJoined(!eventWaitlistJoined);
     } catch (requestError) {
       console.error("Unable to update event waitlist:", requestError);
-      alert(requestError.message || "Failed to update event waitlist.");
+      alert(
+        requestError.response?.data?.message ||
+        requestError.message ||
+        "Failed to update event waitlist."
+      );
     } finally {
       setJoiningEventWaitlist(false);
     }
@@ -351,6 +325,11 @@ function DropDetails() {
                   Add to Cart
                   <ArrowLeft size={18} className="arrow-right" />
                 </button>
+                {addToCartError && (
+                  <p style={{ color: "#dc2626", fontSize: "13px", marginTop: "8px" }}>
+                    {addToCartError}
+                  </p>
+                )}
               </>
             ) : isLive && isSoldOut ? (
               waitlistJoined ? (

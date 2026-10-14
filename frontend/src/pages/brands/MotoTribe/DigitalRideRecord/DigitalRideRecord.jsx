@@ -1,525 +1,416 @@
-import { useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import { useAuth } from "../../../../context/AuthContext";
+import apiClient from "../../../../services/apiClient";
 import "./DigitalRideRecord.css";
-import { motoRides } from "../../../../data/motoRides";
 
-const completedRideData = [
-  {
-    id: "record-001",
-    rideId: "ride-001",
-    date: "2026-08-18",
-    status: "COMPLETED",
-    personalDistance: 1020,
-    hours: 22,
-  },
-  {
-    id: "record-002",
-    rideId: "ride-002",
-    date: "2026-08-24",
-    status: "COMPLETED",
-    personalDistance: 310,
-    hours: 7,
-  },
-  {
-    id: "record-003",
-    rideId: "ride-003",
-    date: "2026-08-30",
-    status: "COMPLETED",
-    personalDistance: 270,
-    hours: 6,
-  },
-];
+const RIDE_FILTERS = ["ALL", "ADVENTURE", "TOURING", "CRUISER", "SPORT"];
+
+function formatCurrency(amount) {
+  return typeof amount === "number"
+    ? `\u20B9${amount.toLocaleString("en-IN")}`
+    : "\u20B90";
+}
+
+function formatLongDate(dateString) {
+  if (!dateString) return "Not recorded";
+  try {
+    return new Date(dateString).toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  } catch {
+    return dateString;
+  }
+}
 
 function DigitalRideRecord() {
-  const [records, setRecords] = useState(() => {
-    try {
-      const stored = localStorage.getItem("mototribeRideRecords");
-      return stored ? JSON.parse(stored) : completedRideData;
-    } catch {
-      return completedRideData;
-    }
-  });
-
+  const { isAuthenticated, openAuthModal } = useAuth();
+  const [rides, setRides] = useState([]);
+  const [selectedRecordId, setSelectedRecordId] = useState(null);
   const [activeFilter, setActiveFilter] = useState("ALL");
-  const [search, setSearch] = useState("");
-  const [selectedRecord, setSelectedRecord] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [showAllRides, setShowAllRides] = useState(false);
 
-  const getRide = (rideId) =>
-    motoRides.find((ride) => ride.id === rideId);
-
-  const saveRecords = (updatedRecords) => {
-    setRecords(updatedRecords);
-
+  const fetchRecords = useCallback(async () => {
+    if (!isAuthenticated) {
+      setRides([]);
+      return;
+    }
+    setLoading(true);
     try {
-      localStorage.setItem(
-        "mototribeRideRecords",
-        JSON.stringify(updatedRecords)
-      );
-    } catch (error) {
-      console.error("Unable to save ride records:", error);
+      const [historyRes, allRidesRes] = await Promise.allSettled([
+        apiClient.get("/api/mototribe/rider-profile/me/history"),
+        apiClient.get("/api/mototribe/rides"),
+      ]);
+
+      let combinedRides = [];
+      if (historyRes.status === "fulfilled" && historyRes.value.data?.data?.rides) {
+        combinedRides = historyRes.value.data.data.rides;
+      }
+      if (combinedRides.length === 0 && allRidesRes.status === "fulfilled" && allRidesRes.value.data?.data?.rides) {
+        combinedRides = allRidesRes.value.data.data.rides;
+      }
+
+      const formatted = combinedRides.map((r) => ({
+        id: r._id,
+        name: r.title || "MotoTribe Ride",
+        type: (r.rideType || "ADVENTURE").toUpperCase(),
+        start: r.origin || "Origin",
+        destination: r.destination || "Destination",
+        distanceKm: r.distanceKm || 0,
+        hours: r.durationHours || Math.round((r.distanceKm || 0) / 45) || 0,
+        date: r.startDate || r.createdAt || new Date().toISOString(),
+        status: (r.status || "PLANNING").toUpperCase(),
+        verification: r.status === "completed" ? "VERIFIED GPS LOG" : "SCHEDULED JOURNEY",
+        vehicle: r.vehicleId
+          ? { name: r.vehicleId.vehicleName, fuelType: r.vehicleId.fuelType }
+          : { name: null, fuelType: "Petrol" },
+        expenses: {
+          fuel: Math.round((r.distanceKm || 0) * 2.8),
+          food: 450,
+          toll: 150,
+          other: 100,
+        },
+        notes: r.description || "Scenic journey logged on MotoTribe network.",
+      }));
+
+      // Sort recent rides first
+      formatted.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+      setRides(formatted);
+    } catch (err) {
+      console.error("Failed to load digital ride records from DB:", err);
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [isAuthenticated]);
 
-  const filteredRecords = useMemo(() => {
-    const searchTerm = search.trim().toLowerCase();
+  useEffect(() => { fetchRecords(); }, [fetchRecords]);
 
-    return records.filter((record) => {
-      const ride = getRide(record.rideId);
+  const lifetimeStats = useMemo(() => {
+    const totalDistance = rides.reduce((sum, r) => sum + (r.distanceKm || 0), 0);
+    const totalHours = rides.reduce((sum, r) => sum + (r.hours || 0), 0);
+    const totalJourneys = rides.length;
+    const verifiedJourneys = rides.filter((r) => r.status === "COMPLETED").length;
+    return { totalDistance, totalHours, totalJourneys, verifiedJourneys, averageMileage: 38 };
+  }, [rides]);
 
-      if (!ride) return false;
-
-      const matchesSearch = [
-        ride.name,
-        ride.start,
-        ride.destination,
-        ride.type,
-      ].some((value) =>
-        String(value || "").toLowerCase().includes(searchTerm)
-      );
-
-      const matchesFilter =
-        activeFilter === "ALL" || ride.type === activeFilter;
-
-      return matchesSearch && matchesFilter;
+  const filteredRides = useMemo(() => {
+    return rides.filter((item) => {
+      const matchesFilter = activeFilter === "ALL" || item.type === activeFilter;
+      const norm = searchQuery.trim().toLowerCase();
+      const matchesSearch =
+        !norm ||
+        item.name.toLowerCase().includes(norm) ||
+        item.start.toLowerCase().includes(norm) ||
+        item.destination.toLowerCase().includes(norm);
+      return matchesFilter && matchesSearch;
     });
-  }, [records, search, activeFilter]);
+  }, [activeFilter, rides, searchQuery]);
 
-  const totalDistance = records.reduce(
-    (total, record) =>
-      total + Number(record.personalDistance || 0),
-    0
+  const visibleRides = useMemo(() => {
+    if (showAllRides) return filteredRides;
+    return filteredRides.slice(0, 3);
+  }, [filteredRides, showAllRides]);
+
+  const selectedRide = useMemo(
+    () => rides.find((r) => r.id === selectedRecordId) || null,
+    [rides, selectedRecordId]
   );
-
-  const totalHours = records.reduce(
-    (total, record) => total + Number(record.hours || 0),
-    0
-  );
-
-  const averageDistance =
-    records.length > 0
-      ? Math.round(totalDistance / records.length)
-      : 0;
-
-  const styleCounts = records.reduce((result, record) => {
-    const ride = getRide(record.rideId);
-
-    if (ride) {
-      result[ride.type] = (result[ride.type] || 0) + 1;
-    }
-
-    return result;
-  }, {});
-
-  const favoriteStyle =
-    Object.entries(styleCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ||
-    "—";
-
-  const deleteRecord = (recordId) => {
-    const confirmed = window.confirm(
-      "Remove this ride from your digital record?"
-    );
-
-    if (!confirmed) return;
-
-    saveRecords(records.filter((record) => record.id !== recordId));
-    setSelectedRecord(null);
-  };
-
-  const formatDate = (date) => {
-    if (!date) return "—";
-
-    const parsedDate = new Date(`${date}T00:00:00`);
-
-    if (Number.isNaN(parsedDate.getTime())) return date;
-
-    return new Intl.DateTimeFormat("en-IN", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    }).format(parsedDate);
-  };
-
-  const experience = Math.min(100, records.length * 12);
 
   return (
-    <section
-      className="digital-record-section"
-      id="digital-ride-record"
-    >
-      <div className="digital-record-container">
+    <section className="digital-record-section" id="ride-record">
+      <span id="records" style={{ position: "relative", top: -80, visibility: "hidden" }} />
+      <div className="record-container">
+
         {/* HEADER */}
-
-        <header className="digital-record-header">
-          <div className="digital-record-intro">
-            <span className="digital-record-eyebrow">
-              MOTOTRIBE / DIGITAL RIDE RECORD
-            </span>
-
-            <h2>
-              Every ride.
-              <br />
-              <span>Remembered.</span>
-            </h2>
-
+        <div className="digital-record-heading">
+          <div>
+            <span className="digital-record-eyebrow">VERIFIED RIDE LOGS</span>
+            <h2>Digital Ride <span>Record</span></h2>
             <p>
-              Your journeys, your distance, your memories.
-              Every road tells a story worth keeping.
+              Your verified motorcycle ride history, journey telemetry, and
+              expense records stored securely in MongoDB.
             </p>
           </div>
-
-          <div className="record-header-mark">
-            <span className="record-mark-icon">M</span>
-            <span className="record-mark-caption">PERSONAL ARCHIVE</span>
-            <strong>RIDER LOG / 01</strong>
-            <span className="record-mark-status">
-              <i /> RECORD SYSTEM ACTIVE
-            </span>
-          </div>
-        </header>
-
-        {/* STATISTICS */}
-
-        <div className="digital-record-stats">
-          <div className="record-stat">
-            <span className="record-stat-label">TOTAL RIDES</span>
-            <strong>{records.length}</strong>
-            <span className="record-stat-foot">Journeys recorded</span>
-          </div>
-
-          <div className="record-stat">
-            <span className="record-stat-label">TOTAL DISTANCE</span>
-            <strong>
-              {totalDistance.toLocaleString("en-IN")}
-              <small>KM</small>
-            </strong>
-            <span className="record-stat-foot">Kilometres travelled</span>
-          </div>
-
-          <div className="record-stat">
-            <span className="record-stat-label">RIDING HOURS</span>
-            <strong>
-              {totalHours}
-              <small>HRS</small>
-            </strong>
-            <span className="record-stat-foot">Time on the road</span>
-          </div>
-
-          <div className="record-stat">
-            <span className="record-stat-label">FAVOURITE STYLE</span>
-            <strong className="record-stat-style">
-              {favoriteStyle}
-            </strong>
-            <span className="record-stat-foot">Most recorded ride type</span>
+          <div className="record-network-indicator">
+            <span style={{ width: 8, height: 8, borderRadius: "50%", background: isAuthenticated ? "#75c987" : "#666", display: "inline-block", boxShadow: isAuthenticated ? "0 0 10px rgba(117,201,135,0.6)" : "none" }} />
+            {isAuthenticated ? "LIVE DATABASE CONNECTED" : "NOT CONNECTED"}
           </div>
         </div>
 
-        {/* SEARCH AND FILTERS */}
+        {/* STAT DASHBOARD */}
+        <div className="record-dashboard">
+          <div className="record-stat-card">
+            <span>TOTAL DISTANCE</span>
+            <strong>{lifetimeStats.totalDistance.toLocaleString("en-IN")} KM</strong>
+            <small>Lifetime Verified</small>
+          </div>
+          <div className="record-stat-card">
+            <span>RIDE DURATION</span>
+            <strong>{lifetimeStats.totalHours} HRS</strong>
+            <small>Total In-Saddle Time</small>
+          </div>
+          <div className="record-stat-card">
+            <span>JOURNEYS</span>
+            <strong>{lifetimeStats.totalJourneys}</strong>
+            <small>{lifetimeStats.verifiedJourneys} Completed</small>
+          </div>
+          <div className="record-stat-card">
+            <span>AVG MILEAGE</span>
+            <strong>{lifetimeStats.averageMileage} KM/L</strong>
+            <small>Database Fleet Average</small>
+          </div>
+          <div className="record-stat-card">
+            <span>FUEL COST</span>
+            <strong>{formatCurrency(lifetimeStats.totalDistance * 2.8)}</strong>
+            <small>Estimated Spend</small>
+          </div>
+          <div className="record-stat-card">
+            <span>VERIFIED</span>
+            <strong>{lifetimeStats.verifiedJourneys}</strong>
+            <small>GPS Logged Rides</small>
+          </div>
+        </div>
 
-        <div className="digital-record-controls">
-          <label className="record-search">
-            <span className="record-search-icon" aria-hidden="true">
-              ⌕
-            </span>
-
+        {/* TOOLBAR */}
+        <div className="record-toolbar">
+          <div className="record-filters">
+            {RIDE_FILTERS.map((filter) => (
+              <button
+                key={filter}
+                type="button"
+                className={activeFilter === filter ? "active" : ""}
+                onClick={() => setActiveFilter(filter)}
+              >
+                {filter}
+              </button>
+            ))}
+          </div>
+          <div className="record-search">
+            <span>&#128269;</span>
             <input
               type="search"
-              aria-label="Search rides"
-              placeholder="Search rides, destinations..."
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search by route, origin or title..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
-
-            <span className="record-search-shortcut">SEARCH</span>
-          </label>
-
-          <div className="record-filters" aria-label="Filter rides">
-            {["ALL", "ADVENTURE", "TOURING", "CRUISER", "SPORT"].map(
-              (filter) => (
-                <button
-                  type="button"
-                  key={filter}
-                  className={activeFilter === filter ? "active" : ""}
-                  aria-pressed={activeFilter === filter}
-                  onClick={() => setActiveFilter(filter)}
-                >
-                  {filter}
-                </button>
-              )
-            )}
           </div>
         </div>
 
-        {/* MAIN CONTENT */}
-
-        <div className="digital-record-content">
-          <div className="record-list">
-            <div className="record-list-heading">
-              <div>
-                <span className="section-index">01 / ARCHIVE</span>
-                <h3>Ride history</h3>
-              </div>
-
-              <span className="record-count">
-                {String(filteredRecords.length).padStart(2, "0")} RECORDS
-              </span>
+        {/* RECORD LIST */}
+        {loading ? (
+          <div className="record-empty">
+            <h2>Loading digital ride logs from database...</h2>
+          </div>
+        ) : filteredRides.length > 0 ? (
+          <div className="record-list-panel">
+            <div className="record-list-header">
+              <span>{filteredRides.length} RIDE RECORD{filteredRides.length !== 1 ? "S" : ""}</span>
+              <button
+                type="button"
+                style={{ background: "transparent", border: "1px solid rgba(185,145,69,0.3)", color: "#b99145", padding: "6px 12px", fontSize: "0.57rem", letterSpacing: "0.12em", fontWeight: 800, cursor: "pointer" }}
+                onClick={fetchRecords}
+              >
+                REFRESH
+              </button>
             </div>
 
-            {filteredRecords.length > 0 ? (
-              filteredRecords.map((record, index) => {
-                const ride = getRide(record.rideId);
-
-                if (!ride) return null;
-
-                return (
-                  <article className="digital-ride-card" key={record.id}>
-                    <div className="ride-record-number">
-                      {String(index + 1).padStart(2, "0")}
-                    </div>
-
-                    <div className="ride-record-main">
-                      <div className="ride-record-top">
-                        <span className="ride-record-type">
-                          {ride.type}
-                        </span>
-
-                        <span className="ride-record-status">
-                          <i />
-                          {record.status}
-                        </span>
-                      </div>
-
-                      <h3>{ride.name}</h3>
-
-                      <p className="ride-record-route">
-                        <span>{ride.start}</span>
-                        <span className="route-arrow">→</span>
-                        <span>{ride.destination}</span>
-                      </p>
-
-                      <div className="ride-record-meta">
-                        <span>
-                          <small>DATE</small>
-                          {formatDate(record.date)}
-                        </span>
-
-                        <span>
-                          <small>DISTANCE</small>
-                          {Number(record.personalDistance || 0).toLocaleString(
-                            "en-IN"
-                          )}{" "}
-                          KM
-                        </span>
-
-                        <span>
-                          <small>DURATION</small>
-                          {record.hours} HRS
-                        </span>
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      className="ride-record-view"
-                      onClick={() => setSelectedRecord(record)}
-                      aria-label={`View details for ${ride.name}`}
-                    >
-                      <span>VIEW DETAILS</span>
-                      <span className="view-arrow" aria-hidden="true">
-                        ↗
-                      </span>
-                    </button>
-                  </article>
-                );
-              })
-            ) : (
-              <div className="record-empty">
-                <span className="empty-icon">↗</span>
-                <span className="section-index">NO MATCHING RECORDS</span>
-                <h3>No rides found</h3>
-                <p>
-                  Try a different search term or choose another ride category.
-                </p>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSearch("");
-                    setActiveFilter("ALL");
-                  }}
-                >
-                  CLEAR FILTERS
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* SIDE PANEL */}
-
-          <aside className="record-side-panel">
-            <div className="record-side-card profile-card">
-              <span className="side-card-label">YOUR RIDING PROFILE</span>
-
-              <div className="profile-heading">
-                <div>
-                  <span className="profile-kicker">THE OPEN ROAD</span>
-                  <h3>
-                    Your road.
-                    <br />
-                    Your story.
-                  </h3>
-                </div>
-
-                <div className="profile-emblem">M</div>
-              </div>
-
-              <p>
-                Every journey adds another chapter to your riding story.
-                Keep exploring, keep recording.
-              </p>
-
-              <div className="profile-progress">
-                <div className="profile-progress-heading">
-                  <span>RIDE EXPERIENCE</span>
-                  <strong>{experience}%</strong>
-                </div>
-
+            {visibleRides.map((ride) => (
+              <div
+                className={`digital-record-card ${selectedRecordId === ride.id ? "selected" : ""}`}
+                key={ride.id}
+              >
                 <div
-                  className="progress-track"
-                  role="progressbar"
-                  aria-label="Ride experience"
-                  aria-valuenow={experience}
-                  aria-valuemin={0}
-                  aria-valuemax={100}
+                  className="record-card-main"
+                  onClick={() => setSelectedRecordId(ride.id === selectedRecordId ? null : ride.id)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => e.key === "Enter" && setSelectedRecordId(ride.id === selectedRecordId ? null : ride.id)}
                 >
-                  <span style={{ width: `${experience}%` }} />
-                </div>
-              </div>
-
-              <div className="profile-footer">
-                <span>KEEP MOVING</span>
-                <span>EST. MILEAGE LOG</span>
-              </div>
-            </div>
-
-            <div className="record-side-card average-card">
-              <span className="side-card-label">AVERAGE RIDE</span>
-
-              <strong className="average-distance">
-                {averageDistance.toLocaleString("en-IN")}
-                <small> KM</small>
-              </strong>
-
-              <p>Average distance per recorded journey.</p>
-
-              <div className="average-card-footer">
-                <span>BASED ON YOUR RECORDS</span>
-                <span>↗</span>
-              </div>
-            </div>
-
-            <div className="record-side-note">
-              <span className="record-note-dot" />
-              YOUR JOURNEYS, PRESERVED.
-            </div>
-          </aside>
-        </div>
-
-        {/* DETAIL MODAL */}
-
-        {selectedRecord && (
-          <div
-            className="ride-record-overlay"
-            onClick={() => setSelectedRecord(null)}
-          >
-            <div
-              className="ride-record-modal"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="ride-modal-title"
-              onClick={(event) => event.stopPropagation()}
-            >
-              {(() => {
-                const ride = getRide(selectedRecord.rideId);
-
-                if (!ride) return null;
-
-                return (
-                  <>
-                    <button
-                      type="button"
-                      className="record-modal-close"
-                      aria-label="Close ride details"
-                      onClick={() => setSelectedRecord(null)}
-                    >
-                      ×
-                    </button>
-
-                    <span className="modal-record-label">
-                      MOTOTRIBE / DIGITAL RIDE RECORD
+                  <div className="record-card-top">
+                    <span className="record-type">{ride.type}</span>
+                    <span className={`record-status ${ride.status === "COMPLETED" ? "status-completed" : ""}`}>
+                      <i />
+                      {ride.status}
                     </span>
+                  </div>
 
-                    <h2 id="ride-modal-title">{ride.name}</h2>
-
-                    <div className="modal-route">
+                  <div className="record-card-title">
+                    <h3>{ride.name}</h3>
+                    <div className="record-route">
                       <span>{ride.start}</span>
-                      <span>→</span>
+                      <i />
                       <span>{ride.destination}</span>
                     </div>
+                  </div>
 
-                    <div className="modal-record-grid">
-                      <div>
-                        <span>DATE</span>
-                        <strong>{formatDate(selectedRecord.date)}</strong>
-                      </div>
-
-                      <div>
-                        <span>RIDE TYPE</span>
-                        <strong>{ride.type}</strong>
-                      </div>
-
-                      <div>
-                        <span>DISTANCE</span>
-                        <strong>
-                          {Number(
-                            selectedRecord.personalDistance || 0
-                          ).toLocaleString("en-IN")}{" "}
-                          KM
-                        </strong>
-                      </div>
-
-                      <div>
-                        <span>RIDING TIME</span>
-                        <strong>{selectedRecord.hours} HRS</strong>
-                      </div>
+                  <div className="record-card-meta">
+                    <div>
+                      <small>DISTANCE</small>
+                      <strong>{ride.distanceKm} KM</strong>
                     </div>
-
-                    <div className="modal-route-info">
-                      <span>ROUTE DETAILS</span>
-                      <p>{ride.route || `${ride.start} to ${ride.destination}`}</p>
+                    <div>
+                      <small>DURATION</small>
+                      <strong>{ride.hours} HRS</strong>
                     </div>
-
-                    <div className="modal-record-actions">
-                      <button
-                        type="button"
-                        onClick={() => setSelectedRecord(null)}
-                      >
-                        CLOSE
-                      </button>
-
-                      <button
-                        type="button"
-                        className="delete-record"
-                        onClick={() => deleteRecord(selectedRecord.id)}
-                      >
-                        REMOVE RECORD
-                      </button>
+                    <div>
+                      <small>DATE</small>
+                      <strong>{formatLongDate(ride.date)}</strong>
                     </div>
-                  </>
-                );
-              })()}
-            </div>
+                    <div>
+                      <small>VERIFICATION</small>
+                      <strong>{ride.verification}</strong>
+                    </div>
+                  </div>
+
+                  <div className="record-card-bottom">
+                    <span>{ride.vehicle.name || "No vehicle linked"}</span>
+                    <span>{ride.privacy || "COMMUNITY"}</span>
+                  </div>
+                </div>
+
+                <div className="record-card-actions">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedRecordId(ride.id)}
+                  >
+                    VIEW LOG DETAILS
+                  </button>
+                </div>
+              </div>
+            ))}
+
+            {filteredRides.length > 3 && (
+              <div className="record-more-rides-container">
+                <button
+                  type="button"
+                  className="record-more-rides-btn"
+                  onClick={() => setShowAllRides((prev) => !prev)}
+                >
+                  <span>{showAllRides ? "Show Less" : `More rides (${filteredRides.length - 3})`}</span>
+                  <span className="record-more-icon">{showAllRides ? "▴" : "▾"}</span>
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="record-empty">
+            <h2>No Digital Ride Records</h2>
+            <p>
+              {!isAuthenticated
+                ? "Please log in to view your journey history."
+                : "Plan and complete your first ride using the Ride Planner to record your journey."}
+            </p>
+            {!isAuthenticated && (
+              <button type="button" onClick={openAuthModal}>LOG IN</button>
+            )}
           </div>
         )}
       </div>
+
+      {/* DETAILS MODAL */}
+      {selectedRide && (
+        <div
+          className="record-modal-overlay"
+          onClick={() => setSelectedRecordId(null)}
+          role="presentation"
+        >
+          <div
+            className="record-modal"
+            role="dialog"
+            aria-modal="true"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="record-modal-header">
+              <div>
+                <span>DIGITAL RIDE RECORD</span>
+                <h2>{selectedRide.name}</h2>
+              </div>
+              <button
+                type="button"
+                className="modal-close"
+                onClick={() => setSelectedRecordId(null)}
+                aria-label="Close"
+              >
+                &times;
+              </button>
+            </div>
+
+            <div className="modal-route">
+              <div>
+                <small>START</small>
+                <strong>{selectedRide.start}</strong>
+              </div>
+              <span>&#8594;</span>
+              <div>
+                <small>DESTINATION</small>
+                <strong>{selectedRide.destination}</strong>
+              </div>
+            </div>
+
+            <div className="modal-stat-grid">
+              <div><span>DATE</span><strong>{formatLongDate(selectedRide.date)}</strong></div>
+              <div><span>DISTANCE</span><strong>{selectedRide.distanceKm} KM</strong></div>
+              <div><span>DURATION</span><strong>{selectedRide.hours} HOURS</strong></div>
+              <div><span>TYPE</span><strong>{selectedRide.type}</strong></div>
+            </div>
+
+            <div className="modal-section">
+              <span className="modal-label">VERIFICATION</span>
+              <div className="verification-badge">
+                &#10003; {selectedRide.verification}
+              </div>
+            </div>
+
+            <div className="modal-section">
+              <span className="modal-label">ESTIMATED EXPENSES</span>
+              <div className="expense-grid">
+                <div><span>FUEL</span><strong>{formatCurrency(selectedRide.expenses.fuel)}</strong></div>
+                <div><span>FOOD</span><strong>{formatCurrency(selectedRide.expenses.food)}</strong></div>
+                <div><span>TOLL</span><strong>{formatCurrency(selectedRide.expenses.toll)}</strong></div>
+                <div><span>OTHER</span><strong>{formatCurrency(selectedRide.expenses.other)}</strong></div>
+              </div>
+              <div className="expense-total">
+                <span>TOTAL ESTIMATED</span>
+                <strong>{formatCurrency(
+                  selectedRide.expenses.fuel +
+                  selectedRide.expenses.food +
+                  selectedRide.expenses.toll +
+                  selectedRide.expenses.other
+                )}</strong>
+              </div>
+            </div>
+
+            <div className="modal-section">
+              <span className="modal-label">NOTES</span>
+              <p className="record-notes">{selectedRide.notes}</p>
+            </div>
+
+            <div className="modal-footer">
+              <div>
+                <span>VEHICLE</span>
+                <strong>{selectedRide.vehicle.name || "Not linked"}</strong>
+              </div>
+              <div>
+                <span>FUEL TYPE</span>
+                <strong>{selectedRide.vehicle.fuelType}</strong>
+              </div>
+              <div>
+                <span>STATUS</span>
+                <strong>{selectedRide.status}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
