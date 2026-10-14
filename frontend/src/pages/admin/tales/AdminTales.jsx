@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import {
   BookOpen,
@@ -6,6 +7,7 @@ import {
   Mail,
   CalendarDays,
   Tag,
+  Trash2,
 } from "lucide-react";
 import "./AdminTales.css";
 
@@ -13,10 +15,31 @@ function AdminTales() {
   const getAdminToken = () =>
     sessionStorage.getItem("kaindraAdminAccessToken");
 
+  const formatDate = (dateString) => {
+    if (!dateString) return "—";
+
+    const date = new Date(dateString);
+
+    if (Number.isNaN(date.getTime())) return "—";
+
+    return date.toLocaleString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   const [stories, setStories] = useState([]);
   const [selectedStory, setSelectedStory] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [removalReason, setRemovalReason] = useState("");
+  const [removing, setRemoving] = useState(false);
+
+  const isRemoved = (story) =>
+    story?.status === "Removed" || Boolean(story?.removedAt);
 
   useEffect(() => {
     const loadStories = async () => {
@@ -43,18 +66,17 @@ function AdminTales() {
 
         setStories(
           Array.isArray(data.tales)
-            ? data.tales
+            ? data.tales.filter(
+                (story) =>
+                  story.status !== "Removed" && !story.removedAt
+              )
             : []
         );
       } catch (error) {
-        console.error(
-          "Failed to load ModaTales:",
-          error
-        );
+        console.error("Failed to load ModaTales:", error);
 
         setError(
-          error.message ||
-            "Failed to load story submissions"
+          error.message || "Failed to load story submissions"
         );
 
         setStories([]);
@@ -66,76 +88,64 @@ function AdminTales() {
     loadStories();
   }, []);
 
-  const updateStoryStatus = async (id, status) => {
-    try {
-      const response = await fetch(
-        `/api/modasphere/tales/admin/${id}/status`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${getAdminToken()}`,
-          },
-          body: JSON.stringify({ status }),
-        }
-      );
 
-      const data = await response.json();
+  const removeStory = async () => {
+    if (!selectedStory || removing || !removalReason.trim()) return;
 
-      if (!response.ok) {
-        throw new Error(
-          data.message ||
-            "Failed to update story status"
-        );
-      }
-
-      setStories((currentStories) =>
-        currentStories.map((story) =>
-          story._id === id
-            ? {
-                ...story,
-                status: data.tale.status,
-              }
-            : story
-        )
-      );
-
-      setSelectedStory((currentStory) =>
-        currentStory &&
-        currentStory._id === id
-          ? {
-              ...currentStory,
-              status: data.tale.status,
-            }
-          : currentStory
-      );
-    } catch (error) {
-      console.error(
-        "Failed to update story status:",
-        error
-      );
-
-      alert(
-        error.message ||
-          "Failed to update story status"
-      );
-    }
-  };
-
-  const deleteStory = async (id) => {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this story submission?"
-    );
-
-    if (!confirmed) {
+    if (!window.confirm("Remove this story from public visibility?")) {
       return;
     }
 
     try {
+      setRemoving(true);
+
       const response = await fetch(
-        `/api/modasphere/tales/admin/${id}`,
+        `/api/modasphere/tales/admin/${selectedStory._id}/remove`,
         {
-          method: "DELETE",
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${getAdminToken()}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            removalReason: removalReason.trim(),
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to remove story");
+      }
+
+      const updatedStory = data.tale;
+
+      setStories((currentStories) =>
+        currentStories.filter(
+         (story) => story._id !== selectedStory._id
+        )
+      );
+
+      setSelectedStory(updatedStory);
+      setRemovalReason("");
+
+      alert("Story removed successfully.");
+    } catch (error) {
+      console.error("Failed to remove story:", error);
+      alert(error.message || "Failed to remove story");
+    } finally {
+      setRemoving(false);
+    }
+  };
+
+  const openStoryDetails = async (story) => {
+    try {
+      setRemovalReason("");
+
+      const response = await fetch(
+        `/api/modasphere/tales/admin/${story._id}`,
+        {
           headers: {
             Authorization: `Bearer ${getAdminToken()}`,
           },
@@ -146,35 +156,28 @@ function AdminTales() {
 
       if (!response.ok) {
         throw new Error(
-          data.message ||
-            "Failed to delete story"
+          data.message || "Failed to fetch story details"
         );
       }
 
-      setStories((currentStories) =>
-        currentStories.filter(
-          (story) => story._id !== id
-        )
-      );
-
-      setSelectedStory(null);
+      setSelectedStory(data.tale);
     } catch (error) {
-      console.error(
-        "Failed to delete story:",
-        error
-      );
+      console.error("Failed to load story details:", error);
 
-      alert(
-        error.message ||
-          "Failed to delete story"
-      );
+      alert(error.message || "Failed to load story details");
     }
+  };
+
+  const closeModal = () => {
+    if (removing) return;
+
+    setSelectedStory(null);
+    setRemovalReason("");
   };
 
   return (
     <div className="admin-tales-page">
       <div className="admin-tales-container">
-
         <div className="admin-tales-header">
           <div>
             <span className="admin-tales-eyebrow">
@@ -184,8 +187,7 @@ function AdminTales() {
             <h1>ModaTales Submissions</h1>
 
             <p>
-              View stories submitted through the
-              ModaTales platform.
+              Review submitted stories and manage their public visibility.
             </p>
           </div>
 
@@ -198,31 +200,20 @@ function AdminTales() {
         {loading ? (
           <div className="admin-tales-empty">
             <BookOpen size={40} />
-
             <h2>Loading submissions...</h2>
-
-            <p>
-              Fetching ModaTales story submissions.
-            </p>
+            <p>Fetching ModaTales story submissions.</p>
           </div>
         ) : error ? (
           <div className="admin-tales-empty">
             <BookOpen size={40} />
-
             <h2>Unable to load submissions</h2>
-
             <p>{error}</p>
           </div>
         ) : stories.length === 0 ? (
           <div className="admin-tales-empty">
             <BookOpen size={40} />
-
             <h2>No submissions yet</h2>
-
-            <p>
-              ModaTales story submissions will
-              appear here.
-            </p>
+            <p>ModaTales story submissions will appear here.</p>
           </div>
         ) : (
           <div className="admin-tales-card">
@@ -244,9 +235,7 @@ function AdminTales() {
                   {stories.map((story) => (
                     <tr key={story._id}>
                       <td>
-                        <strong>
-                          {story.name || "—"}
-                        </strong>
+                        <strong>{story.name || "—"}</strong>
                       </td>
 
                       <td>
@@ -272,13 +261,21 @@ function AdminTales() {
                       <td>
                         <span className="admin-tales-date">
                           <CalendarDays size={13} />
-                          {story.submittedAt || "—"}
+                          {formatDate(story.submittedAt)}
                         </span>
                       </td>
 
                       <td>
-                        <span className="admin-tales-status">
-                          {story.status || "New"}
+                        <span
+                          className={`admin-tales-status admin-tales-status-${(
+                            story.status || "New"
+                          ).toLowerCase()}`}
+                        >
+                          {isRemoved(story)
+                            ? "Removed"
+                            : story.status === "Approved"
+                              ? "Published"
+                              : story.status || "New"}
                         </span>
                       </td>
 
@@ -286,43 +283,7 @@ function AdminTales() {
                         <button
                           type="button"
                           className="admin-tales-view-button"
-                          onClick={async () => {
-                            try {
-                              const response =
-                                await fetch(
-                                  `/api/modasphere/tales/admin/${story._id}`,
-                                  {
-                                    headers: {
-                                      Authorization: `Bearer ${getAdminToken()}`,
-                                    },
-                                  }
-                                );
-
-                              const data =
-                                await response.json();
-
-                              if (!response.ok) {
-                                throw new Error(
-                                  data.message ||
-                                    "Failed to fetch story details"
-                                );
-                              }
-
-                              setSelectedStory(
-                                data.tale
-                              );
-                            } catch (error) {
-                              console.error(
-                                "Failed to load story details:",
-                                error
-                              );
-
-                              alert(
-                                error.message ||
-                                  "Failed to load story details"
-                              );
-                            }
-                          }}
+                          onClick={() => openStoryDetails(story)}
                         >
                           <Eye size={15} />
                           View
@@ -340,29 +301,23 @@ function AdminTales() {
       {selectedStory && (
         <div
           className="admin-tales-modal-overlay"
-          onClick={() => setSelectedStory(null)}
+          onClick={closeModal}
         >
           <div
             className="admin-tales-modal"
-            onClick={(e) =>
-              e.stopPropagation()
-            }
+            onClick={(event) => event.stopPropagation()}
           >
             <div className="admin-tales-modal-header">
               <div>
                 <span>STORY DETAILS</span>
-
-                <h2>
-                  {selectedStory.name ||
-                    "Story"}
-                </h2>
+                <h2>{selectedStory.name || "Story"}</h2>
               </div>
 
               <button
                 type="button"
-                onClick={() =>
-                  setSelectedStory(null)
-                }
+                onClick={closeModal}
+                disabled={removing}
+                aria-label="Close story details"
               >
                 <X size={20} />
               </button>
@@ -371,90 +326,92 @@ function AdminTales() {
             <div className="admin-tales-details">
               <div>
                 <span>NAME</span>
-
-                <strong>
-                  {selectedStory.name || "—"}
-                </strong>
+                <strong>{selectedStory.name || "—"}</strong>
               </div>
 
               <div>
                 <span>EMAIL</span>
-
-                <strong>
-                  {selectedStory.email || "—"}
-                </strong>
+                <strong>{selectedStory.email || "—"}</strong>
               </div>
 
               <div>
                 <span>STORY TYPE</span>
-
-                <strong>
-                  {selectedStory.storyType ||
-                    "—"}
-                </strong>
+                <strong>{selectedStory.storyType || "—"}</strong>
               </div>
 
               <div>
                 <span>SUBMITTED DATE</span>
-
-                <strong>
-                  {selectedStory.submittedAt ||
-                    "—"}
-                </strong>
+                <strong>{formatDate(selectedStory.submittedAt)}</strong>
               </div>
 
               <div>
                 <span>STATUS</span>
-
-                <select
-                  value={
-                    selectedStory.status ||
-                    "New"
-                  }
-                  onChange={(e) =>
-                    updateStoryStatus(
-                      selectedStory._id,
-                      e.target.value
-                    )
-                  }
-                >
-                  <option value="New">
-                    New
-                  </option>
-
-                  <option value="Reviewed">
-                    Reviewed
-                  </option>
-
-                  <option value="Approved">
-                    Approved
-                  </option>
-
-                  <option value="Rejected">
-                    Rejected
-                  </option>
-                </select>
+                <strong>
+                  {isRemoved(selectedStory)
+                    ? "Removed by admin"
+                    : selectedStory.status === "Approved"
+                      ? "Published"
+                      : selectedStory.status || "New"}
+                </strong>
               </div>
+   
+              {!isRemoved(selectedStory) && (
+                <div className="admin-tales-detail-message">
+                  <span>MESSAGE</span>
+                  <p>{selectedStory.message || "—"}</p>
+                </div>
+              )}
 
-              <div className="admin-tales-detail-message">
-                <span>MESSAGE</span>
+              {isRemoved(selectedStory) ? (
+                <div className="admin-tales-detail-message">
+                  <span>REMOVAL DETAILS</span>
 
-                <p>
-                  {selectedStory.message ||
-                    "—"}
-                </p>
+                  <p>
+                    <strong>Removed on:</strong>{" "}
+                    {formatDate(selectedStory.removedAt)}
+                  </p>
 
-                <button
-                  type="button"
-                  onClick={() =>
-                    deleteStory(
-                      selectedStory._id
-                    )
-                  }
-                >
-                  Delete Story
-                </button>
-              </div>
+                  <p>
+                    <strong>Reason:</strong>{" "}
+                    {selectedStory.removalReason || "No reason recorded"}
+                  </p>
+
+                  <p>
+                    This story is no longer visible to the public.
+                  </p>
+                </div>
+              ) : (
+                <div className="admin-tales-detail-message">
+                  <label htmlFor="tale-removal-reason">
+                    Removal reason
+                  </label>
+
+                  <textarea
+                    id="tale-removal-reason"
+                    value={removalReason}
+                    onChange={(event) =>
+                      setRemovalReason(event.target.value.slice(0, 500))
+                    }
+                    placeholder="Explain why this story should be removed..."
+                    rows={4}
+                    maxLength={500}
+                    disabled={removing}
+                  />
+
+                  <small>
+                    {removalReason.length}/500 characters. A reason is required.
+                  </small>
+
+                  <button
+                    type="button"
+                    onClick={removeStory}
+                    disabled={removing || !removalReason.trim()}
+                  >
+                    <Trash2 size={15} />
+                    {removing ? "Removing..." : "Remove Story"}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

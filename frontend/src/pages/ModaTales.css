@@ -310,3 +310,7 @@
     padding: 28px 20px;
   }
 }
+
+.modatales-card small {
+  display: block;
+}

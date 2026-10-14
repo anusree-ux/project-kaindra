@@ -7,6 +7,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import "./ModaTales.css";
+import apiClient from "../services/apiClient";
 
 const stories = [
   {
@@ -56,36 +57,27 @@ function ModaTales() {
 
   const handleSubmit = async (e) => {
   e.preventDefault();
-
-    const formData = new FormData(e.target);
+    const form = e.target;
+    const formData = new FormData(form);
 
     const story = {
-      name: formData.get("name"),
-      email: formData.get("email"),
+      title: formData.get("title"),
       storyType: formData.get("storyType"),
       message: formData.get("message"),
     };
 
     try {
-      const response = await fetch("/api/modasphere/tales", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(story),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to submit story");
-      }
+      await apiClient.post("/api/modasphere/tales", story);
 
       setSubmitted(true);
-      e.target.reset();
+      form.reset();
     } catch (error) {
       console.error("ModaTales submission error:", error);
-      alert(error.message || "Failed to submit story. Please try again.");
+      alert(
+          error.response?.data?.message ||
+            error.message ||
+            "Failed to submit story. Please try again."
+      );
     }
   };
 
@@ -168,11 +160,14 @@ function ModaTales() {
                     <BookOpen size={23} />
                   </div>
 
-                  <h3>{tale.name}</h3>
-
+                  <h3>{tale.title}</h3>
+                  
                   <p>{tale.message}</p>
 
                   <small>{tale.storyType}</small>
+
+                  <small>By {tale.name}</small>
+
                 </article>
               ))}
           </div>
@@ -244,16 +239,9 @@ function ModaTales() {
 
                 <form onSubmit={handleSubmit}>
                   <input
-                    name="name"
+                    name="title"
                     type="text"
-                    placeholder="Your name"
-                    required
-                  />
-
-                  <input
-                    name="email"
-                    type="email"
-                    placeholder="Email address"
+                    placeholder="Story title"
                     required
                   />
 
