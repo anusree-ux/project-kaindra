@@ -78,7 +78,7 @@ jobs:
             '[
               ("curl -fsSL https://raw.githubusercontent.com/" + $repo + "/" + $sha + "/docker/deploy.sh -o /tmp/deploy.sh"),
               "chmod +x /tmp/deploy.sh",
-              ("AWS_REGION=" + $region + " SECRET_NAME=" + $secret + " ECR_REGISTRY=" + $registry + " IMAGE_TAG=" + $image_tag + " GITHUB_SHA=" + $github_sha + " GITHUB_REPOSITORY=" + $repo + " /tmp/deploy.sh")
+              ("AWS_REGION=" + $region + " SECRET_NAME=" + $secret + " ECR_REGISTRY=" + $registry + " IMAGE_TAG=" + $image_tag + " GITHUB_SHA=" + $github_sha + " GITHUB_REPOSITORY=" + $repo + " /bin/bash /tmp/deploy.sh")
             ]')
 
           COMMAND_ID=$(aws ssm send-command \
