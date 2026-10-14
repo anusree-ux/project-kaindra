@@ -10,10 +10,15 @@ const talesValidator = require("../../validators/modasphere/talesValidator");
 const {
   createTale,
   getApprovedTales,
+  getMyTales,
+  updateMyTale,
+  updateMyTalePublication,
+  deleteMyTale,
+  removeTaleByAdmin,
   getAdminTales,
   getAdminTaleById,
   updateTaleStatus,
-  deleteTale,
+  deleteTaleByAdmin,
 } = require("../../controllers/modasphere/talesController");
 
 const router = express.Router();
@@ -25,6 +30,7 @@ const router = express.Router();
 // Submit a story
 router.post(
   "/",
+  protect,
   talesValidator,
   createTale
 );
@@ -35,6 +41,27 @@ router.get(
   getApprovedTales
 );
 
+// Get stories submitted by the logged-in user
+router.get(
+  "/my",
+  protect,
+  getMyTales
+);
+
+// Edit your own story
+router.patch(
+  "/:id",
+  protect,
+  talesValidator,
+  updateMyTale
+);
+
+// Publish or move your own story to drafts
+router.patch(
+  "/:id/publication",
+  protect,
+  updateMyTalePublication
+);
 /*
  * Admin routes
  */
@@ -55,6 +82,15 @@ router.get(
   getAdminTaleById
 );
 
+
+router.patch(
+  "/admin/:id/remove",
+  protect,
+  authorize("admin"),
+  removeTaleByAdmin
+);
+
+
 // Update story status
 router.patch(
   "/admin/:id/status",
@@ -63,12 +99,8 @@ router.patch(
   updateTaleStatus
 );
 
-// Delete story submission
-router.delete(
-  "/admin/:id",
-  protect,
-  authorize("admin"),
-  deleteTale
-);
+router.delete("/admin/:id", protect, authorize("admin"), deleteTaleByAdmin);
+
+router.delete("/:id", protect, deleteMyTale);
 
 module.exports = router;

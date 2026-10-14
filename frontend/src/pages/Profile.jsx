@@ -10,6 +10,10 @@ function Profile() {
   const { user, isAuthenticated, loading, logout, openAuthModal } = useAuth();
   const [orders, setOrders] = useState([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
+  const [myStories, setMyStories] = useState([]);
+  const [storiesLoading, setStoriesLoading] = useState(false);
+  const [editingStory, setEditingStory] = useState(null);
+  const [savingStory, setSavingStory] = useState(false);
 
   const handleBack = () => {
     if (window.history.length > 2) {
@@ -68,6 +72,114 @@ function Profile() {
     };
   }, [isAuthenticated]);
 
+  // Fetch stories submitted by the logged-in user
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    let isMounted = true;
+
+    const fetchMyStories = async () => {
+      try {
+        setStoriesLoading(true);
+
+        const res = await apiClient.get("/api/modasphere/tales/my");
+
+        if (isMounted) {
+          setMyStories(res.data?.tales || []);
+        }
+      } catch (error) {
+        console.error("Failed to fetch your stories:", error);
+
+        if (isMounted) {
+          setMyStories([]);
+        }
+      } finally {
+        if (isMounted) {
+          setStoriesLoading(false);
+        }
+      }
+    };
+
+    fetchMyStories();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isAuthenticated]);
+
+    const deleteMyStory = async (storyId) => {
+      if (!window.confirm("Permanently delete this story?")) return;
+
+      try {
+        await apiClient.delete(`/api/modasphere/tales/${storyId}`);
+
+        setMyStories((currentStories) =>
+          currentStories.filter((story) => story._id !== storyId)
+        );
+      } catch (error) {
+        console.error("Delete story error:", error.response?.data || error);
+        alert(
+          error.response?.data?.message || "Failed to delete story."
+        );
+      }
+    };
+
+    const saveStoryEdit = async (event) => {
+      event.preventDefault();
+      if (!editingStory || savingStory) return;
+
+      setSavingStory(true);
+
+      try {
+        const res = await apiClient.patch(
+          `/api/modasphere/tales/${editingStory._id}`,
+          {
+            title: editingStory.title,
+            storyType: editingStory.storyType,
+            message: editingStory.message,
+          }
+        );
+
+        setMyStories((current) =>
+          current.map((story) =>
+            story._id === editingStory._id ? res.data.tale : story
+          )
+        );
+
+        setEditingStory(null);
+        alert("Story updated successfully.");
+      } catch (error) {
+        const validationErrors = error.response?.data?.errors;
+
+        alert(
+          validationErrors?.map((item) => item.message).join("\n") ||
+          error.response?.data?.message ||
+          "Failed to update story."
+        );
+      } finally {
+        setSavingStory(false);
+      }
+    };
+
+    const changePublicationStatus = async (story, publicationStatus) => {
+      try {
+        const res = await apiClient.patch(
+          `/api/modasphere/tales/${story._id}/publication`,
+          { publicationStatus }
+        );
+
+        setMyStories((current) =>
+          current.map((item) =>
+            item._id === story._id ? res.data.tale : item
+          )
+        );
+      } catch (error) {
+        alert(
+          error.response?.data?.message ||
+          "Failed to update publication status."
+        );
+      }
+    };
   // 1. Clean loading state during silent session restore (prevents flicker)
   if (loading) {
     return (
@@ -336,6 +448,229 @@ function Profile() {
             </div>
           )}
         </div>
+
+        {/* My Stories Section */}
+        <div className="kp-section-card">
+          <div className="kp-section-header kp-orders-header-row">
+            <div>
+              <h2>My Stories</h2>
+              <p className="kp-section-subtitle">
+                View the stories you have shared with the ModaSphere community.
+              </p>
+            </div>
+
+            {myStories.length > 0 && (
+              <span className="kp-order-count-chip">
+                {myStories.length} {myStories.length === 1 ? "Story" : "Stories"}
+              </span>
+            )}
+          </div>
+
+          {storiesLoading ? (
+            <div className="kp-orders-loading">
+              <div className="kp-spinner-small"></div>
+              <span>Fetching your stories...</span>
+            </div>
+          ) : myStories.length === 0 ? (
+            <div className="kp-orders-empty">
+              <div className="kp-empty-icon">📖</div>
+              <h3>No Stories Yet</h3>
+              <p>
+                You haven't shared any stories with the ModaSphere community yet.
+              </p>
+            </div>
+          ) : (
+            <div className="kp-table-wrapper">
+              <table className="kp-orders-table">
+                <thead>
+                  <tr>
+                    <th>STORY TYPE</th>
+                    <th>STORY</th>
+                    <th>SUBMITTED</th>
+                    <th>STATUS</th>
+                    <th>ACTION</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {myStories.map((story) => (
+                    <tr key={story._id}>
+                      <td>{story.storyType || "—"}</td>
+
+                      <td className="kp-items-cell">
+                        <span className="kp-items-text" title={story.message}>
+                          {story.message || "—"}
+                        </span>
+                      </td>
+
+                      <td className="kp-date-cell">
+                        {formatDate(story.submittedAt)}
+                      </td>
+
+                      <td>
+                        <span
+                          className={`kp-status-badge ${
+                            story.status === "Removed" || story.removedAt
+                              ? "kp-status-cancelled"
+                              : story.publicationStatus === "Draft"
+                               ? "kp-status-processing"
+                              : story.status === "Approved"
+                                ? "kp-status-delivered"
+                                : story.status === "Rejected"
+                                  ? "kp-status-cancelled"
+                                  : "kp-status-processing"
+                          }`}
+                        >
+                          {story.status === "Removed" || story.removedAt
+                            ? "Removed by admin"
+                            : story.status === "Approved"
+                              ? (story.publicationStatus || "Published")
+                              : story.status || "Pending"}
+                        </span>
+
+                        {(story.status === "Removed" || story.removedAt) &&
+                          story.removalReason && (
+                            <p className="kp-story-removal-reason">
+                              Reason: {story.removalReason}
+                            </p>
+                          )}
+                      </td>
+
+                      <td>
+                        {story.status === "Removed" || story.removedAt ? (
+                          <span className="kp-story-readonly">
+                            Read only
+                          </span>
+                        ) : (
+                          <div className="kp-story-actions">
+                            <button
+                              type="button"
+                              className="kp-story-edit-button"
+                              onClick={() =>
+                                setEditingStory({
+                                  _id: story._id,
+                                  title: story.title || "",
+                                  storyType: story.storyType || "",
+                                  message: story.message || "",
+                                })
+                              }
+                            >
+                              Edit
+                            </button>
+
+                            {story.status === "Approved" && (
+                              <button
+                                type="button"
+                                className="kp-story-edit-button"
+                                onClick={() =>
+                                  changePublicationStatus(
+                                    story,
+                                    (story.publicationStatus || "Published") === "Published"
+                                      ? "Draft"
+                                      : "Published"
+                                  )
+                                }
+                              >
+                                {(story.publicationStatus || "Published") === "Published"
+                                  ? "Make draft"
+                                  : "Publish"}
+                              </button>
+                            )}
+
+                            <button
+                              type="button"
+                              className="kp-story-delete-button"
+                              onClick={() => deleteMyStory(story._id)}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+        
+        {editingStory && (
+          <div
+            className="kp-story-edit-overlay"
+            onClick={() => !savingStory && setEditingStory(null)}
+          >
+            <form
+              className="kp-story-edit-form"
+              onSubmit={saveStoryEdit}
+              onClick={(event) => event.stopPropagation()}
+            >
+              <h2>Edit your story</h2>
+              <p>Update your story details and save your changes.</p>
+
+              <label>
+                Story title
+                <input
+                  value={editingStory.title}
+                  maxLength={150}
+                  required
+                  onChange={(event) =>
+                    setEditingStory({
+                      ...editingStory,
+                      title: event.target.value,
+                    })
+                  }
+                />
+              </label>
+
+              <label>
+                Story type
+                <input
+                  value={editingStory.storyType}
+                  maxLength={100}
+                  required
+                  onChange={(event) =>
+                    setEditingStory({
+                      ...editingStory,
+                      storyType: event.target.value,
+                    })
+                  }
+                />
+              </label>
+
+              <label>
+                Story
+                <textarea
+                  value={editingStory.message}
+                  minLength={10}
+                  maxLength={5000}
+                  required
+                  rows={7}
+                  onChange={(event) =>
+                    setEditingStory({
+                      ...editingStory,
+                      message: event.target.value,
+                    })
+                  }
+                />
+              </label>
+
+              <div className="kp-story-actions">
+                <button type="submit" disabled={savingStory}>
+                  {savingStory ? "Saving..." : "Save changes"}
+                </button>
+
+                <button
+                  type="button"
+                  disabled={savingStory}
+                  onClick={() => setEditingStory(null)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
 
         {/* Ecosystem Brand Profiles */}
         <div className="kp-section-card">
