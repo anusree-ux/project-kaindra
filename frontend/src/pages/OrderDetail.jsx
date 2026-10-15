@@ -133,7 +133,9 @@ export default function OrderDetail() {
       try {
         const refundRes = await apiClient.get(`/api/modasphere/orders/${orderId}/refund-status`);
         setRefundData(refundRes.data?.data || null);
-      } catch {}
+      } catch {
+        // Refund status is optional; cancellation has already succeeded.
+      }
     } catch (err) {
       console.error("[OrderDetail] Failed to cancel order:", err);
       setActionMessage({

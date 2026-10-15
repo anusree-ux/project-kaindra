@@ -59,16 +59,6 @@ export function AuthProvider({ children }) {
     checkAuth();
   }, [checkAuth]);
 
-  // Login handler - passwordless Google OAuth
-  const login = useCallback(async (credentials) => {
-    if (typeof credentials === "object" && (credentials.credential || credentials.googleId)) {
-      return loginWithGoogle(credentials);
-    }
-    return {
-      success: false,
-      message: "Password authentication is disabled. Please sign in with Google.",
-    };
-  }, [loginWithGoogle]);
 
   // Google OAuth Login handler (bypasses OTP completely)
   const loginWithGoogle = useCallback(async (googleData) => {
@@ -90,12 +80,11 @@ export function AuthProvider({ children }) {
             role: user.role || "user",
           };
           localStorage.setItem("mototribe_user", JSON.stringify(mtUser));
-        } catch {}
+        } catch {
+          // Ignore localStorage errors; Google login can still succeed.
+        }
 
-        return {
-          success: true,
-          user,
-        };
+        return { success: true, user };
       }
 
       return {
@@ -111,11 +100,32 @@ export function AuthProvider({ children }) {
     }
   }, [closeAuthModal, updateToken]);
 
+  // Login handler - passwordless Google OAuth
+  const login = useCallback(async (credentials) => {
+    if (
+      typeof credentials === "object" &&
+      credentials !== null &&
+      (credentials.credential || credentials.googleId)
+    ) {
+      return loginWithGoogle(credentials);
+    }
+
+    return {
+      success: false,
+      message: "Password authentication is disabled. Please sign in with Google.",
+    };
+  }, [loginWithGoogle]);
+
   // Signup handler - passwordless Google OAuth
   const signup = useCallback(async (formData) => {
-    if (typeof formData === "object" && (formData.credential || formData.googleId)) {
+    if (
+      typeof formData === "object" &&
+      formData !== null &&
+      (formData.credential || formData.googleId)
+    ) {
       return loginWithGoogle(formData);
     }
+
     return {
       success: false,
       message: "Password signup is disabled. Please sign up with Google.",
