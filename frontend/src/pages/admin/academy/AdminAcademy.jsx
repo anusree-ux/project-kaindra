@@ -25,6 +25,8 @@ function AdminAcademy() {
   const [courses, setCourses] = useState([]);
   const [loadingCourses, setLoadingCourses] = useState(false);
   const [updatingCourseId, setUpdatingCourseId] = useState(null);
+  const [courseEditor, setCourseEditor] = useState(null);
+  const [courseEditorJson, setCourseEditorJson] = useState("");
 
   useEffect(() => {
     const loadCourses = async () => {
@@ -111,6 +113,45 @@ function AdminAcademy() {
       window.alert(error.message || "Failed to update course status");
     } finally {
       setUpdatingCourseId(null);
+    }
+  };
+
+  const openCourseEditor = (course = null) => {
+    setCourseEditor(course || { _id: null });
+    const payload = course
+      ? (({ _id, slug, instructor, createdBy, createdAt, updatedAt, publishedAt, ...editable }) => editable)(course)
+      : { title: "", description: "", category: "", level: "beginner", modules: [] };
+    setCourseEditorJson(JSON.stringify(payload, null, 2));
+  };
+
+  const saveCourse = async (event) => {
+    event.preventDefault();
+    let payload;
+    try {
+      payload = JSON.parse(courseEditorJson);
+    } catch {
+      window.alert("Course data must be valid JSON.");
+      return;
+    }
+    const token = localStorage.getItem("token");
+    if (!token) return window.alert("You are not logged in.");
+    const editing = Boolean(courseEditor?._id);
+    try {
+      const response = await fetch(editing
+        ? `/api/modasphere/academy/courses/${courseEditor._id}`
+        : "/api/modasphere/academy/courses", {
+        method: editing ? "PATCH" : "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(payload),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) throw new Error(result.message || "Unable to save course");
+      setCourses((current) => editing
+        ? current.map((item) => item._id === result.course._id ? result.course : item)
+        : [result.course, ...current]);
+      setCourseEditor(null);
+    } catch (error) {
+      window.alert(error.message || "Unable to save course");
     }
   };
 
@@ -385,6 +426,7 @@ function AdminAcademy() {
         <section aria-labelledby="admin-academy-courses-heading">
           <div className="admin-academy-toolbar">
             <h2 id="admin-academy-courses-heading">Courses</h2>
+            <button type="button" className="admin-academy-view-button" onClick={() => openCourseEditor()}>Create course</button>
             <span className="admin-academy-result-count">
               {totalCourses} course{totalCourses !== 1 ? "s" : ""}
             </span>
@@ -448,6 +490,7 @@ function AdminAcademy() {
                           </span>
                         </td>
                         <td>
+                          <button type="button" className="admin-academy-view-button" onClick={() => openCourseEditor(course)}>Edit content</button>
                           <button
                             type="button"
                             className="admin-academy-view-button"
@@ -469,6 +512,18 @@ function AdminAcademy() {
             </div>
           )}
         </section>
+
+        {courseEditor && (
+          <section role="dialog" aria-modal="true" aria-labelledby="academy-course-editor-title" className="admin-academy-table-card" style={{ margin: "24px 0", padding: 20 }}>
+            <h2 id="academy-course-editor-title">{courseEditor._id ? "Edit course" : "Create course"}</h2>
+            <p>Use the course structure below. Each module can contain nested lessons and submodules. Existing flat modules remain supported.</p>
+            <form onSubmit={saveCourse}>
+              <textarea aria-label="Course JSON" value={courseEditorJson} onChange={(event) => setCourseEditorJson(event.target.value)} rows={18} spellCheck="false" style={{ width: "100%", fontFamily: "monospace" }} />
+              <button type="submit" className="admin-academy-view-button">Save course</button>
+              <button type="button" className="admin-academy-view-button" onClick={() => setCourseEditor(null)}>Cancel</button>
+            </form>
+          </section>
+        )}
 
         {/* =================================
             SEARCH

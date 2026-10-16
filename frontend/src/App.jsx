@@ -43,6 +43,7 @@ import ModaPay from "./pages/ModaPay";
 import ModaInfluence from "./pages/ModaInfluence";
 import ModaTales from "./pages/ModaTales";
 import ModaAcademy from "./pages/ModaAcademy";
+import CourseLearning from "./pages/CourseLearning";
 import ModaInsights from "./pages/ModaInsights";
 
 import AdminLogin from "./pages/admin/AdminLogin";
@@ -412,6 +413,15 @@ function App() {
             element={
               <PublicLayout>
                 <ModaAcademy />
+              </PublicLayout>
+            }
+          />
+
+          <Route
+            path="/businesses/modaacademy/learn/:courseId"
+            element={
+              <PublicLayout>
+                <CourseLearning />
               </PublicLayout>
             }
           />

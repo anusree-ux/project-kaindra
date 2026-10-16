@@ -38,16 +38,6 @@ const protect = async (req, res, next) => {
       );
     }
 
-    // Enforce phone verification check on protected routes
-    if (!currentUser.isPhoneVerified) {
-      return next(
-        new AppError(
-          "Your phone number is not verified. Please complete OTP verification.",
-          403
-        )
-      );
-    }
-
     // Grant access to protected route
     req.user = currentUser;
     next();

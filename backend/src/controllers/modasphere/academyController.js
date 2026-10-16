@@ -1,4 +1,27 @@
+const mongoose = require("mongoose");
 const ModaCourse = require("../../models/modasphere/ModaCourse");
+const ModaAcademyEnrollment = require("../../models/modasphere/CourseEnrollment");
+
+const stripQuizAnswerKeys = (course) => {
+  const data = typeof course.toObject === "function" ? course.toObject() : course;
+  const strip = (lesson) => {
+    if (lesson?.type === "quiz") lesson.quizQuestions = (lesson.quizQuestions || []).map(({ _id, question, options }) => ({ _id, question, options }));
+  };
+  (data.modules || []).forEach((module) => {
+    strip(module);
+    (module.lessons || []).forEach(strip);
+    (module.submodules || []).forEach((submodule) => (submodule.lessons || []).forEach(strip));
+  });
+  return data;
+};
+
+const getCourseDuration = (modules = []) => modules.reduce((total, module) => {
+  const lessonDurations = [
+    ...(module.lessons || []),
+    ...(module.submodules || []).flatMap((submodule) => submodule.lessons || []),
+  ].reduce((sum, lesson) => sum + (Number(lesson.durationMinutes) || 0), 0);
+  return total + (lessonDurations || Number(module.durationMinutes) || 0);
+}, 0);
 
 // Create course
 const createCourse = async (req, res) => {
@@ -44,12 +67,7 @@ const createCourse = async (req, res) => {
       coverImage,
       tags,
       modules,
-      durationMinutes: modules
-        ? modules.reduce(
-            (total, module) => total + (Number(module.durationMinutes) || 0),
-            0
-          )
-        : 0,
+      durationMinutes: getCourseDuration(modules),
       isFeatured: isFeatured || false,
       status: status || "draft",
       instructor: req.user._id,
@@ -83,7 +101,7 @@ const getPublishedCourses = async (req, res) => {
     res.status(200).json({
       success: true,
       count: courses.length,
-      courses,
+      courses: courses.map(stripQuizAnswerKeys),
     });
   } catch (error) {
     console.error("Get published courses error:", error);
@@ -138,7 +156,7 @@ const getPublishedCourseBySlug = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      course,
+      course: stripQuizAnswerKeys(course),
     });
   } catch (error) {
     console.error("Get published course error:", error);
@@ -283,10 +301,7 @@ const updateCourse = async (req, res) => {
     if (modules !== undefined) {
       course.modules = modules;
 
-      course.durationMinutes = modules.reduce(
-        (total, module) => total + (Number(module.durationMinutes) || 0),
-        0
-      );
+      course.durationMinutes = getCourseDuration(modules);
     }
     if (isFeatured !== undefined) course.isFeatured = isFeatured;
 
@@ -335,11 +350,83 @@ const deleteCourse = async (req, res) => {
   }
 };
 
+// Student - Get an enrolled course by ID
+const getEnrolledCourseById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid course ID",
+      });
+    }
+
+    const enrollment = await ModaAcademyEnrollment.findOne({
+      email: req.user.email,
+      courseId: id,
+    });
+
+    if (!enrollment) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not enrolled in this course",
+      });
+    }
+
+    const course = await ModaCourse.findOne({
+      _id: id,
+      status: "published",
+    }).populate("instructor", "name");
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found",
+      });
+    }
+
+    const courseData = stripQuizAnswerKeys(course);
+    const progressSummary = ModaCourse.getProgress(course, enrollment.completedLessonIds || []);
+    if (enrollment.progress !== progressSummary.progress || enrollment.status !== progressSummary.status) {
+      enrollment.progress = progressSummary.progress;
+      enrollment.status = progressSummary.status;
+      await enrollment.save();
+    }
+
+    return res.status(200).json({
+      success: true,
+      course: courseData,
+      progress: progressSummary.progress,
+      completedRequiredLessons: progressSummary.completedRequiredLessons,
+      totalRequiredLessons: progressSummary.totalRequiredLessons,
+      completedLessonIds: enrollment.completedLessonIds || [],
+      taskSubmissions: (enrollment.taskSubmissions || []).map((submission) => ({
+        lessonId: submission.lessonId,
+        fileUrl: submission.fileUrl,
+        fileName: submission.fileName,
+        mimeType: submission.mimeType,
+        fileSize: submission.fileSize,
+        submittedAt: submission.submittedAt,
+      })),
+    });
+  } catch (error) {
+    console.error("Get enrolled course error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch course",
+    });
+  }
+};
+
+
 module.exports = {
   createCourse,
   getPublishedCourses,
   getAllCoursesForAdmin,
   getPublishedCourseBySlug,
+  getEnrolledCourseById,
   publishCourse,
   updateCourseStatus,
   updateCourse,

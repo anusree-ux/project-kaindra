@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import {
   GraduationCap,
@@ -15,6 +16,7 @@ import {
   Clock,
   UserRound,
   BarChart3,
+  MoreVertical,
 } from "lucide-react";
 
 import "./ModaAcademy.css";
@@ -138,6 +140,7 @@ const learningAreas = [
 ];
 
 function ModaAcademy() {
+  const navigate = useNavigate();
   const [courses, setCourses] = useState([]);
   const [loadingCourses, setLoadingCourses] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState(null);
@@ -147,12 +150,8 @@ function ModaAcademy() {
   const [enrollments, setEnrollments] = useState([]);
   const [loadingEnrollments, setLoadingEnrollments] = useState(false);
 
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    experience: "Beginner",
-  });
+  const [openEnrollmentMenuId, setOpenEnrollmentMenuId] = useState(null);
+  const [unenrollingId, setUnenrollingId] = useState(null);
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -249,11 +248,65 @@ function ModaAcademy() {
     fetchMyEnrollments();
   }, []);
 
+  const handleUnenroll = async (enrollment) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to unenroll from "${enrollment.courseName}"? Your enrollment will be removed.`
+    );
+
+    if (!confirmed) {
+      setOpenEnrollmentMenuId(null);
+      return;
+    }
+
+    const accessToken = localStorage.getItem("token");
+
+    if (!accessToken) {
+      window.alert("Please log in again to continue.");
+      return;
+    }
+
+    setUnenrollingId(enrollment._id);
+
+    try {
+      const response = await fetch(
+        `/api/modasphere/academy/enrollments/${enrollment._id}/unenroll`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "Failed to unenroll.");
+      }
+
+      setEnrollments((current) =>
+        current.filter((item) => item._id !== enrollment._id)
+      );
+      setOpenEnrollmentMenuId(null);
+    } catch (error) {
+      window.alert(error.message || "Unable to unenroll. Please try again.");
+    } finally {
+      setUnenrollingId(null);
+    }
+  };
+
   /* =========================================
      OPEN ENROLLMENT
   ========================================= */
 
   const openEnrollment = (course) => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
     setSelectedCourse(course);
     setShowEnrollment(true);
   };
@@ -265,27 +318,8 @@ function ModaAcademy() {
   const closeEnrollment = () => {
     setShowEnrollment(false);
     setSelectedCourse(null);
-
-    setFormData({
-      name: "",
-      email: "",
-      phone: "",
-      experience: "Beginner",
-    });
   };
 
-  /* =========================================
-     FORM CHANGE
-  ========================================= */
-
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-
-    setFormData((current) => ({
-      ...current,
-      [name]: value,
-    }));
-  };
 
   /* =========================================
      SUBMIT ENROLLMENT
@@ -298,6 +332,14 @@ function ModaAcademy() {
       return;
     }
 
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      closeEnrollment();
+      navigate("/login");
+      return;
+    }
+
     try {
       const response = await fetch(
         "/api/modasphere/academy/enrollments",
@@ -305,6 +347,7 @@ function ModaAcademy() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
             courseId: selectedCourse._id || selectedCourse.id,
@@ -315,10 +358,6 @@ function ModaAcademy() {
               ? `${selectedCourse.durationMinutes} min`
               : selectedCourse.duration || "Self-paced",
             instructor: selectedCourse.instructor,
-            name: formData.name,
-            email: formData.email,
-            phone: formData.phone,
-            experience: formData.experience,
           }),
         }
       );
@@ -330,13 +369,6 @@ function ModaAcademy() {
           result.message || "Failed to submit enrollment"
         );
       }
-
-      /*
-       * Do NOT store the student's email in localStorage.
-       *
-       * My Learning is now determined by the logged-in
-       * user's access token.
-       */
 
       setEnrollments((current) => [
         result.data,
@@ -642,24 +674,78 @@ function ModaAcademy() {
                 <article
                   className="modaacademy-learning-card"
                   key={enrollment._id}
+                  role="link"
+                  tabIndex={0}
+                  
+                  onClick={() => {
+                    const courseId =
+                      enrollment.courseId?._id ||
+                      enrollment.courseId ||
+                      enrollment.course?._id;
+
+                    if (courseId) {
+                      navigate(`/businesses/modaacademy/learn/${courseId}`);
+                    }
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+
+                      const courseId =
+                        enrollment.courseId?._id ||
+                        enrollment.courseId ||
+                        enrollment.course?._id;
+
+                      if (courseId) {
+                        navigate(`/businesses/modaacademy/learn/${courseId}`);
+                      }
+                    }
+                  }}
+
+                  style={{ cursor: "pointer" }}
                 >
 
                   <div className="learning-card-header">
-
                     <div>
-
-                      <span>
-                        {enrollment.enrollmentId}
-                      </span>
-
-                      <h3>
-                        {enrollment.courseName}
-                      </h3>
-
+                      <span>{enrollment.enrollmentId}</span>
+                      <h3>{enrollment.courseName}</h3>
                     </div>
 
-                    <CheckCircle2 size={24} />
+                    <div className="learning-card-actions">
+                      <CheckCircle2 size={24} />
 
+                      <button
+                        type="button"
+                        className="learning-card-menu-trigger"
+                        aria-label="Course options"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setOpenEnrollmentMenuId((current) =>
+                            current === enrollment._id ? null : enrollment._id
+                          );
+                        }}
+                      >
+                        <MoreVertical size={21} />
+                      </button>
+
+                      {openEnrollmentMenuId === enrollment._id && (
+                        <div
+                          className="learning-card-menu"
+                          onClick={(event) => event.stopPropagation()}
+                        >
+                          <button
+                            type="button"
+                            className="learning-card-unenroll"
+                            disabled={unenrollingId === enrollment._id}
+                            onClick={() => handleUnenroll(enrollment)}
+                          >
+                            {unenrollingId === enrollment._id
+                              ? "Unenrolling..."
+                              : "Unenroll"}
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div className="learning-card-info">
@@ -679,7 +765,7 @@ function ModaAcademy() {
                       <span>LEVEL</span>
 
                       <strong>
-                        {enrollment.experience}
+                        {enrollment.level || "Beginner"}
                       </strong>
 
                     </div>
@@ -719,8 +805,26 @@ function ModaAcademy() {
                       />
 
                     </div>
-
                   </div>
+                  <button
+                    type="button"
+                    className="learning-card-resume"
+                    onClick={(event) => {
+                      event.stopPropagation();
+
+                      const courseId =
+                        enrollment.courseId?._id ||
+                        enrollment.courseId ||
+                        enrollment.course?._id;
+
+                      if (courseId) {
+                        navigate(`/businesses/modaacademy/learn/${courseId}`);
+                      }
+                    }}
+                  >
+                    Resume Learning
+                    <ArrowRight size={16} />
+                  </button>
 
                 </article>
 
@@ -989,91 +1093,10 @@ function ModaAcademy() {
               className="modaacademy-form"
               onSubmit={handleSubmit}
             >
-
-              <div className="modaacademy-form-group">
-
-                <label>
-                  Full Name
-                </label>
-
-                <div className="modaacademy-input-wrapper">
-
-                  <UserRound size={17} />
-
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    placeholder="Enter your name"
-                    required
-                  />
-
-                </div>
-
-              </div>
-
-              <div className="modaacademy-form-group">
-
-                <label>
-                  Email
-                </label>
-
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="Enter your email"
-                  required
-                />
-
-              </div>
-
-              <div className="modaacademy-form-group">
-
-                <label>
-                  Phone
-                </label>
-
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  placeholder="Enter your phone number"
-                  required
-                />
-
-              </div>
-
-              <div className="modaacademy-form-group">
-
-                <label>
-                  Experience Level
-                </label>
-
-                <select
-                  name="experience"
-                  value={formData.experience}
-                  onChange={handleChange}
-                >
-
-                  <option value="Beginner">
-                    Beginner
-                  </option>
-
-                  <option value="Intermediate">
-                    Intermediate
-                  </option>
-
-                  <option value="Advanced">
-                    Advanced
-                  </option>
-
-                </select>
-
-              </div>
+              <p>
+                Confirm your enrollment in this course using your
+                logged-in account.
+              </p>
 
               <button
                 type="submit"
@@ -1082,9 +1105,7 @@ function ModaAcademy() {
                 Confirm Enrollment
                 <ArrowRight size={17} />
               </button>
-
             </form>
-
           </div>
 
         </div>
