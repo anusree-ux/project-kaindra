@@ -24,6 +24,7 @@ const {
   getMyEnrollments: getAcademyMyEnrollments,
   getAllEnrollments,
   deleteEnrollment,
+  unenrollFromCourse,
   updateEnrollmentProgress,
   submitQuiz,
   uploadTaskSubmission,
@@ -157,6 +158,13 @@ router.delete(
   protect,
   authorize("admin"),
   deleteEnrollment
+);
+
+// Student - Unenroll from their own course
+router.delete(
+  "/enrollments/:id/unenroll",
+  protect,
+  unenrollFromCourse
 );
 
 // Student - Get enrolled course content
