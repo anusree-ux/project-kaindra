@@ -1,5 +1,8 @@
 const express = require("express");
+const multer = require("multer");
+const path = require("path");
 const { protect, authorize } = require("../../middleware/authMiddleware");
+const AppError = require("../../utils/AppError");
 const {
   academyValidator,
   academyUpdateValidator,
@@ -12,16 +15,55 @@ const {
   publishCourse,
   updateCourseStatus,
   updateCourse,
-  deleteCourse
+  deleteCourse,
+  getEnrolledCourseById
 } = require("../../controllers/modasphere/academyController");
 const {
   createEnrollment,
   getMyEnrollments: getAcademyMyEnrollments,
   getAllEnrollments,
   deleteEnrollment,
+  updateEnrollmentProgress,
+  submitQuiz,
+  uploadTaskSubmission,
 } = require("../../controllers/modasphere/enrollmentController");
 
 const router = express.Router();
+
+const academyTaskFileTypes = {
+  ".pdf": "application/pdf",
+  ".doc": "application/msword",
+  ".docx":
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+};
+
+const taskFileUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (req, file, callback) => {
+    const extension = path.extname(file.originalname).toLowerCase();
+    if (academyTaskFileTypes[extension] !== file.mimetype) {
+      callback(
+        new AppError("Only PDF, DOC, DOCX, PNG, and JPG files are allowed.", 400),
+      );
+      return;
+    }
+    callback(null, true);
+  },
+});
+
+const uploadTaskFile = (req, res, next) => {
+  taskFileUpload.single("file")(req, res, (error) => {
+    if (!error) return next();
+    if (error instanceof multer.MulterError && error.code === "LIMIT_FILE_SIZE") {
+      return next(new AppError("Task files must be 10 MB or smaller.", 413));
+    }
+    return next(error);
+  });
+};
 
 // Public - Get published courses
 router.get("/courses", getPublishedCourses);
@@ -106,6 +148,35 @@ router.delete(
   protect,
   authorize("admin"),
   deleteEnrollment
+);
+
+// Student - Get enrolled course content
+router.get(
+  "/courses/id/:id",
+  protect,
+  getEnrolledCourseById
+);
+
+// Student - Save lesson progress
+router.patch(
+  "/enrollments/course/:courseId/progress",
+  protect,
+  updateEnrollmentProgress
+);
+
+// Student - Submit quiz answers for server-side grading
+router.post(
+  "/enrollments/course/:courseId/quizzes/:lessonId/submit",
+  protect,
+  submitQuiz,
+);
+
+// Student - Upload or replace a task submission
+router.post(
+  "/enrollments/course/:courseId/tasks/:lessonId/submission",
+  protect,
+  uploadTaskFile,
+  uploadTaskSubmission,
 );
 
 module.exports = router;
