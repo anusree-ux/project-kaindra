@@ -1,4 +1,5 @@
 const express = require("express");
+const { validationResult } = require("express-validator");
 const multer = require("multer");
 const path = require("path");
 const { protect, authorize } = require("../../middleware/authMiddleware");
@@ -29,6 +30,11 @@ const {
 } = require("../../controllers/modasphere/enrollmentController");
 
 const router = express.Router();
+const validateAcademyRequest = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ success: false, message: errors.array()[0].msg, errors: errors.array() });
+  next();
+};
 
 const academyTaskFileTypes = {
   ".pdf": "application/pdf",
@@ -82,6 +88,7 @@ router.post(
   protect,
   authorize("admin", "moderator"),
   academyValidator,
+  validateAcademyRequest,
   createCourse
 );
 
@@ -110,6 +117,7 @@ router.patch(
   protect,
   authorize("admin", "moderator"),
   academyUpdateValidator,
+  validateAcademyRequest,
   updateCourse
 );
 

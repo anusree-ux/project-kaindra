@@ -1022,3 +1022,33 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+.course-learning-quiz-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.course-learning-quiz-result {
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px solid #e3dcd3;
+  border-radius: 8px;
+  background: #fcfbf9;
+  color: #6f665d;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.course-learning-quiz-result.is-passed {
+  border-color: #dce7dc;
+  background: #f1f7f0;
+  color: #47744b;
+}
+
+.course-learning-quiz-result.is-failed {
+  border-color: #ead8d4;
+  background: #fcf3f1;
+  color: #a03932;
+}

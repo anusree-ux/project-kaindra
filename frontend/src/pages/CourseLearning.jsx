@@ -55,7 +55,7 @@ const getCourseSections = (course) =>
         })),
       }),
     ),
-    lessons: ordered(module?.lessons).map((lesson, lessonIndex) => ({
+    lessons: ordered(module?.lessons?.length ? module.lessons : (module?.content?.trim() ? [module] : [])).map((lesson, lessonIndex) => ({
       lesson,
       key: lesson?._id || `module-${moduleIndex}-lesson-${lessonIndex}`,
       moduleIndex,
@@ -63,6 +63,31 @@ const getCourseSections = (course) =>
       lessonIndex,
     })),
   }));
+
+const getProgressSummary = (lessonEntries, completedLessonIds) => {
+  const completedIds = new Set((completedLessonIds || []).map(String));
+  const requiredLessons = lessonEntries.filter(
+    (entry) => entry.lesson?.isRequired !== false,
+  );
+  const completedRequiredLessons = requiredLessons.filter((entry) =>
+    completedIds.has(String(entry.lesson?._id)),
+  ).length;
+  const totalRequiredLessons = requiredLessons.length;
+  return {
+    completedRequiredLessons,
+    totalRequiredLessons,
+    progress: totalRequiredLessons
+      ? Math.round((completedRequiredLessons / totalRequiredLessons) * 100)
+      : 0,
+  };
+};
+
+const progressResponseMatchesCourse = (result, lessonEntries, completedLessonIds) => {
+  const summary = getProgressSummary(lessonEntries, completedLessonIds);
+  return Number(result.progress) === summary.progress &&
+    Number(result.completedRequiredLessons) === summary.completedRequiredLessons &&
+    Number(result.totalRequiredLessons) === summary.totalRequiredLessons;
+};
 
 const getLessonIcon = (type) => {
   switch (type) {
@@ -163,7 +188,6 @@ function CourseLearning() {
   const navigate = useNavigate();
   const [course, setCourse] = useState(null);
   const [completedLessonIds, setCompletedLessonIds] = useState([]);
-  const [progress, setProgress] = useState(0);
   const [selectedLessonKey, setSelectedLessonKey] = useState(null);
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [quizResults, setQuizResults] = useState({});
@@ -201,6 +225,11 @@ function CourseLearning() {
     () => new Set(completedLessonIds.map(String)),
     [completedLessonIds],
   );
+  const progressSummary = useMemo(
+    () => getProgressSummary(lessons, completedLessonIds),
+    [lessons, completedLessonIds],
+  );
+  const { progress } = progressSummary;
   const completed =
     selectedLesson?._id != null && completedIds.has(String(selectedLesson._id));
 
@@ -215,7 +244,6 @@ function CourseLearning() {
       setVideoPlaybackError(false);
       setCourse(null);
       setCompletedLessonIds([]);
-      setProgress(0);
       setSelectedLessonKey(null);
       setSelectedAnswers({});
       setQuizResults({});
@@ -258,6 +286,16 @@ function CourseLearning() {
 
         const nextCourse = result.course;
         const nextSections = getCourseSections(nextCourse);
+        const loadedCompletedLessonIds = Array.isArray(result.completedLessonIds)
+          ? [...new Set(result.completedLessonIds.filter(Boolean).map(String))]
+          : [];
+        const loadedLessons = nextSections.flatMap((section) => [
+          ...section.lessons,
+          ...section.submodules.flatMap((submodule) => submodule.lessons),
+        ]);
+        if (!progressResponseMatchesCourse(result, loadedLessons, loadedCompletedLessonIds)) {
+          throw new Error("Course progress totals do not match its required lessons. Please refresh or contact an administrator.");
+        }
         const firstLesson =
           nextSections.flatMap((section) => [
             ...section.lessons,
@@ -265,15 +303,7 @@ function CourseLearning() {
           ])[0] ?? null;
 
         setCourse(nextCourse);
-        setCompletedLessonIds(
-          Array.isArray(result.completedLessonIds)
-            ? [
-                ...new Set(
-                  result.completedLessonIds.filter(Boolean).map(String),
-                ),
-              ]
-            : [],
-        );
+        setCompletedLessonIds(loadedCompletedLessonIds);
         setTaskSubmissions(
           Object.fromEntries(
             (Array.isArray(result.taskSubmissions)
@@ -286,12 +316,6 @@ function CourseLearning() {
                 submission,
               ]),
           ),
-        );
-        const nextProgress = Number(result.progress);
-        setProgress(
-          Number.isFinite(nextProgress)
-            ? Math.min(100, Math.max(0, nextProgress))
-            : 0,
         );
         setSelectedLessonKey(firstLesson?.key ?? null);
         setExpandedModules(
@@ -415,21 +439,17 @@ function CourseLearning() {
         throw new Error(result?.message || "Unable to save your progress.");
       }
 
-      if (
-        !Array.isArray(result.completedLessonIds) ||
-        !result.completedLessonIds.map(String).includes(lessonId) ||
-        !Number.isFinite(Number(result.progress))
-      ) {
+      if (!Array.isArray(result.completedLessonIds) ||
+          !result.completedLessonIds.map(String).includes(lessonId) ||
+          !progressResponseMatchesCourse(result, lessons, result.completedLessonIds)) {
         throw new Error(
-          "The server did not confirm this lesson completion. Please try again.",
+          result?.message || "The server did not confirm this lesson completion. Please try again.",
         );
       }
 
       setCompletedLessonIds([
         ...new Set(result.completedLessonIds.filter(Boolean).map(String)),
       ]);
-      const nextProgress = Number(result.progress);
-      setProgress(Math.min(100, Math.max(0, nextProgress)));
       setSaveMessage("Lesson completed. Your progress has been saved.");
     } catch (error) {
       setSaveError(error.message || "Unable to save your progress.");
@@ -506,6 +526,11 @@ function CourseLearning() {
         throw new Error(result?.message || "Unable to check your answers.");
       }
 
+      if (!Array.isArray(result.completedLessonIds) ||
+          !progressResponseMatchesCourse(result, lessons, result.completedLessonIds)) {
+        throw new Error("Quiz progress totals do not match its required lessons. Please refresh and try again.");
+      }
+
       const score = Math.min(100, Math.max(0, Number(result.score)));
       setQuizResults((current) => ({
         ...current,
@@ -515,16 +540,9 @@ function CourseLearning() {
           passingScore: Number(result.passingScore),
         },
       }));
-      if (Array.isArray(result.completedLessonIds)) {
-        setCompletedLessonIds([
-          ...new Set(result.completedLessonIds.filter(Boolean).map(String)),
-        ]);
-      }
-      if (Number.isFinite(Number(result.progress))) {
-        setProgress(
-          Math.min(100, Math.max(0, Number(result.progress))),
-        );
-      }
+      setCompletedLessonIds([
+        ...new Set(result.completedLessonIds.filter(Boolean).map(String)),
+      ]);
     } catch (error) {
       setQuizErrors((current) => ({
         ...current,
@@ -860,9 +878,22 @@ function CourseLearning() {
                 <p>Task instructions have not been added to this lesson yet.</p>
               </div>
             )}
-            <section className="course-learning-task-upload">
-              <h3>Submit your task</h3>
-              <p>
+            <section
+              className="course-learning-task-upload"
+              style={{
+                display: "grid",
+                gap: 12,
+                padding: 18,
+                border: "1px solid var(--learning-border)",
+                borderRadius: 8,
+                background: "#fff",
+              }}
+            >
+              <h3 style={{ margin: 0 }}>Submit your task</h3>
+              <p
+                className="course-learning-task-notice"
+                style={{ margin: 0, fontSize: 12, fontWeight: 500, lineHeight: 1.6 }}
+              >
                 Upload one PDF, DOC, DOCX, PNG, or JPG file up to 10 MB.
                 Uploading again replaces your previous submission.
               </p>
@@ -881,13 +912,72 @@ function CourseLearning() {
                   </span>
                 </div>
               )}
-              <label className="course-learning-file-picker">
-                <span>
+              <label
+                className="course-learning-file-picker"
+                style={{
+                  position: "relative",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 12,
+                  minHeight: 46,
+                  padding: "8px 10px 8px 14px",
+                  overflow: "hidden",
+                  border: "1px solid var(--learning-border)",
+                  borderRadius: 6,
+                  background: "var(--learning-paper)",
+                  color: "var(--learning-muted)",
+                  cursor: "pointer",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  lineHeight: 1.5,
+                }}
+              >
+                <span
+                  style={{
+                    minWidth: 0,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
                   {taskFile ? taskFile.name : "Choose a file to upload"}
+                </span>
+                <span
+                  aria-hidden="true"
+                  style={{
+                    flex: "0 0 auto",
+                    padding: "7px 11px",
+                    border: "1px solid var(--learning-border)",
+                    borderRadius: 5,
+                    background: "#fff",
+                    color: "var(--learning-accent)",
+                    fontSize: 11,
+                    fontWeight: 700,
+                  }}
+                >
+                  Browse
                 </span>
                 <input
                   type="file"
+                  aria-label="Choose a task file to upload"
                   accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/png,image/jpeg"
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    width: "100%",
+                    height: "100%",
+                    opacity: 0,
+                    cursor: "pointer",
+                  }}
+                  onFocus={(event) => {
+                    event.currentTarget.parentElement.style.borderColor = "var(--learning-accent)";
+                    event.currentTarget.parentElement.style.boxShadow = "0 0 0 2px rgb(164 94 58 / 16%)";
+                  }}
+                  onBlur={(event) => {
+                    event.currentTarget.parentElement.style.borderColor = "var(--learning-border)";
+                    event.currentTarget.parentElement.style.boxShadow = "none";
+                  }}
                   onChange={(event) => {
                     const file = event.target.files?.[0] || null;
                     setTaskFiles((current) => ({
@@ -1056,9 +1146,9 @@ function CourseLearning() {
               <span style={{ width: `${progress}%` }} />
             </div>
             <p>
-              {progress >= 100
-                ? "Course completed"
-                : "Keep going, you’re making progress"}
+              {progressSummary.totalRequiredLessons
+                ? `${progressSummary.completedRequiredLessons} / ${progressSummary.totalRequiredLessons} required lessons complete`
+                : "No required lessons; progress is 0%"}
             </p>
           </div>
         </div>
