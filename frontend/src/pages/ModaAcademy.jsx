@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import {
   GraduationCap,
@@ -138,6 +139,7 @@ const learningAreas = [
 ];
 
 function ModaAcademy() {
+  const navigate = useNavigate();
   const [courses, setCourses] = useState([]);
   const [loadingCourses, setLoadingCourses] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState(null);
@@ -642,6 +644,35 @@ function ModaAcademy() {
                 <article
                   className="modaacademy-learning-card"
                   key={enrollment._id}
+                  role="link"
+                  tabIndex={0}
+                  
+                  onClick={() => {
+                    const courseId =
+                      enrollment.courseId?._id ||
+                      enrollment.courseId ||
+                      enrollment.course?._id;
+
+                    if (courseId) {
+                      navigate(`/businesses/modaacademy/learn/${courseId}`);
+                    }
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+
+                      const courseId =
+                        enrollment.courseId?._id ||
+                        enrollment.courseId ||
+                        enrollment.course?._id;
+
+                      if (courseId) {
+                        navigate(`/businesses/modaacademy/learn/${courseId}`);
+                      }
+                    }
+                  }}
+
+                  style={{ cursor: "pointer" }}
                 >
 
                   <div className="learning-card-header">

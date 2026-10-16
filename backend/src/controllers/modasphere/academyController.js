@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const ModaCourse = require("../../models/modasphere/ModaCourse");
 
 // Create course
@@ -335,11 +336,92 @@ const deleteCourse = async (req, res) => {
   }
 };
 
+// Student - Get an enrolled course by ID
+const getEnrolledCourseById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid course ID",
+      });
+    }
+
+    const enrollment = await ModaAcademyEnrollment.findOne({
+      user: req.user._id,
+      courseId: id,
+    });
+
+    if (!enrollment) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not enrolled in this course",
+      });
+    }
+
+    const course = await ModaCourse.findOne({
+      _id: id,
+      status: "published",
+    }).populate("instructor", "name");
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found",
+      });
+    }
+
+    const courseData = course.toObject();
+
+    // Never send correct quiz answers to the browser.
+    courseData.modules.forEach((module) => {
+      (module.submodules || []).forEach((submodule) => {
+        (submodule.lessons || []).forEach((lesson) => {
+          if (lesson.type === "quiz") {
+            lesson.quizQuestions = (
+              lesson.quizQuestions || []
+            ).map((question) => ({
+              _id: question._id,
+              question: question.question,
+              options: question.options,
+            }));
+          }
+        });
+      });
+    });
+
+    return res.status(200).json({
+      success: true,
+      course: courseData,
+      progress: enrollment.progress,
+      completedLessonIds: enrollment.completedLessonIds || [],
+      taskSubmissions: (enrollment.taskSubmissions || []).map((submission) => ({
+        lessonId: submission.lessonId,
+        fileUrl: submission.fileUrl,
+        fileName: submission.fileName,
+        mimeType: submission.mimeType,
+        fileSize: submission.fileSize,
+        submittedAt: submission.submittedAt,
+      })),
+    });
+  } catch (error) {
+    console.error("Get enrolled course error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch course",
+    });
+  }
+};
+
+
 module.exports = {
   createCourse,
   getPublishedCourses,
   getAllCoursesForAdmin,
   getPublishedCourseBySlug,
+  getEnrolledCourseById,
   publishCourse,
   updateCourseStatus,
   updateCourse,
