@@ -9,27 +9,32 @@ const connectDB = async () => {
     if (process.env.NODE_ENV === "test" && !process.env.DATABASE_URL) {
       return;
     }
+
     const dbUrl = process.env.DATABASE_URL || env.database.url;
     const conn = await mongoose.connect(dbUrl);
     console.log(`MongoDB Connected: ${conn.connection.host}`);
 
-    // Clean up users collection: remove phoneNumber and password fields, and drop old phone index
     if (process.env.NODE_ENV !== "test") {
+      // Clean up legacy user fields and remove the old phone index.
       try {
         const User = require("../models/core/User");
         const indexes = await User.collection.indexes();
-        const phoneIndex = indexes.find((idx) => idx.name === "phoneNumber_1");
+        const phoneIndex = indexes.find(
+          (idx) => idx.name === "phoneNumber_1"
+        );
+
         if (phoneIndex) {
           await User.collection.dropIndex("phoneNumber_1");
-          console.log("Successfully dropped legacy phoneNumber_1 index from users collection.");
+          console.log(
+            "Successfully dropped legacy phoneNumber_1 index from users collection."
+          );
         }
 
-        // Unset phoneNumber, password, and isPhoneVerified from all existing user documents
         await User.updateMany(
           {},
-          { $unset: { phoneNumber: "", password: "", isPhoneVerified: "" } }
+          { $unset: { phoneNumber: "", password: "" } }
         );
-        console.log("Cleaned up users collection: removed phoneNumber and password fields.");
+        console.log("Cleaned up legacy phoneNumber and password fields.");
       } catch (idxErr) {
         console.warn("User collection cleanup notice:", idxErr.message);
       }
@@ -38,7 +43,10 @@ const connectDB = async () => {
         const FuelPrice = require("../models/mototribe/FuelPrice");
         const count = await FuelPrice.countDocuments();
         if (count === 0) {
-          const { syncIOCLFuelPrices } = require("../services/mototribe/ioclFuelPriceService");
+          const {
+            syncIOCLFuelPrices,
+          } = require("../services/mototribe/ioclFuelPriceService");
+
           await syncIOCLFuelPrices();
           console.log("Auto-seeded 33 IOCL state-wise fuel price records into DB.");
         }
