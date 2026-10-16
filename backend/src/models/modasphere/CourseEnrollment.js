@@ -95,15 +95,9 @@ const modaAcademyEnrollmentSchema = new mongoose.Schema(
       lowercase: true,
     },
 
-    phone: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-
     experience: {
       type: String,
-      required: true,
+      required: false,
       enum: ["Beginner", "Intermediate", "Advanced"],
     },
 

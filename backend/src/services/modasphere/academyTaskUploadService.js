@@ -28,6 +28,15 @@ const uploadAcademyTaskSubmission = (fileBuffer, originalName) =>
           );
           return;
         }
+        if (!result?.secure_url || !result?.public_id) {
+          reject(
+            new AppError(
+              "Cloudinary task submission upload returned an invalid result.",
+              502,
+            ),
+          );
+          return;
+        }
         resolve({
           url: result.secure_url,
           publicId: result.public_id,
