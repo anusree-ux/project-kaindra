@@ -149,13 +149,6 @@ function ModaAcademy() {
   const [enrollments, setEnrollments] = useState([]);
   const [loadingEnrollments, setLoadingEnrollments] = useState(false);
 
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    experience: "Beginner",
-  });
-
   useEffect(() => {
     const fetchCourses = async () => {
       try {
@@ -256,6 +249,13 @@ function ModaAcademy() {
   ========================================= */
 
   const openEnrollment = (course) => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
     setSelectedCourse(course);
     setShowEnrollment(true);
   };
@@ -267,27 +267,8 @@ function ModaAcademy() {
   const closeEnrollment = () => {
     setShowEnrollment(false);
     setSelectedCourse(null);
-
-    setFormData({
-      name: "",
-      email: "",
-      phone: "",
-      experience: "Beginner",
-    });
   };
 
-  /* =========================================
-     FORM CHANGE
-  ========================================= */
-
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-
-    setFormData((current) => ({
-      ...current,
-      [name]: value,
-    }));
-  };
 
   /* =========================================
      SUBMIT ENROLLMENT
@@ -300,6 +281,14 @@ function ModaAcademy() {
       return;
     }
 
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      closeEnrollment();
+      navigate("/login");
+      return;
+    }
+
     try {
       const response = await fetch(
         "/api/modasphere/academy/enrollments",
@@ -307,6 +296,7 @@ function ModaAcademy() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
             courseId: selectedCourse._id || selectedCourse.id,
@@ -317,10 +307,6 @@ function ModaAcademy() {
               ? `${selectedCourse.durationMinutes} min`
               : selectedCourse.duration || "Self-paced",
             instructor: selectedCourse.instructor,
-            name: formData.name,
-            email: formData.email,
-            phone: formData.phone,
-            experience: formData.experience,
           }),
         }
       );
@@ -332,13 +318,6 @@ function ModaAcademy() {
           result.message || "Failed to submit enrollment"
         );
       }
-
-      /*
-       * Do NOT store the student's email in localStorage.
-       *
-       * My Learning is now determined by the logged-in
-       * user's access token.
-       */
 
       setEnrollments((current) => [
         result.data,
@@ -1020,91 +999,10 @@ function ModaAcademy() {
               className="modaacademy-form"
               onSubmit={handleSubmit}
             >
-
-              <div className="modaacademy-form-group">
-
-                <label>
-                  Full Name
-                </label>
-
-                <div className="modaacademy-input-wrapper">
-
-                  <UserRound size={17} />
-
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    placeholder="Enter your name"
-                    required
-                  />
-
-                </div>
-
-              </div>
-
-              <div className="modaacademy-form-group">
-
-                <label>
-                  Email
-                </label>
-
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="Enter your email"
-                  required
-                />
-
-              </div>
-
-              <div className="modaacademy-form-group">
-
-                <label>
-                  Phone
-                </label>
-
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  placeholder="Enter your phone number"
-                  required
-                />
-
-              </div>
-
-              <div className="modaacademy-form-group">
-
-                <label>
-                  Experience Level
-                </label>
-
-                <select
-                  name="experience"
-                  value={formData.experience}
-                  onChange={handleChange}
-                >
-
-                  <option value="Beginner">
-                    Beginner
-                  </option>
-
-                  <option value="Intermediate">
-                    Intermediate
-                  </option>
-
-                  <option value="Advanced">
-                    Advanced
-                  </option>
-
-                </select>
-
-              </div>
+              <p>
+                Confirm your enrollment in this course using your
+                logged-in account.
+              </p>
 
               <button
                 type="submit"
@@ -1113,9 +1011,7 @@ function ModaAcademy() {
                 Confirm Enrollment
                 <ArrowRight size={17} />
               </button>
-
             </form>
-
           </div>
 
         </div>

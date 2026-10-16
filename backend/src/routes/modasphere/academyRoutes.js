@@ -124,6 +124,7 @@ router.delete(
 // Public - Submit academy enrollment
 router.post(
   "/enrollments",
+  protect,
   createEnrollment
 );
 

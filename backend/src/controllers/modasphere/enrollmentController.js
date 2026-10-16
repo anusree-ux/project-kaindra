@@ -37,7 +37,7 @@ const getProgressForCompletedLessons = (course, completedLessonIds) => {
   };
 };
 
-// Student - Submit enrollment
+// Student - Submit enrollment for the authenticated user
 const createEnrollment = async (req, res) => {
   try {
     const {
@@ -47,50 +47,58 @@ const createEnrollment = async (req, res) => {
       level,
       duration,
       instructor,
-      name,
-      email,
-      phone,
-      experience,
     } = req.body;
 
-    // Basic validation
     if (
       !courseId ||
       !courseName ||
       !category ||
       !level ||
       !duration ||
-      !instructor ||
-      !name ||
-      !email ||
-      !phone ||
-      !experience
+      !instructor
     ) {
       return res.status(400).json({
         success: false,
-        message: "All enrollment fields are required",
+        message: "Required course information is missing",
+      });
+    }
+
+    if (!req.user?.email || !req.user?.name) {
+      return res.status(401).json({
+        success: false,
+        message: "Please log in to enroll",
+      });
+    }
+
+    const existingEnrollment = await ModaAcademyEnrollment.findOne({
+      email: req.user.email,
+      courseId,
+    });
+
+    if (existingEnrollment) {
+      return res.status(409).json({
+        success: false,
+        message: "You are already enrolled in this course",
       });
     }
 
     const enrollment = await ModaAcademyEnrollment.create({
-      enrollmentId: `MA-${Date.now()}`,
+      enrollmentId: `MA-${Date.now()}-${req.user._id}`,
       courseId,
       courseName,
       category,
       level,
       duration,
       instructor,
-      name,
-      email,
-      phone,
-      experience,
+      name: req.user.name,
+      email: req.user.email,
       status: "Enrolled",
       progress: 0,
     });
 
     return res.status(201).json({
       success: true,
-      message: "Enrollment submitted successfully",
+      message: "Enrollment successful",
       data: enrollment,
     });
   } catch (error) {
@@ -192,7 +200,7 @@ const updateEnrollmentProgress = async (req, res) => {
     }
 
     const enrollment = await ModaAcademyEnrollment.findOne({
-      user: req.user._id,
+      email: req.user.email,
       courseId,
     });
 
@@ -269,7 +277,7 @@ const submitQuiz = async (req, res) => {
     }
 
     const enrollment = await ModaAcademyEnrollment.findOne({
-      user: req.user._id,
+      email: req.user.email,
       courseId,
     });
     if (!enrollment) {
@@ -425,7 +433,7 @@ const uploadTaskSubmission = async (req, res) => {
     }
 
     const enrollment = await ModaAcademyEnrollment.findOne({
-      user: req.user._id,
+      email: req.user.email,
       courseId,
     });
     if (!enrollment) {

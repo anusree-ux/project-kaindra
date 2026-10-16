@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const ModaCourse = require("../../models/modasphere/ModaCourse");
+const ModaAcademyEnrollment = require("../../models/modasphere/CourseEnrollment");
 
 // Create course
 const createCourse = async (req, res) => {
@@ -349,7 +350,7 @@ const getEnrolledCourseById = async (req, res) => {
     }
 
     const enrollment = await ModaAcademyEnrollment.findOne({
-      user: req.user._id,
+      email: req.user.email,
       courseId: id,
     });
 
