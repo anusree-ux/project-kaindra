@@ -16,6 +16,7 @@ import {
   Clock,
   UserRound,
   BarChart3,
+  MoreVertical,
 } from "lucide-react";
 
 import "./ModaAcademy.css";
@@ -149,6 +150,9 @@ function ModaAcademy() {
   const [enrollments, setEnrollments] = useState([]);
   const [loadingEnrollments, setLoadingEnrollments] = useState(false);
 
+  const [openEnrollmentMenuId, setOpenEnrollmentMenuId] = useState(null);
+  const [unenrollingId, setUnenrollingId] = useState(null);
+
   useEffect(() => {
     const fetchCourses = async () => {
       try {
@@ -243,6 +247,53 @@ function ModaAcademy() {
 
     fetchMyEnrollments();
   }, []);
+
+  const handleUnenroll = async (enrollment) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to unenroll from "${enrollment.courseName}"? Your enrollment will be removed.`
+    );
+
+    if (!confirmed) {
+      setOpenEnrollmentMenuId(null);
+      return;
+    }
+
+    const accessToken = localStorage.getItem("token");
+
+    if (!accessToken) {
+      window.alert("Please log in again to continue.");
+      return;
+    }
+
+    setUnenrollingId(enrollment._id);
+
+    try {
+      const response = await fetch(
+        `/api/modasphere/academy/enrollments/${enrollment._id}/unenroll`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "Failed to unenroll.");
+      }
+
+      setEnrollments((current) =>
+        current.filter((item) => item._id !== enrollment._id)
+      );
+      setOpenEnrollmentMenuId(null);
+    } catch (error) {
+      window.alert(error.message || "Unable to unenroll. Please try again.");
+    } finally {
+      setUnenrollingId(null);
+    }
+  };
 
   /* =========================================
      OPEN ENROLLMENT
@@ -655,21 +706,46 @@ function ModaAcademy() {
                 >
 
                   <div className="learning-card-header">
-
                     <div>
-
-                      <span>
-                        {enrollment.enrollmentId}
-                      </span>
-
-                      <h3>
-                        {enrollment.courseName}
-                      </h3>
-
+                      <span>{enrollment.enrollmentId}</span>
+                      <h3>{enrollment.courseName}</h3>
                     </div>
 
-                    <CheckCircle2 size={24} />
+                    <div className="learning-card-actions">
+                      <CheckCircle2 size={24} />
 
+                      <button
+                        type="button"
+                        className="learning-card-menu-trigger"
+                        aria-label="Course options"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setOpenEnrollmentMenuId((current) =>
+                            current === enrollment._id ? null : enrollment._id
+                          );
+                        }}
+                      >
+                        <MoreVertical size={21} />
+                      </button>
+
+                      {openEnrollmentMenuId === enrollment._id && (
+                        <div
+                          className="learning-card-menu"
+                          onClick={(event) => event.stopPropagation()}
+                        >
+                          <button
+                            type="button"
+                            className="learning-card-unenroll"
+                            disabled={unenrollingId === enrollment._id}
+                            onClick={() => handleUnenroll(enrollment)}
+                          >
+                            {unenrollingId === enrollment._id
+                              ? "Unenrolling..."
+                              : "Unenroll"}
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div className="learning-card-info">
@@ -689,7 +765,7 @@ function ModaAcademy() {
                       <span>LEVEL</span>
 
                       <strong>
-                        {enrollment.experience}
+                        {enrollment.level || "Beginner"}
                       </strong>
 
                     </div>
@@ -729,8 +805,26 @@ function ModaAcademy() {
                       />
 
                     </div>
-
                   </div>
+                  <button
+                    type="button"
+                    className="learning-card-resume"
+                    onClick={(event) => {
+                      event.stopPropagation();
+
+                      const courseId =
+                        enrollment.courseId?._id ||
+                        enrollment.courseId ||
+                        enrollment.course?._id;
+
+                      if (courseId) {
+                        navigate(`/businesses/modaacademy/learn/${courseId}`);
+                      }
+                    }}
+                  >
+                    Resume Learning
+                    <ArrowRight size={16} />
+                  </button>
 
                 </article>
 

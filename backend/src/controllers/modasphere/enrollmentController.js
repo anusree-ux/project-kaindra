@@ -141,6 +141,41 @@ const deleteEnrollment = async (req, res) => {
   }
 };
 
+// Student - Unenroll from their own course
+const unenrollFromCourse = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid enrollment ID",
+      });
+    }
+
+    const enrollment = await ModaAcademyEnrollment.findOne({
+      _id: id,
+      email: req.user.email,
+    });
+
+    if (!enrollment) {
+      return res.status(404).json({
+        success: false,
+        message: "Enrollment not found",
+      });
+    }
+
+    await enrollment.deleteOne();
+
+    return res.status(200).json({
+      success: true,
+      message: "You have unenrolled from this course",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // Student - Save completed lessons and recalculate course progress
 const updateEnrollmentProgress = async (req, res) => {
   try {
@@ -489,6 +524,7 @@ module.exports = {
   getMyEnrollments,
   getAllEnrollments,
   deleteEnrollment,
+   unenrollFromCourse,
   updateEnrollmentProgress,
   submitQuiz,
   uploadTaskSubmission,
