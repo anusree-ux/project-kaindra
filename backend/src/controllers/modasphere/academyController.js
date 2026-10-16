@@ -2,6 +2,27 @@ const mongoose = require("mongoose");
 const ModaCourse = require("../../models/modasphere/ModaCourse");
 const ModaAcademyEnrollment = require("../../models/modasphere/CourseEnrollment");
 
+const stripQuizAnswerKeys = (course) => {
+  const data = typeof course.toObject === "function" ? course.toObject() : course;
+  const strip = (lesson) => {
+    if (lesson?.type === "quiz") lesson.quizQuestions = (lesson.quizQuestions || []).map(({ _id, question, options }) => ({ _id, question, options }));
+  };
+  (data.modules || []).forEach((module) => {
+    strip(module);
+    (module.lessons || []).forEach(strip);
+    (module.submodules || []).forEach((submodule) => (submodule.lessons || []).forEach(strip));
+  });
+  return data;
+};
+
+const getCourseDuration = (modules = []) => modules.reduce((total, module) => {
+  const lessonDurations = [
+    ...(module.lessons || []),
+    ...(module.submodules || []).flatMap((submodule) => submodule.lessons || []),
+  ].reduce((sum, lesson) => sum + (Number(lesson.durationMinutes) || 0), 0);
+  return total + (lessonDurations || Number(module.durationMinutes) || 0);
+}, 0);
+
 // Create course
 const createCourse = async (req, res) => {
   try {
@@ -46,12 +67,7 @@ const createCourse = async (req, res) => {
       coverImage,
       tags,
       modules,
-      durationMinutes: modules
-        ? modules.reduce(
-            (total, module) => total + (Number(module.durationMinutes) || 0),
-            0
-          )
-        : 0,
+      durationMinutes: getCourseDuration(modules),
       isFeatured: isFeatured || false,
       status: status || "draft",
       instructor: req.user._id,
@@ -85,7 +101,7 @@ const getPublishedCourses = async (req, res) => {
     res.status(200).json({
       success: true,
       count: courses.length,
-      courses,
+      courses: courses.map(stripQuizAnswerKeys),
     });
   } catch (error) {
     console.error("Get published courses error:", error);
@@ -140,7 +156,7 @@ const getPublishedCourseBySlug = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      course,
+      course: stripQuizAnswerKeys(course),
     });
   } catch (error) {
     console.error("Get published course error:", error);
@@ -285,10 +301,7 @@ const updateCourse = async (req, res) => {
     if (modules !== undefined) {
       course.modules = modules;
 
-      course.durationMinutes = modules.reduce(
-        (total, module) => total + (Number(module.durationMinutes) || 0),
-        0
-      );
+      course.durationMinutes = getCourseDuration(modules);
     }
     if (isFeatured !== undefined) course.isFeatured = isFeatured;
 
@@ -373,29 +386,20 @@ const getEnrolledCourseById = async (req, res) => {
       });
     }
 
-    const courseData = course.toObject();
-
-    // Never send correct quiz answers to the browser.
-    courseData.modules.forEach((module) => {
-      (module.submodules || []).forEach((submodule) => {
-        (submodule.lessons || []).forEach((lesson) => {
-          if (lesson.type === "quiz") {
-            lesson.quizQuestions = (
-              lesson.quizQuestions || []
-            ).map((question) => ({
-              _id: question._id,
-              question: question.question,
-              options: question.options,
-            }));
-          }
-        });
-      });
-    });
+    const courseData = stripQuizAnswerKeys(course);
+    const progressSummary = ModaCourse.getProgress(course, enrollment.completedLessonIds || []);
+    if (enrollment.progress !== progressSummary.progress || enrollment.status !== progressSummary.status) {
+      enrollment.progress = progressSummary.progress;
+      enrollment.status = progressSummary.status;
+      await enrollment.save();
+    }
 
     return res.status(200).json({
       success: true,
       course: courseData,
-      progress: enrollment.progress,
+      progress: progressSummary.progress,
+      completedRequiredLessons: progressSummary.completedRequiredLessons,
+      totalRequiredLessons: progressSummary.totalRequiredLessons,
       completedLessonIds: enrollment.completedLessonIds || [],
       taskSubmissions: (enrollment.taskSubmissions || []).map((submission) => ({
         lessonId: submission.lessonId,
