@@ -66,6 +66,82 @@ const getTomorrowDateStr = () => {
   return `${year}-${month}-${day}`;
 };
 
+const KANNADA_PLACE_MAP = {
+  "ಹಾವೇರಿ": "Haveri",
+  "ಬೆಂಗಳೂರು": "Bengaluru",
+  "ಮೈಸೂರು": "Mysuru",
+  "ಹುಬ್ಬಳ್ಳಿ": "Hubballi",
+  "ಧಾರವಾಡ": "Dharwad",
+  "ಮಂಗಳೂರು": "Mangaluru",
+  "ಬೆಳಗಾವಿ": "Belagavi",
+  "ಶಿವಮೊಗ್ಗ": "Shivamogga",
+  "ದಾವಣಗೆರೆ": "Davanagere",
+  "ಬಳ್ಳಾರಿ": "Ballari",
+  "ವಿಜಯಪುರ": "Vijayapura",
+  "ಕಲಬುರಗಿ": "Kalaburagi",
+  "ಉಡುಪಿ": "Udupi",
+  "ಹಾಸನ": "Hassan",
+  "ತುಮಕೂರು": "Tumakuru",
+  "ಚಿಕ್ಕಮಗಳೂರು": "Chikkamagaluru",
+  "ಮಡಿಕೇರಿ": "Madikeri",
+  "ಕೊಡಗು": "Kodagu",
+  "ಚಿತ್ರದುರ್ಗ": "Chitradurga",
+  "ರಾಯಚೂರು": "Raichur",
+  "ಬಾಗಲಕೋಟೆ": "Bagalkote",
+  "ಗದಗ": "Gadag",
+  "ಕೊಪ್ಪಳ": "Koppal",
+  "ಬೀದರ್": "Bidar",
+  "ಯಾದಗಿರಿ": "Yadgir",
+  "ಕೋಲಾರ": "Kolar",
+  "ಚಿಕ್ಕಬಳ್ಳಾಪುರ": "Chikkaballapura",
+  "ರಾಮನಗರ": "Ramanagara",
+  "ಮಂಡ್ಯ": "Mandya",
+  "ಚಾಮರಾಜನಗರ": "Chamarajanagar",
+};
+
+const cleanPlaceQuery = (value) => {
+  if (!value || typeof value !== "string") {
+    return "";
+  }
+
+  const parts = value
+    .split(",")
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  if (parts.length === 0) {
+    return "";
+  }
+
+  let city = parts[0]
+    .replace(
+      /\b(taluk|taluku|north|south|east|west|district|dist|tehsil|mandal)\b/gi,
+      ""
+    )
+    .trim();
+
+  if (KANNADA_PLACE_MAP[city]) {
+    city = KANNADA_PLACE_MAP[city];
+  } else {
+    for (const [kn, en] of Object.entries(KANNADA_PLACE_MAP)) {
+      if (city.includes(kn)) {
+        city = city.replace(new RegExp(kn, "g"), en).trim();
+        break;
+      }
+    }
+  }
+
+  const state =
+    parts.find((part) =>
+      /karnataka|maharashtra|tamil nadu|kerala|goa|delhi|telangana|andhra|gujarat|rajasthan|uttar pradesh|madhya pradesh|haryana|punjab/i.test(
+        part
+      )
+    ) ||
+    (parts.length > 1 ? parts[parts.length - 1] : "");
+
+  return `${city}${state ? `, ${state}` : ""}`;
+};
+
 /*
  * ---------------------------------------------------------
  * COMPONENT
@@ -151,6 +227,9 @@ function RidePlanner() {
   ] = useState(
     defaultRouteOptions[0]
   );
+
+  const [routeCoords, setRouteCoords] = useState(null);
+  const [customZoom, setCustomZoom] = useState(null);
 
   const [
     selectedRiders,
@@ -579,150 +658,136 @@ function RidePlanner() {
 
   /*
    * ---------------------------------------------------------
+   * ACTIVE ROUTE
+   * ---------------------------------------------------------
+   */
+
+  const hasValidRouteInput = Boolean(
+    start.trim() && destination.trim()
+  );
+
+  const activeRoute = hasValidRouteInput
+    ? selectedRoute
+    : defaultRouteOptions[0];
+
+  const activeRouteOptions = hasValidRouteInput
+    ? routeOptions
+    : defaultRouteOptions;
+
+  /*
+   * ---------------------------------------------------------
    * GOOGLE MAPS URL
    * ---------------------------------------------------------
    */
 
   const getGoogleMapsUrl = () => {
-    if (
-      !start.trim() ||
-      !destination.trim()
-    ) {
+    if (!start.trim() || !destination.trim()) {
       return "https://www.google.com/maps";
     }
 
+    const originLat = activeRoute?.originCoord?.lat || routeCoords?.origin?.lat;
+    const originLon = activeRoute?.originCoord?.lon || routeCoords?.origin?.lon;
+    const destLat = activeRoute?.destinationCoord?.lat || routeCoords?.destination?.lat;
+    const destLon = activeRoute?.destinationCoord?.lon || routeCoords?.destination?.lon;
+
+    const originParam =
+      originLat && originLon
+        ? `${originLat},${originLon}`
+        : encodeURIComponent(cleanPlaceQuery(start) || start.trim());
+
+    const destParam =
+      destLat && destLon
+        ? `${destLat},${destLon}`
+        : encodeURIComponent(cleanPlaceQuery(destination) || destination.trim());
+
     let url =
       "https://www.google.com/maps/dir/?api=1" +
-      `&origin=${encodeURIComponent(
-        start.trim()
-      )}` +
-      `&destination=${encodeURIComponent(
-        destination.trim()
-      )}`;
+      `&origin=${originParam}` +
+      `&destination=${destParam}`;
 
     if (stops.length > 0) {
-      url +=
-        `&waypoints=${encodeURIComponent(
-          stops.join("|")
-        )}`;
+      const stopParts = stops
+        .filter((s) => s && s.trim())
+        .map((s) => cleanPlaceQuery(s) || s.trim());
+      if (stopParts.length > 0) {
+        url += `&waypoints=${encodeURIComponent(stopParts.join("|"))}`;
+      }
     }
 
-    url +=
-      "&travelmode=driving";
-
+    url += "&travelmode=driving";
     return url;
   };
 
   /*
    * ---------------------------------------------------------
-   * GOOGLE MAPS EMBED
+   * GOOGLE MAPS EMBED & ZOOM
    * ---------------------------------------------------------
    */
 
-  const googleMapsEmbedUrl =
-    useMemo(() => {
-      if (
-        start.trim() &&
-        destination.trim()
-      ) {
-        const originEnc =
-          encodeURIComponent(
-            start.trim()
-          );
+  const defaultZoom = useMemo(() => {
+    const km = activeRoute?.distanceKm || 0;
+    if (km > 600) return 6;
+    if (km > 180) return 7;
+    if (km > 70) return 8;
+    if (km > 25) return 9;
+    return 8;
+  }, [activeRoute?.distanceKm]);
 
-        const destEnc =
-          encodeURIComponent(
-            destination.trim()
-          );
+  const currentZoom = customZoom !== null ? customZoom : defaultZoom;
 
-        let daddrParam =
-          destEnc;
-
-        if (stops.length > 0) {
-          const validStops =
-            stops
-              .filter((stop) =>
-                stop.trim()
-              )
-              .map((stop) =>
-                encodeURIComponent(
-                  stop.trim()
-                )
-              );
-
-          if (
-            validStops.length > 0
-          ) {
-            daddrParam =
-              `${validStops.join(
-                "+to:"
-              )}+to:${destEnc}`;
-          }
-        }
-
-        return (
-          "https://maps.google.com/maps?" +
-          `saddr=${originEnc}` +
-          `&daddr=${daddrParam}` +
-          "&hl=en&t=m&output=embed"
-        );
-      }
-
+  const googleMapsEmbedUrl = useMemo(() => {
+    if (!start.trim() || !destination.trim()) {
       if (start.trim()) {
-        return (
-          "https://maps.google.com/maps?" +
-          `q=${encodeURIComponent(
-            start.trim()
-          )}` +
-          "&hl=en&z=12&output=embed"
-        );
+        const clean = cleanPlaceQuery(start) || start.trim();
+        return `https://www.google.com/maps?q=${encodeURIComponent(clean)}&hl=en&z=${currentZoom || 12}&output=embed`;
       }
-
       if (destination.trim()) {
-        return (
-          "https://maps.google.com/maps?" +
-          `q=${encodeURIComponent(
-            destination.trim()
-          )}` +
-          "&hl=en&z=12&output=embed"
-        );
+        const clean = cleanPlaceQuery(destination) || destination.trim();
+        return `https://www.google.com/maps?q=${encodeURIComponent(clean)}&hl=en&z=${currentZoom || 12}&output=embed`;
+      }
+      return `https://www.google.com/maps?q=Bengaluru,+Karnataka&hl=en&z=${currentZoom || 10}&output=embed`;
+    }
+
+    // 1. If we have exact geocoded coordinates from the active route or routeCoords state
+    const originLat = activeRoute?.originCoord?.lat || routeCoords?.origin?.lat;
+    const originLon = activeRoute?.originCoord?.lon || routeCoords?.origin?.lon;
+    const destLat = activeRoute?.destinationCoord?.lat || routeCoords?.destination?.lat;
+    const destLon = activeRoute?.destinationCoord?.lon || routeCoords?.destination?.lon;
+
+    const stopWaypoints = stops
+      .filter((s) => s && s.trim())
+      .map((s) => encodeURIComponent(cleanPlaceQuery(s) || s.trim()));
+
+    if (originLat && originLon && destLat && destLon) {
+      let daddrParam = `${destLat},${destLon}`;
+      if (stopWaypoints.length > 0) {
+        // Use clean textual place names for stops so Google Maps labels the actual town/city
+        // rather than reverse-geocoding coordinates into random commercial POIs/cafes
+        daddrParam = `${stopWaypoints.join("+to:")}+to:${destLat},${destLon}`;
       }
 
       return (
-        "https://maps.google.com/maps?" +
-        "q=Bengaluru,+Karnataka&hl=en&z=10&output=embed"
+        `https://www.google.com/maps?saddr=${originLat},${originLon}` +
+        `&daddr=${daddrParam}` +
+        `&dirflg=d&hl=en&t=m&z=${currentZoom}&output=embed`
       );
-    }, [
-      start,
-      destination,
-      stops,
-    ]);
+    }
 
-  /*
-   * ---------------------------------------------------------
-   * ACTIVE ROUTE
-   * ---------------------------------------------------------
-   *
-   * When start/destination are empty, don't call setState
-   * from an effect just to reset the route. Instead derive
-   * the displayed route from the current input state.
-   */
+    // 2. Fallback to clean transliterated place names with dirflg=d
+    const cleanOrigin = cleanPlaceQuery(start) || start.trim();
+    const cleanDest = cleanPlaceQuery(destination) || destination.trim();
 
-  const hasValidRouteInput =
-    Boolean(
-      start.trim() &&
-        destination.trim()
+    let daddrParam = encodeURIComponent(cleanDest);
+    if (stopWaypoints.length > 0) {
+      daddrParam = `${stopWaypoints.join("+to:")}+to:${encodeURIComponent(cleanDest)}`;
+    }
+
+    return (
+      `https://www.google.com/maps?saddr=${encodeURIComponent(cleanOrigin)}` +
+      `&daddr=${daddrParam}` +
+      `&dirflg=d&hl=en&t=m&z=${currentZoom}&output=embed`
     );
-
-  const activeRoute =
-    hasValidRouteInput
-      ? selectedRoute
-      : defaultRouteOptions[0];
-
-  const activeRouteOptions =
-    hasValidRouteInput
-      ? routeOptions
-      : defaultRouteOptions;
+  }, [start, destination, stops, activeRoute, routeCoords, currentZoom]);
 
   /*
    * ---------------------------------------------------------
@@ -817,57 +882,7 @@ function RidePlanner() {
     ]);
 
   /*
-   * ---------------------------------------------------------
-   * PLACE CLEANING
-   * ---------------------------------------------------------
-   */
 
-  const cleanPlaceQuery = (
-    value
-  ) => {
-    if (
-      !value ||
-      typeof value !== "string"
-    ) {
-      return "";
-    }
-
-    const parts = value
-      .split(",")
-      .map((part) =>
-        part.trim()
-      )
-      .filter(Boolean);
-
-    if (parts.length === 0) {
-      return "";
-    }
-
-    const city = parts[0]
-      .replace(
-        /\b(taluk|taluku|north|south|east|west|district|dist|tehsil|mandal)\b/gi,
-        ""
-      )
-      .trim();
-
-    const state =
-      parts.find((part) =>
-        /karnataka|maharashtra|tamil nadu|kerala|goa|delhi|telangana|andhra|gujarat|rajasthan|uttar pradesh|madhya pradesh|haryana|punjab/i.test(
-          part
-        )
-      ) ||
-      (parts.length > 1
-        ? parts[
-            parts.length - 1
-          ]
-        : "");
-
-    return `${city}${
-      state
-        ? `, ${state}`
-        : ""
-    }`;
-  };
 
   /*
    * ---------------------------------------------------------
@@ -1505,6 +1520,12 @@ function RidePlanner() {
                   );
                 }
 
+                setRouteCoords({
+                  origin: originCoord,
+                  destination: destinationCoord,
+                  stops: stopCoordinates,
+                });
+
                 const allCoordinates =
                   [
                     originCoord,
@@ -1706,6 +1727,9 @@ function RidePlanner() {
                                     }`
                                   : ""
                               }.`,
+                            originCoord,
+                            destinationCoord,
+                            stopCoordinates,
                           };
                         }
                       );
@@ -2880,6 +2904,8 @@ function RidePlanner() {
   const resetPlanner = () => {
     setStart("");
     setDestination("");
+    setRouteCoords(null);
+    setCustomZoom(null);
 
     setRideDate(
       getTomorrowDateStr()
@@ -3680,6 +3706,7 @@ function RidePlanner() {
 
                 <div className="analysis-route-preview real-google-maps-container">
                   <iframe
+                    key={googleMapsEmbedUrl}
                     title="Google Maps Route Preview"
                     src={
                       googleMapsEmbedUrl
@@ -3691,14 +3718,42 @@ function RidePlanner() {
                   />
 
                   <div className="preview-badges-row">
-                    <span className="route-badge-recommended">
-                      {start.trim() &&
-                      destination.trim()
-                        ? isAnalyzing
-                          ? "SYNCING ROUTE..."
-                          : "LIVE GOOGLE MAPS"
-                        : "GOOGLE MAPS READY"}
-                    </span>
+                    {start.trim() && destination.trim() && (
+                      <div className="route-map-zoom-controls" title="Adjust map zoom overview">
+                        <button
+                          type="button"
+                          className="zoom-btn"
+                          onClick={() =>
+                            setCustomZoom(
+                              Math.max(4, (currentZoom || 8) - 1)
+                            )
+                          }
+                          title="Zoom out"
+                        >
+                          🔍 −
+                        </button>
+                        <button
+                          type="button"
+                          className="zoom-btn zoom-fit-btn"
+                          onClick={() => setCustomZoom(defaultZoom)}
+                          title="Reset zoom to route overview"
+                        >
+                          FIT ({currentZoom}x)
+                        </button>
+                        <button
+                          type="button"
+                          className="zoom-btn"
+                          onClick={() =>
+                            setCustomZoom(
+                              Math.min(16, (currentZoom || 8) + 1)
+                            )
+                          }
+                          title="Zoom in"
+                        >
+                          + 🔍
+                        </button>
+                      </div>
+                    )}
 
                     {start.trim() &&
                       destination.trim() && (
@@ -3857,99 +3912,6 @@ function RidePlanner() {
                           aiInsightContent
                         }
                       </p>
-                    </div>
-
-                    <div className="route-options-title">
-                      <span>
-                        AVAILABLE
-                        CORRIDORS
-                      </span>
-
-                      <small>
-                        {
-                          activeRouteOptions.length
-                        }{" "}
-                        OPTIONS
-                      </small>
-                    </div>
-
-                    <div className="route-options">
-                      {activeRouteOptions.map(
-                        (
-                          option
-                        ) => (
-                          <button
-                            type="button"
-                            key={
-                              option.id
-                            }
-                            className={`route-choice ${
-                              activeRoute.id ===
-                              option.id
-                                ? "active"
-                                : ""
-                            }`}
-                            onClick={() =>
-                              setSelectedRoute(
-                                option
-                              )
-                            }
-                          >
-                            <div>
-                              <span>
-                                {option.id ===
-                                1
-                                  ? "★"
-                                  : "•"}
-                              </span>
-
-                              <div>
-                                <strong>
-                                  {
-                                    option.name
-                                  }
-                                </strong>
-
-                                <small
-                                  style={{
-                                    display:
-                                      "block",
-                                    color:
-                                      "#666",
-                                    fontSize:
-                                      "11px",
-                                    marginTop:
-                                      "2px",
-                                  }}
-                                >
-                                  {
-                                    option.terrain
-                                  }{" "}
-                                  • SCORE{" "}
-                                  {
-                                    option.score
-                                  }
-                                  /100
-                                </small>
-                              </div>
-                            </div>
-
-                            <div className="route-choice-time">
-                              <strong>
-                                {
-                                  option.distance
-                                }
-                              </strong>
-
-                              <small>
-                                {
-                                  option.duration
-                                }
-                              </small>
-                            </div>
-                          </button>
-                        )
-                      )}
                     </div>
 
                     <div className="fuel-summary">

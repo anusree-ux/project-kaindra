@@ -99,7 +99,7 @@ function DigitalRideRecord() {
     const totalHours = rides.reduce((sum, r) => sum + (r.hours || 0), 0);
     const totalJourneys = rides.length;
     const verifiedJourneys = rides.filter((r) => r.status === "COMPLETED").length;
-    return { totalDistance, totalHours, totalJourneys, verifiedJourneys, averageMileage: 38 };
+    return { totalDistance, totalHours, totalJourneys, verifiedJourneys };
   }, [rides]);
 
   const filteredRides = useMemo(() => {
@@ -162,11 +162,6 @@ function DigitalRideRecord() {
             <span>JOURNEYS</span>
             <strong>{lifetimeStats.totalJourneys}</strong>
             <small>{lifetimeStats.verifiedJourneys} Completed</small>
-          </div>
-          <div className="record-stat-card">
-            <span>AVG MILEAGE</span>
-            <strong>{lifetimeStats.averageMileage} KM/L</strong>
-            <small>Community Fleet Average</small>
           </div>
           <div className="record-stat-card">
             <span>FUEL COST</span>

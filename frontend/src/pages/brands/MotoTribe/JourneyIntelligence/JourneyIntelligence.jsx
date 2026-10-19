@@ -18,7 +18,7 @@ function JourneyIntelligence() {
   // Rider Live Device Location via Geolocation API
   const [riderCoords, setRiderCoords] = useState(null); // { lat, lng, isLive: true }
   const [locStatus, setLocStatus] = useState("ACQUIRING GPS...");
-  const [mapMode, setMapMode] = useState("osm"); // "osm" | "dark" | "satellite"
+  const [mapMode, setMapMode] = useState("google"); // "google" | "hud" | "satellite"
 
   const mapContainerRef = useRef(null);
   const leafletInstanceRef = useRef(null);
@@ -479,6 +479,52 @@ function JourneyIntelligence() {
     return typeof activeRide.destination === "object" ? activeRide.destination.name : activeRide.destination;
   }, [activeRide]);
 
+  // Google Maps URLs for Live Embed & Navigation
+  const googleUrls = useMemo(() => {
+    if (!activeRide) return { embedUrl: "", navUrl: "" };
+
+    const originStr =
+      typeof activeRide.origin === "object"
+        ? activeRide.origin?.name || ""
+        : activeRide.origin || "";
+    const destStr =
+      typeof activeRide.destination === "object"
+        ? activeRide.destination?.name || ""
+        : activeRide.destination || "";
+    const rideStops = Array.isArray(activeRide.stops) ? activeRide.stops : [];
+
+    const originParam =
+      activeRide.originLat && activeRide.originLng
+        ? `${activeRide.originLat},${activeRide.originLng}`
+        : encodeURIComponent(originStr);
+
+    const destParam =
+      activeRide.destLat && activeRide.destLng
+        ? `${activeRide.destLat},${activeRide.destLng}`
+        : encodeURIComponent(destStr);
+
+    const km = activeRide.distanceKm || 0;
+    const zoomLevel = km > 600 ? 6 : km > 180 ? 7 : km > 70 ? 8 : 9;
+
+    let daddrParam = destParam;
+    let waypointsParam = "";
+
+    if (rideStops.length > 0) {
+      const cleanStops = rideStops
+        .filter((s) => typeof s === "string" && s.trim())
+        .map((s) => encodeURIComponent(s.trim()));
+      if (cleanStops.length > 0) {
+        daddrParam = `${cleanStops.join("+to:")}+to:${destParam}`;
+        waypointsParam = `&waypoints=${cleanStops.join("|")}`;
+      }
+    }
+
+    const embedUrl = `https://www.google.com/maps?saddr=${originParam}&daddr=${daddrParam}&dirflg=d&hl=en&t=m&z=${zoomLevel}&output=embed`;
+    const navUrl = `https://www.google.com/maps/dir/?api=1&origin=${originParam}&destination=${destParam}${waypointsParam}&travelmode=driving`;
+
+    return { embedUrl, navUrl };
+  }, [activeRide]);
+
   // Weather Data safely extracted
   const currentWeather = useMemo(() => {
     if (!weatherData) return null;
@@ -618,41 +664,92 @@ function JourneyIntelligence() {
                   <div className="map-controls-group">
                     <button
                       type="button"
-                      className="map-mode-btn"
-                      onClick={() =>
-                        setMapMode(
-                          mapMode === "dark" ? "osm" : mapMode === "osm" ? "satellite" : "dark"
-                        )
-                      }
+                      className={`map-mode-btn ${mapMode === "google" ? "active" : ""}`}
+                      onClick={() => setMapMode("google")}
+                      title="Switch to Google Maps"
                     >
-                      {mapMode === "dark"
-                        ? "🌙 DARK MAP"
-                        : mapMode === "osm"
-                        ? "🗺️ STREET MAP"
-                        : "🛰️ SATELLITE"}
+                      🗺️ GOOGLE MAPS
                     </button>
 
                     <button
                       type="button"
-                      className="recenter-btn"
-                      onClick={handleRecenter}
-                      title="Recenter on Device Location"
+                      className={`map-mode-btn ${mapMode === "hud" ? "active" : ""}`}
+                      onClick={() => setMapMode("hud")}
+                      title="Switch to Tactical GPS Tracker"
                     >
-                      🎯 DEVICE GPS
+                      🎯 GPS TRACKER
                     </button>
 
                     <button
                       type="button"
-                      className={`map-toggle ${showStops ? "active" : ""}`}
-                      onClick={() => setShowStops(!showStops)}
+                      className={`map-mode-btn ${mapMode === "satellite" ? "active" : ""}`}
+                      onClick={() => setMapMode("satellite")}
+                      title="Switch to Satellite imagery"
                     >
-                      <span />
-                      STEPS
+                      🛰️ SATELLITE
                     </button>
+
+                    {googleUrls.navUrl && (
+                      <button
+                        type="button"
+                        className="google-nav-btn"
+                        onClick={() =>
+                          window.open(
+                            googleUrls.navUrl,
+                            "_blank",
+                            "noopener,noreferrer"
+                          )
+                        }
+                        title="Start live turn-by-turn voice navigation in Google Maps"
+                      >
+                        NAVIGATE IN GOOGLE MAPS ↗
+                      </button>
+                    )}
+
+                    {mapMode !== "google" && (
+                      <>
+                        <button
+                          type="button"
+                          className="recenter-btn"
+                          onClick={handleRecenter}
+                          title="Recenter on Device Location"
+                        >
+                          🎯 RECENTER
+                        </button>
+
+                        <button
+                          type="button"
+                          className={`map-toggle ${showStops ? "active" : ""}`}
+                          onClick={() => setShowStops(!showStops)}
+                        >
+                          <span />
+                          STEPS
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
 
-                <div className="journey-map" style={{ position: "relative", minHeight: "420px", overflow: "hidden" }}>
+                <div className="journey-map" style={{ position: "relative", minHeight: "440px", overflow: "hidden" }}>
+                  {mapMode === "google" && googleUrls.embedUrl ? (
+                    <iframe
+                      key={googleUrls.embedUrl}
+                      title="Google Maps Journey Navigation"
+                      src={googleUrls.embedUrl}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        position: "absolute",
+                        inset: 0,
+                        border: "none",
+                        zIndex: 2,
+                      }}
+                      loading="lazy"
+                      allowFullScreen
+                      referrerPolicy="no-referrer-when-downgrade"
+                    />
+                  ) : null}
+
                   {/* REAL INTERACTIVE MAP CANVAS */}
                   <div
                     ref={mapContainerRef}
@@ -664,11 +761,12 @@ function JourneyIntelligence() {
                       inset: 0,
                       zIndex: 1,
                       background: "#0d0e12",
+                      display: mapMode === "google" ? "none" : "block",
                     }}
                   />
 
                   {/* Real Step-by-step Turn Navigation Overlay */}
-                  {showStops && displaySteps.length > 0 && (
+                  {mapMode !== "google" && showStops && displaySteps.length > 0 && (
                     <div className="map-stop-list" style={{ zIndex: 3 }}>
                       {displaySteps.slice(0, 4).map((step, idx) => (
                         <div className="map-stop" key={idx}>
@@ -684,10 +782,12 @@ function JourneyIntelligence() {
                   )}
 
                   {/* Rider Device Live Location Floating Badge */}
-                  <div className="map-rider rider-one" style={{ zIndex: 3 }}>
-                    <span className="pulse-dot">●</span>
-                    <small>RIDER (DEVICE GPS)</small>
-                  </div>
+                  {mapMode !== "google" && (
+                    <div className="map-rider rider-one" style={{ zIndex: 3 }}>
+                      <span className="pulse-dot">●</span>
+                      <small>RIDER (DEVICE GPS)</small>
+                    </div>
+                  )}
                 </div>
 
                 <div className="map-bottom">
