@@ -137,12 +137,12 @@ function DigitalRideRecord() {
             <h2>Digital Ride <span>Record</span></h2>
             <p>
               Your verified motorcycle ride history, journey telemetry, and
-              expense records stored securely in MongoDB.
+              expense records stored securely.
             </p>
           </div>
           <div className="record-network-indicator">
             <span style={{ width: 8, height: 8, borderRadius: "50%", background: isAuthenticated ? "#75c987" : "#666", display: "inline-block", boxShadow: isAuthenticated ? "0 0 10px rgba(117,201,135,0.6)" : "none" }} />
-            {isAuthenticated ? "LIVE DATABASE CONNECTED" : "NOT CONNECTED"}
+            {isAuthenticated ? "LIVE NETWORK CONNECTED" : "NOT CONNECTED"}
           </div>
         </div>
 
@@ -166,7 +166,7 @@ function DigitalRideRecord() {
           <div className="record-stat-card">
             <span>AVG MILEAGE</span>
             <strong>{lifetimeStats.averageMileage} KM/L</strong>
-            <small>Database Fleet Average</small>
+            <small>Community Fleet Average</small>
           </div>
           <div className="record-stat-card">
             <span>FUEL COST</span>
@@ -208,7 +208,7 @@ function DigitalRideRecord() {
         {/* RECORD LIST */}
         {loading ? (
           <div className="record-empty">
-            <h2>Loading digital ride logs from database...</h2>
+            <h2>Loading digital ride logs...</h2>
           </div>
         ) : filteredRides.length > 0 ? (
           <div className="record-list-panel">

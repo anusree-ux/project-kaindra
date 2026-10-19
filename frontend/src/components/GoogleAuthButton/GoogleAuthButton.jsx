@@ -192,7 +192,7 @@ export default function GoogleAuthButton({
                 />
               </svg>
               <h3>Sign in with Google</h3>
-              <p>Choose an account to continue to Kaindra (No OTP required)</p>
+              <p>Choose an account to continue to Kaindra</p>
             </div>
 
             <div className="google-sim-accounts">

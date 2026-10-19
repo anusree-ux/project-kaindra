@@ -38,7 +38,7 @@ function Login() {
             <h1>Return to the Ride</h1>
 
             <p>
-              Sign in with Google OAuth to continue your MotoTribe journey. No passwords or OTP required.
+              Sign in to continue your MotoTribe journey.
             </p>
           </div>
 

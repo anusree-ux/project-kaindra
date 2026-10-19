@@ -61,7 +61,6 @@ import AdminInsights from "./pages/admin/insights/AdminInsights";
 import AuthModal from "./pages/brands/MotoTribe/Auth/AuthModal";
 import MotoTribe from "./pages/brands/MotoTribe";
 import MotoSignup from "./pages/brands/MotoTribe/Auth/Signup";
-import OTPVerification from "./pages/brands/MotoTribe/Auth/OTPVerification";
 import ProfileSetup from "./pages/brands/MotoTribe/ProfileSetup/ProfileSetup";
 import Vehicles from "./pages/brands/MotoTribe/Vehicles/Vehicles";
 import MotoLogin from "./pages/brands/MotoTribe/Auth/Login";

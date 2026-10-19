@@ -88,7 +88,7 @@ function Signup() {
             <h2>Start Your Journey</h2>
 
             <p>
-              Join MotoTribe with Google OAuth. No passwords or phone numbers required.
+              Join the MotoTribe community and start your journey.
             </p>
           </div>
 

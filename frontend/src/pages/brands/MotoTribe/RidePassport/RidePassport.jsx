@@ -158,7 +158,7 @@ function RidePassport() {
 
           <div className="passport-intro">
             <p>
-              Your verified motorcycle ride passport and earned database
+              Your verified motorcycle ride passport and earned milestone
               achievement seals, synced directly with your rider profile.
             </p>
           </div>
@@ -262,7 +262,7 @@ function RidePassport() {
                 <strong className="metric-value status-badge">
                   {isAuthenticated ? "VERIFIED ✓" : "GUEST"}
                 </strong>
-                <span className="metric-hint">DB SYNCED</span>
+                <span className="metric-hint">VERIFIED</span>
               </div>
             </div>
           </div>
@@ -285,7 +285,7 @@ function RidePassport() {
                   <span className="stat-value-tag">VERIFIED</span>
                 </div>
                 <span className="stat-caption">
-                  DATABASE VERIFIED JOURNEYS
+                  OFFICIALLY VERIFIED JOURNEYS
                 </span>
               </div>
             </div>
@@ -365,7 +365,7 @@ function RidePassport() {
               <span className="heading-eyebrow">
                 ACHIEVEMENT REGISTRY
               </span>
-              <h3>DATABASE RIDER BADGES &amp; MILESTONES</h3>
+              <h3>OFFICIAL RIDER BADGES &amp; MILESTONES</h3>
               <p>
                 Official milestones unlocked as you complete journeys across
                 the road.
@@ -557,7 +557,7 @@ function RidePassport() {
 
                       <small>
                         {selectedBadge.isEarned
-                          ? `Certified in database${
+                          ? `Certified milestone${
                               selectedBadge.earnedAt
                                 ? ` • ${new Date(
                                     selectedBadge.earnedAt

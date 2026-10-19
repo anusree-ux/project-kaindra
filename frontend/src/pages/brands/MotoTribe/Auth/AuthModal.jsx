@@ -59,19 +59,19 @@ export default function AuthModal() {
         <div className="auth-form-container" style={{ textAlign: "center", padding: "10px 0" }}>
           <p style={{ color: "#9ca3af", fontSize: "14px", marginBottom: "22px" }}>
             {authModalTab === "login"
-              ? "Sign in to your Kaindra account using Google OAuth. No passwords or OTP required."
-              : "Create your verified Kaindra account instantly using Google OAuth."}
+              ? "Sign in to your Kaindra account to continue."
+              : "Create your Kaindra account to get started."}
           </p>
 
           <GoogleAuthButton
             theme="dark"
-            buttonText={authModalTab === "login" ? "Sign in with Google" : "Sign up with Google"}
+            buttonText={authModalTab === "login" ? "Continue with Google" : "Continue with Google"}
             onSuccess={() => closeAuthModal()}
             onError={(err) => setErrorMsg(err)}
           />
 
           <div style={{ marginTop: "24px", color: "#6b7280", fontSize: "12px" }}>
-            Secure passwordless authentication powered by Google OAuth
+            Fast, secure access to your account
           </div>
         </div>
       </div>

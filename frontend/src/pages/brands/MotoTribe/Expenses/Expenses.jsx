@@ -152,7 +152,7 @@ function Expenses() {
           <div>
             <span className="expenses-eyebrow">RIDE LOGISTICS</span>
             <h2>Expense Management</h2>
-            <p>Log fuel stops, meals, tolls, and maintenance costs with automatic database synchronization.</p>
+            <p>Log fuel stops, meals, tolls, and maintenance costs with automatic cloud synchronization.</p>
           </div>
 
           <div className="expenses-total-card">

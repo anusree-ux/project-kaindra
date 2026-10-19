@@ -27,13 +27,10 @@ const createTestVehicle = async (userId, data = {}) => {
  */
 const createTestUser = async (data = {}) => {
   userCounter += 1;
-  const randomDigits = Math.floor(100000000 + Math.random() * 900000000);
   const defaultUser = {
     name: "Test Rider",
     email: `rider.${Date.now()}.${userCounter}.${Math.floor(Math.random() * 100000)}@example.com`,
-    password: "password123",
-    phoneNumber: `919${randomDigits}`,
-    isPhoneVerified: true,
+    googleId: `google-test-${Date.now()}-${userCounter}`,
     role: "user",
   };
 

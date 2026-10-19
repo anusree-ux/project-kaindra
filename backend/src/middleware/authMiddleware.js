@@ -1,5 +1,6 @@
 const { verifyAccessToken } = require("../utils/jwt");
 const User = require("../models/core/User");
+const Admin = require("../models/core/Admin");
 const AppError = require("../utils/AppError");
 const authorize = require("./authorize");
 
@@ -30,21 +31,15 @@ const protect = async (req, res, next) => {
       );
     }
 
-    // Check if user still exists
-    const currentUser = await User.findById(decoded.id);
+    // Check if admin or user exists
+    let currentUser = await Admin.findById(decoded.id);
+    if (!currentUser) {
+      currentUser = await User.findById(decoded.id);
+    }
+
     if (!currentUser) {
       return next(
         new AppError("The user belonging to this token no longer exists.", 401)
-      );
-    }
-
-    // Enforce phone verification check on protected routes
-    if (!currentUser.isPhoneVerified) {
-      return next(
-        new AppError(
-          "Your phone number is not verified. Please complete OTP verification.",
-          403
-        )
       );
     }
 

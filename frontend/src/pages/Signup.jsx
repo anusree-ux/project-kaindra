@@ -30,7 +30,7 @@ function Signup() {
       >
         <h1 style={{ marginBottom: "8px", fontSize: "26px", fontWeight: "700" }}>Create Account</h1>
         <p style={{ color: "#6b7280", fontSize: "14px", marginBottom: "28px" }}>
-          Create your Kaindra account instantly with Google OAuth. No passwords or phone numbers required.
+          Create your Kaindra account to get started.
         </p>
 
         {error && (

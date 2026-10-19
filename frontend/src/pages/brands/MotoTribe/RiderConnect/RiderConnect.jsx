@@ -360,7 +360,7 @@ function RiderConnect() {
         <div className="rider-connect-grid">
           {loading && filteredRiders.length === 0 ? (
             <div className="connection-empty">
-              <span>SYNCING DATABASE</span>
+              <span>SYNCING NETWORK</span>
               <h3>Connecting to live rider network...</h3>
             </div>
           ) : filteredRiders.length > 0 ? (
