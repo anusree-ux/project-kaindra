@@ -260,11 +260,15 @@ const googleAuth = async (req, res, next) => {
 
     if (user) {
       let changed = false;
+      if (name && user.name !== name) {
+        user.name = name;
+        changed = true;
+      }
       if (!user.googleId && googleId) {
         user.googleId = googleId;
         changed = true;
       }
-      if (picture && !user.avatar) {
+      if (picture && user.avatar !== picture) {
         user.avatar = picture;
         changed = true;
       }

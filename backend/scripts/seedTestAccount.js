@@ -8,7 +8,7 @@ const Order = require("../src/models/modasphere/Order");
 const testUsers = [
   {
     name: "Alex Rider",
-    email: "shreyamahalingshetti@gmail.com",
+    email: "alex.rider@kaindra.com",
     phoneNumber: "+919876543210",
     password: "Password@123",
     role: "user",
