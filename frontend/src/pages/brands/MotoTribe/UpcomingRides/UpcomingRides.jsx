@@ -440,7 +440,7 @@ function UpcomingRides() {
                       letterSpacing: "1px",
                     }}
                   >
-                    LOADING UPCOMING RIDES FROM DATABASE...
+                    LOADING UPCOMING RIDES...
                   </div>
                 ) : filteredRides.length > 0 ? (
                   filteredRides.map((ride) => {
@@ -559,7 +559,7 @@ function UpcomingRides() {
                   >
                     <div style={{ fontSize: "24px", marginBottom: "8px" }}>🏍️</div>
                     <h3 style={{ fontSize: "14px", letterSpacing: "1px", color: "#fff", marginBottom: "6px" }}>
-                      NO UPCOMING RIDES IN DATABASE
+                      NO UPCOMING RIDES SCHEDULED
                     </h3>
                     <p style={{ fontSize: "12px", color: "rgba(255, 255, 255, 0.5)", margin: 0 }}>
                       Plan a ride using the AI Route Builder above to schedule your first journey!

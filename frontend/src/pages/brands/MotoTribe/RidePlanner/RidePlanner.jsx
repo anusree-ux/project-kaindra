@@ -2863,7 +2863,7 @@ function RidePlanner() {
             ? `Validation error:\n${validationErrors}`
             : error.response?.data
                 ?.message ||
-              "Failed to create ride in database.";
+              "Failed to schedule your ride.";
 
         alert(errorMessage);
       } finally {
@@ -3651,7 +3651,7 @@ function RidePlanner() {
                             letterSpacing: "0.5px",
                           }}
                         >
-                          No discoverable riders found in database. Discover riders in MotoTribe Connect to build your network!
+                          No discoverable riders found yet. Discover riders in MotoTribe Connect to build your network!
                         </div>
                       )}
                     </div>

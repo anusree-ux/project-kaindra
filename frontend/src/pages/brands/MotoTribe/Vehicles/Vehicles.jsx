@@ -382,7 +382,7 @@ function Vehicles() {
           );
 
           setError(
-            "Vehicle was updated locally, but database update failed."
+            "Vehicle was updated locally, but server update failed."
           );
         }
       }
@@ -485,7 +485,7 @@ function Vehicles() {
           );
 
           setError(
-            "Vehicle was saved locally, but database creation failed."
+            "Vehicle was saved locally, but server creation failed."
           );
         }
       }
@@ -882,8 +882,7 @@ function Vehicles() {
         </div>
 
         <footer className="vehicles-footer">
-          FRONTEND PROTOTYPE • VEHICLE DATA
-          STORED LOCALLY & IN DATABASE
+          MOTOTRIBE • YOUR DIGITAL GARAGE
         </footer>
       </div>
 

@@ -1,5 +1,6 @@
 const express = require("express");
 const {
+  adminLogin,
   googleAuth,
   refresh,
   logout,
@@ -12,18 +13,15 @@ const router = express.Router();
 // Primary authentication endpoint: Passwordless Google OAuth
 router.post("/google", googleAuth);
 
-// Explicit guard handlers for deprecated password/phone authentication
+// Admin login endpoint using dedicated 'admins' table
+router.post("/login", adminLogin);
+router.post("/admin/login", adminLogin);
+
+// Decommissioned password signup guard
 router.post("/signup", (req, res) => {
   res.status(400).json({
     status: "fail",
     message: "Email and password signup has been completely removed. Please authenticate with Google.",
-  });
-});
-
-router.post("/login", (req, res) => {
-  res.status(400).json({
-    status: "fail",
-    message: "Email and password login has been completely removed. Please authenticate with Google.",
   });
 });
 

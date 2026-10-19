@@ -1,65 +1,60 @@
-/**
- * Seed script for Admin User
- * 
- * Reads ADMIN_EMAIL and ADMIN_PASSWORD from .env and stores/updates
- * the admin user with role: "admin" and isPhoneVerified: true in MongoDB.
- */
-
-require("dotenv").config({ path: "./.env" });
 const mongoose = require("mongoose");
-const bcrypt = require("bcryptjs");
-const connectDB = require("../src/config/database");
-const User = require("../src/models/core/User");
+const dotenv = require("dotenv");
+const path = require("path");
+
+dotenv.config({ path: path.join(__dirname, "../.env") });
+
+const Admin = require("../src/models/core/Admin");
 
 const seedAdmin = async () => {
   try {
-    await connectDB();
-    console.log("Connected to MongoDB for Admin User seeding...");
-
-    const email = (process.env.ADMIN_EMAIL || "admin@kaindra.com").trim().toLowerCase();
-    const plainPassword = process.env.ADMIN_PASSWORD || "admin123";
-    const phoneNumber = "919999999999";
-    const name = "Kaindra Administrator";
-
-    let admin = await User.findOne({ email }).select("+password");
-
-    if (admin) {
-      admin.name = name;
-      admin.password = plainPassword; // pre('save') hook hashes it
-      admin.role = "admin";
-      admin.isPhoneVerified = true;
-      admin.phoneNumber = admin.phoneNumber || phoneNumber;
-      await admin.save();
-      console.log(`Updated existing user to Admin: ${email}`);
-    } else {
-      admin = await User.create({
-        name,
-        email,
-        phoneNumber,
-        password: plainPassword,
-        role: "admin",
-        isPhoneVerified: true,
-      });
-      console.log(`Created new Admin user: ${email}`);
+    const dbUrl = process.env.DATABASE_URL;
+    if (!dbUrl) {
+      console.error("DATABASE_URL is missing in environment variables.");
+      process.exit(1);
     }
 
-    console.log("Admin details:");
-    console.log(`- ID: ${admin._id}`);
-    console.log(`- Email: ${admin.email}`);
-    console.log(`- Role: ${admin.role}`);
-    console.log(`- Phone Verified: ${admin.isPhoneVerified}`);
-    console.log("- Password: [Configured from .env]");
+    await mongoose.connect(dbUrl);
+    console.log("Connected to MongoDB for admin seeding...");
 
-    console.log("\nAdmin user seeded successfully in DB!");
+    const adminEmail = "admin@kaindra.com";
+    const adminPassword = "admin123";
+
+    let admin = await Admin.findOne({ email: adminEmail }).select("+password");
+
+    if (!admin) {
+      admin = await Admin.create({
+        name: "Admin",
+        email: adminEmail,
+        password: adminPassword,
+        role: "admin",
+      });
+      console.log(`Successfully created admin user "${adminEmail}" in "admins" table.`);
+    } else {
+      const isMatch = await admin.comparePassword(adminPassword);
+      if (!isMatch) {
+        admin.password = adminPassword;
+        await admin.save();
+        console.log(`Updated password for admin user "${adminEmail}" in "admins" table.`);
+      } else {
+        console.log(`Admin user "${adminEmail}" already exists with the correct password in "admins" table.`);
+      }
+    }
+
+    console.log("Admin details:", {
+      id: admin._id,
+      email: admin.email,
+      role: admin.role,
+      collection: Admin.collection.name,
+    });
+
+    await mongoose.disconnect();
+    console.log("Database disconnected.");
     process.exit(0);
   } catch (error) {
-    console.error("Error seeding Admin user:", error);
+    console.error("Error seeding admin:", error);
     process.exit(1);
   }
 };
 
-if (require.main === module) {
-  seedAdmin();
-}
-
-module.exports = { seedAdmin };
+seedAdmin();

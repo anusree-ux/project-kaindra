@@ -30,7 +30,7 @@ function Login() {
       >
         <h1 style={{ marginBottom: "8px", fontSize: "26px", fontWeight: "700" }}>Welcome Back</h1>
         <p style={{ color: "#6b7280", fontSize: "14px", marginBottom: "28px" }}>
-          Sign in to your Kaindra account using Google OAuth.
+          Sign in to your Kaindra account to continue.
         </p>
 
         {error && (

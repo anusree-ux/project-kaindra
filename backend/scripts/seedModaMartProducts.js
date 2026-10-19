@@ -119,9 +119,6 @@ const seedProducts = async () => {
       seller = await User.create({
         name: "ModaSphere Studio",
         email: "seller@modasphere.com",
-        phoneNumber: "919876543211",
-        password: "Password123!",
-        isPhoneVerified: true,
         role: "user",
       });
     }

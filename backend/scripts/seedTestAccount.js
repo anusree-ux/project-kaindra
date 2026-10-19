@@ -12,7 +12,6 @@ const testUsers = [
     phoneNumber: "+919876543210",
     password: "Password@123",
     role: "user",
-    isPhoneVerified: true,
     riderProfile: {
       preferredRideType: "adventure",
       totalRidesCompleted: 14,
@@ -94,7 +93,6 @@ const testUsers = [
     phoneNumber: "+919876543211",
     password: "Password@123",
     role: "user",
-    isPhoneVerified: true,
   },
   {
     name: "Kaindra Administrator",
@@ -102,7 +100,6 @@ const testUsers = [
     phoneNumber: "+919876543212",
     password: "Password@123",
     role: "admin",
-    isPhoneVerified: true,
   },
 ];
 

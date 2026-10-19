@@ -1,4 +1,5 @@
 const User = require("../../models/core/User");
+const Admin = require("../../models/core/Admin");
 const {
   signAccessToken,
   signRefreshToken,
@@ -48,6 +49,34 @@ const sendTokenResponse = async (user, statusCode, res) => {
 
 
 /**
+ * @desc    Admin login using credentials from the 'admins' table
+ * @route   POST /api/v1/auth/login or POST /api/v1/auth/admin/login
+ * @access  Public
+ */
+const adminLogin = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return next(new AppError("Please provide both email and password.", 400));
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Look up in the dedicated 'admins' table/collection
+    const admin = await Admin.findOne({ email: normalizedEmail }).select("+password +refreshTokens");
+
+    if (!admin || !(await admin.comparePassword(password))) {
+      return next(new AppError("Invalid email or password.", 401));
+    }
+
+    await sendTokenResponse(admin, 200, res);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * @desc    Issue a new access token using a valid refresh token
  * @route   POST /api/v1/auth/refresh
  * @access  Public (requires valid refresh token in cookie or body)
@@ -73,8 +102,11 @@ const refresh = async (req, res, next) => {
       );
     }
 
-    // Check if user exists and includes the refresh token in stored tokens
-    const user = await User.findById(decoded.id).select("+refreshTokens");
+    // Check if admin or user exists and includes the refresh token in stored tokens
+    let user = await Admin.findById(decoded.id).select("+refreshTokens");
+    if (!user) {
+      user = await User.findById(decoded.id).select("+refreshTokens");
+    }
 
     if (!user || !user.refreshTokens.includes(refreshToken)) {
       return next(
@@ -95,7 +127,7 @@ const refresh = async (req, res, next) => {
 };
 
 /**
- * @desc    Logout user and invalidate refresh token
+ * @desc    Logout user/admin and invalidate refresh token
  * @route   POST /api/v1/auth/logout
  * @access  Private / Public
  */
@@ -105,10 +137,13 @@ const logout = async (req, res, next) => {
       req.cookies?.refreshToken || req.body?.refreshToken;
 
     if (refreshToken) {
-      // Decode or find user to remove token from DB
+      // Decode or find admin/user to remove token from DB
       try {
         const decoded = verifyRefreshToken(refreshToken);
-        const user = await User.findById(decoded.id).select("+refreshTokens");
+        let user = await Admin.findById(decoded.id).select("+refreshTokens");
+        if (!user) {
+          user = await User.findById(decoded.id).select("+refreshTokens");
+        }
         if (user) {
           user.refreshTokens = user.refreshTokens.filter(
             (token) => token !== refreshToken
@@ -252,6 +287,7 @@ const googleAuth = async (req, res, next) => {
 };
 
 module.exports = {
+  adminLogin,
   googleAuth,
   refresh,
   logout,

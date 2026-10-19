@@ -330,7 +330,7 @@ function RideDetailsContent({ rideId, navigate }) {
         <div className="ride-details-not-found" style={{ borderColor: "rgba(185, 145, 69, 0.4)" }}>
           <span className="section-eyebrow">MOTOTRIBE / RIDE NETWORK</span>
           <h2 style={{ color: "#d4a03e", fontSize: "1.4rem", letterSpacing: "0.08em" }}>LOADING RIDE DETAILS...</h2>
-          <p style={{ color: "#888" }}>Syncing ride route, itinerary and participant data from database...</p>
+          <p style={{ color: "#888" }}>Syncing ride route, itinerary and participant details...</p>
         </div>
       </section>
     );

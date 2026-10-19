@@ -303,15 +303,9 @@ function Profile() {
                 <span className="kp-badge kp-badge-role">
                   {getRoleLabel(user.role)}
                 </span>
-                {user.isPhoneVerified ? (
-                  <span className="kp-badge kp-badge-verified">
-                    ✓ Phone Verified
-                  </span>
-                ) : (
-                  <span className="kp-badge kp-badge-unverified">
-                    ⚠️ Phone Unverified
-                  </span>
-                )}
+                <span className="kp-badge kp-badge-verified">
+                  ✓ Verified Account
+                </span>
               </div>
             </div>
           </div>
@@ -342,8 +336,8 @@ function Profile() {
             </div>
 
             <div className="kp-field-item">
-              <span className="kp-field-label">PHONE NUMBER</span>
-              <span className="kp-field-value">{user.phoneNumber || "—"}</span>
+              <span className="kp-field-label">AUTH METHOD</span>
+              <span className="kp-field-value">Google Account</span>
             </div>
 
             <div className="kp-field-item">

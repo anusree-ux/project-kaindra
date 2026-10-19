@@ -45,6 +45,33 @@ const connectDB = async () => {
       } catch (seedErr) {
         console.warn("Auto-seed fuel prices skipped:", seedErr.message);
       }
+
+      // Ensure default admin user exists in the "admins" collection
+      try {
+        const Admin = require("../models/core/Admin");
+        const adminEmail = "admin@kaindra.com";
+        const adminPassword = "admin123";
+        let defaultAdmin = await Admin.findOne({ email: adminEmail }).select("+password");
+
+        if (!defaultAdmin) {
+          await Admin.create({
+            name: "Admin",
+            email: adminEmail,
+            password: adminPassword,
+            role: "admin",
+          });
+          console.log("Default admin account created in admins collection.");
+        } else {
+          const isMatch = await defaultAdmin.comparePassword(adminPassword);
+          if (!isMatch) {
+            defaultAdmin.password = adminPassword;
+            await defaultAdmin.save();
+            console.log("Updated default admin password in admins collection.");
+          }
+        }
+      } catch (adminErr) {
+        console.warn("Admin auto-seed notice:", adminErr.message);
+      }
     }
   } catch (error) {
     console.error(`Database connection error: ${error.message}`);
