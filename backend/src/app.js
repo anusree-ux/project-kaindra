@@ -24,7 +24,6 @@ const careerRoutes = require("./routes/core/careerRoutes");
 const applicationRoutes = require("./routes/core/applicationRoutes");
 const communityRoutes = require("./routes/core/communityRoutes");
 const adminRoutes = require("./routes/core/adminRoutes");
-const orderRoutes = require("./routes/core/orderRoutes");
 const talesRoutes = require("./routes/modasphere/talesRoutes");
 const academyRoutes = require("./routes/modasphere/academyRoutes");
 const influenceRoutes = require("./routes/modasphere/modainfluence/influenceRoutes");
@@ -104,8 +103,8 @@ app.use("/api/community", communityRoutes);
 app.use("/api/v1/admin", adminRoutes);
 app.use("/api/admin", adminRoutes);
 
-app.use("/api/v1/orders", orderRoutes);
-app.use("/api/orders", orderRoutes);
+app.use("/api/v1/orders", modasphereOrderRoutes);
+app.use("/api/orders", modasphereOrderRoutes);
 
 // ModaSphere Routes
 app.use("/api/modasphere/tales", talesRoutes);

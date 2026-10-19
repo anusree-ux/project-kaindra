@@ -34,6 +34,11 @@ const userSchema = new mongoose.Schema(
       enum: ["user", "moderator", "admin"],
       default: "user",
     },
+    brands: {
+      type: [String],
+      enum: ["modasphere", "mototribe"],
+      default: ["modasphere"],
+    },
     refreshTokens: {
       type: [String],
       default: [],

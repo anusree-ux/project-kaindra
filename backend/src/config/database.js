@@ -46,6 +46,17 @@ const connectDB = async () => {
         console.warn("Auto-seed fuel prices skipped:", seedErr.message);
       }
 
+      // Ensure legacy "orders" collection is dropped in favor of "modasphereorders"
+      try {
+        const collections = await mongoose.connection.db.listCollections({ name: "orders" }).toArray();
+        if (collections.length > 0) {
+          await mongoose.connection.db.dropCollection("orders");
+          console.log("Cleaned up database: dropped legacy 'orders' collection in favor of 'modasphereorders'.");
+        }
+      } catch (dropErr) {
+        console.warn("Legacy orders collection check notice:", dropErr.message);
+      }
+
       // Ensure default admin user exists in the "admins" collection
       try {
         const Admin = require("../models/core/Admin");

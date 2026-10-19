@@ -20,6 +20,8 @@ router.use(protect);
 router.post("/checkout", checkout);
 router.post("/:id/verify-payment", verifyPayment);
 router.get("/me", getMyOrders);
+router.get("/my-orders", getMyOrders);
+router.get("/", getMyOrders);
 router.get("/seller/me", getSellerOrders);
 router.get("/:id", getOrderById);
 

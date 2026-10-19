@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const User = require("../src/models/core/User");
 const RiderProfile = require("../src/models/mototribe/RiderProfile");
 const Vehicle = require("../src/models/mototribe/Vehicle");
-const Order = require("../src/models/core/Order");
+const Order = require("../src/models/modasphere/Order");
 
 const testUsers = [
   {
@@ -153,15 +153,31 @@ async function seedTestUsers() {
       }
 
       if (orders && orders.length > 0) {
-        await Order.deleteMany({ userId: user._id });
+        await Order.deleteMany({ buyerId: user._id });
         for (const orderData of orders) {
-          await Order.deleteMany({ orderNumber: orderData.orderNumber });
           await Order.create({
-            userId: user._id,
-            ...orderData,
+            buyerId: user._id,
+            items: orderData.items.map((it) => ({
+              productId: new mongoose.Types.ObjectId(),
+              sellerId: user._id,
+              name: it.name,
+              price: it.price,
+              quantity: it.quantity || 1,
+            })),
+            subtotalAmount: orderData.totalAmount,
+            totalAmount: orderData.totalAmount,
+            status: (orderData.orderStatus || "delivered").toLowerCase(),
+            shippingAddress: {
+              name: orderData.shippingAddress?.fullName || user.name,
+              phone: (orderData.shippingAddress?.phoneNumber || "9876543210").replace(/\D/g, ""),
+              addressLine1: orderData.shippingAddress?.addressLine1 || "Indiranagar",
+              city: orderData.shippingAddress?.city || "Bengaluru",
+              state: orderData.shippingAddress?.state || "Karnataka",
+              pincode: orderData.shippingAddress?.postalCode || "560038",
+            },
           });
         }
-        console.log(`  -> Seeded ${orders.length} orders for ${user.email}`);
+        console.log(`  -> Seeded ${orders.length} orders for ${user.email} in modasphereorders`);
       }
     }
 

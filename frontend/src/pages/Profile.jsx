@@ -31,32 +31,11 @@ function Profile() {
     const fetchOrders = async () => {
       try {
         setOrdersLoading(true);
-        let allOrders = [];
-
-        try {
-          const resModa = await apiClient.get("/api/modasphere/orders/me");
-          const modaOrders = resModa.data?.data?.orders || [];
-          allOrders = [...allOrders, ...modaOrders];
-        } catch (e) {
-          console.warn("[Profile] ModaSphere orders fetch error:", e);
-        }
-
-        try {
-          const resCore = await apiClient.get("/api/orders/my-orders");
-          const coreOrders = resCore.data?.data?.orders || [];
-          const seen = new Set(allOrders.map((o) => String(o._id || o.id)));
-          for (const co of coreOrders) {
-            const coId = String(co._id || co.id);
-            if (coId && !seen.has(coId)) {
-              allOrders.push(co);
-            }
-          }
-        } catch (e) {
-          // ignore core fallback errors
-        }
+        const resModa = await apiClient.get("/api/modasphere/orders/me");
+        const modaOrders = resModa.data?.data?.orders || [];
 
         if (isMounted) {
-          setOrders(allOrders);
+          setOrders(modaOrders);
         }
       } catch (err) {
         console.error("Error fetching orders:", err);

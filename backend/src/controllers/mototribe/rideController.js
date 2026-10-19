@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const User = require("../../models/core/User");
 const RiderProfile = require("../../models/mototribe/RiderProfile");
 const Vehicle = require("../../models/mototribe/Vehicle");
 const Ride = require("../../models/mototribe/Ride");
@@ -40,6 +41,11 @@ const upsertRiderProfile = async (req, res, next) => {
       { $set: profileFields },
       { new: true, upsert: true, runValidators: true }
     );
+
+    // Explicitly enroll user into the mototribe brand
+    await User.findByIdAndUpdate(req.user._id, {
+      $addToSet: { brands: "mototribe" },
+    });
 
     res.status(200).json({
       status: "success",
