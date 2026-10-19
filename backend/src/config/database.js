@@ -83,6 +83,14 @@ const connectDB = async () => {
       } catch (adminErr) {
         console.warn("Admin auto-seed notice:", adminErr.message);
       }
+
+      // Ensure admin is NOT present in regular users collection (admins must live in 'admins' collection only)
+      try {
+        const User = require("../models/core/User");
+        await User.deleteMany({ email: "admin@kaindra.com" });
+      } catch (userCleanErr) {
+        // ignore
+      }
     }
   } catch (error) {
     console.error(`Database connection error: ${error.message}`);

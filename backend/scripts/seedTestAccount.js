@@ -94,13 +94,6 @@ const testUsers = [
     password: "Password@123",
     role: "user",
   },
-  {
-    name: "Kaindra Administrator",
-    email: "admin@kaindra.com",
-    phoneNumber: "+919876543212",
-    password: "Password@123",
-    role: "admin",
-  },
 ];
 
 async function seedTestUsers() {
