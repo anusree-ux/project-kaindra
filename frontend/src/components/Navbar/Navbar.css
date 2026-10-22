@@ -569,3 +569,121 @@
     cursor: pointer;
   }
 }
+/* ========================================
+   SELLER DASHBOARD NAVBAR BUTTON
+======================================== */
+
+.seller-dashboard-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 38px;
+  padding: 0 16px;
+
+  border: 1px solid #111111;
+  border-radius: 7px;
+
+  background: #111111;
+  color: #ffffff;
+
+  text-decoration: none;
+  white-space: nowrap;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.seller-dashboard-nav-btn:hover {
+  background: #2b2b2b;
+  border-color: #2b2b2b;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.seller-dashboard-nav-btn:active {
+  transform: translateY(0);
+}
+
+
+/* ========================================
+   MODASPHERE DROPDOWN DASHBOARD
+======================================== */
+
+.modasphere-menu-divider {
+  height: 1px;
+  margin: 7px 10px;
+  background: #eeeeee;
+}
+
+.modasphere-menu .seller-dashboard-menu-btn {
+  margin: 6px;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 11px 12px;
+
+  border-radius: 7px;
+
+  background: #111111;
+  color: #ffffff;
+
+  text-decoration: none;
+}
+
+.modasphere-menu .seller-dashboard-menu-btn:hover {
+  background: #292929;
+  color: #ffffff;
+}
+
+.seller-dashboard-menu-icon {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 6px;
+
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.seller-dashboard-menu-btn > span:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.seller-dashboard-menu-btn strong {
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.seller-dashboard-menu-btn small {
+  color: #a9a9a9;
+  font-size: 9px;
+  font-weight: 400;
+}
+
+
+/* ========================================
+   MOBILE
+======================================== */
+
+@media (max-width: 900px) {
+  .seller-dashboard-nav-btn {
+    width: 100%;
+    min-height: 44px;
+    margin-top: 8px;
+  }
+}

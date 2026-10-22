@@ -218,6 +218,7 @@ function Navbar() {
                 >
                   ModaInsights
                 </Link>
+                <div className="modasphere-menu-divider" />
 
               </div>
             )}
@@ -231,6 +232,13 @@ function Navbar() {
           >
             Contact
           </Link>
+          <Link
+  to="/businesses/modasphere/dashboard"
+  className="seller-dashboard-nav-btn"
+  onClick={closeDropdown}
+>
+  Seller Dashboard
+</Link>
 
           {/* Mobile auth area */}
           <div className="navbar-mobile-auth">
