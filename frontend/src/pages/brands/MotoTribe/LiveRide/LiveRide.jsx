@@ -191,7 +191,7 @@ function LiveRide() {
         <div className="live-stat">
           <span>RIDE BUDGET</span>
           <strong>
-            ₹{ride.budget.toLocaleString()}
+            ₹{Number(String(ride.budget || 0).replace(/[^\d]/g, "") || 0).toLocaleString("en-IN")}
           </strong>
         </div>
 
@@ -255,28 +255,31 @@ function LiveRide() {
 
               </div>
 
-              {ride.stops.map((stop, index) => (
-                <div
-                  className="route-row"
-                  key={`${stop}-${index}`}
-                >
+              {(ride.stops || []).map((stop, index) => {
+                const stopLabel = typeof stop === "object" ? (stop.name || stop.address || String(stop)) : String(stop);
+                return (
+                  <div
+                    className="route-row"
+                    key={`${stopLabel}-${index}`}
+                  >
 
-                  <div className="route-marker">
-                    <span></span>
+                    <div className="route-marker">
+                      <span></span>
+                    </div>
+
+                    <div className="route-content">
+
+                      <span>
+                        STOP {String(index + 1).padStart(2, "0")}
+                      </span>
+
+                      <strong>{stopLabel}</strong>
+
+                    </div>
+
                   </div>
-
-                  <div className="route-content">
-
-                    <span>
-                      STOP {String(index + 1).padStart(2, "0")}
-                    </span>
-
-                    <strong>{stop}</strong>
-
-                  </div>
-
-                </div>
-              ))}
+                );
+              })}
 
               {/* DESTINATION */}
 

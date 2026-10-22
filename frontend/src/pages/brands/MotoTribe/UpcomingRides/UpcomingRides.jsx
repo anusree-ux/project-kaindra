@@ -96,11 +96,21 @@ function UpcomingRides() {
           cleanTitle = insidePart ? `${mainPart} (${insidePart})` : mainPart;
         }
 
+        const realStops = Array.isArray(r.stops)
+          ? r.stops
+              .map((s) => (typeof s === "object" ? s.name || s.address || String(s) : String(s)))
+              .map((s) => (typeof s === "string" ? s.trim() : s))
+              .filter(Boolean)
+          : [];
+        const startLoc = typeof r.origin === "object" ? r.origin.name : r.origin || "Origin";
+        const destLoc = typeof r.destination === "object" ? r.destination.name : r.destination || "Destination";
+        const fullRoute = [startLoc, ...realStops, destLoc].join(" → ");
+
         return {
           id: r._id,
           name: cleanTitle,
-          start: typeof r.origin === "object" ? r.origin.name : r.origin || "Origin",
-          destination: typeof r.destination === "object" ? r.destination.name : r.destination || "Destination",
+          start: startLoc,
+          destination: destLoc,
           date: `${yyyy}-${mm}-${dd}`,
           time: timeStr !== "00:00" ? timeStr : "06:00",
           type: "ADVENTURE",
@@ -112,9 +122,10 @@ function UpcomingRides() {
           isOrganizer: !!r.isOrganizer,
           requestRequired: false,
           distance: `${r.distanceKm || 150} KM`,
-          duration: `${Math.ceil((r.distanceKm || 150) / 120)} Days`,
-          route: `${r.origin} → ${r.destination}`,
-          description: r.description || `User ride planned from ${r.origin} to ${r.destination}.`,
+          duration: r.durationDays ? `${r.durationDays} ${r.durationDays === 1 ? "Day" : "Days"}` : `${Math.ceil((r.distanceKm || 150) / 120)} Days`,
+          route: fullRoute,
+          stops: realStops,
+          description: r.description || `User ride planned from ${startLoc} to ${destLoc}.`,
           requirements: [
             "Helmet and full riding gear required",
             "Motorcycle in good mechanical condition",
