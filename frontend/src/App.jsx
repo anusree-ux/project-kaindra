@@ -24,6 +24,36 @@ import Profile from "./pages/Profile";
 import ModaSphere from "./pages/brands/ModaSphere";
 import Ecosystem from "./pages/brands/ModaSphere/Ecosystem/Ecosystem";
 
+// =========================
+// MODASPHERE DASHBOARD
+// =========================
+import RequireAuth from "./pages/brands/ModaSphere/Dashboard/guards/RequireAuth";
+import DashboardLayout from "./pages/brands/ModaSphere/Dashboard/DashboardLayout";
+
+import DashboardLogin from "./pages/brands/ModaSphere/Dashboard/auth/DashboardLogin";
+import DashboardSignup from "./pages/brands/ModaSphere/Dashboard/auth/DashboardSignup";
+
+import Overview from "./pages/brands/ModaSphere/Dashboard/overview/Overview";
+
+import ProductList from "./pages/brands/ModaSphere/Dashboard/products/ProductList";
+import ProductForm from "./pages/brands/ModaSphere/Dashboard/products/ProductForm";
+
+import OrderListDashboard from "./pages/brands/ModaSphere/Dashboard/orders/OrderList";
+import OrderDetailDashboard from "./pages/brands/ModaSphere/Dashboard/orders/OrderDetail";
+
+import DropList from "./pages/brands/ModaSphere/Dashboard/drops/DropList";
+import DropForm from "./pages/brands/ModaSphere/Dashboard/drops/DropForm";
+
+import ReviewList from "./pages/brands/ModaSphere/Dashboard/reviews/ReviewList";
+
+import DiscountList from "./pages/brands/ModaSphere/Dashboard/discounts/DiscountList";
+import DiscountForm from "./pages/brands/ModaSphere/Dashboard/discounts/DiscountForm";
+
+import RequestList from "./pages/brands/ModaSphere/Dashboard/production-requests/RequestList";
+import RequestDetail from "./pages/brands/ModaSphere/Dashboard/production-requests/RequestDetail";
+
+import DashboardSettings from "./pages/brands/ModaSphere/Dashboard/settings/Settings";
+
 import ModaMart from "./pages/ModaMart";
 import ProductDetails from "./pages/ProductDetails";
 import Cart from "./pages/Cart";
@@ -602,7 +632,121 @@ function App() {
               </ProtectedAdminRoute>
             }
           />
+          
+          {/* =========================
+    MODASPHERE DASHBOARD
+========================= */}
 
+{/* Dashboard Authentication */}
+
+<Route
+  path="/businesses/modasphere/dashboard/login"
+  element={<DashboardLogin />}
+/>
+
+<Route
+  path="/businesses/modasphere/dashboard/signup"
+  element={<DashboardSignup />}
+/>
+
+{/* Protected Dashboard */}
+
+<Route
+  path="/businesses/modasphere/dashboard"
+  element={
+    <RequireAuth>
+      <DashboardLayout />
+    </RequireAuth>
+  }
+>
+  {/* Overview */}
+  <Route
+    index
+    element={<Overview />}
+  />
+
+  {/* Products */}
+  <Route
+    path="products"
+    element={<ProductList />}
+  />
+
+  <Route
+    path="products/new"
+    element={<ProductForm />}
+  />
+
+  <Route
+    path="products/:productId/edit"
+    element={<ProductForm />}
+  />
+
+  {/* Orders */}
+  <Route
+    path="orders"
+    element={<OrderListDashboard />}
+  />
+
+  <Route
+    path="orders/:orderId"
+    element={<OrderDetailDashboard />}
+  />
+
+  {/* Product Drops */}
+  <Route
+    path="drops"
+    element={<DropList />}
+  />
+
+  <Route
+    path="drops/new"
+    element={<DropForm />}
+  />
+
+  <Route
+    path="drops/:dropId/edit"
+    element={<DropForm />}
+  />
+
+  {/* Reviews */}
+  <Route
+    path="reviews"
+    element={<ReviewList />}
+  />
+
+  {/* Discounts */}
+  <Route
+    path="discounts"
+    element={<DiscountList />}
+  />
+
+  <Route
+    path="discounts/new"
+    element={<DiscountForm />}
+  />
+
+  <Route
+    path="discounts/:discountId/edit"
+    element={<DiscountForm />}
+  />
+
+  {/* Production Requests */}
+  <Route
+    path="production-requests"
+    element={<RequestList />}
+  />
+
+  <Route
+    path="production-requests/:requestId"
+    element={<RequestDetail />}
+  />
+
+  {/* Settings */}
+  <Route
+    path="settings"
+    element={<DashboardSettings />}
+  />
+</Route>
           {/* =========================
               MOTOTRIBE
           ========================= */}
