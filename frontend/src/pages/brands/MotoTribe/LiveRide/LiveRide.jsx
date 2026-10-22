@@ -96,40 +96,39 @@ function LiveRide() {
           TOP HEADER
       ===================================================== */}
 
-      <header className="live-ride-topbar">
+      <header className="live-ride-topbar-wrapper">
+        <div className="live-ride-topbar">
+          <button
+            className="live-ride-back"
+            onClick={() =>
+              navigate(
+                `/businesses/mototribe/ride/${ride.id}`
+              )
+            }
+          >
+            ← BACK TO RIDE
+          </button>
 
-        <button
-          className="live-ride-back"
-          onClick={() =>
-            navigate(
-              `/businesses/mototribe/ride/${ride.id}`
-            )
-          }
-        >
-          ← BACK TO RIDE
-        </button>
+          <div className="live-ride-brand">
+            MOTOTRIBE
+            <span>/ LIVE RIDE</span>
+          </div>
 
-        <div className="live-ride-brand">
-          MOTOTRIBE
-          <span>/ LIVE RIDE</span>
+          <div className="live-ride-status-badge">
+            {isLive && (
+              <>
+                <span className="live-status-dot"></span>
+                LIVE NOW
+              </>
+            )}
+
+            {isStarting && "STARTING SOON"}
+
+            {isCompleted && "COMPLETED"}
+
+            {status === "UPCOMING" && "UPCOMING"}
+          </div>
         </div>
-
-        <div className="live-ride-status-badge">
-
-          {isLive && (
-            <>
-              <span className="live-status-dot"></span>
-              LIVE NOW
-            </>
-          )}
-
-          {isStarting && "STARTING SOON"}
-
-          {isCompleted && "COMPLETED"}
-
-          {status === "UPCOMING" && "UPCOMING"}
-        </div>
-
       </header>
 
       {/* =====================================================
