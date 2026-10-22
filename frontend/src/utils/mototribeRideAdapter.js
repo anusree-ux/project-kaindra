@@ -46,6 +46,8 @@ export function formatMongoRide(r) {
     start: startLoc,
     origin: startLoc,
     destination: destLoc,
+    startDate: r.startDate,
+    rawStatus: r.status,
     date: yyyy + "-" + mm + "-" + dd,
     time: timeStr !== "00:00" ? timeStr : "06:00",
     type: "ADVENTURE",

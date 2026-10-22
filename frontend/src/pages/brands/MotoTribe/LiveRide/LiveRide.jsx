@@ -16,6 +16,7 @@ function LiveRide() {
   const [ride, setRide] = useState(null);
   const [status, setStatus] = useState("UPCOMING");
   const [countdown, setCountdown] = useState(null);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -50,6 +51,28 @@ function LiveRide() {
     return () => { isMounted = false; };
   }, [rideId]);
 
+  // Periodic real-time sync with database
+  useEffect(() => {
+    if (!rideId) return;
+
+    const syncInterval = setInterval(() => {
+      apiClient
+        .get(`/api/mototribe/rides/${rideId}`)
+        .then((res) => {
+          const raw = res.data.data?.ride || res.data.data;
+          if (raw) {
+            const formatted = formatMongoRide(raw);
+            setRide((prev) => ({ ...prev, ...formatted }));
+            setStatus(getMotoRideStatus(formatted));
+            setCountdown(getMotoRideCountdown(formatted));
+          }
+        })
+        .catch(() => {});
+    }, 10000);
+
+    return () => clearInterval(syncInterval);
+  }, [rideId]);
+
   useEffect(() => {
     if (!ride) return;
 
@@ -62,6 +85,41 @@ function LiveRide() {
 
     return () => clearInterval(timer);
   }, [ride]);
+
+  const handleStartRide = async () => {
+    try {
+      setUpdatingStatus(true);
+      const res = await apiClient.patch(`/api/mototribe/rides/${ride.id}/start`);
+      const updated = res.data?.data?.ride || res.data?.data;
+      if (updated) {
+        const formatted = formatMongoRide({ ...updated, isOrganizer: true });
+        setRide(formatted);
+        setStatus("LIVE");
+        setCountdown({ expired: true, days: 0, hours: 0, minutes: 0, seconds: 0 });
+      }
+    } catch (err) {
+      console.error("Error starting ride:", err);
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
+
+  const handleCompleteRide = async () => {
+    try {
+      setUpdatingStatus(true);
+      const res = await apiClient.patch(`/api/mototribe/rides/${ride.id}/complete`);
+      const updated = res.data?.data?.ride || res.data?.data;
+      if (updated) {
+        const formatted = formatMongoRide({ ...updated, isOrganizer: true });
+        setRide(formatted);
+        setStatus("COMPLETED");
+      }
+    } catch (err) {
+      console.error("Error completing ride:", err);
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
 
   if (!ride) {
     return (
@@ -441,6 +499,31 @@ function LiveRide() {
 
                 </div>
 
+              </div>
+            )}
+
+            {ride.isOrganizer && (
+              <div className="live-organizer-actions">
+                {(status === "UPCOMING" || status === "STARTING") && (
+                  <button
+                    type="button"
+                    className="live-action-btn live-start-btn"
+                    disabled={updatingStatus}
+                    onClick={handleStartRide}
+                  >
+                    {updatingStatus ? "STARTING RIDE..." : "START RIDE NOW ▶"}
+                  </button>
+                )}
+                {isLive && (
+                  <button
+                    type="button"
+                    className="live-action-btn live-complete-btn"
+                    disabled={updatingStatus}
+                    onClick={handleCompleteRide}
+                  >
+                    {updatingStatus ? "COMPLETING RIDE..." : "COMPLETE RIDE ✓"}
+                  </button>
+                )}
               </div>
             )}
 

@@ -382,22 +382,44 @@ export function getMotoRideDate(ride) {
     return null;
   }
 
-  return new Date(`${ride.date}T${ride.time}:00`);
+  if (ride.startDate) {
+    const d = new Date(ride.startDate);
+    if (!isNaN(d.getTime())) return d;
+  }
+
+  if (ride.date && ride.time) {
+    const d = new Date(`${ride.date}T${ride.time}:00`);
+    if (!isNaN(d.getTime())) return d;
+  }
+
+  return null;
 }
 
 /*
- * Automatically determine the frontend demo lifecycle.
+ * Determine ride lifecycle status.
  *
  * UPCOMING
  * STARTING
  * LIVE
  * COMPLETED
  *
- * In production this should be controlled by the backend/event system.
+ * Prioritizes database ride status (ongoing -> LIVE, completed -> COMPLETED).
  */
 export function getMotoRideStatus(ride, now = new Date()) {
   if (!ride) {
     return "UPCOMING";
+  }
+
+  // Prioritize active database lifecycle status
+  const dbStatus = String(ride.rawStatus || ride.status || "").toLowerCase();
+  if (dbStatus === "ongoing" || dbStatus === "live") {
+    return "LIVE";
+  }
+  if (dbStatus === "completed") {
+    return "COMPLETED";
+  }
+  if (dbStatus === "cancelled") {
+    return "CANCELLED";
   }
 
   const rideStart = getMotoRideDate(ride);
@@ -431,9 +453,20 @@ export function getMotoRideStatus(ride, now = new Date()) {
 }
 
 /*
- * Calculate a countdown for the shared ride.
+ * Calculate countdown for the shared ride based on database start date.
  */
 export function getMotoRideCountdown(ride, now = new Date()) {
+  const dbStatus = String(ride?.rawStatus || ride?.status || "").toLowerCase();
+  if (dbStatus === "ongoing" || dbStatus === "live" || dbStatus === "completed" || dbStatus === "cancelled") {
+    return {
+      expired: true,
+      days: 0,
+      hours: 0,
+      minutes: 0,
+      seconds: 0,
+    };
+  }
+
   const rideDate = getMotoRideDate(ride);
 
   if (!rideDate) {

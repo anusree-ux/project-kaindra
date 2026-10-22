@@ -618,6 +618,50 @@
   letter-spacing: 0.1em;
 }
 
+.live-organizer-actions {
+  margin-top: 20px;
+}
+
+.live-action-btn {
+  width: 100%;
+  padding: 13px 16px;
+  border: 1px solid #c9a45d;
+  background: #c9a45d;
+  color: #090a09;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.live-action-btn:hover:not(:disabled) {
+  background: #deb66b;
+  border-color: #deb66b;
+  transform: translateY(-1px);
+}
+
+.live-action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.live-complete-btn {
+  background: transparent;
+  border-color: rgba(201, 164, 93, 0.4);
+  color: #c9a45d;
+}
+
+.live-complete-btn:hover:not(:disabled) {
+  background: rgba(201, 164, 93, 0.15);
+  border-color: #c9a45d;
+}
+
 /* =========================================================
    INTELLIGENCE
    ========================================================= */
