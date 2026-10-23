@@ -19,7 +19,37 @@ const influenceCampaignValidator = require(
   "../../../validators/modasphere/modainfluence/influenceCampaignValidator"
 );
 
+const {
+  getMyBrandProfile,
+  createBrandProfile,
+  updateBrandProfile,
+} = require(
+  "../../../controllers/modasphere/modainfluence/influenceBrandProfileController"
+);
+
 const router = express.Router();
+
+// =====================================================
+// AUTHENTICATED BRAND PROFILE
+// =====================================================
+
+router.get(
+  "/brand-profile",
+  protect,
+  getMyBrandProfile
+);
+
+router.post(
+  "/brand-profile",
+  protect,
+  createBrandProfile
+);
+
+router.patch(
+  "/brand-profile",
+  protect,
+  updateBrandProfile
+);
 
 // =====================================================
 // PUBLIC

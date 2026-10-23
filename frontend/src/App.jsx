@@ -71,6 +71,7 @@ import ManufactureTracking from "./pages/ManufactureTracking";
 import ModaLogix from "./pages/ModaLogix";
 import ModaPay from "./pages/ModaPay";
 import ModaInfluence from "./pages/ModaInfluence";
+import BrandDashboard from "./pages/BrandDashboard";
 import ModaTales from "./pages/ModaTales";
 import ModaAcademy from "./pages/ModaAcademy";
 import CourseLearning from "./pages/CourseLearning";
@@ -424,6 +425,15 @@ function App() {
             element={
               <PublicLayout>
                 <ModaInfluence />
+              </PublicLayout>
+            }
+          />
+
+          <Route
+            path="/businesses/modainfluence/dashboard"
+            element={
+              <PublicLayout>
+                <BrandDashboard />
               </PublicLayout>
             }
           />

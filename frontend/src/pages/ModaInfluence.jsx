@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import {
   Users,
   Megaphone,
@@ -30,6 +32,18 @@ const creators = [
 ];
 
 function ModaInfluence() {
+  const navigate = useNavigate();
+  const { isAuthenticated, openAuthModal } = useAuth();
+
+  const handleBrandDashboard = () => {
+    if (!isAuthenticated) {
+      openAuthModal("login");
+      return;
+    }
+
+    navigate("/businesses/modainfluence/dashboard");
+  };
+
   const [showForm, setShowForm] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
@@ -97,7 +111,7 @@ function ModaInfluence() {
 
           <button
             className="modainfluence-primary-btn"
-            onClick={() => setShowForm(true)}
+            onClick={handleBrandDashboard}
           >
             Start a Campaign
             <ArrowRight size={17} />
