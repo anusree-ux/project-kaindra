@@ -108,7 +108,7 @@ function Signup() {
             <GoogleAuthButton
               theme="dark"
               buttonText="Sign up with Google"
-              onSuccess={() => navigate("/businesses/mototribe")}
+              onSuccess={() => navigate("/businesses/mototribe/profile-setup")}
               onError={(err) => setError(err)}
             />
           </div>

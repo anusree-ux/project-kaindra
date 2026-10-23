@@ -26,33 +26,50 @@ function SafetyEmergency() {
 
   // Fetch active ride & SOS history
   const fetchRideAndSosData = useCallback(async () => {
+    if (!isAuthenticated) {
+      setActiveRide(null);
+      setSosAlerts([]);
+      return;
+    }
+
     try {
       const response = await apiClient.get("/api/mototribe/rides");
       const fetchedRides = response.data.data?.rides || [];
 
-      if (fetchedRides.length > 0) {
+      // Filter to only rides organized or joined by the logged-in user
+      const userRides = fetchedRides.filter(
+        (r) => r.isOrganizer || r.userParticipationStatus === "confirmed"
+      );
+
+      if (userRides.length > 0) {
         // Priority 1: Ongoing rides sorted by startDate ASC
-        const ongoingRides = fetchedRides
+        const ongoingRides = userRides
           .filter((r) => r.status === "ongoing")
           .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
 
         // Priority 2: Planning rides sorted by startDate ASC
-        const planningRides = fetchedRides
+        const planningRides = userRides
           .filter((r) => r.status === "planning")
           .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
 
-        const selected = ongoingRides[0] || planningRides[0] || fetchedRides[0];
+        const selected = ongoingRides[0] || planningRides[0] || null;
         setActiveRide(selected);
 
         if (selected) {
           const sosRes = await apiClient.get(`/api/mototribe/rides/${selected._id}/sos`);
           setSosAlerts(sosRes.data.data?.alerts || []);
+        } else {
+          setSosAlerts([]);
         }
+      } else {
+        setActiveRide(null);
+        setSosAlerts([]);
       }
     } catch {
-      // Backend request error
+      setActiveRide(null);
+      setSosAlerts([]);
     }
-  }, []);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     fetchRideAndSosData();

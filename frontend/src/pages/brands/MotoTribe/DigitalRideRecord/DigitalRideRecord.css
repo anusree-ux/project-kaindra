@@ -546,10 +546,70 @@
   outline: none;
 }
 
+.record-card-actions .delete-record-button {
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #ef4444;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
 .record-card-actions .delete-record-button:hover,
 .record-card-actions .delete-record-button:focus-visible {
-  border-color: #8d5b5b;
-  color: #c98d8d;
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.12);
+  color: #ff6b6b;
+  outline: none;
+}
+
+.record-card-actions .delete-record-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.modal-delete-action {
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.modal-delete-btn {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.45);
+  color: #ef4444;
+  padding: 12px 18px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+  transition: 0.2s ease;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.modal-delete-btn:hover:not(:disabled),
+.modal-delete-btn:focus-visible:not(:disabled) {
+  background: #ef4444;
+  color: #ffffff;
+  outline: none;
+}
+
+.modal-delete-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.modal-delete-action small {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.62rem;
+  letter-spacing: 0.05em;
+  text-align: center;
 }
 
 /* =========================================

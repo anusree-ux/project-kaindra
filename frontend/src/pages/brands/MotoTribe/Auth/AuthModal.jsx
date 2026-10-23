@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../../context/AuthContext";
 import GoogleAuthButton from "../../../../components/GoogleAuthButton/GoogleAuthButton";
 import "./AuthModal.css";
 
 export default function AuthModal() {
+  const navigate = useNavigate();
   const {
     authModalOpen,
     authModalTab,
@@ -66,7 +68,13 @@ export default function AuthModal() {
           <GoogleAuthButton
             theme="dark"
             buttonText={authModalTab === "login" ? "Continue with Google" : "Continue with Google"}
-            onSuccess={() => closeAuthModal()}
+            onSuccess={(user, meta) => {
+              closeAuthModal();
+              const isMotoTribe = window.location.pathname.includes("/businesses/mototribe");
+              if (meta?.isNewUser || authModalTab === "signup" || (isMotoTribe && !user?.brands?.includes("mototribe"))) {
+                navigate("/businesses/mototribe/profile-setup");
+              }
+            }}
             onError={(err) => setErrorMsg(err)}
           />
 

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNotifications } from "../../context/NotificationContext";
 import { useAuth } from "../../context/AuthContext";
+import apiClient from "../../services/apiClient";
 import "./NotificationDropdown.css";
 
 export default function NotificationDropdown({ brand = "mototribe" }) {
@@ -66,7 +67,7 @@ export default function NotificationDropdown({ brand = "mototribe" }) {
       if (ageMs > 24 * 60 * 60 * 1000) return false;
     }
     if (filter === "UNREAD") return !n.isRead;
-    if (filter === "REQUESTS") return n.type === "CONNECTION_REQUEST";
+    if (filter === "REQUESTS") return n.type === "CONNECTION_REQUEST" || n.type === "RIDE_INVITE";
     return true;
   });
 
@@ -179,7 +180,13 @@ export default function NotificationDropdown({ brand = "mototribe" }) {
                   <div
                     key={n._id}
                     className={"notification-card " + (!n.isRead ? "unread " : "") + (n.type.toLowerCase())}
-                    onClick={() => !n.isRead && markAsRead(n._id)}
+                    onClick={() => {
+                      if (!n.isRead) markAsRead(n._id);
+                      if (n.type === "RIDE_INVITE" && n.data?.rideId) {
+                        setIsOpen(false);
+                        window.location.href = `/businesses/mototribe/ride/${n.data.rideId}`;
+                      }
+                    }}
                   >
                     <div className="notif-icon-col">
                       <span className="notif-type-icon">{getNotifIcon(n.type)}</span>
@@ -219,6 +226,142 @@ export default function NotificationDropdown({ brand = "mototribe" }) {
                                 onClick={() => handleAction(reqId, "ignore", n._id)}
                               >
                                 Ignore
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      )}
+
+                      {/* RIDE INVITATION ACTIONS */}
+                      {n.type === "RIDE_INVITE" && (
+                        <div className="notif-action-row" onClick={(e) => e.stopPropagation()}>
+                          {actionState === "accept" ? (
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                              <span className="notif-status-badge connected">
+                                Ride Joined ✓
+                              </span>
+                              {n.data?.rideId && (
+                                <button
+                                  type="button"
+                                  className="btn-notif-accept"
+                                  style={{ padding: "4px 10px", fontSize: "11px", fontWeight: "600" }}
+                                  onClick={() => {
+                                    setIsOpen(false);
+                                    window.location.href = `/businesses/mototribe/ride/${n.data.rideId}`;
+                                  }}
+                                >
+                                  View Ride →
+                                </button>
+                              )}
+                            </div>
+                          ) : actionState === "ignore" ? (
+                            <span className="notif-status-badge ignored">
+                              Dismissed
+                            </span>
+                          ) : actionState === "error" ? (
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                              <span className="notif-status-badge ignored">
+                                {handledActions[`${n._id}_errorMsg`] || "Ride Unavailable / Expired"}
+                              </span>
+                              {n.data?.rideId && (
+                                <button
+                                  type="button"
+                                  className="btn-notif-accept"
+                                  style={{ padding: "4px 10px", fontSize: "11px", fontWeight: "600" }}
+                                  onClick={() => {
+                                    setIsOpen(false);
+                                    window.location.href = `/businesses/mototribe/ride/${n.data.rideId}`;
+                                  }}
+                                >
+                                  View Ride →
+                                </button>
+                              )}
+                            </div>
+                          ) : (
+                            <>
+                              <button
+                                type="button"
+                                className="btn-notif-accept"
+                                disabled={actionLoading[n._id]}
+                                onClick={async () => {
+                                  setActionLoading((prev) => ({ ...prev, [n._id]: true }));
+                                  try {
+                                    // 1. Client-side expiration check (24 hours)
+                                    const notifAge = n.createdAt
+                                      ? Date.now() - new Date(n.createdAt).getTime()
+                                      : 0;
+                                    if (notifAge > 24 * 60 * 60 * 1000) {
+                                      alert("This ride invitation has expired.");
+                                      await markAsRead(n._id);
+                                      setHandledActions((prev) => ({ ...prev, [n._id]: "error" }));
+                                      return;
+                                    }
+
+                                    if (n.data?.rideId) {
+                                      try {
+                                        await apiClient.post(
+                                          `/api/mototribe/rides/${n.data.rideId}/join`,
+                                          { notificationId: n._id }
+                                        );
+                                      } catch (postErr) {
+                                        const serverMsg =
+                                          postErr.response?.data?.message ||
+                                          postErr.message ||
+                                          "";
+                                        // If user is already the organizer or already a participant, treat as successful & navigate
+                                        const isAlreadyInRide =
+                                          serverMsg.toLowerCase().includes("already") ||
+                                          serverMsg.toLowerCase().includes("organizer") ||
+                                          serverMsg.toLowerCase().includes("participant");
+
+                                        if (isAlreadyInRide) {
+                                          await markAsRead(n._id);
+                                          setHandledActions((prev) => ({ ...prev, [n._id]: "accept" }));
+                                          setIsOpen(false);
+                                          window.location.href = `/businesses/mototribe/ride/${n.data.rideId}`;
+                                          return;
+                                        }
+
+                                        throw postErr;
+                                      }
+                                    } else {
+                                      alert("Ride details are missing or invalid.");
+                                      return;
+                                    }
+
+                                    await markAsRead(n._id);
+                                    setHandledActions((prev) => ({ ...prev, [n._id]: "accept" }));
+                                    setIsOpen(false);
+                                    window.location.href = `/businesses/mototribe/ride/${n.data.rideId}`;
+                                  } catch (err) {
+                                    const errMsg =
+                                      err.response?.data?.message ||
+                                      err.message ||
+                                      "Could not join ride.";
+                                    alert(errMsg);
+                                    await markAsRead(n._id);
+                                    setHandledActions((prev) => ({
+                                      ...prev,
+                                      [n._id]: "error",
+                                      [`${n._id}_errorMsg`]: errMsg,
+                                    }));
+                                  } finally {
+                                    setActionLoading((prev) => ({ ...prev, [n._id]: false }));
+                                  }
+                                }}
+                              >
+                                {actionLoading[n._id] ? "Joining..." : "✓ Accept & View Ride"}
+                              </button>
+                              <button
+                                type="button"
+                                className="btn-notif-decline"
+                                disabled={actionLoading[n._id]}
+                                onClick={async () => {
+                                  await markAsRead(n._id);
+                                  setHandledActions((prev) => ({ ...prev, [n._id]: "ignore" }));
+                                }}
+                              >
+                                Dismiss
                               </button>
                             </>
                           )}

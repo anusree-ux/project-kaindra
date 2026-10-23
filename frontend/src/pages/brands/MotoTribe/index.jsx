@@ -11,7 +11,6 @@ import RidePlanner from "./RidePlanner/RidePlanner";
 
 import UpcomingRides from "./UpcomingRides/UpcomingRides";
 
-import LiveRide from "./LiveRide/LiveRide";
 
 import DigitalRideRecord from "./DigitalRideRecord/DigitalRideRecord";
 
@@ -59,8 +58,6 @@ function MotoTribe() {
         {/* UPCOMING RIDES */}
         <UpcomingRides />
 
-        {/* LIVE RIDE DASHBOARD */}
-        <LiveRide />
 
         {/* DIGITAL RIDE RECORD + HISTORY */}
         <DigitalRideRecord />

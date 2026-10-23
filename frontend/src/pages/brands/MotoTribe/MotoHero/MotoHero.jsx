@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { useAuth } from "../../../../context/AuthContext";
 import apiClient from "../../../../services/apiClient";
 import "./MotoHero.css";
 
@@ -56,6 +57,7 @@ const slides = [
 ];
 
 function MotoHero() {
+  const { isAuthenticated, openAuthModal } = useAuth();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [activeRide, setActiveRide] = useState(null);
   const [weatherData, setWeatherData] = useState(null);
@@ -73,12 +75,23 @@ function MotoHero() {
   }, []);
 
   const fetchActiveRide = useCallback(async () => {
+    if (!isAuthenticated) {
+      setActiveRide(null);
+      fetchWeatherForCoords(12.9716, 77.5946);
+      return;
+    }
+
     try {
       const res = await apiClient.get("/api/mototribe/rides");
       const fetchedRides = res.data?.data?.rides || [];
 
-      const ongoing = fetchedRides.find((r) => r.status === "ongoing");
-      const planning = fetchedRides.find((r) => r.status === "planning");
+      // Filter to only rides organized or joined by the logged-in user
+      const userRides = fetchedRides.filter(
+        (r) => r.isOrganizer || r.userParticipationStatus === "confirmed"
+      );
+
+      const ongoing = userRides.find((r) => r.status === "ongoing");
+      const planning = userRides.find((r) => r.status === "planning");
       const selected = ongoing || planning || null;
 
       setActiveRide(selected);
@@ -114,7 +127,7 @@ function MotoHero() {
       setActiveRide(null);
       fetchWeatherForCoords(12.9716, 77.5946);
     }
-  }, [fetchWeatherForCoords]);
+  }, [isAuthenticated, fetchWeatherForCoords]);
 
   useEffect(() => {
     fetchActiveRide();
@@ -415,15 +428,24 @@ function MotoHero() {
                         <small>{activeRide ? "+12 MIN" : "NO DELAY"}</small>
                       </div>
 
-                      <div className="ai-data">
+                      <div
+                        className={`ai-data ${!isAuthenticated ? "ai-data-locked" : ""}`}
+                        onClick={!isAuthenticated ? () => openAuthModal && openAuthModal("login") : undefined}
+                        style={!isAuthenticated ? { cursor: "pointer" } : undefined}
+                        title={!isAuthenticated ? "Log in to view distance" : undefined}
+                      >
                         <span>DISTANCE / FUEL</span>
                         <strong>
-                          {activeRide?.distanceKm
-                            ? `${activeRide.distanceKm} KM`
-                            : "250 KM"}
+                          {isAuthenticated
+                            ? (activeRide?.distanceKm
+                                ? `${activeRide.distanceKm} KM`
+                                : "250 KM")
+                            : "🔒 LOG IN"}
                         </strong>
                         <small>
-                          {activeRide ? activeRide.status.toUpperCase() : "READY"}
+                          {isAuthenticated
+                            ? (activeRide ? activeRide.status.toUpperCase() : "READY")
+                            : "TO VIEW DISTANCE"}
                         </small>
                       </div>
 

@@ -20,7 +20,7 @@ const getRefreshTokenCookieOptions = () => ({
 /**
  * Helper to build and send auth response with access token & httpOnly refresh cookie
  */
-const sendTokenResponse = async (user, statusCode, res) => {
+const sendTokenResponse = async (user, statusCode, res, extra = {}) => {
   const accessToken = signAccessToken({ id: user._id, role: user.role });
   const refreshToken = signRefreshToken({ id: user._id, role: user.role });
 
@@ -40,8 +40,11 @@ const sendTokenResponse = async (user, statusCode, res) => {
   res.status(statusCode).json({
     status: "success",
     accessToken,
+    isNewUser: Boolean(extra.isNewUser),
     data: {
       user: userObj,
+      isNewUser: Boolean(extra.isNewUser),
+      ...extra,
     },
   });
 };
@@ -258,6 +261,7 @@ const googleAuth = async (req, res, next) => {
       ],
     });
 
+    let isNewUser = false;
     if (user) {
       let changed = false;
       if (name && user.name !== name) {
@@ -276,6 +280,7 @@ const googleAuth = async (req, res, next) => {
         await user.save({ validateBeforeSave: false });
       }
     } else {
+      isNewUser = true;
       user = await User.create({
         name,
         email,
@@ -284,7 +289,7 @@ const googleAuth = async (req, res, next) => {
       });
     }
 
-    await sendTokenResponse(user, 200, res);
+    await sendTokenResponse(user, 200, res, { isNewUser });
   } catch (error) {
     next(error);
   }

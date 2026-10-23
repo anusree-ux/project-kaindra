@@ -7,6 +7,8 @@ import {
   getMotoRideStatus,
   getMotoRideCountdown,
 } from "../../../../data/motoRides";
+import RideCall from "../RideCall/RideCall";
+import LiveRideChat from "../LiveRideChat/LiveRideChat";
 import "./LiveRide.css";
 
 function LiveRide() {
@@ -14,50 +16,74 @@ function LiveRide() {
   const navigate = useNavigate();
 
   const [ride, setRide] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState("UPCOMING");
   const [countdown, setCountdown] = useState(null);
   const [updatingStatus, setUpdatingStatus] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
-    const selectedRide = getMotoRideById(rideId);
+    setLoading(true);
 
-    if (selectedRide) {
-      setRide(selectedRide);
-      setStatus(getMotoRideStatus(selectedRide));
-      setCountdown(getMotoRideCountdown(selectedRide));
-      return;
+    if (rideId) {
+      const selectedRide = getMotoRideById(rideId);
+      if (selectedRide) {
+        setRide(selectedRide);
+        setStatus(getMotoRideStatus(selectedRide));
+        setCountdown(getMotoRideCountdown(selectedRide));
+        setLoading(false);
+        return;
+      }
     }
 
     async function fetchRideFromDb() {
       try {
-        const res = await apiClient.get(`/api/mototribe/rides/${rideId}`);
-        const raw = res.data.data?.ride || res.data.data;
-        if (isMounted && raw) {
-          const formatted = formatMongoRide(raw);
-          setRide(formatted);
-          setStatus(getMotoRideStatus(formatted));
-          setCountdown(getMotoRideCountdown(formatted));
+        if (rideId) {
+          const res = await apiClient.get(`/api/mototribe/rides/${rideId}`);
+          const raw = res.data.data?.ride || res.data.data;
+          if (isMounted && raw) {
+            const formatted = formatMongoRide(raw);
+            setRide(formatted);
+            setStatus(getMotoRideStatus(formatted));
+            setCountdown(getMotoRideCountdown(formatted));
+          }
+        } else {
+          // Embedded on main page without rideId in URL
+          // Fetch user's active/latest ride from the database
+          const res = await apiClient.get("/api/mototribe/rides");
+          const list = res.data.data?.rides || [];
+          const activeRide =
+            list.find((r) => r.status === "active") ||
+            list.find((r) => r.status === "planning") ||
+            list[0];
+
+          if (isMounted && activeRide) {
+            const formatted = formatMongoRide(activeRide);
+            setRide(formatted);
+            setStatus(getMotoRideStatus(formatted));
+            setCountdown(getMotoRideCountdown(formatted));
+          }
         }
       } catch (err) {
         console.error("Error fetching live ride from DB:", err);
+      } finally {
+        if (isMounted) setLoading(false);
       }
     }
 
-    if (rideId) {
-      fetchRideFromDb();
-    }
+    fetchRideFromDb();
 
     return () => { isMounted = false; };
   }, [rideId]);
 
   // Periodic real-time sync with database
   useEffect(() => {
-    if (!rideId) return;
+    const currentRideId = rideId || ride?.id || ride?._id;
+    if (!currentRideId) return;
 
     const syncInterval = setInterval(() => {
       apiClient
-        .get(`/api/mototribe/rides/${rideId}`)
+        .get(`/api/mototribe/rides/${currentRideId}`)
         .then((res) => {
           const raw = res.data.data?.ride || res.data.data;
           if (raw) {
@@ -71,7 +97,7 @@ function LiveRide() {
     }, 10000);
 
     return () => clearInterval(syncInterval);
-  }, [rideId]);
+  }, [rideId, ride?.id, ride?._id]);
 
   useEffect(() => {
     if (!ride) return;
@@ -121,7 +147,43 @@ function LiveRide() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="live-ride-page" id="live-ride">
+        <div className="live-ride-not-found" style={{ textAlign: "center", padding: "80px 20px" }}>
+          <span style={{ letterSpacing: "0.2em", color: "#d4a03e" }}>LIVE TELEMATICS</span>
+          <h2 style={{ color: "#fff", marginTop: "12px" }}>Connecting to Live Ride...</h2>
+        </div>
+      </div>
+    );
+  }
+
   if (!ride) {
+    if (!rideId) {
+      // Embedded on main page and no active ride exists yet
+      return (
+        <div className="live-ride-page" id="live-ride">
+          <div className="live-ride-not-found" style={{ textAlign: "center", padding: "60px 20px" }}>
+            <span style={{ letterSpacing: "0.2em", color: "#d4a03e" }}>03 / LIVE RIDE DASHBOARD</span>
+            <h2 style={{ color: "#fff", margin: "16px 0 8px" }}>No Active Ride In Progress</h2>
+            <p style={{ color: "rgba(255,255,255,0.6)", maxWidth: "480px", margin: "0 auto 24px" }}>
+              Plan a journey or join an upcoming group ride to monitor live telemetry, route checkpoints, and jump into real-time tribe voice and video calls.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                const el = document.getElementById("planner") || document.querySelector(".planner-page") || document.querySelector(".moto-ride-planner");
+                if (el) el.scrollIntoView({ behavior: "smooth" });
+                else navigate("/businesses/mototribe");
+              }}
+            >
+              PLAN A RIDE →
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="live-ride-page">
         <div className="live-ride-not-found">
@@ -158,13 +220,9 @@ function LiveRide() {
         <div className="live-ride-topbar">
           <button
             className="live-ride-back"
-            onClick={() =>
-              navigate(
-                `/businesses/mototribe/ride/${ride.id}`
-              )
-            }
+            onClick={() => navigate("/businesses/mototribe")}
           >
-            ← BACK TO RIDE
+            ← BACK TO MOTOTRIBE
           </button>
 
           <div className="live-ride-brand">
@@ -418,6 +476,12 @@ function LiveRide() {
             </div>
 
           </section>
+
+          {/* TRIBE VOICE & VIDEO CALL */}
+          <RideCall ride={ride} currentStatus={status} />
+
+          {/* LIVE RIDE GROUP CHAT */}
+          <LiveRideChat ride={ride} />
 
         </div>
 

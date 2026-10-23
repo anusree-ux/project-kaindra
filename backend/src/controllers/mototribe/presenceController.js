@@ -271,8 +271,8 @@ const getRidersNearby = async (req, res, next) => {
       });
     }
 
-    // Only append other registered community riders when no filter is requested
-    if (!filterType) {
+    // Only append other registered community riders when no filter is requested or filter is "all"
+    if (!filter || filter === "all") {
       const existingUserIds = new Set(ridersList.map((r) => r.userId.toString()));
       existingUserIds.add(req.user._id.toString());
 

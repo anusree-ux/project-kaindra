@@ -439,46 +439,89 @@ export default function PlacesAutocomplete({
       async (pos) => {
         const lat = pos.coords.latitude;
         const lon = pos.coords.longitude;
+        const accuracyMeters = pos.coords.accuracy ? Math.round(pos.coords.accuracy) : null;
 
-        let formattedAddress = `GPS Location (${lat.toFixed(4)}, ${lon.toFixed(4)})`;
+        let formattedAddress = "";
         let mainName = "Your Location";
 
-        try {
-          const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
-          );
-          if (response.ok) {
-            const data = await response.json();
-            const addr = data.address || {};
-            const area =
-              addr.suburb ||
-              addr.neighbourhood ||
-              addr.residential ||
-              addr.city_district ||
-              "";
-            const city =
-              addr.city || addr.town || addr.village || addr.county || "";
-            const state = addr.state || "";
-            const country = addr.country || "";
+        // 1. Try Google Maps Geocoder first (building & street-level accuracy)
+        if (window.google?.maps?.Geocoder) {
+          try {
+            const geocoder = new window.google.maps.Geocoder();
+            const gResult = await new Promise((resolve) => {
+              geocoder.geocode({ location: { lat, lng: lon } }, (results, status) => {
+                if (status === "OK" && Array.isArray(results) && results.length > 0) {
+                  resolve(results[0]);
+                } else {
+                  resolve(null);
+                }
+              });
+            });
 
-            const parts = [area, city, state, country].filter(Boolean);
-            if (parts.length > 0) {
-              formattedAddress = parts.join(", ");
-              mainName = city || area || "Your Location";
+            if (gResult) {
+              formattedAddress = gResult.formatted_address;
+              const sublocality = gResult.address_components?.find((c) =>
+                c.types.includes("sublocality") || c.types.includes("neighborhood")
+              )?.long_name;
+              const city = gResult.address_components?.find((c) =>
+                c.types.includes("locality")
+              )?.long_name;
+
+              if (sublocality && city) {
+                mainName = `${sublocality}, ${city}`;
+              } else if (sublocality || city) {
+                mainName = sublocality || city;
+              }
             }
+          } catch (gErr) {
+            console.warn("[PlacesAutocomplete] Google geocoder note:", gErr);
           }
-        } catch (e) {
-          console.warn("[PlacesAutocomplete] Reverse geocoding note:", e);
         }
 
-        const selectedText = formattedAddress;
+        // 2. Fallback to OpenStreetMap Nominatim with detailed road, neighborhood, & building parsing
+        if (!formattedAddress) {
+          try {
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`
+            );
+            if (response.ok) {
+              const data = await response.json();
+              const addr = data.address || {};
+              const road =
+                addr.road || addr.street || addr.pedestrian || addr.footway || "";
+              const area =
+                addr.suburb ||
+                addr.neighbourhood ||
+                addr.residential ||
+                addr.city_district ||
+                addr.subdivision ||
+                "";
+              const city =
+                addr.city || addr.town || addr.village || addr.county || "";
+              const state = addr.state || "";
+              const postcode = addr.postcode || "";
+
+              const parts = [road, area, city, state, postcode].filter(Boolean);
+              if (parts.length > 0) {
+                formattedAddress = parts.join(", ");
+                mainName = area || city || "Your Location";
+              } else if (data.display_name) {
+                formattedAddress = data.display_name;
+              }
+            }
+          } catch (e) {
+            console.warn("[PlacesAutocomplete] Reverse geocoding note:", e);
+          }
+        }
+
+        const selectedText = formattedAddress || `GPS Location (${lat.toFixed(5)}, ${lon.toFixed(5)})`;
 
         const currentLocSuggestion = {
           placeId: "gps-live-device-location",
           main: mainName ? `Your Location (${mainName})` : "Your Location",
-          secondary: selectedText,
+          secondary: accuracyMeters ? `${selectedText} (±${accuracyMeters}m)` : selectedText,
           description: selectedText,
-          coordinates: { lat, lon },
+          coordinates: { lat, lon, lng: lon, accuracy: accuracyMeters },
           isCurrentLocation: true,
         };
 
@@ -494,13 +537,13 @@ export default function PlacesAutocomplete({
         console.warn("[PlacesAutocomplete] GPS error:", err.message);
         setGpsLoading(false);
         alert(
-          "Unable to fetch device location. Please allow location access in your browser."
+          "Unable to fetch precise device location. Please ensure location access is allowed in your browser."
         );
       },
       {
         enableHighAccuracy: true,
-        timeout: 12000,
-        maximumAge: 30000,
+        timeout: 15000,
+        maximumAge: 0, // Force fresh hardware GPS fix
       }
     );
   }, [onChange, onSelect]);

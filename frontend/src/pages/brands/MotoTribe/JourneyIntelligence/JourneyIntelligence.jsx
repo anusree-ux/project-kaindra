@@ -86,17 +86,22 @@ function JourneyIntelligence() {
       const res = await apiClient.get("/api/mototribe/rides");
       const fetchedRides = res.data?.data?.rides || [];
 
-      const ongoingRides = fetchedRides
+      // Filter to only rides organized or joined by the logged-in user
+      const userRides = fetchedRides.filter(
+        (r) => r.isOrganizer || r.userParticipationStatus === "confirmed"
+      );
+
+      const ongoingRides = userRides
         .filter((r) => r.status === "ongoing")
         .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
 
-      const planningRides = fetchedRides
+      const planningRides = userRides
         .filter((r) => r.status === "planning")
         .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
 
       const selected = ongoingRides[0] || planningRides[0] || null;
 
-      setRides(fetchedRides);
+      setRides(userRides);
       setActiveRide(selected);
     } catch {
       setRides([]);

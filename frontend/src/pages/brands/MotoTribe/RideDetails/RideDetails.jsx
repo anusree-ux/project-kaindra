@@ -10,6 +10,8 @@ import {
 } from "../../../../data/motoRides";
 
 import "./RideDetails.css";
+import LiveRideChat from "../LiveRideChat/LiveRideChat";
+import RideCall from "../RideCall/RideCall";
 
 /* --------------------------------------------------
    LOCAL STORAGE HELPERS
@@ -39,85 +41,7 @@ const setStoredArray = (key, value) => {
   }
 };
 
-/* --------------------------------------------------
-   CHAT HELPERS
--------------------------------------------------- */
 
-const getChatStorageKey = (rideId) =>
-  `mototribe_ride_chat_${rideId}`;
-
-const createInitialMessages = (ride) => {
-  if (!ride) {
-    return [];
-  }
-
-  return [
-    {
-      id: `system-${ride.id}`,
-      type: "SYSTEM",
-      sender: "MotoTribe",
-      text: `Ride group created for ${ride.name}.`,
-      timestamp: new Date().toISOString(),
-    },
-    {
-      id: `organizer-${ride.id}`,
-      type: "ORGANIZER",
-      sender: ride.organizer || "Ride Organizer",
-      text: "Welcome riders. Please check the route and planned stops before departure.",
-      timestamp: new Date(
-        Date.now() - 45 * 60 * 1000
-      ).toISOString(),
-    },
-    {
-      id: `demo-${ride.id}`,
-      type: "RIDER",
-      sender: "Arjun",
-      text: "Looking forward to the ride. See you all at the start point.",
-      timestamp: new Date(
-        Date.now() - 25 * 60 * 1000
-      ).toISOString(),
-    },
-  ];
-};
-
-const loadChatMessages = (rideId, ride) => {
-  try {
-    const stored = localStorage.getItem(
-      getChatStorageKey(rideId)
-    );
-
-    if (!stored) {
-      return createInitialMessages(ride);
-    }
-
-    const parsed = JSON.parse(stored);
-
-    if (Array.isArray(parsed)) {
-      return parsed;
-    }
-
-    return createInitialMessages(ride);
-  } catch {
-    return createInitialMessages(ride);
-  }
-};
-
-/* --------------------------------------------------
-   FORMATTERS
--------------------------------------------------- */
-
-const formatChatTime = (timestamp) => {
-  const date = new Date(timestamp);
-
-  if (Number.isNaN(date.getTime())) {
-    return "";
-  }
-
-  return date.toLocaleTimeString("en-IN", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
 
 /* --------------------------------------------------
    MAIN COMPONENT
@@ -270,23 +194,7 @@ function RideDetailsContent({ rideId, navigate }) {
     getInitialJoinRequests
   );
 
-  /*
-    IMPORTANT:
-    Chat messages are initialized directly with lazy
-    useState instead of calling setMessages inside
-    useEffect.
-
-    This fixes:
-    "Calling setState synchronously within an effect
-    can trigger cascading renders"
-  */
-  const [messages, setMessages] = useState(() =>
-    loadChatMessages(rideId, ride)
-  );
-
-  const [messageText, setMessageText] = useState("");
-
-  const [chatNotice, setChatNotice] = useState("");
+  const [selectedPoiCategory, setSelectedPoiCategory] = useState(null);
 
   /* --------------------------------------------------
      CLOCK
@@ -302,23 +210,7 @@ function RideDetailsContent({ rideId, navigate }) {
     };
   }, []);
 
-  /* --------------------------------------------------
-     PERSIST CHAT
-     
-     This effect is allowed because it synchronizes
-     React state with an external system: localStorage.
-  -------------------------------------------------- */
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(
-        getChatStorageKey(rideId),
-        JSON.stringify(messages)
-      );
-    } catch {
-      // Ignore localStorage errors in demo mode.
-    }
-  }, [messages, rideId]);
 
   /* --------------------------------------------------
      LOADING & NOT FOUND
@@ -535,69 +427,7 @@ function RideDetailsContent({ rideId, navigate }) {
     );
   };
 
-  /* --------------------------------------------------
-     SEND CHAT MESSAGE
-  -------------------------------------------------- */
 
-  const handleSendMessage = () => {
-    const cleanMessage = messageText.trim();
-
-    if (!cleanMessage) {
-      return;
-    }
-
-    const newMessage = {
-      id: `message-${Date.now()}`,
-      type: "RIDER",
-      sender: "You",
-      text: cleanMessage,
-      timestamp: new Date().toISOString(),
-    };
-
-    setMessages((currentMessages) => [
-      ...currentMessages,
-      newMessage,
-    ]);
-
-    setMessageText("");
-
-    setChatNotice("Message sent");
-
-    window.setTimeout(() => {
-      setChatNotice("");
-    }, 1800);
-  };
-
-  /* --------------------------------------------------
-     CHAT KEYBOARD
-  -------------------------------------------------- */
-
-  const handleChatKeyDown = (event) => {
-    if (
-      event.key === "Enter" &&
-      !event.shiftKey
-    ) {
-      event.preventDefault();
-      handleSendMessage();
-    }
-  };
-
-  /* --------------------------------------------------
-     RESET DEMO CHAT
-  -------------------------------------------------- */
-
-  const handleResetChat = () => {
-    const initialMessages =
-      createInitialMessages(ride);
-
-    setMessages(initialMessages);
-    setMessageText("");
-    setChatNotice("Demo chat reset");
-
-    window.setTimeout(() => {
-      setChatNotice("");
-    }, 1800);
-  };
 
   /* --------------------------------------------------
      NAVIGATION
@@ -870,66 +700,153 @@ function RideDetailsContent({ rideId, navigate }) {
               </div>
 
               <div className="journey-intelligence-grid">
-                <div>
+                <div
+                  className={selectedPoiCategory === "fuel" ? "active-poi-card" : ""}
+                  onClick={() =>
+                    setSelectedPoiCategory(
+                      selectedPoiCategory === "fuel" ? null : "fuel"
+                    )
+                  }
+                  title="Click to view verified fuel stations from DB & Google Maps"
+                >
                   <strong>
-                    {
-                      ride
-                        .journeyIntelligence
-                        .fuelStops
-                    }
+                    {ride.journeyIntelligence?.fuelStops ?? 0}
                   </strong>
-
                   <span>FUEL STOPS</span>
                 </div>
 
-                <div>
+                <div
+                  className={selectedPoiCategory === "rest_stop" ? "active-poi-card" : ""}
+                  onClick={() =>
+                    setSelectedPoiCategory(
+                      selectedPoiCategory === "rest_stop" ? null : "rest_stop"
+                    )
+                  }
+                  title="Click to view rest cafes and highway stops"
+                >
                   <strong>
-                    {
-                      ride
-                        .journeyIntelligence
-                        .restStops
-                    }
+                    {ride.journeyIntelligence?.restStops ?? 0}
                   </strong>
-
                   <span>REST STOPS</span>
                 </div>
 
-                <div>
+                <div
+                  className={selectedPoiCategory === "repair_shop" ? "active-poi-card" : ""}
+                  onClick={() =>
+                    setSelectedPoiCategory(
+                      selectedPoiCategory === "repair_shop" ? null : "repair_shop"
+                    )
+                  }
+                  title="Click to view mechanic and repair workshops"
+                >
                   <strong>
-                    {
-                      ride
-                        .journeyIntelligence
-                        .serviceStops
-                    }
+                    {ride.journeyIntelligence?.serviceStops ?? 0}
                   </strong>
-
                   <span>SERVICE STOPS</span>
                 </div>
 
-                <div>
+                <div
+                  className={selectedPoiCategory === "hotel" ? "active-poi-card" : ""}
+                  onClick={() =>
+                    setSelectedPoiCategory(
+                      selectedPoiCategory === "hotel" ? null : "hotel"
+                    )
+                  }
+                  title="Click to view hotels and accommodations"
+                >
                   <strong>
-                    {
-                      ride
-                        .journeyIntelligence
-                        .accommodationStops
-                    }
+                    {ride.journeyIntelligence?.accommodationStops ?? 0}
                   </strong>
-
                   <span>ACCOMMODATION</span>
                 </div>
 
-                <div>
+                <div
+                  className={selectedPoiCategory === "scenic_spot" ? "active-poi-card" : ""}
+                  onClick={() =>
+                    setSelectedPoiCategory(
+                      selectedPoiCategory === "scenic_spot" ? null : "scenic_spot"
+                    )
+                  }
+                  title="Click to view scenic stops and viewpoints"
+                >
                   <strong>
-                    {
-                      ride
-                        .journeyIntelligence
-                        .scenicStops
-                    }
+                    {ride.journeyIntelligence?.scenicStops ?? 0}
                   </strong>
-
                   <span>SCENIC STOPS</span>
                 </div>
               </div>
+
+              {selectedPoiCategory && (
+                <div className="journey-intelligence-poi-panel">
+                  <div className="journey-intelligence-poi-header">
+                    <div>
+                      <h3>
+                        {selectedPoiCategory === "fuel" && "⚡ VERIFIED FUEL STOPS"}
+                        {selectedPoiCategory === "rest_stop" && "☕ REST STOPS & HIGHWAY CAFES"}
+                        {selectedPoiCategory === "repair_shop" && "⚙ SERVICE & REPAIR WORKSHOPS"}
+                        {selectedPoiCategory === "hotel" && "⌂ ACCOMMODATIONS & STAYS"}
+                        {selectedPoiCategory === "scenic_spot" && "◎ SCENIC SPOTS & ATTRACTIONS"}
+                      </h3>
+                      <span className="poi-source-badge">
+                        Corridor data stored in Database & synced with Google Places
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      className="journey-intelligence-poi-close"
+                      onClick={() => setSelectedPoiCategory(null)}
+                      aria-label="Close POI panel"
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  {(() => {
+                    const activePlaces = (ride.journeyIntelligence?.places || []).filter(
+                      (p) => p.category === selectedPoiCategory
+                    );
+
+                    if (activePlaces.length === 0) {
+                      return (
+                        <div style={{ color: "#7e807a", fontSize: "11px", padding: "8px 0" }}>
+                          Stops along this highway corridor are synchronized with the database.
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="journey-intelligence-poi-list">
+                        {activePlaces.map((poi, idx) => (
+                          <div
+                            key={poi.googlePlaceId || `${poi.name}-${idx}`}
+                            className="journey-intelligence-poi-item"
+                          >
+                            <div className="journey-poi-top">
+                              <span className="journey-poi-name">{poi.name}</span>
+                              {poi.rating && (
+                                <span className="journey-poi-rating">★ {poi.rating}</span>
+                              )}
+                            </div>
+                            {poi.address && (
+                              <div className="journey-poi-address">{poi.address}</div>
+                            )}
+                            <div className="journey-poi-footer">
+                              <span className="journey-poi-distance">
+                                {poi.distanceMeters
+                                  ? `${(poi.distanceMeters / 1000).toFixed(1)} KM`
+                                  : "En Route"}
+                              </span>
+                              <span className="journey-poi-status">
+                                {poi.isOpenNow === false ? "CLOSED" : "OPEN NOW"}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
             </section>
 
             {/* REQUIREMENTS */}
@@ -1122,179 +1039,13 @@ function RideDetailsContent({ rideId, navigate }) {
               </section>
             )}
 
-            {/* RIDE GROUP CHAT */}
+            {/* TRIBE VOICE & VIDEO CALL */}
+            <RideCall ride={ride} currentStatus={status} />
 
-            <section className="ride-info-card ride-chat-card">
-              <div className="ride-info-card-heading">
-                <span>08</span>
-
-                <div className="ride-chat-heading-content">
-                  <h2>RIDE GROUP CHAT</h2>
-
-                  <small>
-                    FRONTEND DEMO · REALTIME API LATER
-                  </small>
-                </div>
-
-                <button
-                  type="button"
-                  className="ride-chat-reset"
-                  onClick={handleResetChat}
-                >
-                  RESET
-                </button>
-              </div>
-
-              <div className="ride-chat-status-row">
-                <div className="ride-chat-online">
-                  <span className="chat-online-dot" />
-                  <strong>
-                    {Math.max(
-                      participants.length,
-                      1
-                    )}{" "}
-                    RIDERS IN GROUP
-                  </strong>
-                </div>
-
-                <span className="ride-chat-status-text">
-                  Group messages are stored locally
-                  for this frontend demo.
-                </span>
-              </div>
-
-              <div className="ride-chat-messages">
-                {messages.length === 0 ? (
-                  <div className="ride-chat-empty">
-                    <strong>
-                      NO MESSAGES YET
-                    </strong>
-
-                    <span>
-                      Start the conversation with
-                      your riding group.
-                    </span>
-                  </div>
-                ) : (
-                  messages.map((message) => {
-                    const isYou =
-                      message.sender === "You";
-
-                    const isSystem =
-                      message.type === "SYSTEM";
-
-                    const isOrganizer =
-                      message.type ===
-                      "ORGANIZER";
-
-                    return (
-                      <div
-                        key={message.id}
-                        className={`ride-chat-message ${
-                          isYou
-                            ? "is-you"
-                            : ""
-                        } ${
-                          isSystem
-                            ? "is-system"
-                            : ""
-                        }`}
-                      >
-                        {!isSystem && (
-                          <div className="ride-chat-avatar">
-                            {message.sender
-                              .charAt(0)
-                              .toUpperCase()}
-                          </div>
-                        )}
-
-                        <div className="ride-chat-message-body">
-                          {!isSystem && (
-                            <div className="ride-chat-message-meta">
-                              <strong>
-                                {
-                                  message.sender
-                                }
-                              </strong>
-
-                              {isOrganizer && (
-                                <span>
-                                  ORGANIZER
-                                </span>
-                              )}
-
-                              <small>
-                                {formatChatTime(
-                                  message.timestamp
-                                )}
-                              </small>
-                            </div>
-                          )}
-
-                          <div className="ride-chat-bubble">
-                            {message.text}
-                          </div>
-
-                          {isSystem && (
-                            <small className="ride-chat-system-time">
-                              {formatChatTime(
-                                message.timestamp
-                              )}
-                            </small>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-
-              <div className="ride-chat-composer">
-                <textarea
-                  value={messageText}
-                  onChange={(event) =>
-                    setMessageText(
-                      event.target.value
-                    )
-                  }
-                  onKeyDown={
-                    handleChatKeyDown
-                  }
-                  placeholder="Write a message to the riding group..."
-                  rows={3}
-                  maxLength={500}
-                  aria-label="Ride group message"
-                />
-
-                <div className="ride-chat-composer-footer">
-                  <span>
-                    ENTER TO SEND · SHIFT + ENTER
-                    FOR NEW LINE
-                  </span>
-
-                  <button
-                    type="button"
-                    onClick={
-                      handleSendMessage
-                    }
-                    disabled={
-                      !messageText.trim()
-                    }
-                  >
-                    SEND MESSAGE →
-                  </button>
-                </div>
-              </div>
-
-              {chatNotice && (
-                <div
-                  className="ride-chat-notice"
-                  role="status"
-                >
-                  {chatNotice}
-                </div>
-              )}
-            </section>
+            {/* RIDE GROUP CHAT - UNIFIED LIVE RIDE CHAT */}
+            <div id="ride-group-chat" className="ride-unified-group-chat">
+              <LiveRideChat ride={ride} />
+            </div>
           </div>
 
           {/* SIDEBAR */}
@@ -1456,12 +1207,35 @@ function RideDetailsContent({ rideId, navigate }) {
                   connected with your riding group.
                 </p>
 
-                <button
-                  type="button"
-                  onClick={handleOpenLiveRide}
-                >
-                  ENTER LIVE RIDE
-                </button>
+                <div className="live-ride-action-group" style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  <button
+                    type="button"
+                    onClick={handleOpenLiveRide}
+                  >
+                    ENTER LIVE RIDE
+                  </button>
+
+                  <button
+                    type="button"
+                    className="live-call-nav-btn"
+                    style={{
+                      background: "#00E5FF",
+                      color: "#0a0a0f",
+                      fontWeight: "700",
+                      padding: "10px 14px",
+                      border: "none",
+                      borderRadius: "6px",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "6px"
+                    }}
+                    onClick={handleOpenLiveRide}
+                  >
+                    JOIN LIVE CALL ☎
+                  </button>
+                </div>
               </div>
             )}
 
@@ -1488,18 +1262,16 @@ function RideDetailsContent({ rideId, navigate }) {
 
               <button
                 type="button"
-                onClick={() =>
-                  document
-                    .querySelector(
-                      ".ride-chat-card"
-                    )
-                    ?.scrollIntoView({
-                      behavior: "smooth",
-                      block: "start",
-                    })
-                }
+                onClick={() => {
+                  const chatEl = document.getElementById("ride-group-chat");
+                  if (chatEl) {
+                    chatEl.scrollIntoView({ behavior: "smooth", block: "start" });
+                  } else {
+                    navigate(`/businesses/mototribe/ride/${rideId}/live`);
+                  }
+                }}
               >
-                OPEN GROUP CHAT ↓
+                OPEN GROUP CHAT 💬 ↓
               </button>
             </div>
 

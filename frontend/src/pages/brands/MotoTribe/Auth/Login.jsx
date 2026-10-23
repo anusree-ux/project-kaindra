@@ -58,7 +58,13 @@ function Login() {
             <GoogleAuthButton
               theme="dark"
               buttonText="Continue with Google"
-              onSuccess={() => navigate("/businesses/mototribe")}
+              onSuccess={(user, meta) => {
+                if (meta?.isNewUser || !user?.brands?.includes("mototribe")) {
+                  navigate("/businesses/mototribe/profile-setup");
+                } else {
+                  navigate("/businesses/mototribe");
+                }
+              }}
               onError={(err) => setError(err)}
             />
           </div>

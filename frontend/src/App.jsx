@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
 import { useEffect } from "react";
 
 import { AuthProvider } from "./context/AuthContext";
@@ -98,6 +98,11 @@ import RideDetails from "./pages/brands/MotoTribe/RideDetails/RideDetails";
 import LiveRide from "./pages/brands/MotoTribe/LiveRide/LiveRide";
 import Expenses from "./pages/brands/MotoTribe/Expenses/Expenses";
 import PostRideSummaryPage from "./pages/brands/MotoTribe/PostRideSummaryPage/PostRideSummaryPage";
+
+function RedirectToLiveRide() {
+  const { rideId } = useParams();
+  return <Navigate to={`/businesses/mototribe/ride/${rideId}/live`} replace />;
+}
 
 function ScrollToTop() {
   useEffect(() => {
@@ -788,12 +793,17 @@ function App() {
 
           <Route
             path="/businesses/mototribe/ride/:rideId"
-            element={<RideDetails />}
+            element={<LiveRide />}
           />
 
           <Route
             path="/businesses/mototribe/ride/:rideId/live"
             element={<LiveRide />}
+          />
+
+          <Route
+            path="/businesses/mototribe/ride/:rideId/chat"
+            element={<RedirectToLiveRide />}
           />
 
           <Route

@@ -51,8 +51,19 @@ const computeRideRoute = async (req, res, next) => {
     // 3. Compute directions via Google Directions API
     const routeData = await getRoute(originLat, originLng, destLat, destLng);
 
-    // 4. Save computed routeInfo to ride
+    // 4. Save computed routeInfo and journeyIntelligence to ride
     ride.routeInfo = routeData;
+
+    try {
+      const { computeRideJourneyIntelligence } = require("../../services/mototribe/placesService");
+      const ji = await computeRideJourneyIntelligence(ride);
+      if (ji) {
+        ride.journeyIntelligence = ji;
+      }
+    } catch (jiErr) {
+      console.warn("[DirectionsController] Journey intelligence note:", jiErr.message);
+    }
+
     await ride.save();
 
     res.status(200).json({
@@ -63,6 +74,7 @@ const computeRideRoute = async (req, res, next) => {
         originCoordinates: { lat: originLat, lng: originLng },
         destinationCoordinates: { lat: destLat, lng: destLng },
         routeInfo: ride.routeInfo,
+        journeyIntelligence: ride.journeyIntelligence,
       },
     });
   } catch (error) {

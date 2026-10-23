@@ -12,6 +12,9 @@ const RATE_LIMIT_MS = 3000; // 3 seconds for location updates
 const lastChatMessageMap = new Map();
 const CHAT_RATE_LIMIT_MS = 1000; // 1 second for chat messages
 
+// In-memory active calls map: rideId -> callInfo
+const activeCallsMap = new Map();
+
 // Store Socket.io instance for room broadcasting
 let ioInstance = null;
 
@@ -64,9 +67,9 @@ const initLocationSocketService = (io) => {
           return socket.emit("error", { message: "Ride not found" });
         }
 
-        if (ride.status !== "ongoing") {
+        if (ride.status === "cancelled") {
           return socket.emit("error", {
-            message: `Cannot join live tracking. Ride status is '${ride.status}' (expected 'ongoing').`,
+            message: "Cannot join ride room. Ride is cancelled.",
           });
         }
 
@@ -89,11 +92,17 @@ const initLocationSocketService = (io) => {
         const roomName = `ride_${rideId}`;
         socket.join(roomName);
 
+        const existingCall = activeCallsMap.get(rideId.toString());
         socket.emit("joined_ride", {
           status: "success",
           rideId,
           room: roomName,
+          activeCall: existingCall || null,
         });
+
+        if (existingCall) {
+          socket.emit("active_call_status", existingCall);
+        }
       } catch (error) {
         socket.emit("error", { message: "Server error joining ride room" });
       }
@@ -213,9 +222,9 @@ const initLocationSocketService = (io) => {
         });
 
         const payload = {
-          id: chatDoc._id,
-          rideId,
-          userId: socket.user._id,
+          id: chatDoc._id.toString(),
+          rideId: rideId.toString(),
+          userId: socket.user._id.toString(),
           userName: socket.user.name,
           message: chatDoc.message,
           createdAt: chatDoc.createdAt,
@@ -231,6 +240,58 @@ const initLocationSocketService = (io) => {
       }
     });
 
+    // 4. Group Call Signaling Events
+    socket.on("start_group_call", (data) => {
+      try {
+        const { rideId, callType = "video" } = data || {};
+        if (!rideId) return;
+
+        const roomName = `ride_${rideId}`;
+        const callInfo = {
+          active: true,
+          rideId: rideId.toString(),
+          callerId: socket.user._id.toString(),
+          callerName: socket.user.name || "Rider",
+          callType, // "video" | "voice"
+          startedAt: new Date().toISOString(),
+        };
+
+        activeCallsMap.set(rideId.toString(), callInfo);
+
+        // Broadcast to everyone else in the room
+        socket.to(roomName).emit("incoming_group_call", callInfo);
+        socket.emit("group_call_started", callInfo);
+      } catch (err) {
+        console.warn("start_group_call error:", err.message);
+      }
+    });
+
+    socket.on("end_group_call", (data) => {
+      try {
+        const { rideId } = data || {};
+        if (!rideId) return;
+
+        const roomName = `ride_${rideId}`;
+        activeCallsMap.delete(rideId.toString());
+
+        ioInstance.to(roomName).emit("group_call_ended", {
+          rideId: rideId.toString(),
+          endedBy: socket.user.name || "Rider",
+        });
+      } catch (err) {
+        console.warn("end_group_call error:", err.message);
+      }
+    });
+
+    socket.on("check_active_call", (data) => {
+      const { rideId } = data || {};
+      if (rideId && activeCallsMap.has(rideId.toString())) {
+        socket.emit("active_call_status", activeCallsMap.get(rideId.toString()));
+      } else {
+        socket.emit("active_call_status", { active: false, rideId });
+      }
+    });
+
     socket.on("disconnect", () => {
       console.log(`Socket disconnected: ${socket.id}`);
     });
@@ -238,8 +299,10 @@ const initLocationSocketService = (io) => {
 };
 
 const getIo = () => ioInstance;
+const getActiveCall = (rideId) => (rideId ? activeCallsMap.get(rideId.toString()) || null : null);
 
 module.exports = {
   initLocationSocketService,
   getIo,
+  getActiveCall,
 };

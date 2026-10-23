@@ -66,6 +66,7 @@ export function AuthProvider({ children }) {
       const res = await apiClient.post("/api/auth/google", googleData);
       const accessToken = res.data?.accessToken;
       const user = res.data?.data?.user || res.data?.user;
+      const isNewUser = Boolean(res.data?.isNewUser || res.data?.data?.isNewUser);
 
       if (accessToken && user) {
         updateToken(accessToken);
@@ -78,13 +79,14 @@ export function AuthProvider({ children }) {
             name: user.name || "Google User",
             email: user.email || "",
             role: user.role || "user",
+            brands: user.brands || [],
           };
           localStorage.setItem("mototribe_user", JSON.stringify(mtUser));
         } catch {
           // Ignore localStorage errors; Google login can still succeed.
         }
 
-        return { success: true, user };
+        return { success: true, user, isNewUser };
       }
 
       return {
@@ -183,8 +185,36 @@ export function AuthProvider({ children }) {
       updateToken(null);
       setUser(null);
       setPendingOtpData(null);
+      try {
+        localStorage.removeItem("mototribeVehicles");
+        localStorage.removeItem("mototribeProfile");
+        localStorage.removeItem("mototribe_user");
+      } catch {
+        // Ignore localStorage errors
+      }
     }
   }, [updateToken]);
+
+  // Update current user state in React and localStorage
+  const updateUser = useCallback((updatedFieldsOrUser) => {
+    setUser((prev) => {
+      if (!prev) return updatedFieldsOrUser;
+      const merged = { ...prev, ...updatedFieldsOrUser };
+      try {
+        const stored = localStorage.getItem("mototribe_user");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          localStorage.setItem(
+            "mototribe_user",
+            JSON.stringify({ ...parsed, ...merged })
+          );
+        }
+      } catch {
+        // Ignore storage errors
+      }
+      return merged;
+    });
+  }, []);
 
   const value = useMemo(
     () => ({
@@ -203,6 +233,8 @@ export function AuthProvider({ children }) {
       verifyOtp,
       resendOtp,
       logout,
+      setUser,
+      updateUser,
     }),
     [
       user,
@@ -219,6 +251,7 @@ export function AuthProvider({ children }) {
       verifyOtp,
       resendOtp,
       logout,
+      updateUser,
     ]
   );
 

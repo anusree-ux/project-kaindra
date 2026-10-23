@@ -69,7 +69,7 @@ function getInitialProfile() {
 
 function ProfileSetup() {
   const navigate = useNavigate();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, updateUser } = useAuth();
 
   const [profile, setProfile] = useState(getInitialProfile);
   const [error, setError] = useState("");
@@ -316,47 +316,73 @@ function ProfileSetup() {
         "mototribe_rider_profile",
         JSON.stringify(profileToSave)
       );
-
-      const existingUser = localStorage.getItem(
-        "mototribe_user"
+      localStorage.setItem(
+        "mototribeProfile",
+        JSON.stringify(profileToSave)
       );
 
+      const existingBrands = Array.isArray(user?.brands) ? user.brands : ["modasphere"];
+      const updatedBrands = existingBrands.includes("mototribe")
+        ? existingBrands
+        : [...existingBrands, "mototribe"];
+
+      const localUserPayload = {
+        name: profileToSave.name,
+        brands: updatedBrands,
+        isRider: true,
+      };
+
+      const existingUser = localStorage.getItem("mototribe_user");
       if (existingUser) {
         try {
           const parsedUser = JSON.parse(existingUser);
-
           localStorage.setItem(
             "mototribe_user",
             JSON.stringify({
               ...parsedUser,
-              name: profileToSave.name,
+              ...localUserPayload,
             })
           );
         } catch (error) {
-          console.error(
-            "Unable to update MotoTribe user:",
-            error
-          );
+          console.error("Unable to update MotoTribe user:", error);
         }
+      } else {
+        localStorage.setItem(
+          "mototribe_user",
+          JSON.stringify(localUserPayload)
+        );
       }
 
       // Sync to real backend if authenticated
       if (isAuthenticated) {
         try {
-          await apiClient.post("/api/mototribe/rider-profile", {
-            vehicleNumber: "PENDING",
+          const res = await apiClient.post("/api/mototribe/rider-profile", {
+            name: profileToSave.name,
+            experience: profileToSave.experience,
+            region: profileToSave.region,
             emergencyContacts: profileToSave.contacts.map((c) => ({
               name: c.name,
               phoneNumber: c.phone,
               relationship: c.relationship,
             })),
           });
+
+          if (res.data?.data?.user && updateUser) {
+            updateUser(res.data.data.user);
+          } else if (updateUser) {
+            updateUser(localUserPayload);
+          }
         } catch (apiErr) {
           console.warn("Unable to sync rider profile to API:", apiErr);
+          if (updateUser) {
+            updateUser(localUserPayload);
+          }
         }
+      } else if (updateUser) {
+        updateUser(localUserPayload);
       }
 
-      setSuccess("Profile saved successfully.");
+      setSuccess("Profile completed! Welcome to MotoTribe, Rider.");
 
       window.setTimeout(() => {
         navigate("/businesses/mototribe/vehicles");

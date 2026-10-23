@@ -19,6 +19,7 @@ export default function GoogleAuthButton({
   const [loading, setLoading] = useState(false);
   const [showSimulatedModal, setShowSimulatedModal] =
     useState(false);
+  const [gsiRendered, setGsiRendered] = useState(false);
 
   const googleBtnContainerRef = useRef(null);
 
@@ -50,7 +51,7 @@ export default function GoogleAuthButton({
 
         if (res.success) {
           if (onSuccess) {
-            onSuccess(res.user);
+            onSuccess(res.user, { isNewUser: Boolean(res.isNewUser) });
           }
         } else {
           if (onError) {
@@ -119,11 +120,22 @@ export default function GoogleAuthButton({
                   : "outline",
 
               size: "large",
-              width: "400",
+              width: "380",
               text: "continue_with",
               shape: "rectangular",
             }
           );
+
+          // Verify if Google GSI rendered any DOM children
+          setTimeout(() => {
+            if (
+              isMounted &&
+              googleBtnContainerRef.current &&
+              googleBtnContainerRef.current.children.length > 0
+            ) {
+              setGsiRendered(true);
+            }
+          }, 300);
         }
       } catch (err) {
         console.warn(
@@ -203,10 +215,21 @@ export default function GoogleAuthButton({
       clientId &&
       window.google?.accounts?.id
     ) {
-      window.google.accounts.id.prompt();
-    } else {
-      setShowSimulatedModal(true);
+      try {
+        window.google.accounts.id.prompt((notification) => {
+          if (
+            notification.isNotDisplayed() ||
+            notification.isSkippedMoment()
+          ) {
+            setShowSimulatedModal(true);
+          }
+        });
+        return;
+      } catch (e) {
+        console.warn("[GoogleAuthButton] GSI prompt error:", e);
+      }
     }
+    setShowSimulatedModal(true);
   };
 
   // ==========================================
@@ -234,7 +257,7 @@ export default function GoogleAuthButton({
 
       if (res.success) {
         if (onSuccess) {
-          onSuccess(res.user);
+          onSuccess(res.user, { isNewUser: Boolean(res.isNewUser) });
         }
       } else {
         if (onError) {
@@ -260,20 +283,18 @@ export default function GoogleAuthButton({
 
   return (
     <div className="google-auth-wrapper">
-      {/* ======================================
-          REAL GOOGLE BUTTON
-      ====================================== */}
+      {/* Official Google GSI Render Target */}
+      <div
+        ref={googleBtnContainerRef}
+        className="google-gsi-render-target"
+        style={{
+          display: gsiRendered ? "flex" : "none",
+          justifyContent: "center",
+        }}
+      />
 
-      {clientId ? (
-        <div
-          ref={googleBtnContainerRef}
-          className="google-gsi-render-target"
-        />
-      ) : (
-        /* ====================================
-           DEVELOPMENT GOOGLE BUTTON
-        ==================================== */
-
+      {/* Styled Google Auth Button - always visible whenever GSI is not active */}
+      {!gsiRendered && (
         <button
           type="button"
           className={`google-auth-btn ${
@@ -450,6 +471,36 @@ export default function GoogleAuthButton({
 
                   <span>
                     user@kaindra.com
+                  </span>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                className="google-sim-account-item"
+                disabled={loading}
+                onClick={() => {
+                  const randNum = Math.floor(1000 + Math.random() * 9000);
+                  authenticateSimulated(
+                    `newrider${randNum}@kaindra.test`,
+                    `New Rider ${randNum}`
+                  );
+                }}
+              >
+                <div
+                  className="google-sim-avatar"
+                  style={{
+                    background: "#e11d48",
+                  }}
+                >
+                  +
+                </div>
+
+                <div className="google-sim-acc-info">
+                  <strong>+ Sign up New User</strong>
+
+                  <span>
+                    New user not in database
                   </span>
                 </div>
               </button>
