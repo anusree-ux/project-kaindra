@@ -96,5 +96,5 @@ export function getRiderNameForUid(uidMap, uid) {
   if (uidMap && uidMap.has(Number(uid))) {
     return uidMap.get(Number(uid));
   }
-  return `Rider #${uid}`;
+  return "Fellow Rider";
 }

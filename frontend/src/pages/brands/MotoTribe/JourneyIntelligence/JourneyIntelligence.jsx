@@ -118,9 +118,17 @@ function JourneyIntelligence() {
       fetchRides();
     };
 
+    const handleRideDeleted = (e) => {
+      const deletedId = e.detail?.rideId;
+      setActiveRide((prev) => (String(prev?._id || prev?.id) === String(deletedId) ? null : prev));
+      fetchRides();
+    };
+
     window.addEventListener("mototribe:ride-created", handleRideCreated);
+    window.addEventListener("mototribe:ride-deleted", handleRideDeleted);
     return () => {
       window.removeEventListener("mototribe:ride-created", handleRideCreated);
+      window.removeEventListener("mototribe:ride-deleted", handleRideDeleted);
     };
   }, [fetchRides]);
 

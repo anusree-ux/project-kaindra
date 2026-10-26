@@ -2852,7 +2852,8 @@ function RidePlanner() {
 
         window.dispatchEvent(
           new CustomEvent(
-            "mototribe:ride-created"
+            "mototribe:ride-created",
+            { detail: { rideId: newRideId } }
           )
         );
 

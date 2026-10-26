@@ -117,6 +117,7 @@ function RideCall({ ride, currentStatus }) {
   // Group Call Signaling & Active Call state
   const [activeCall, setActiveCall] = useState(null);
   const [incomingCall, setIncomingCall] = useState(null);
+  const [liveRiderMap, setLiveRiderMap] = useState({});
 
   // Local Media Track state for clean reactive rendering
   const [localVideoTrack, setLocalVideoTrack] = useState(null);
@@ -155,6 +156,9 @@ function RideCall({ ride, currentStatus }) {
         const data = res.data?.data;
         if (data?.active && data?.call) {
           setActiveCall(data.call);
+          if (data.call.riders) {
+            setLiveRiderMap((prev) => ({ ...prev, ...data.call.riders }));
+          }
         }
       })
       .catch(() => {});
@@ -210,6 +214,16 @@ function RideCall({ ride, currentStatus }) {
     socket.on("active_call_status", (data) => {
       if (data && data.active) {
         setActiveCall(data);
+        if (data.riders) {
+          setLiveRiderMap((prev) => ({ ...prev, ...data.riders }));
+        }
+        if (
+          callStateRef.current === "IDLE" &&
+          currentUserId &&
+          String(data.callerId) !== String(currentUserId)
+        ) {
+          setIncomingCall(data);
+        }
       } else {
         setActiveCall(null);
       }
@@ -221,6 +235,9 @@ function RideCall({ ride, currentStatus }) {
       if (currentUserId && String(data.callerId) === String(currentUserId)) return;
 
       setActiveCall(data);
+      if (data.riders) {
+        setLiveRiderMap((prev) => ({ ...prev, ...data.riders }));
+      }
 
       // Trigger incoming call popup if user is currently idle
       if (callStateRef.current === "IDLE") {
@@ -230,11 +247,21 @@ function RideCall({ ride, currentStatus }) {
 
     socket.on("group_call_started", (data) => {
       setActiveCall(data);
+      if (data?.riders) {
+        setLiveRiderMap((prev) => ({ ...prev, ...data.riders }));
+      }
+    });
+
+    socket.on("call_riders_updated", (data) => {
+      if (data?.riders) {
+        setLiveRiderMap((prev) => ({ ...prev, ...data.riders }));
+      }
     });
 
     socket.on("group_call_ended", () => {
       setActiveCall(null);
       setIncomingCall(null);
+      setLiveRiderMap({});
     });
 
     return () => {
@@ -267,8 +294,8 @@ function RideCall({ ride, currentStatus }) {
     return () => clearInterval(timer);
   }, [callState]);
 
-  // Teardown and cleanup routine
-  const cleanupCall = useCallback(async () => {
+  // Teardown and cleanup routine for local rider leaving call
+  const cleanupCall = useCallback(async (isExplicitEndForAll = false) => {
     try {
       if (localAudioTrackRef.current) {
         localAudioTrackRef.current.stop();
@@ -287,8 +314,8 @@ function RideCall({ ride, currentStatus }) {
         clientRef.current = null;
       }
 
-      // If leaving, notify room if no one else is on call
-      if (socketRef.current?.connected && remoteUsers.length === 0) {
+      // ONLY emit end_group_call if caller/organizer explicitly requested end for all
+      if (isExplicitEndForAll && socketRef.current?.connected) {
         socketRef.current.emit("end_group_call", { rideId });
       }
     } catch (err) {
@@ -300,20 +327,24 @@ function RideCall({ ride, currentStatus }) {
       setDuration(0);
       setTokenRenewalFailed(false);
     }
-  }, [rideId, remoteUsers.length]);
+  }, [rideId]);
 
-  // Guarantee cleanup on page unload / tab close
+  // Keep a stable ref to cleanupCall so beforeunload and unmount don't trigger on every state change
+  const cleanupRef = useRef(cleanupCall);
+  cleanupRef.current = cleanupCall;
+
+  // Guarantee cleanup on page unload / tab close ONLY ONCE
   useEffect(() => {
     const handleBeforeUnload = () => {
-      cleanupCall();
+      cleanupRef.current?.(false);
     };
 
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
-      cleanupCall();
+      cleanupRef.current?.(false);
     };
-  }, [cleanupCall]);
+  }, []); // Run on mount, clean up on unmount
 
   // Join Call Flow with options: "video" (default) or "voice" (audio-only)
   const handleJoinCall = async (selectedMode = "video") => {
@@ -336,8 +367,8 @@ function RideCall({ ride, currentStatus }) {
       callContainerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
     }, 60);
 
-    // Notify room via socket that a group call has started
-    if (socketRef.current?.connected) {
+    // Notify room via socket that a group call has started ONLY if there is no call active
+    if (socketRef.current?.connected && !activeCall?.active) {
       socketRef.current.emit("start_group_call", {
         rideId,
         callType: selectedMode,
@@ -345,8 +376,12 @@ function RideCall({ ride, currentStatus }) {
     }
 
     try {
-      // 1. Fetch token from backend
-      const tokenRes = await apiClient.post("/api/mototribe/agora/token", { rideId });
+      // 1. Fetch token from backend with a unique session UID per browser tab
+      const sessionUid = (parseInt(String(currentUserId || "1").slice(-6), 16) * 1000 + (Math.floor(Math.random() * 900) + 100)) % 2147483647;
+      const tokenRes = await apiClient.post("/api/mototribe/agora/token", {
+        rideId,
+        uid: sessionUid,
+      });
       const tokenData = tokenRes.data?.data;
 
       if (!tokenData || !tokenData.token || !tokenData.appId || !tokenData.channelName) {
@@ -456,12 +491,16 @@ function RideCall({ ride, currentStatus }) {
         }
       });
 
-      // 4. Local Audio & Video Track Acquisition
+      // 4. Local Audio & Video Track Acquisition with race timeout guards
       let micTrack = null;
       let camTrack = null;
 
       try {
-        micTrack = await AgoraRTC.createMicrophoneAudioTrack();
+        const micPromise = AgoraRTC.createMicrophoneAudioTrack();
+        const micTimeout = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Microphone acquisition timeout")), 3500)
+        );
+        micTrack = await Promise.race([micPromise, micTimeout]);
         localAudioTrackRef.current = micTrack;
       } catch (err) {
         console.warn("Microphone access error:", err);
@@ -469,10 +508,19 @@ function RideCall({ ride, currentStatus }) {
 
       if (isVideoMode) {
         try {
-          camTrack = await AgoraRTC.createCameraVideoTrack({
+          const camPromise = AgoraRTC.createCameraVideoTrack({
             encoderConfig: "360p_7",
             optimizationMode: "detail",
           });
+          const camTimeout = new Promise((_, reject) =>
+            setTimeout(() => {
+              const timeoutErr = new Error("Webcam is locked by another window or app.");
+              timeoutErr.name = "AbortError";
+              reject(timeoutErr);
+            }, 3500)
+          );
+
+          camTrack = await Promise.race([camPromise, camTimeout]);
           localVideoTrackRef.current = camTrack;
           setLocalVideoTrack(camTrack);
           setIsCameraOn(true);
@@ -484,11 +532,13 @@ function RideCall({ ride, currentStatus }) {
             err?.name === "AbortError" ||
             err?.name === "NotReadableError" ||
             rawMsg.toLowerCase().includes("starting video source") ||
-            rawMsg.toLowerCase().includes("timeout");
+            rawMsg.toLowerCase().includes("timeout") ||
+            rawMsg.toLowerCase().includes("locked") ||
+            rawMsg.toLowerCase().includes("busy");
 
           if (isBusyOrTimeout) {
             setNotice(
-              "Your laptop's physical webcam is currently in use by your other browser window or app. On one laptop, only 1 browser can use the camera at a time (joined with microphone only)."
+              "Your webcam is in use by Browser 1 on this device. Joined call in Voice mode (Microphone active & remote video visible)."
             );
           } else {
             setNotice(`Camera unavailable (${rawMsg || "Device busy"}). Joined with microphone only.`);
@@ -498,21 +548,26 @@ function RideCall({ ride, currentStatus }) {
         setIsCameraOn(false);
       }
 
-      if (!micTrack && !camTrack) {
-        cleanupCall();
-        setErrorMessage(
-          "Microphone and camera permissions were denied. Please allow device access in browser settings."
-        );
-        return;
-      }
-
       // 5. Join Agora Channel
       await client.join(appId, channelName, token, Number(uid));
 
-      // 6. Publish allowed local tracks
+      // Register rider's display name with socket server for this call
+      if (socketRef.current?.connected) {
+        socketRef.current.emit("register_call_rider", {
+          rideId,
+          uid: Number(uid),
+          name: selfDisplayName,
+        });
+      }
+
+      // 6. Publish allowed local tracks (if any)
       const tracksToPublish = [micTrack, camTrack].filter(Boolean);
       if (tracksToPublish.length > 0) {
         await client.publish(tracksToPublish);
+      } else {
+        setNotice(
+          "Joined in Listen-Only mode (Microphone & Camera unavailable). You can hear and see all riders in this call."
+        );
       }
 
       setIsMuted(false);
@@ -528,6 +583,30 @@ function RideCall({ ride, currentStatus }) {
       }, 60);
     }
   };
+
+  // Listen for global pickup event or ?autoJoin=true URL parameter
+  useEffect(() => {
+    const handlePickupEvent = (e) => {
+      const mode = e.detail?.mode || "video";
+      handleJoinCall(mode);
+    };
+
+    window.addEventListener("mototribe:pickup-call", handlePickupEvent);
+
+    if (typeof window !== "undefined" && window.location.search.includes("autoJoin=true")) {
+      const params = new URLSearchParams(window.location.search);
+      const mode = params.get("callType") || "video";
+      const cleanUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, cleanUrl);
+      setTimeout(() => {
+        handleJoinCall(mode);
+      }, 350);
+    }
+
+    return () => {
+      window.removeEventListener("mototribe:pickup-call", handlePickupEvent);
+    };
+  }, [rideId]);
 
   // Toggle Microphone (Mute / Unmute)
   const toggleMute = async () => {
@@ -605,44 +684,148 @@ function RideCall({ ride, currentStatus }) {
     }
   };
 
+  // Resolves actual rider display name for Agora remote UIDs (never shows Rider #ID)
+  const resolveRiderDisplayName = useCallback(
+    (remoteUid) => {
+      const uidKey = String(remoteUid);
+
+      // 1. Live socket-registered rider name
+      if (liveRiderMap[uidKey]?.name) {
+        return liveRiderMap[uidKey].name;
+      }
+      if (liveRiderMap[Number(remoteUid)]?.name) {
+        return liveRiderMap[Number(remoteUid)].name;
+      }
+
+      // 2. Precomputed UID mapping
+      const precomputed = getRiderNameForUid(uidMap, remoteUid);
+      if (
+        precomputed &&
+        !precomputed.startsWith("Rider #") &&
+        precomputed !== "Fellow Rider"
+      ) {
+        return precomputed;
+      }
+
+      // 3. Caller name if other participant is the call initiator
+      if (
+        activeCall?.callerName &&
+        currentUserId &&
+        String(activeCall.callerId) !== String(currentUserId)
+      ) {
+        return activeCall.callerName;
+      }
+
+      // 4. Other participants in the ride
+      if (participantsList && participantsList.length > 0) {
+        const otherParticipant = participantsList.find((p) => {
+          const pId = String(p.userId?._id || p.userId || p.id || "");
+          return pId && pId !== String(currentUserId);
+        });
+        const pName =
+          otherParticipant?.userId?.name ||
+          otherParticipant?.user?.name ||
+          otherParticipant?.name;
+        if (pName) return pName;
+      }
+
+      // 5. Organizer name fallback
+      const organizerName =
+        typeof ride?.organizer === "object"
+          ? ride?.organizer?.name
+          : ride?.organizer;
+      if (organizerName && String(ride?.organizerId) !== String(currentUserId)) {
+        return organizerName;
+      }
+
+      return "Fellow Rider";
+    },
+    [liveRiderMap, uidMap, activeCall, currentUserId, participantsList, ride]
+  );
+
   return (
-    <section ref={callContainerRef} className="mototribe-ride-call">
+    <section
+      id="mototribe-call-section"
+      ref={callContainerRef}
+      className="mototribe-ride-call"
+    >
       {/* INCOMING CALL MODAL POPUP (Real-time socket pop up without reloading) */}
       {incomingCall && callState === "IDLE" && (
         <div className="agora-incoming-call-overlay">
-          <div className="agora-incoming-call-icon">
-            {incomingCall.callType === "voice" ? "🎙️" : "📹"}
-          </div>
+          <div
+            className="agora-incoming-call-backdrop"
+            onClick={() => setIncomingCall(null)}
+          />
+          <div className="agora-incoming-call-modal">
+            <div className="agora-incoming-call-ring-glow" />
+            <div className="agora-incoming-call-icon">
+              {incomingCall.callType === "voice" ? "🎙️" : "📹"}
+            </div>
 
-          <div className="agora-incoming-call-info">
-            <span>INCOMING GROUP CALL</span>
-            <strong>{incomingCall.callerName || "A fellow rider"}</strong>
-            <p>
-              Started a {incomingCall.callType === "voice" ? "voice" : "video"} call for this ride
-            </p>
-          </div>
+            <div className="agora-incoming-call-info">
+              <span className="agora-incoming-eyebrow">INCOMING GROUP CALL</span>
+              <h3>{incomingCall.callerName || "A fellow rider"}</h3>
+              <p>
+                Started a {incomingCall.callType === "voice" ? "voice" : "video"}{" "}
+                call for <strong>{ride?.title || `Ride ${rideId.slice(-6)}`}</strong>.
+              </p>
+            </div>
 
-          <div className="agora-incoming-call-actions">
-            <button
-              type="button"
-              className="agora-incoming-btn-accept"
-              onClick={() => {
-                const mode = incomingCall.callType || "video";
-                setIncomingCall(null);
-                handleJoinCall(mode);
-              }}
-            >
-              📞 PICK UP
-            </button>
+            <div className="agora-incoming-call-actions">
+              <button
+                type="button"
+                className="agora-incoming-btn-accept"
+                onClick={() => {
+                  const mode = incomingCall.callType || "video";
+                  setIncomingCall(null);
+                  handleJoinCall(mode);
+                }}
+              >
+                <span>📞</span>
+                PICK UP {incomingCall.callType === "voice" ? "VOICE" : "VIDEO"}
+              </button>
 
-            <button
-              type="button"
-              className="agora-incoming-btn-decline"
-              onClick={() => setIncomingCall(null)}
-            >
-              DECLINE
-            </button>
+              <button
+                type="button"
+                className="agora-incoming-btn-voice-opt"
+                onClick={() => {
+                  setIncomingCall(null);
+                  handleJoinCall("voice");
+                }}
+              >
+                <span>🎙️</span>
+                JOIN VOICE ONLY
+              </button>
+
+              <button
+                type="button"
+                className="agora-incoming-btn-decline"
+                onClick={() => setIncomingCall(null)}
+              >
+                DECLINE
+              </button>
+            </div>
           </div>
+        </div>
+      )}
+
+      {/* ACTIVE CALL FLOATING BANNER (When a call is live and rider is idle) */}
+      {activeCall?.active && callState === "IDLE" && !incomingCall && (
+        <div className="agora-active-call-alert-banner">
+          <div className="agora-active-call-alert-left">
+            <span className="agora-live-pulse-badge" />
+            <div>
+              <strong>LIVE CALL IN PROGRESS</strong>
+              <p>{activeCall.callerName || "A rider"} started a group {activeCall.callType || "call"}.</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            className="agora-banner-pick-btn"
+            onClick={() => handleJoinCall(activeCall.callType || "video")}
+          >
+            <span>📞</span> JOIN / PICK UP CALL
+          </button>
         </div>
       )}
 
@@ -804,7 +987,7 @@ function RideCall({ ride, currentStatus }) {
 
             {/* Remote Participants Tiles */}
             {remoteUsers.map((item) => {
-              const riderName = getRiderNameForUid(uidMap, item.uid);
+              const riderName = resolveRiderDisplayName(item.uid);
               return (
                 <RemoteVideoTile
                   key={item.uid}
@@ -838,11 +1021,29 @@ function RideCall({ ride, currentStatus }) {
             <button
               type="button"
               className="end"
-              onClick={cleanupCall}
+              onClick={() => cleanupCall(false)}
+              title="Leave this call without ending it for other riders"
             >
               <span>✕</span>
               LEAVE CALL
             </button>
+
+            {(isOrganizer || (activeCall && String(activeCall.callerId) === String(currentUserId))) && (
+              <button
+                type="button"
+                className="end end-for-all"
+                onClick={() => cleanupCall(true)}
+                title="End call for all participants"
+                style={{
+                  background: "rgba(239, 68, 68, 0.15)",
+                  borderColor: "rgba(239, 68, 68, 0.5)",
+                  color: "#ef4444",
+                }}
+              >
+                <span>⏹</span>
+                END FOR ALL
+              </button>
+            )}
           </div>
         </div>
       )}

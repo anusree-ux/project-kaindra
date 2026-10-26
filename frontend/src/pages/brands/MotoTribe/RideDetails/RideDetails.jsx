@@ -430,8 +430,44 @@ function RideDetailsContent({ rideId, navigate }) {
 
 
   /* --------------------------------------------------
-     NAVIGATION
+     NAVIGATION & ACTIONS
   -------------------------------------------------- */
+
+  const handleDeleteRide = async () => {
+    if (!rideId) return;
+    const confirmDelete = window.confirm(
+      `Permanently delete planned ride "${ride?.name || "this ride"}"?\n\nThis will remove it completely from the database before it starts. This action cannot be undone.`
+    );
+    if (!confirmDelete) return;
+
+    try {
+      await apiClient.delete(`/api/mototribe/rides/${rideId}`);
+      window.dispatchEvent(
+        new CustomEvent("mototribe:ride-deleted", { detail: { rideId } })
+      );
+      alert("Ride successfully deleted from the database.");
+      navigate("/businesses/mototribe");
+    } catch (err) {
+      console.error("Failed to delete ride:", err);
+      const msg = err.response?.data?.message || err.message || "Failed to delete ride.";
+      alert(msg);
+    }
+  };
+
+  useEffect(() => {
+    const handleRideDeleted = (e) => {
+      const deletedId = e.detail?.rideId;
+      if (deletedId && String(deletedId) === String(rideId)) {
+        alert("This ride has been deleted.");
+        navigate("/businesses/mototribe");
+      }
+    };
+
+    window.addEventListener("mototribe:ride-deleted", handleRideDeleted);
+    return () => {
+      window.removeEventListener("mototribe:ride-deleted", handleRideDeleted);
+    };
+  }, [rideId, navigate]);
 
   const handleBack = () => {
     navigate("/businesses/mototribe");
@@ -609,6 +645,41 @@ function RideDetailsContent({ rideId, navigate }) {
               </>
             )}
           </div>
+        </div>
+
+        {/* QUICK ACCESS JUMP BAR: CALL & CHAT */}
+        <div className="ride-details-quick-bar">
+          <button
+            type="button"
+            className="ride-quick-btn call-btn"
+            onClick={() => {
+              const el = document.getElementById("mototribe-call-section");
+              if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+            }}
+          >
+            <span className="ride-quick-icon">📹</span>
+            <div className="ride-quick-text">
+              <strong>TRIBE VOICE & VIDEO CALL</strong>
+              <small>Real-time group call with convoy</small>
+            </div>
+            <span className="ride-quick-arrow">↓</span>
+          </button>
+
+          <button
+            type="button"
+            className="ride-quick-btn chat-btn"
+            onClick={() => {
+              const el = document.getElementById("ride-group-chat");
+              if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+            }}
+          >
+            <span className="ride-quick-icon">💬</span>
+            <div className="ride-quick-text">
+              <strong>RIDE GROUP CHAT</strong>
+              <small>Live convoy chat & coordination</small>
+            </div>
+            <span className="ride-quick-arrow">↓</span>
+          </button>
         </div>
 
         {/* MAIN GRID */}
@@ -1162,6 +1233,17 @@ function RideDetailsContent({ rideId, navigate }) {
                   >
                     LEAVE RIDE
                   </button>
+
+                  {ride?.isOrganizer && (!ride?.rawStatus || ride?.rawStatus === "planning") && (
+                    <button
+                      type="button"
+                      className="ride-danger-action"
+                      style={{ marginTop: "10px", borderColor: "#ef4444", color: "#ef4444" }}
+                      onClick={handleDeleteRide}
+                    >
+                      DELETE PLANNED RIDE ✕
+                    </button>
+                  )}
                 </>
               ) : joinStatus === "REQUESTED" ? (
                 <button

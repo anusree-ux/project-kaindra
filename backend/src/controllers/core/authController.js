@@ -287,6 +287,20 @@ const googleAuth = async (req, res, next) => {
         googleId: googleId || `google-${Date.now()}`,
         avatar: picture,
       });
+
+      // Automatically dispatch Kaindra Welcome Email to new account asynchronously
+      try {
+        const { sendWelcomeEmail } = require("../../services/mototribe/emailService");
+        sendWelcomeEmail(user.email, user.name)
+          .then((res) => {
+            console.log(`[Auth] Welcome email dispatched to ${user.email}:`, res?.messageId || "sent");
+          })
+          .catch((mailErr) => {
+            console.warn(`[Auth] Could not send welcome email to ${user.email}:`, mailErr.message);
+          });
+      } catch (svcErr) {
+        console.warn("[Auth] EmailService load warning:", svcErr.message);
+      }
     }
 
     await sendTokenResponse(user, 200, res, { isNewUser });

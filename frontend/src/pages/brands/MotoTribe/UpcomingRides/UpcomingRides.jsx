@@ -158,9 +158,20 @@ function UpcomingRides() {
       fetchUpcomingRides();
     };
 
+    const handleRideDeleted = (e) => {
+      const deletedId = e.detail?.rideId;
+      if (deletedId) {
+        setRides((prev) => prev.filter((r) => String(r.id) !== String(deletedId)));
+        setSelectedRide((prev) => (String(prev?.id) === String(deletedId) ? null : prev));
+      }
+      fetchUpcomingRides();
+    };
+
     window.addEventListener("mototribe:ride-created", handleRideCreated);
+    window.addEventListener("mototribe:ride-deleted", handleRideDeleted);
     return () => {
       window.removeEventListener("mototribe:ride-created", handleRideCreated);
+      window.removeEventListener("mototribe:ride-deleted", handleRideDeleted);
     };
   }, [fetchUpcomingRides]);
 

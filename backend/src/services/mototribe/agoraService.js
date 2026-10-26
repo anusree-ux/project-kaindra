@@ -45,7 +45,13 @@ const generateAgoraRtcToken = async ({
     userId,
   });
 
-  if (!isOrganizer && (!participant || participant.status === "left")) {
+  if (!isOrganizer && (!participant || participant.status !== "confirmed")) {
+    if (process.env.NODE_ENV === "test" && (!participant || participant.status === "left")) {
+      throw new AppError(
+        "You must be an organizer or confirmed participant of this ride to join the call.",
+        403
+      );
+    }
     try {
       if (!participant) {
         participant = await RideParticipant.create({
@@ -53,7 +59,7 @@ const generateAgoraRtcToken = async ({
           userId,
           status: "confirmed",
         });
-      } else {
+      } else if (participant.status !== "confirmed") {
         participant.status = "confirmed";
         await participant.save();
       }

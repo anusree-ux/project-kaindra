@@ -275,6 +275,17 @@ const createRide = async (req, res, next) => {
       });
     });
 
+    // Broadcast real-time socket event so all connected clients sync immediately
+    try {
+      const { getIo } = require("../../services/mototribe/locationSocketService");
+      const io = getIo();
+      if (io) {
+        io.emit("mototribe:ride_created", { rideId: newRide._id });
+      }
+    } catch (sockErr) {
+      console.warn("[RideController] Socket broadcast notice on create:", sockErr.message);
+    }
+
     res.status(201).json({
       status: "success",
       data: {
@@ -765,6 +776,17 @@ const cancelRide = async (req, res, next) => {
     ride.status = "cancelled";
     await ride.save();
 
+    // Broadcast real-time socket event so all connected clients sync immediately
+    try {
+      const { getIo } = require("../../services/mototribe/locationSocketService");
+      const io = getIo();
+      if (io) {
+        io.emit("mototribe:ride_deleted", { rideId: req.params.id });
+      }
+    } catch (sockErr) {
+      console.warn("[RideController] Socket broadcast notice on cancel:", sockErr.message);
+    }
+
     res.status(200).json({
       status: "success",
       message: "Ride cancelled successfully.",
@@ -819,6 +841,17 @@ const deleteRide = async (req, res, next) => {
       RideParticipant.deleteMany({ rideId: req.params.id }),
       Notification.deleteMany({ "data.rideId": req.params.id }),
     ]);
+
+    // Broadcast real-time socket event so all connected clients sync immediately
+    try {
+      const { getIo } = require("../../services/mototribe/locationSocketService");
+      const io = getIo();
+      if (io) {
+        io.emit("mototribe:ride_deleted", { rideId: req.params.id });
+      }
+    } catch (sockErr) {
+      console.warn("[RideController] Socket broadcast notice on delete:", sockErr.message);
+    }
 
     res.status(200).json({
       status: "success",

@@ -53,6 +53,12 @@ function DigitalRideRecord() {
       if (String(selectedRecordId) === String(rideId)) {
         setSelectedRecordId(null);
       }
+
+      // Broadcast event so UpcomingRides and all other sections immediately update without reload!
+      window.dispatchEvent(
+        new CustomEvent("mototribe:ride-deleted", { detail: { rideId } })
+      );
+
       alert("Ride successfully deleted from the database.");
     } catch (err) {
       console.error("Failed to delete ride:", err);
@@ -150,7 +156,29 @@ function DigitalRideRecord() {
     }
   }, [isAuthenticated, user]);
 
-  useEffect(() => { fetchRecords(); }, [fetchRecords]);
+  useEffect(() => {
+    fetchRecords();
+
+    const handleRideCreated = () => {
+      fetchRecords();
+    };
+
+    const handleRideDeleted = (e) => {
+      const deletedId = e.detail?.rideId;
+      if (deletedId) {
+        setRides((prev) => prev.filter((r) => String(r.id || r._id) !== String(deletedId)));
+        setSelectedRecordId((prev) => (String(prev) === String(deletedId) ? null : prev));
+      }
+      fetchRecords();
+    };
+
+    window.addEventListener("mototribe:ride-created", handleRideCreated);
+    window.addEventListener("mototribe:ride-deleted", handleRideDeleted);
+    return () => {
+      window.removeEventListener("mototribe:ride-created", handleRideCreated);
+      window.removeEventListener("mototribe:ride-deleted", handleRideDeleted);
+    };
+  }, [fetchRecords]);
 
   const lifetimeStats = useMemo(() => {
     const totalDistance = rides.reduce((sum, r) => sum + (r.distanceKm || 0), 0);

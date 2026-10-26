@@ -89,6 +89,7 @@ import AdminAcademy from "./pages/admin/academy/AdminAcademy";
 import AdminInsights from "./pages/admin/insights/AdminInsights";
 
 import AuthModal from "./pages/brands/MotoTribe/Auth/AuthModal";
+import GlobalIncomingCall from "./components/GlobalIncomingCall/GlobalIncomingCall";
 import MotoTribe from "./pages/brands/MotoTribe";
 import MotoSignup from "./pages/brands/MotoTribe/Auth/Signup";
 import ProfileSetup from "./pages/brands/MotoTribe/ProfileSetup/ProfileSetup";
@@ -171,6 +172,7 @@ function App() {
         <CartProvider>
           <NotificationProvider>
             <AuthModal />
+            <GlobalIncomingCall />
 
             <ScrollToTop />
 
