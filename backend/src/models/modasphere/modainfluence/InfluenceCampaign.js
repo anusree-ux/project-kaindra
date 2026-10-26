@@ -1,7 +1,21 @@
 const mongoose = require("mongoose");
+const { randomUUID } = require("crypto");
 
 const influenceCampaignSchema = new mongoose.Schema(
   {
+    publicId: {
+      type: String,
+      default: () => randomUUID(),
+      unique: true,
+      sparse: true,
+    },
+    brandProfile: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "InfluenceBrandProfile",
+      default: null,
+      index: true,
+    },
+
     brand: {
       type: String,
       required: [true, "Brand / Company is required"],
@@ -23,6 +37,12 @@ const influenceCampaignSchema = new mongoose.Schema(
       maxlength: 100,
     },
 
+    title: {
+      type: String,
+      trim: true,
+      maxlength: 150,
+    },
+
     message: {
       type: String,
       required: [true, "Campaign description is required"],
@@ -30,11 +50,12 @@ const influenceCampaignSchema = new mongoose.Schema(
       maxlength: 3000,
     },
 
-    status: {
-      type: String,
-      enum: ["New", "Contacted", "In Progress", "Completed", "Rejected"],
-      default: "New",
+    isPublic: {
+      type: Boolean,
+      default: false,
+      index: true,
     },
+
   },
   {
     timestamps: true,
