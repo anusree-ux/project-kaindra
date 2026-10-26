@@ -210,7 +210,20 @@ function RideDetailsContent({ rideId, navigate }) {
     };
   }, []);
 
+  useEffect(() => {
+    const handleRideDeleted = (e) => {
+      const deletedId = e.detail?.rideId;
+      if (deletedId && String(deletedId) === String(rideId)) {
+        alert("This ride has been deleted.");
+        navigate("/businesses/mototribe");
+      }
+    };
 
+    window.addEventListener("mototribe:ride-deleted", handleRideDeleted);
+    return () => {
+      window.removeEventListener("mototribe:ride-deleted", handleRideDeleted);
+    };
+  }, [rideId, navigate]);
 
   /* --------------------------------------------------
      LOADING & NOT FOUND
@@ -454,20 +467,6 @@ function RideDetailsContent({ rideId, navigate }) {
     }
   };
 
-  useEffect(() => {
-    const handleRideDeleted = (e) => {
-      const deletedId = e.detail?.rideId;
-      if (deletedId && String(deletedId) === String(rideId)) {
-        alert("This ride has been deleted.");
-        navigate("/businesses/mototribe");
-      }
-    };
-
-    window.addEventListener("mototribe:ride-deleted", handleRideDeleted);
-    return () => {
-      window.removeEventListener("mototribe:ride-deleted", handleRideDeleted);
-    };
-  }, [rideId, navigate]);
 
   const handleBack = () => {
     navigate("/businesses/mototribe");
