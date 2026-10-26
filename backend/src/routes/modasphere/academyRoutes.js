@@ -1,5 +1,9 @@
 const express = require("express");
+const { validationResult } = require("express-validator");
+const multer = require("multer");
+const path = require("path");
 const { protect, authorize } = require("../../middleware/authMiddleware");
+const AppError = require("../../utils/AppError");
 const {
   academyValidator,
   academyUpdateValidator,
@@ -12,16 +16,61 @@ const {
   publishCourse,
   updateCourseStatus,
   updateCourse,
-  deleteCourse
+  deleteCourse,
+  getEnrolledCourseById
 } = require("../../controllers/modasphere/academyController");
 const {
   createEnrollment,
   getMyEnrollments: getAcademyMyEnrollments,
   getAllEnrollments,
   deleteEnrollment,
+  unenrollFromCourse,
+  updateEnrollmentProgress,
+  submitQuiz,
+  uploadTaskSubmission,
 } = require("../../controllers/modasphere/enrollmentController");
 
 const router = express.Router();
+const validateAcademyRequest = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ success: false, message: errors.array()[0].msg, errors: errors.array() });
+  next();
+};
+
+const academyTaskFileTypes = {
+  ".pdf": "application/pdf",
+  ".doc": "application/msword",
+  ".docx":
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+};
+
+const taskFileUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (req, file, callback) => {
+    const extension = path.extname(file.originalname).toLowerCase();
+    if (academyTaskFileTypes[extension] !== file.mimetype) {
+      callback(
+        new AppError("Only PDF, DOC, DOCX, PNG, and JPG files are allowed.", 400),
+      );
+      return;
+    }
+    callback(null, true);
+  },
+});
+
+const uploadTaskFile = (req, res, next) => {
+  taskFileUpload.single("file")(req, res, (error) => {
+    if (!error) return next();
+    if (error instanceof multer.MulterError && error.code === "LIMIT_FILE_SIZE") {
+      return next(new AppError("Task files must be 10 MB or smaller.", 413));
+    }
+    return next(error);
+  });
+};
 
 // Public - Get published courses
 router.get("/courses", getPublishedCourses);
@@ -40,6 +89,7 @@ router.post(
   protect,
   authorize("admin", "moderator"),
   academyValidator,
+  validateAcademyRequest,
   createCourse
 );
 
@@ -68,6 +118,7 @@ router.patch(
   protect,
   authorize("admin", "moderator"),
   academyUpdateValidator,
+  validateAcademyRequest,
   updateCourse
 );
 
@@ -82,6 +133,7 @@ router.delete(
 // Public - Submit academy enrollment
 router.post(
   "/enrollments",
+  protect,
   createEnrollment
 );
 
@@ -106,6 +158,42 @@ router.delete(
   protect,
   authorize("admin"),
   deleteEnrollment
+);
+
+// Student - Unenroll from their own course
+router.delete(
+  "/enrollments/:id/unenroll",
+  protect,
+  unenrollFromCourse
+);
+
+// Student - Get enrolled course content
+router.get(
+  "/courses/id/:id",
+  protect,
+  getEnrolledCourseById
+);
+
+// Student - Save lesson progress
+router.patch(
+  "/enrollments/course/:courseId/progress",
+  protect,
+  updateEnrollmentProgress
+);
+
+// Student - Submit quiz answers for server-side grading
+router.post(
+  "/enrollments/course/:courseId/quizzes/:lessonId/submit",
+  protect,
+  submitQuiz,
+);
+
+// Student - Upload or replace a task submission
+router.post(
+  "/enrollments/course/:courseId/tasks/:lessonId/submission",
+  protect,
+  uploadTaskFile,
+  uploadTaskSubmission,
 );
 
 module.exports = router;

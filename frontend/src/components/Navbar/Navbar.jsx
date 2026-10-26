@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { ChevronDown, ShieldCheck, ShoppingBag } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { useInfluenceProfiles } from "../../context/InfluenceProfilesContext";
 import { useCart } from "../../context/CartContext";
 import NotificationDropdown from "../NotificationDropdown/NotificationDropdown";
 import "./Navbar.css";
@@ -11,6 +12,11 @@ function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const navbarRef = useRef(null);
   const { user, isAuthenticated, logout, openAuthModal, loading } = useAuth();
+  const {
+    hasBrandProfile,
+    hasInfluencerProfile,
+    loading: profilesLoading,
+  } = useInfluenceProfiles();
   const { cartCount } = useCart();
 
   useEffect(() => {
@@ -255,6 +261,21 @@ function Navbar() {
                 </button>
               ) : isAdmin ? (
                 <div className="mobile-user-area">
+                  {!profilesLoading && (hasBrandProfile || hasInfluencerProfile) && (
+                    <div className="mobile-dashboards">
+                      <strong>My Dashboards</strong>
+                      {hasBrandProfile && (
+                        <Link to="/businesses/modainfluence/dashboard" className="mobile-user-name" onClick={closeDropdown}>
+                          Brand Dashboard
+                        </Link>
+                      )}
+                      {hasInfluencerProfile && (
+                        <Link to="/businesses/modainfluence/influencer/dashboard" className="mobile-user-name" onClick={closeDropdown}>
+                          Influencer Dashboard
+                        </Link>
+                      )}
+                    </div>
+                  )}
                   <Link
                     to="/admin"
                     className="mobile-user-name"
@@ -282,6 +303,21 @@ function Navbar() {
                   >
                     👤 {user?.name || "User"}
                   </Link>
+                  {!profilesLoading && (hasBrandProfile || hasInfluencerProfile) && (
+                    <div className="mobile-dashboards">
+                      <strong>My Dashboards</strong>
+                      {hasBrandProfile && (
+                        <Link to="/businesses/modainfluence/dashboard" className="mobile-user-name" onClick={closeDropdown}>
+                          Brand Dashboard
+                        </Link>
+                      )}
+                      {hasInfluencerProfile && (
+                        <Link to="/businesses/modainfluence/influencer/dashboard" className="mobile-user-name" onClick={closeDropdown}>
+                          Influencer Dashboard
+                        </Link>
+                      )}
+                    </div>
+                  )}
                   <button
                     className="mobile-logout-btn"
                     onClick={() => {
@@ -309,6 +345,26 @@ function Navbar() {
           ) : isAdmin ? (
             <div className="navbar-user-area">
               <NotificationDropdown brand="modasphere" />
+              {!profilesLoading && (hasBrandProfile || hasInfluencerProfile) && <div className="navbar-dropdown user-dashboards-dropdown">
+                <button
+                  type="button"
+                  className="navbar-dropdown-button"
+                  onClick={() => toggleDropdown("dashboards")}
+                  aria-expanded={openDropdown === "dashboards"}
+                >
+                  My Dashboards
+                  <ChevronDown
+                    size={16}
+                    className={openDropdown === "dashboards" ? "dropdown-arrow open" : "dropdown-arrow"}
+                  />
+                </button>
+                {openDropdown === "dashboards" && (
+                  <div className="navbar-dropdown-menu">
+                    {hasBrandProfile && <Link to="/businesses/modainfluence/dashboard" onClick={closeDropdown}>Brand Dashboard</Link>}
+                    {hasInfluencerProfile && <Link to="/businesses/modainfluence/influencer/dashboard" onClick={closeDropdown}>Influencer Dashboard</Link>}
+                  </div>
+                )}
+              </div>}
               <Link
                 to="/admin"
                 className="navbar-user-name"
@@ -323,6 +379,26 @@ function Navbar() {
           ) : (
             <div className="navbar-user-area">
               <NotificationDropdown brand="modasphere" />
+              {!profilesLoading && (hasBrandProfile || hasInfluencerProfile) && <div className="navbar-dropdown user-dashboards-dropdown">
+                <button
+                  type="button"
+                  className="navbar-dropdown-button"
+                  onClick={() => toggleDropdown("dashboards")}
+                  aria-expanded={openDropdown === "dashboards"}
+                >
+                  My Dashboards
+                  <ChevronDown
+                    size={16}
+                    className={openDropdown === "dashboards" ? "dropdown-arrow open" : "dropdown-arrow"}
+                  />
+                </button>
+                {openDropdown === "dashboards" && (
+                  <div className="navbar-dropdown-menu">
+                    {hasBrandProfile && <Link to="/businesses/modainfluence/dashboard" onClick={closeDropdown}>Brand Dashboard</Link>}
+                    {hasInfluencerProfile && <Link to="/businesses/modainfluence/influencer/dashboard" onClick={closeDropdown}>Influencer Dashboard</Link>}
+                  </div>
+                )}
+              </div>}
               <Link
                 to="/businesses/modamart/cart"
                 className="navbar-cart-icon"

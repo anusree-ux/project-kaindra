@@ -114,16 +114,6 @@
   line-height: 1.5;
 }
 
-.admin-influence-status {
-  display: inline-block;
-  padding: 5px 9px;
-  background: #f5ead8;
-  color: #9a6b2f;
-  font-size: 9px;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
 .admin-influence-view-button {
   display: inline-flex;
   align-items: center;
