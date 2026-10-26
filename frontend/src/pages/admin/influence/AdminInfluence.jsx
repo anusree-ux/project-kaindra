@@ -16,7 +16,6 @@ function AdminInfluence() {
 
   const [selectedCampaign, setSelectedCampaign] =
     useState(null);
-  const [updatingStatus, setUpdatingStatus] = useState(false);
 
   const handleDeleteCampaign = async (campaignId) => {
     const token = localStorage.getItem("token");
@@ -73,66 +72,6 @@ function AdminInfluence() {
         error.message ||
           "Failed to delete campaign request"
       );
-    }
-  };
-
-  const handleStatusChange = async (newStatus) => {
-    if (!selectedCampaign) return;
-
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      alert("You are not logged in.");
-      return;
-    }
-
-    const endpoint = `/api/modasphere/influence/campaigns/${selectedCampaign._id}/status`;
-
-    try {
-      setUpdatingStatus(true);
-
-      const response = await fetch(endpoint, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          status: newStatus,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data.message || "Failed to update campaign status"
-        );
-      }
-
-      const updatedCampaign = data.data;
-
-      setCampaigns((currentCampaigns) =>
-        currentCampaigns.map((campaign) =>
-          campaign._id === updatedCampaign._id
-            ? updatedCampaign
-            : campaign
-        )
-      );
-
-      setSelectedCampaign(updatedCampaign);
-    } catch (error) {
-      console.error(
-        "Update campaign status error:",
-        error
-      );
-
-      alert(
-        error.message ||
-          "Failed to update campaign status"
-      );
-    } finally {
-      setUpdatingStatus(false);
     }
   };
 
@@ -233,7 +172,6 @@ function AdminInfluence() {
                     <th>Campaign Type</th>
                     <th>Message</th>
                     <th>Submitted</th>
-                    <th>Status</th>
                     <th>Action</th>
                   </tr>
                 </thead>
@@ -274,16 +212,6 @@ function AdminInfluence() {
                           {campaign.createdAt
                             ? new Date(campaign.createdAt).toLocaleString()
                             : "—"}
-                        </span>
-                      </td>
-
-                      <td>
-                        <span
-                          className={`admin-influence-status ${String(
-                            campaign.status || "New"
-                          ).toLowerCase()}`}
-                        >
-                          {campaign.status || "New"}
                         </span>
                       </td>
 
@@ -371,27 +299,6 @@ function AdminInfluence() {
                       ).toLocaleString()
                     : "—"}
                 </strong>
-              </div>
-
-              <div>
-                <span>STATUS</span>
-                <select
-                  value={selectedCampaign.status || "New"}
-                  onChange={(e) =>
-                    handleStatusChange(e.target.value)
-                  }
-                  disabled={updatingStatus}
-                >
-                  <option value="New">New</option>
-                  <option value="Contacted">Contacted</option>
-                  <option value="In Progress">In Progress</option>
-                  <option value="Completed">Completed</option>
-                  <option value="Rejected">Rejected</option>
-                </select>
-
-                {updatingStatus && (
-                  <small>Updating...</small>
-                )}
               </div>
 
               <div className="admin-influence-detail-message">

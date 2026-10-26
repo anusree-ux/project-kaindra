@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect } from "react";
 
 import { AuthProvider } from "./context/AuthContext";
+import { InfluenceProfilesProvider } from "./context/InfluenceProfilesContext";
 import { CartProvider } from "./context/CartContext";
 import { NotificationProvider } from "./context/NotificationContext";
 
@@ -72,6 +73,7 @@ import ModaLogix from "./pages/ModaLogix";
 import ModaPay from "./pages/ModaPay";
 import ModaInfluence from "./pages/ModaInfluence";
 import BrandDashboard from "./pages/BrandDashboard";
+import InfluencerDashboard from "./pages/InfluencerDashboard";
 import ModaTales from "./pages/ModaTales";
 import ModaAcademy from "./pages/ModaAcademy";
 import CourseLearning from "./pages/CourseLearning";
@@ -165,8 +167,9 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <CartProvider>
-          <NotificationProvider>
+        <InfluenceProfilesProvider>
+          <CartProvider>
+            <NotificationProvider>
             <AuthModal />
 
             <ScrollToTop />
@@ -439,6 +442,15 @@ function App() {
           />
 
           <Route
+            path="/businesses/modainfluence/influencer/dashboard"
+            element={
+              <PublicLayout>
+                <InfluencerDashboard />
+              </PublicLayout>
+            }
+          />
+
+          <Route
             path="/businesses/modatales"
             element={
               <PublicLayout>
@@ -652,7 +664,7 @@ function App() {
               </ProtectedAdminRoute>
             }
           />
-          
+
           {/* =========================
     MODASPHERE DASHBOARD
 ========================= */}
@@ -839,8 +851,9 @@ function App() {
             }
           />
         </Routes>
-          </NotificationProvider>
-        </CartProvider>
+            </NotificationProvider>
+          </CartProvider>
+        </InfluenceProfilesProvider>
       </AuthProvider>
     </BrowserRouter>
   );

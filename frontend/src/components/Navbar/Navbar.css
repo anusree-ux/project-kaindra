@@ -329,6 +329,40 @@
   gap: 10px;
 }
 
+.mobile-dashboards {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 0;
+}
+
+.mobile-dashboards > strong {
+  color: #555;
+  font-size: 12px;
+  text-align: center;
+}
+
+.user-dashboards-dropdown {
+  height: auto;
+}
+
+.user-dashboards-dropdown > .navbar-dropdown-button {
+  height: auto;
+  font-size: 13px;
+}
+
+.user-dashboards-dropdown > .navbar-dropdown-menu {
+  left: auto;
+  right: 0;
+  transform: none;
+  width: 210px;
+}
+
+.user-dashboards-dropdown > .navbar-dropdown-menu::before {
+  left: auto;
+  right: 26px;
+}
+
 .navbar-user-name {
   display: inline-flex;
   align-items: center;
