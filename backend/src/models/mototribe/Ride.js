@@ -116,7 +116,7 @@ const rideSchema = new mongoose.Schema(
     },
     maxRiders: {
       type: Number,
-      default: 1,
+      default: 20,
       min: [1, "Max riders must be at least 1"],
     },
     status: {

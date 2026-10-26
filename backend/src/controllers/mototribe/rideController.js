@@ -196,7 +196,7 @@ const createRide = async (req, res, next) => {
       durationDays: durationDays || 1,
       distanceKm,
       budget: budget || 0,
-      maxRiders: Math.max(1, Number(req.body.maxRiders) || 1),
+      maxRiders: req.body.maxRiders ? Math.max(1, Number(req.body.maxRiders)) : 20,
       status: "planning",
     });
 
@@ -517,7 +517,7 @@ const joinRide = async (req, res, next) => {
         );
       }
       // Re-join if user previously left
-      existingParticipant.status = "confirmed";
+      existingParticipant.status = notificationId ? "confirmed" : "planning";
       existingParticipant.joinedAt = new Date();
       await existingParticipant.save();
 
@@ -533,7 +533,7 @@ const joinRide = async (req, res, next) => {
     const participant = await RideParticipant.create({
       rideId,
       userId: req.user._id,
-      status: "confirmed",
+      status: notificationId ? "confirmed" : "planning",
     });
 
     // Notify the ride organizer that the invited rider accepted
