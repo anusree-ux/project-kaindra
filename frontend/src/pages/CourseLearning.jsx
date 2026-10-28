@@ -21,6 +21,7 @@ import {
   RotateCw,
 } from "lucide-react";
 import "./CourseLearning.css";
+import DOMPurify from "dompurify";
 
 const ordered = (items) =>
   (Array.isArray(items) ? items : [])
@@ -732,7 +733,12 @@ function CourseLearning() {
         return renderVideo(lesson);
       case "article":
         return lesson.content?.trim() ? (
-          <div className="course-learning-article">{lesson.content}</div>
+          <div
+            className="course-learning-article"
+            dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize(lesson.content || ""),
+            }}
+          />
         ) : (
           <div className="course-learning-content-note">
             <FileText size={24} />

@@ -1052,3 +1052,47 @@
   background: #fcf3f1;
   color: #a03932;
 }
+
+.course-learning-article h1 {
+  font-size: 2rem;
+  line-height: 1.3;
+  margin: 1.25rem 0 0.75rem;
+}
+
+.course-learning-article h2 {
+  font-size: 1.5rem;
+  line-height: 1.4;
+  margin: 1.1rem 0 0.65rem;
+}
+
+.course-learning-article h3 {
+  font-size: 1.2rem;
+  margin: 1rem 0 0.5rem;
+}
+
+.course-learning-article p {
+  margin: 0 0 1rem;
+  line-height: 1.75;
+}
+
+.course-learning-article ul,
+.course-learning-article ol {
+  padding-left: 1.75rem;
+  margin: 0 0 1rem;
+}
+
+.course-learning-article ul {
+  list-style: disc;
+}
+
+.course-learning-article ol {
+  list-style: decimal;
+}
+
+.course-learning-article li {
+  margin-bottom: 0.4rem;
+}
+
+.course-learning-article a {
+  text-decoration: underline;
+}

@@ -20,6 +20,7 @@ import {
 
 import "./AdminAcademy.css";
 import "./AdminAcademy-course-modal.css";
+import RichTextEditor from "../../../components/RichTextEditor";
 
 const emptyCourseForm = {
   title: "", subtitle: "", description: "", shortDescription: "",
@@ -747,14 +748,14 @@ function AdminAcademy() {
               </label>
 
               {lesson.type === "article" && (
-                <label className="admin-academy-form-field admin-academy-form-field-full">
-                  Article content
-                  <textarea
-                    value={lesson.content}
-                    onChange={(e) => update("content", e.target.value)}
-                    rows={6}
+                <div className="admin-academy-form-field admin-academy-form-field-full">
+                  <label>Article content</label>
+
+                  <RichTextEditor
+                    value={lesson.content || ""}
+                    onChange={(value) => update("content", value)}
                   />
-                </label>
+                </div>
               )}
 
               {lesson.type === "video" && (
