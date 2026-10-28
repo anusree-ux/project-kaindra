@@ -51,6 +51,11 @@ function InfluencerDashboard() {
   const withdrawalInProgress = useRef(false);
   const deletionInProgress = useRef(false);
 
+  const [profileDeletionOpen, setProfileDeletionOpen] = useState(false);
+  const [deletingProfile, setDeletingProfile] = useState(false);
+
+  const profileDeletionInProgress = useRef(false);
+
   useEffect(() => {
     if (!isAuthenticated || !profile) {
       setApplications([]);
@@ -186,6 +191,40 @@ function InfluencerDashboard() {
       );
     } finally {
       setSaving(false);
+    }
+  };
+
+  const confirmProfileDeletion = async () => {
+    if (!profile || profileDeletionInProgress.current) return;
+
+    profileDeletionInProgress.current = true;
+    setDeletingProfile(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const response = await apiClient.delete(
+        "/api/modasphere/influence/influencer-profile"
+      );
+
+      await refreshProfiles();
+
+      setProfileDeletionOpen(false);
+      setEditing(true);
+      setApplications([]);
+
+      setSuccess(
+        response.data?.message ||
+          "Your influencer profile has been deleted. Application history has been retained."
+      );
+    } catch (err) {
+      setError(
+        err.response?.data?.message ||
+          "Unable to delete your influencer profile."
+      );
+    } finally {
+      profileDeletionInProgress.current = false;
+      setDeletingProfile(false);
     }
   };
 
@@ -492,6 +531,7 @@ function InfluencerDashboard() {
                 </div>
               </div>
 
+            <div className="influencer-profile-actions">
               <button
                 type="button"
                 className="influencer-edit-button"
@@ -504,6 +544,16 @@ function InfluencerDashboard() {
                 <Pencil size={15} aria-hidden="true" />
                 Edit profile
               </button>
+
+              <button
+                type="button"
+                className="influencer-delete-profile-button"
+                onClick={() => setProfileDeletionOpen(true)}
+              >
+                <Trash2 size={15} aria-hidden="true" />
+                Delete profile
+              </button>
+            </div>
             </div>
 
             <div className="influencer-profile-identity">
@@ -725,6 +775,59 @@ function InfluencerDashboard() {
         </>
       ) : null}
 
+      {profileDeletionOpen && (
+        <div
+          className="brand-campaign-modal-backdrop"
+          onMouseDown={(event) => {
+            if (
+              event.target === event.currentTarget &&
+              !profileDeletionInProgress.current
+            ) {
+              setProfileDeletionOpen(false);
+            }
+          }}
+        >
+          <section
+            className="brand-campaign-modal influencer-withdraw-dialog"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="delete-influencer-profile-title"
+            aria-describedby="delete-influencer-profile-description"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <h2 id="delete-influencer-profile-title">
+              Delete influencer profile?
+            </h2>
+
+            <p id="delete-influencer-profile-description">
+              Your influencer profile, bio, contact details, and social links
+              will be removed. Your campaign applications will remain in
+              brand and admin records, with your profile details anonymized.
+              Your ModaSphere account will not be deleted.
+            </p>
+
+            <div className="brand-campaign-actions">
+              <button
+                type="button"
+                className="brand-profile-secondary"
+                onClick={() => setProfileDeletionOpen(false)}
+                disabled={deletingProfile}
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                className="brand-campaign-delete"
+                onClick={confirmProfileDeletion}
+                disabled={deletingProfile}
+              >
+                {deletingProfile ? "Deleting profile..." : "Delete profile"}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
       {withdrawalApplication && (
         <div
           className="brand-campaign-modal-backdrop"

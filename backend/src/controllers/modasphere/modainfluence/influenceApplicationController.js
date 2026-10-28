@@ -194,7 +194,19 @@ const getCampaignApplications = async (req, res) => {
       _id: application._id,
       status: application.status,
       createdAt: application.createdAt,
-      influencer: application.influencerProfile,
+      influencer:
+        application.influencerProfile ||
+        application.influencerSnapshot || {
+          displayName: "Deleted influencer",
+          category: "",
+          bio: "",
+          website: "",
+          socialLinks: {
+            instagram: "",
+            tiktok: "",
+            youtube: "",
+          },
+        },
     }));
     return res.status(200).json({ success: true, count: data.length, data });
   } catch (error) {
@@ -220,8 +232,19 @@ const updateApplicationStatus = async (req, res) => {
       _id: applicationId,
       campaign: campaign._id,
       deletedAt: { $exists: false },
-    }).select("status");
+    }).select("status influencerProfile");
     if (!existingApplication) return res.status(404).json({ success: false, message: "Application not found for this campaign." });
+    const influencerStillExists = await InfluenceCreatorProfile.exists({
+      _id: existingApplication.influencerProfile,
+    });
+
+    if (!influencerStillExists) {
+      return res.status(409).json({
+        success: false,
+        message:
+          "This influencer profile was deleted. The application is retained for history only.",
+      });
+    }
     if (existingApplication.status === "Withdrawn") {
       return res.status(409).json({ success: false, message: "A withdrawn application cannot be accepted or rejected." });
     }

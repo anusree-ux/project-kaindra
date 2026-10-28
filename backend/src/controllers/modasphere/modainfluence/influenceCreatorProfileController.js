@@ -2,6 +2,10 @@ const InfluenceCreatorProfile = require(
   "../../../models/modasphere/modainfluence/InfluenceCreatorProfile"
 );
 
+const InfluenceCampaignApplication = require(
+  "../../../models/modasphere/modainfluence/InfluenceCampaignApplication"
+);
+
 const profileFields = [
   "displayName",
   "contactEmail",
@@ -106,8 +110,70 @@ const updateCreatorProfile = async (req, res) => {
   }
 };
 
+const deleteCreatorProfile = async (req, res) => {
+  try {
+    const profile = await InfluenceCreatorProfile.findOne({
+      owner: req.user._id,
+    }).select("_id");
+
+    if (!profile) {
+      return res.status(404).json({
+        success: false,
+        message: "Influencer profile not found.",
+      });
+    }
+
+    // Keep every application record, but remove identifying profile details.
+    await InfluenceCampaignApplication.updateMany(
+      { influencerProfile: profile._id },
+      {
+        $set: {
+          influencerSnapshot: {
+            displayName: "Deleted influencer",
+            category: "",
+            bio: "",
+            website: "",
+            socialLinks: {
+              instagram: "",
+              tiktok: "",
+              youtube: "",
+            },
+          },
+        },
+      }
+    );
+
+    // Delete only the profile owned by the authenticated user.
+    const deletion = await InfluenceCreatorProfile.deleteOne({
+      _id: profile._id,
+      owner: req.user._id,
+    });
+
+    if (deletion.deletedCount !== 1) {
+      return res.status(409).json({
+        success: false,
+        message: "The profile could not be deleted. Please try again.",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message:
+        "Influencer profile deleted. Campaign application history has been retained.",
+    });
+  } catch (error) {
+    console.error("Delete influencer profile error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete your influencer profile.",
+    });
+  }
+};
+
 module.exports = {
   getMyCreatorProfile,
   createCreatorProfile,
   updateCreatorProfile,
+  deleteCreatorProfile,
 };

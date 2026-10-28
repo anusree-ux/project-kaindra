@@ -47,6 +47,7 @@ const {
   getMyCreatorProfile,
   createCreatorProfile,
   updateCreatorProfile,
+  deleteCreatorProfile,
 } = require(
   "../../../controllers/modasphere/modainfluence/influenceCreatorProfileController"
 );
@@ -133,6 +134,11 @@ router.patch(
   protect,
   updateCreatorProfileValidator,
   updateCreatorProfile
+);
+router.delete(
+  "/influencer-profile",
+  protect,
+  deleteCreatorProfile
 );
 
 // =====================================================

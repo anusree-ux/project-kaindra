@@ -1468,3 +1468,40 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+.influencer-profile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.influencer-dashboard .influencer-profile-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 10px 14px;
+}
+
+.influencer-dashboard .influencer-delete-profile-button {
+  background: #fff;
+  color: #b42318;
+  border: 1px solid #e7b7b3;
+}
+
+.influencer-dashboard .influencer-delete-profile-button:hover {
+  background: #fef2f2;
+  opacity: 1;
+}
+
+@media (max-width: 560px) {
+  .influencer-profile-actions {
+    width: 100%;
+  }
+
+  .influencer-profile-actions button {
+    flex: 1;
+  }
+}
