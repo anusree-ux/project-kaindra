@@ -47,91 +47,19 @@ const DashboardSignup = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    if (
-      !form.businessName.trim() ||
-      !form.email.trim() ||
-      !form.password ||
-      !form.confirmPassword
-    ) {
-      setError("Please complete all fields.");
+    if (!form.businessName.trim()) {
+      setError("Please provide your business or company name.");
       return;
     }
 
-    if (form.password.length < 6) {
-      setError(
-        "Password must contain at least 6 characters."
-      );
-      return;
-    }
-
-    if (
-      form.password !== form.confirmPassword
-    ) {
-      setError("Passwords do not match.");
-      return;
-    }
-
-    try {
-      setSubmitting(true);
-      setError("");
-
-      /*
-        FRONTEND ONLY.
-
-        Your backend teammate can connect the real
-        registration API here later.
-
-        Data ready to send:
-
-        {
-          accountType,
-          businessName: form.businessName,
-          email: form.email,
-          password: form.password
-        }
-      */
-
-      await new Promise((resolve) =>
-        setTimeout(resolve, 500)
-      );
-
-      setSuccess(true);
-    } finally {
-      setSubmitting(false);
-    }
+    // Direct the user to profile setup with chosen role & business name
+    navigate("/businesses/modasphere/dashboard/profile-setup", {
+      state: {
+        accountType,
+        businessName: form.businessName,
+      },
+    });
   };
-
-  if (success) {
-    return (
-      <div className="moda-signup-success-page">
-        <div className="moda-signup-success-card">
-          <span className="moda-signup-eyebrow">
-            MODASPHERE
-          </span>
-
-          <h1>Account details ready</h1>
-
-          <p>
-            The frontend registration flow is working.
-            Backend account creation can be connected
-            when the registration API is available.
-          </p>
-
-          <button
-            type="button"
-            className="moda-signup-primary"
-            onClick={() =>
-              navigate(
-                "/businesses/modasphere/dashboard/login"
-              )
-            }
-          >
-            Continue to login
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="moda-signup-page">

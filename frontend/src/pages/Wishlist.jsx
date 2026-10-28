@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Heart, ShoppingBag, ArrowLeft, Loader2, Sparkles, Trash2 } from "lucide-react";
 import apiClient from "../services/apiClient";
 import { useCart } from "../context/CartContext";
+import { getCategoryLabel } from "../constants/categories";
 import "./Wishlist.css";
 
 function Wishlist() {
@@ -140,7 +141,12 @@ function Wishlist() {
                   "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&q=80";
 
                 const brandName =
-                  product.sellerId?.name || product.brand || "ModaSphere Studio";
+                  product.sellerId?.businessName ||
+                  product.sellerId?.shopName ||
+                  product.brand ||
+                  product.shopName ||
+                  product.sellerId?.name ||
+                  "ModaSphere Studio";
 
                 return (
                   <article className="wishlist-product-card" key={productId}>
@@ -175,7 +181,7 @@ function Wishlist() {
                       </h3>
 
                       <p className="product-category-tag">
-                        {product.category}
+                        {getCategoryLabel(product.category)}
                       </p>
 
                       <div className="wishlist-card-bottom">

@@ -115,6 +115,12 @@ const createDrop = async (req, res, next) => {
       status: initialStatus,
     });
 
+    // Ensure all products in the drop are active and marked as drops so they appear in ModaMart
+    await Product.updateMany(
+      { _id: { $in: normalizedProductIds } },
+      { $set: { isDrop: true, status: "active" } }
+    );
+
     res.status(201).json({
       status: "success",
       message: "ModaDrop created successfully.",

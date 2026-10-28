@@ -34,13 +34,24 @@ const checkAndSendReminders = async () => {
 
     const processRideReminders = async (rides, reminderType) => {
       for (const ride of rides) {
+        // Collect all participants (both planning and confirmed)
         const participants = await RideParticipant.find({
           rideId: ride._id,
-          status: "confirmed",
+          status: { $in: ["planning", "confirmed"] },
         });
 
-        for (const participant of participants) {
-          const uId = participant.userId;
+        // Ensure both organizer and all participants are included
+        const recipientUserIds = new Set();
+        if (ride.organizerId) {
+          recipientUserIds.add(ride.organizerId.toString());
+        }
+        for (const p of participants) {
+          if (p.userId) {
+            recipientUserIds.add(p.userId.toString());
+          }
+        }
+
+        for (const uId of recipientUserIds) {
 
           // Check if already sent
           const existing = await RideReminder.findOne({

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   Search,
@@ -15,165 +15,53 @@ import {
   Send,
   FileText,
   Truck,
+  Store,
+  Loader2,
+  Building2,
+  Phone,
+  Mail,
+  ExternalLink,
+  ShieldCheck,
 } from "lucide-react";
-
+import apiClient from "../services/apiClient";
 import "./ModaManufacture.css";
 
-const manufacturers = [
-  {
-    id: 1,
-    name: "Aurelia Textiles",
-    location: "Mumbai, India",
-    specialty: "Luxury & Premium",
-    capabilities: [
-      "Cut & Sew",
-      "Embroidery",
-      "Private Label",
-    ],
-    rating: 4.9,
-    orders: 128,
-    minimum: "100 units",
-    leadTime: "18–25 days",
-    capacity: "High",
-    image:
-      "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=900&q=85",
-  },
-
-  {
-    id: 2,
-    name: "Urban Stitch Works",
-    location: "Bengaluru, India",
-    specialty: "Streetwear",
-    capabilities: [
-      "Cut & Sew",
-      "Screen Printing",
-      "Dyeing",
-    ],
-    rating: 4.8,
-    orders: 94,
-    minimum: "50 units",
-    leadTime: "12–20 days",
-    capacity: "High",
-    image:
-      "https://images.unsplash.com/photo-1565084888279-aca607ecce0c?auto=format&fit=crop&w=900&q=85",
-  },
-
-  {
-    id: 3,
-    name: "Heritage Looms",
-    location: "Hyderabad, India",
-    specialty: "Ethnic & Cultural",
-    capabilities: [
-      "Handloom",
-      "Embroidery",
-      "Weaving",
-    ],
-    rating: 4.9,
-    orders: 76,
-    minimum: "30 units",
-    leadTime: "25–40 days",
-    capacity: "Medium",
-    image:
-      "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?auto=format&fit=crop&w=900&q=85",
-  },
-
-  {
-    id: 4,
-    name: "Future Fabric Labs",
-    location: "Delhi, India",
-    specialty: "Technical Apparel",
-    capabilities: [
-      "Performance Wear",
-      "Smart Textiles",
-      "Cut & Sew",
-    ],
-    rating: 4.7,
-    orders: 61,
-    minimum: "100 units",
-    leadTime: "20–35 days",
-    capacity: "Medium",
-    image:
-      "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?auto=format&fit=crop&w=900&q=85",
-  },
-
-  {
-    id: 5,
-    name: "Nova Garments",
-    location: "Tiruppur, India",
-    specialty: "Mass Production",
-    capabilities: [
-      "Cut & Sew",
-      "Knitting",
-      "Dyeing",
-    ],
-    rating: 4.6,
-    orders: 215,
-    minimum: "500 units",
-    leadTime: "20–30 days",
-    capacity: "Very High",
-    image:
-      "https://images.unsplash.com/photo-1610701596007-11502861dcfa?auto=format&fit=crop&w=900&q=85",
-  },
-
-  {
-    id: 6,
-    name: "Atelier Form",
-    location: "Jaipur, India",
-    specialty: "Designer Wear",
-    capabilities: [
-      "Custom Tailoring",
-      "Embroidery",
-      "Hand Finishing",
-    ],
-    rating: 4.9,
-    orders: 48,
-    minimum: "20 units",
-    leadTime: "30–45 days",
-    capacity: "Low",
-    image:
-      "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?auto=format&fit=crop&w=900&q=85",
-  },
-];
-
-const capabilities = [
-  "All",
-  "Cut & Sew",
-  "Embroidery",
-  "Knitting",
-  "Handloom",
-  "Smart Textiles",
-  "Private Label",
-];
-
 function ModaManufacture() {
+  const [partners, setPartners] = useState([]);
+  const [capabilities, setCapabilities] = useState(["All"]);
+  const [activePartnerType, setActivePartnerType] = useState("all");
+  const [counts, setCounts] = useState({
+    total: 0,
+    manufacturerCount: 0,
+    sellerCount: 0,
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const [search, setSearch] = useState("");
   const [activeCapability, setActiveCapability] = useState("All");
   const [saved, setSaved] = useState([]);
   const [showFilters, setShowFilters] = useState(false);
   const [showRFQ, setShowRFQ] = useState(false);
-  const [selectedManufacturer, setSelectedManufacturer] =
-    useState(null);
+  const [selectedManufacturer, setSelectedManufacturer] = useState(null);
+  const [selectedProfilePartner, setSelectedProfilePartner] = useState(null);
+
   const [submittedRequest, setSubmittedRequest] = useState(() => {
-  try {
-    const latestId = localStorage.getItem(
-      "latestManufactureRequestId"
-    );
+    try {
+      const latestId = localStorage.getItem("latestManufactureRequestId");
+      if (!latestId) return null;
+      const requests = JSON.parse(
+        localStorage.getItem("modaManufactureRequests") || "[]"
+      );
+      return (
+        requests.find((request) => String(request.id) === String(latestId)) ||
+        null
+      );
+    } catch {
+      return null;
+    }
+  });
 
-    if (!latestId) return null;
-
-    const requests = JSON.parse(
-      localStorage.getItem("modaManufactureRequests") || "[]"
-    );
-
-    return (
-      requests.find(
-        (request) => String(request.id) === String(latestId)
-      ) || null
-    );
-  } catch {
-    return null;
-  }
-});
   const [rfqData, setRfqData] = useState({
     product: "",
     quantity: "",
@@ -182,22 +70,65 @@ function ModaManufacture() {
     message: "",
   });
 
-  const filteredManufacturers = useMemo(() => {
-    return manufacturers.filter((manufacturer) => {
-      const searchValue = search.toLowerCase();
+  // Fetch real partners (both manufacturers and sellers) from database
+  useEffect(() => {
+    let isMounted = true;
+    setLoading(true);
+    apiClient
+      .get("/api/modasphere/directory/partners")
+      .then((res) => {
+        if (!isMounted) return;
+        const data = res.data?.data || {};
+        setPartners(data.partners || []);
+        setCapabilities(data.capabilities || ["All"]);
+        setCounts({
+          total: data.total || 0,
+          manufacturerCount: data.manufacturerCount || 0,
+          sellerCount: data.sellerCount || 0,
+        });
+      })
+      .catch((err) => {
+        if (!isMounted) return;
+        console.error("Failed to load directory partners:", err);
+        setError("Failed to load verified partners from database.");
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
 
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const filteredPartners = useMemo(() => {
+    return partners.filter((partner) => {
+      // Filter by type tab (all, manufacturer, seller)
+      if (
+        activePartnerType !== "all" &&
+        partner.partnerType !== activePartnerType
+      ) {
+        return false;
+      }
+
+      const searchValue = search.trim().toLowerCase();
       const matchesSearch =
-        manufacturer.name.toLowerCase().includes(searchValue) ||
-        manufacturer.location.toLowerCase().includes(searchValue) ||
-        manufacturer.specialty.toLowerCase().includes(searchValue);
+        !searchValue ||
+        partner.name.toLowerCase().includes(searchValue) ||
+        partner.location.toLowerCase().includes(searchValue) ||
+        partner.specialty.toLowerCase().includes(searchValue) ||
+        (partner.description &&
+          partner.description.toLowerCase().includes(searchValue));
 
       const matchesCapability =
         activeCapability === "All" ||
-        manufacturer.capabilities.includes(activeCapability);
+        partner.capabilities.some(
+          (c) => c.toLowerCase() === activeCapability.toLowerCase()
+        );
 
       return matchesSearch && matchesCapability;
     });
-  }, [search, activeCapability]);
+  }, [partners, activePartnerType, search, activeCapability]);
 
   const toggleSaved = (id) => {
     setSaved((current) =>
@@ -426,23 +357,23 @@ function ModaManufacture() {
         <div className="manufacture-container manufacture-stats-grid">
 
           <div>
-            <strong>240+</strong>
+            <strong>{counts.manufacturerCount}</strong>
             <span>Verified manufacturers</span>
           </div>
 
           <div>
-            <strong>18</strong>
+            <strong>{counts.sellerCount}</strong>
+            <span>Active sellers & brands</span>
+          </div>
+
+          <div>
+            <strong>{capabilities.filter((c) => c !== "All").length}</strong>
             <span>Production capabilities</span>
           </div>
 
           <div>
-            <strong>12</strong>
-            <span>Fashion categories</span>
-          </div>
-
-          <div>
-            <strong>24/7</strong>
-            <span>Request management</span>
+            <strong>{counts.total}</strong>
+            <span>Network partners in DB</span>
           </div>
 
         </div>
@@ -451,7 +382,7 @@ function ModaManufacture() {
 
 
       {/* =====================================================
-          MANUFACTURERS
+          MANUFACTURERS & SELLERS DIRECTORY
       ===================================================== */}
 
       <section
@@ -464,185 +395,225 @@ function ModaManufacture() {
           <div className="manufacturers-heading">
 
             <div>
-              <span>PRODUCTION PARTNERS</span>
+              <span>PRODUCTION & BRAND PARTNERS</span>
 
               <h2>
-                Manufacturers
+                Directory
               </h2>
             </div>
 
             <p>
-              {filteredManufacturers.length} manufacturers
-              available
+              {filteredPartners.length} partner{filteredPartners.length === 1 ? "" : "s"} available
             </p>
 
           </div>
 
-
-          <div className="manufacturer-grid">
-
-            {filteredManufacturers.map((manufacturer) => (
-
-              <article
-                className="manufacturer-card"
-                key={manufacturer.id}
-              >
-
-                <div className="manufacturer-image">
-
-                  <img
-                    src={manufacturer.image}
-                    alt={manufacturer.name}
-                  />
-
-                  <span className="verified-badge">
-                    <CheckCircle2 size={13} />
-                    Verified
-                  </span>
-
-                  <button
-                    type="button"
-                    className={
-                      saved.includes(manufacturer.id)
-                        ? "save-button saved"
-                        : "save-button"
-                    }
-                    onClick={() =>
-                      toggleSaved(manufacturer.id)
-                    }
-                  >
-                    <Heart
-                      size={17}
-                      fill={
-                        saved.includes(manufacturer.id)
-                          ? "currentColor"
-                          : "none"
-                      }
-                    />
-                  </button>
-
-                </div>
-
-
-                <div className="manufacturer-card-content">
-
-                  <div className="manufacturer-name-row">
-
-                    <div>
-                      <h3>
-                        {manufacturer.name}
-                      </h3>
-
-                      <p>
-                        <MapPin size={13} />
-                        {manufacturer.location}
-                      </p>
-                    </div>
-
-                    <div className="manufacturer-rating">
-                      <Star
-                        size={14}
-                        fill="currentColor"
-                      />
-
-                      {manufacturer.rating}
-                    </div>
-
-                  </div>
-
-
-                  <span className="manufacturer-specialty">
-                    {manufacturer.specialty}
-                  </span>
-
-
-                  <div className="manufacturer-capabilities">
-
-                    {manufacturer.capabilities.map(
-                      (capability) => (
-                        <span key={capability}>
-                          {capability}
-                        </span>
-                      )
-                    )}
-
-                  </div>
-
-
-                  <div className="manufacturer-details">
-
-                    <div>
-                      <small>MINIMUM</small>
-                      <strong>
-                        {manufacturer.minimum}
-                      </strong>
-                    </div>
-
-                    <div>
-                      <small>LEAD TIME</small>
-                      <strong>
-                        {manufacturer.leadTime}
-                      </strong>
-                    </div>
-
-                    <div>
-                      <small>CAPACITY</small>
-                      <strong>
-                        {manufacturer.capacity}
-                      </strong>
-                    </div>
-
-                  </div>
-
-
-                  <div className="manufacturer-actions">
-
-                    <button
-                      type="button"
-                      className="view-manufacturer"
-                      onClick={() =>
-                        alert(
-                          `${manufacturer.name}\n\nLocation: ${manufacturer.location}\nSpecialty: ${manufacturer.specialty}\nRating: ${manufacturer.rating}`
-                        )
-                      }
-                    >
-                      View Profile
-                      <ArrowUpRightIcon />
-                    </button>
-
-                    <button
-                      type="button"
-                      className="request-button"
-                      onClick={() =>
-                        openRFQ(manufacturer)
-                      }
-                    >
-                      Request Production
-                      <ArrowRight size={16} />
-                    </button>
-
-                  </div>
-
-                </div>
-
-              </article>
-
-            ))}
-
+          {/* Partner Type Filter Tabs */}
+          <div className="partner-type-filter-bar">
+            <button
+              type="button"
+              className={`partner-tab-btn ${activePartnerType === "all" ? "active" : ""}`}
+              onClick={() => setActivePartnerType("all")}
+            >
+              <Building2 size={15} />
+              All Partners ({counts.total})
+            </button>
+            <button
+              type="button"
+              className={`partner-tab-btn ${activePartnerType === "manufacturer" ? "active" : ""}`}
+              onClick={() => setActivePartnerType("manufacturer")}
+            >
+              <Factory size={15} />
+              Manufacturers ({counts.manufacturerCount})
+            </button>
+            <button
+              type="button"
+              className={`partner-tab-btn ${activePartnerType === "seller" ? "active" : ""}`}
+              onClick={() => setActivePartnerType("seller")}
+            >
+              <Store size={15} />
+              Sellers & Brands ({counts.sellerCount})
+            </button>
           </div>
 
+          {loading ? (
+            <div className="manufacture-loading">
+              <Loader2 className="spinning" size={36} />
+              <p>Loading verified partners from database...</p>
+            </div>
+          ) : error ? (
+            <div className="manufacture-empty">
+              <p>{error}</p>
+            </div>
+          ) : (
+            <div className="manufacturer-grid">
 
-          {filteredManufacturers.length === 0 && (
+              {filteredPartners.map((partner) => (
+
+                <article
+                  className="manufacturer-card"
+                  key={partner.id}
+                >
+
+                  <div className="manufacturer-image">
+
+                    <img
+                      src={partner.image}
+                      alt={partner.name}
+                    />
+
+                    {partner.partnerType === "manufacturer" ? (
+                      <span className="verified-badge">
+                        <Factory size={13} />
+                        Verified Manufacturer
+                      </span>
+                    ) : (
+                      <span className="verified-badge seller-badge">
+                        <Store size={13} />
+                        Registered Brand / Seller
+                      </span>
+                    )}
+
+                    <button
+                      type="button"
+                      className={
+                        saved.includes(partner.id)
+                          ? "save-button saved"
+                          : "save-button"
+                      }
+                      onClick={() =>
+                        toggleSaved(partner.id)
+                      }
+                    >
+                      <Heart
+                        size={17}
+                        fill={
+                          saved.includes(partner.id)
+                            ? "currentColor"
+                            : "none"
+                        }
+                      />
+                    </button>
+
+                  </div>
+
+
+                  <div className="manufacturer-card-content">
+
+                    <div className="manufacturer-name-row">
+
+                      <div>
+                        <h3>
+                          {partner.name}
+                        </h3>
+
+                        <p>
+                          <MapPin size={13} />
+                          {partner.location}
+                        </p>
+                      </div>
+
+                      <div className="manufacturer-rating">
+                        <Star
+                          size={14}
+                          fill="currentColor"
+                        />
+
+                        {partner.rating}
+                      </div>
+
+                    </div>
+
+
+                    <span className="manufacturer-specialty">
+                      {partner.specialty}
+                    </span>
+
+
+                    <div className="manufacturer-capabilities">
+
+                      {partner.capabilities.map(
+                        (capability) => (
+                          <span key={capability}>
+                            {capability}
+                          </span>
+                        )
+                      )}
+
+                    </div>
+
+
+                    <div className="manufacturer-details">
+
+                      <div>
+                        <small>MINIMUM</small>
+                        <strong>
+                          {partner.minimum}
+                        </strong>
+                      </div>
+
+                      <div>
+                        <small>LEAD TIME</small>
+                        <strong>
+                          {partner.leadTime}
+                        </strong>
+                      </div>
+
+                      <div>
+                        <small>CAPACITY</small>
+                        <strong>
+                          {partner.capacity}
+                        </strong>
+                      </div>
+
+                    </div>
+
+
+                    <div className="manufacturer-actions">
+
+                      <button
+                        type="button"
+                        className="view-manufacturer"
+                        onClick={() => setSelectedProfilePartner(partner)}
+                      >
+                        View Profile
+                        <ArrowUpRightIcon />
+                      </button>
+
+                      <button
+                        type="button"
+                        className="request-button"
+                        onClick={() =>
+                          openRFQ(partner)
+                        }
+                      >
+                        {partner.partnerType === "manufacturer" ? "Request Production" : "Inquire / Collaborate"}
+                        <ArrowRight size={16} />
+                      </button>
+
+                    </div>
+
+                  </div>
+
+                </article>
+
+              ))}
+
+            </div>
+          )}
+
+
+          {!loading && filteredPartners.length === 0 && (
             <div className="manufacture-empty">
 
               <Factory size={35} />
 
               <h3>
-                No manufacturers found
+                No partners found
               </h3>
 
               <p>
-                Try another search or capability.
+                Try selecting another partner type, search query, or capability filter.
               </p>
 
               <button
@@ -650,9 +621,10 @@ function ModaManufacture() {
                 onClick={() => {
                   setSearch("");
                   setActiveCapability("All");
+                  setActivePartnerType("all");
                 }}
               >
-                Clear filters
+                Clear all filters
               </button>
 
             </div>
@@ -1060,6 +1032,115 @@ function ModaManufacture() {
 
         </div>
       )}
+
+      {/* =====================================================
+          PARTNER PROFILE MODAL
+      ===================================================== */}
+      {selectedProfilePartner && (
+        <div
+          className="rfq-modal-backdrop"
+          onMouseDown={() => setSelectedProfilePartner(null)}
+        >
+          <div
+            className="rfq-modal partner-profile-modal"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <div className="rfq-modal-header">
+              <div>
+                <span className="profile-type-badge">
+                  {selectedProfilePartner.partnerType === "manufacturer"
+                    ? "VERIFIED MANUFACTURER"
+                    : "REGISTERED BRAND / SELLER"}
+                </span>
+                <h2>{selectedProfilePartner.name}</h2>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setSelectedProfilePartner(null)}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="profile-modal-body">
+              <div className="profile-modal-hero">
+                <img
+                  src={selectedProfilePartner.image}
+                  alt={selectedProfilePartner.name}
+                  className="profile-modal-img"
+                />
+                <div className="profile-modal-meta">
+                  <div className="profile-meta-tags">
+                    <span className="profile-meta-tag">
+                      <MapPin size={13} /> {selectedProfilePartner.location}
+                    </span>
+                    <span className="profile-meta-tag rating-tag">
+                      <Star size={13} fill="currentColor" /> {selectedProfilePartner.rating}
+                    </span>
+                    <span className="profile-meta-tag verified-tag">
+                      <ShieldCheck size={13} /> Verified in DB
+                    </span>
+                  </div>
+
+                  <p className="profile-description">
+                    {selectedProfilePartner.description ||
+                      "Established partner operating within the ModaSphere ecosystem offering reliable fashion design, sourcing, and manufacturing capabilities."}
+                  </p>
+                </div>
+              </div>
+
+              <div className="profile-details-grid">
+                <div className="profile-detail-card">
+                  <small>SPECIALTY</small>
+                  <strong>{selectedProfilePartner.specialty}</strong>
+                </div>
+                <div className="profile-detail-card">
+                  <small>MINIMUM ORDER</small>
+                  <strong>{selectedProfilePartner.minimum}</strong>
+                </div>
+                <div className="profile-detail-card">
+                  <small>LEAD TIME</small>
+                  <strong>{selectedProfilePartner.leadTime}</strong>
+                </div>
+                <div className="profile-detail-card">
+                  <small>CAPACITY</small>
+                  <strong>{selectedProfilePartner.capacity}</strong>
+                </div>
+              </div>
+
+              <div className="profile-capabilities-section">
+                <h4>CAPABILITIES & EXPERTISE</h4>
+                <div className="profile-capabilities-list">
+                  {selectedProfilePartner.capabilities?.map((cap) => (
+                    <span key={cap} className="profile-cap-tag">
+                      {cap}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="profile-modal-actions">
+                <button
+                  type="button"
+                  className="profile-contact-btn"
+                  onClick={() => {
+                    const partner = selectedProfilePartner;
+                    setSelectedProfilePartner(null);
+                    openRFQ(partner);
+                  }}
+                >
+                  {selectedProfilePartner.partnerType === "manufacturer"
+                    ? "Request Production Brief (RFQ)"
+                    : "Send Sourcing Inquiry"}
+                  <ArrowRight size={16} />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* =====================================================
           REQUEST SUCCESS
       ===================================================== */}

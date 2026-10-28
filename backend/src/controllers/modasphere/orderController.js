@@ -272,19 +272,19 @@ const checkout = async (req, res, next) => {
       }
 
       if (discount.discountType === "percentage") {
-        discountAmount =
-          (subtotalAmount * discount.discountValue) / 100;
+        discountAmount = (subtotalAmount * discount.discountValue) / 100;
       } else {
         discountAmount = discount.discountValue;
       }
 
       discountAmount = Math.min(discountAmount, subtotalAmount);
+      discountAmount = Math.round(discountAmount * 100) / 100;
 
       appliedDiscountCode = discount.code;
     }
 
     const totalAmount = Math.max(
-      subtotalAmount - discountAmount,
+      Math.round((subtotalAmount - discountAmount) * 100) / 100,
       0
     );
 
@@ -524,9 +524,12 @@ const getOrderById = async (req, res, next) => {
       responseData.sellerSubtotal = sellerSubtotal;
     }
 
+    const shipment = await Shipment.findOne({ orderId: order._id });
+    responseData.shipment = shipment;
+
     res.status(200).json({
       status: "success",
-      data: { order: responseData },
+      data: { order: responseData, shipment },
     });
   } catch (error) {
     next(error);
@@ -624,18 +627,24 @@ const shipOrder = async (req, res, next) => {
     await order.save();
 
     let shipment = await Shipment.findOne({ orderId: order._id });
+    const now = new Date();
     if (!shipment) {
       shipment = await Shipment.create({
         orderId: order._id,
         carrier,
         trackingNumber,
         estimatedDeliveryDate: estimatedDeliveryDate || null,
-        status: "pending_pickup",
+        status: "in_transit",
         timeline: [
           {
             status: "pending_pickup",
             note: "Shipment order created by seller.",
-            timestamp: new Date(),
+            timestamp: new Date(now.getTime() - 1000),
+          },
+          {
+            status: "in_transit",
+            note: `Dispatched via ${carrier} (Tracking: ${trackingNumber})`,
+            timestamp: now,
           },
         ],
       });
@@ -645,6 +654,12 @@ const shipOrder = async (req, res, next) => {
       if (estimatedDeliveryDate) {
         shipment.estimatedDeliveryDate = estimatedDeliveryDate;
       }
+      shipment.status = "in_transit";
+      shipment.timeline.push({
+        status: "in_transit",
+        note: `Dispatched via ${carrier} (Tracking: ${trackingNumber})`,
+        timestamp: now,
+      });
       await shipment.save();
     }
 

@@ -287,13 +287,18 @@ const googleAuth = async (req, res, next) => {
         googleId: googleId || `google-${Date.now()}`,
         avatar: picture,
       });
+    }
 
-      // Automatically dispatch Kaindra Welcome Email to new account asynchronously
+    // Automatically dispatch Kaindra Welcome Email to accounts that have not received it yet
+    if (!user.welcomeEmailSent) {
       try {
         const { sendWelcomeEmail } = require("../../services/mototribe/emailService");
         sendWelcomeEmail(user.email, user.name)
-          .then((res) => {
+          .then(async (res) => {
             console.log(`[Auth] Welcome email dispatched to ${user.email}:`, res?.messageId || "sent");
+            if (res?.success) {
+              await User.findByIdAndUpdate(user._id, { $set: { welcomeEmailSent: true } }).catch(() => null);
+            }
           })
           .catch((mailErr) => {
             console.warn(`[Auth] Could not send welcome email to ${user.email}:`, mailErr.message);
@@ -303,7 +308,30 @@ const googleAuth = async (req, res, next) => {
       }
     }
 
-    await sendTokenResponse(user, 200, res, { isNewUser });
+    // Check if business profile exists in Seller or Manufacturer tables
+    let hasBusinessProfile = false;
+    let businessAccountType = null;
+    try {
+      const Seller = require("../../models/modasphere/Seller");
+      const Manufacturer = require("../../models/modasphere/Manufacturer");
+      const [sellerDoc, manufacturerDoc] = await Promise.all([
+        Seller.findOne({ $or: [{ userId: user._id }, { email }] }),
+        Manufacturer.findOne({ $or: [{ userId: user._id }, { email }, { contactEmail: email }] }),
+      ]);
+      if (sellerDoc && sellerDoc.isProfileComplete) {
+        hasBusinessProfile = true;
+        businessAccountType = "seller";
+      } else if (manufacturerDoc && manufacturerDoc.isProfileComplete) {
+        hasBusinessProfile = true;
+        businessAccountType = "manufacturer";
+      }
+    } catch (_) {}
+
+    await sendTokenResponse(user, 200, res, {
+      isNewUser,
+      hasBusinessProfile,
+      businessAccountType,
+    });
   } catch (error) {
     next(error);
   }

@@ -1,11 +1,21 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-const QuoteForm = () => {
+const QuoteForm = ({ quoteData }) => {
   const [quote, setQuote] = useState({
     price: "",
     leadTime: "",
     notes: "",
   });
+
+  useEffect(() => {
+    if (quoteData) {
+      setQuote({
+        price: quoteData.pricePerUnit || quoteData.price || "",
+        leadTime: quoteData.estimatedLeadTimeDays ? `${quoteData.estimatedLeadTimeDays} days` : (quoteData.leadTime || ""),
+        notes: quoteData.notes || "",
+      });
+    }
+  }, [quoteData]);
 
   const update = (event) => {
     setQuote((current) => ({
@@ -16,7 +26,6 @@ const QuoteForm = () => {
 
   const submit = (event) => {
     event.preventDefault();
-    console.log("Frontend quote:", quote);
   };
 
   return (
@@ -25,17 +34,18 @@ const QuoteForm = () => {
       onSubmit={submit}
     >
       <div className="dashboard-card-header">
-        <h2>Quote</h2>
+        <h2>Manufacturer Quote</h2>
       </div>
 
       <div className="dashboard-card-body dashboard-form">
         <div className="dashboard-field">
-          <label>Quote amount</label>
+          <label>Quote amount (per unit)</label>
           <input
             type="number"
             name="price"
             value={quote.price}
             onChange={update}
+            placeholder="Awaiting manufacturer quote"
           />
         </div>
 
@@ -45,7 +55,7 @@ const QuoteForm = () => {
             name="leadTime"
             value={quote.leadTime}
             onChange={update}
-            placeholder="Example: 30 days"
+            placeholder="e.g. 30 days"
           />
         </div>
 
@@ -55,12 +65,19 @@ const QuoteForm = () => {
             name="notes"
             value={quote.notes}
             onChange={update}
+            placeholder="Terms, MOQ conditions, or fabrication notes"
           />
         </div>
 
-        <button className="dashboard-btn dashboard-btn-primary">
-          Save quote
-        </button>
+        {quoteData ? (
+          <div style={{ color: "#16a34a", fontSize: 13, fontWeight: 500, marginTop: 4 }}>
+            ✓ Quote submitted by manufacturer
+          </div>
+        ) : (
+          <p style={{ color: "#888", fontSize: 12, margin: 0 }}>
+            Quotes will be updated by the assigned manufacturer.
+          </p>
+        )}
       </div>
     </form>
   );

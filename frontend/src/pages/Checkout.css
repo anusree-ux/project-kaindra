@@ -489,6 +489,327 @@
   color: #111;
 }
 
+/* Discount & Coupon Suggestions */
+
+.discount-section {
+  margin-bottom: 22px;
+}
+
+.discount-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #bbb;
+  margin-bottom: 8px;
+}
+
+.discount-input-row {
+  display: flex;
+  gap: 8px;
+}
+
+.discount-input-row input {
+  flex: 1;
+  background: #1c1c1c;
+  border: 1px solid #333;
+  color: #fff;
+  border-radius: 4px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.discount-input-row input:focus {
+  border-color: #b89552;
+}
+
+.discount-input-row button {
+  background: #b89552;
+  color: #111;
+  border: none;
+  border-radius: 4px;
+  padding: 0 16px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease, opacity 0.2s ease;
+}
+
+.discount-input-row button:hover:not(:disabled) {
+  background: #cbb17b;
+}
+
+.discount-input-row button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.discount-remove-btn {
+  background: #2b1515 !important;
+  color: #f87171 !important;
+  border: 1px solid #7f1d1d !important;
+}
+
+.discount-remove-btn:hover {
+  background: #3f1818 !important;
+}
+
+.discount-error {
+  font-size: 12px;
+  color: #f87171;
+  margin: 7px 0 0;
+}
+
+.discount-applied-banner {
+  background: #062b16;
+  border: 1px solid #166534;
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.discount-applied-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #4ade80;
+}
+
+.discount-applied-info div {
+  display: flex;
+  flex-direction: column;
+}
+
+.discount-applied-info strong {
+  font-size: 12px;
+  color: #86efac;
+}
+
+.discount-applied-info span {
+  font-size: 11px;
+  color: #6ee7b7;
+}
+
+.discount-applied-val {
+  font-size: 13px;
+  font-weight: 700;
+  color: #4ade80;
+}
+
+/* Recommended Coupons */
+
+.suggested-offers-box {
+  margin-top: 16px;
+  background: #171717;
+  border: 1px solid #282828;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.suggested-offers-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #262626;
+}
+
+.suggested-offers-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #e5e7eb;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.suggested-offers-count {
+  font-size: 10px;
+  color: #9ca3af;
+  background: #262626;
+  padding: 2px 7px;
+  border-radius: 10px;
+}
+
+.suggested-offers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 250px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.suggested-offers-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.suggested-offers-list::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 4px;
+}
+
+.suggested-offer-card {
+  position: relative;
+  background: #1f1f1f;
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 10px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.2s ease;
+}
+
+.suggested-offer-card.highest-savings {
+  border-color: #ca8a04;
+  background: linear-gradient(135deg, rgba(202, 138, 4, 0.12) 0%, rgba(31, 31, 31, 1) 100%);
+  box-shadow: 0 0 12px rgba(202, 138, 4, 0.1);
+}
+
+.suggested-offer-card.applied {
+  border-color: #166534;
+  background: rgba(22, 101, 52, 0.15);
+}
+
+.best-savings-badge {
+  position: absolute;
+  top: -8px;
+  right: 10px;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #111;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 3px;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.offer-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.offer-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.coupon-code-pill {
+  font-family: monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fbbf24;
+  background: #2b2210;
+  border: 1px dashed #b45309;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+.offer-discount-tag {
+  font-size: 11px;
+  font-weight: 700;
+  color: #4ade80;
+  background: #052e16;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.offer-creator-label {
+  font-size: 10px;
+  color: #9ca3af;
+  margin: 4px 0 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.offer-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  flex-wrap: wrap;
+}
+
+.savings-highlight {
+  color: #22c55e;
+  font-weight: 700;
+}
+
+.min-order-shortfall {
+  color: #f59e0b;
+}
+
+.min-order-pill {
+  color: #71717a;
+  font-size: 10px;
+}
+
+.offer-action {
+  flex-shrink: 0;
+}
+
+.coupon-apply-btn {
+  background: #b89552;
+  color: #111;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.coupon-apply-btn:hover:not(:disabled) {
+  background: #d4be8d;
+}
+
+.coupon-apply-btn:disabled {
+  background: #2a2a2a;
+  color: #666;
+  cursor: not-allowed;
+}
+
+.coupon-applied-btn {
+  background: #14532d;
+  color: #4ade80;
+  border: 1px solid #166534;
+  border-radius: 4px;
+  padding: 5px 9px;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.coupon-applied-btn:hover {
+  background: #1e3a24;
+}
+
 /* Mobile */
 
 @media (max-width: 600px) {
@@ -513,10 +834,11 @@
   }
 
   .success-actions {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-top: 28px;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 28px;
+  }
 }
-}
+

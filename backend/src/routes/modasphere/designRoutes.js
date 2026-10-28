@@ -39,7 +39,7 @@ const uploadAssets = multer({
 const router = express.Router();
 
 // Apply protect middleware to all ModaStudio endpoints
-router.use(protect);
+router.use(["/designer-profile", "/designs"], protect);
 
 // ==========================================
 // DESIGNER PROFILE ROUTES

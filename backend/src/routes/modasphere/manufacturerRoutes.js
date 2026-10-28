@@ -10,7 +10,7 @@ const { protect } = require("../../middleware/authMiddleware");
 
 const router = express.Router();
 
-router.use(protect);
+router.use("/manufacturers", protect);
 
 // Static / collection routes defined BEFORE parameterized ones
 router.put("/manufacturers/me", putManufacturerProfile);

@@ -27,9 +27,17 @@ const sendEmail = async (toEmail, subject, htmlBody) => {
       return { success: true, messageId: "mock-sendgrid-id-12345" };
     }
 
+    // Ensure API key is set even if dotenv loaded after initial import
+    sgMail.setApiKey(currentApiKey);
+
+    const fromEmail = process.env.SENDGRID_FROM_EMAIL || "noreply@kaindra.com";
+
     const msg = {
       to: toEmail,
-      from: process.env.SENDGRID_FROM_EMAIL || "noreply@kaindra.com",
+      from: {
+        email: fromEmail,
+        name: "Kaindra MotoTribe",
+      },
       subject,
       html: htmlBody,
     };
@@ -42,6 +50,9 @@ const sendEmail = async (toEmail, subject, htmlBody) => {
     };
   } catch (error) {
     console.error("Email Service error:", error.message || error);
+    if (error.response?.body) {
+      console.error("Email Service SendGrid response body:", JSON.stringify(error.response.body));
+    }
     return {
       success: false,
       error: error.message || "Failed to send email",

@@ -33,6 +33,7 @@ import DashboardLayout from "./pages/brands/ModaSphere/Dashboard/DashboardLayout
 
 import DashboardLogin from "./pages/brands/ModaSphere/Dashboard/auth/DashboardLogin";
 import DashboardSignup from "./pages/brands/ModaSphere/Dashboard/auth/DashboardSignup";
+import ModaProfileSetup from "./pages/brands/ModaSphere/Dashboard/auth/ProfileSetup";
 
 import Overview from "./pages/brands/ModaSphere/Dashboard/overview/Overview";
 
@@ -686,6 +687,15 @@ function App() {
 <Route
   path="/businesses/modasphere/dashboard/signup"
   element={<DashboardSignup />}
+/>
+
+<Route
+  path="/businesses/modasphere/dashboard/profile-setup"
+  element={
+    <RequireAuth>
+      <ModaProfileSetup />
+    </RequireAuth>
+  }
 />
 
 {/* Protected Dashboard */}

@@ -53,6 +53,32 @@ const discountCodeSchema = new mongoose.Schema(
       index: true,
     },
 
+    creatorRole: {
+      type: String,
+      enum: ["admin", "seller"],
+      default: "seller",
+      index: true,
+    },
+
+    creatorName: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    sellerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Seller",
+      default: null,
+      index: true,
+    },
+
+    description: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
