@@ -557,6 +557,128 @@
   justify-content: flex-end;
 }
 
+
+.brand-details-card {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.brand-details-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.brand-details-logo {
+  width: 100px;
+  height: 100px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 18px;
+  background: #f0ece6;
+  color: #29251f;
+  font-size: 36px;
+  font-weight: 700;
+}
+
+.brand-details-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.brand-details-identity h3 {
+  margin: 0 0 8px;
+  font-size: 24px;
+}
+
+.brand-details-category {
+  margin: 0 0 8px;
+  color: #777;
+}
+
+.brand-details-identity a,
+.brand-details-contact-item a,
+.brand-details-socials a {
+  color: inherit;
+  overflow-wrap: anywhere;
+}
+
+.brand-details-description,
+.brand-details-contact,
+.brand-details-socials {
+  padding-top: 18px;
+  border-top: 1px solid #e8e3dc;
+}
+
+.brand-details-description h4,
+.brand-details-contact h4,
+.brand-details-socials h4 {
+  margin: 0 0 12px;
+  font-size: 15px;
+}
+
+.brand-details-description p {
+  margin: 0;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.brand-details-contact-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.brand-details-contact-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.brand-details-contact-item span {
+  color: #777;
+  font-size: 13px;
+}
+
+.brand-details-socials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+}
+
+.brand-details-socials h4 {
+  width: 100%;
+}
+
+@media (max-width: 600px) {
+  .brand-details-header {
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .brand-details-logo {
+    width: 76px;
+    height: 76px;
+    border-radius: 14px;
+  }
+
+  .brand-details-identity h3 {
+    font-size: 20px;
+  }
+
+  .brand-details-contact-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
 /* =========================================================
    INFLUENCER DASHBOARD
    All new styles are scoped to avoid changing the brand UI.
@@ -1467,4 +1589,178 @@
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+.influencer-profile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.influencer-dashboard .influencer-profile-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 10px 14px;
+}
+
+.influencer-dashboard .influencer-delete-profile-button {
+  background: #fff;
+  color: #b42318;
+  border: 1px solid #e7b7b3;
+}
+
+.influencer-dashboard .influencer-delete-profile-button:hover {
+  background: #fef2f2;
+  opacity: 1;
+}
+
+@media (max-width: 560px) {
+  .influencer-profile-actions {
+    width: 100%;
+  }
+
+  .influencer-profile-actions button {
+    flex: 1;
+  }
+}
+
+
+/* =========================================================
+   EDIT CAMPAIGN MODAL
+   ========================================================= */
+
+.brand-campaign-edit-modal {
+  width: min(900px, calc(100vw - 40px));
+  max-width: 900px;
+  max-height: 92vh;
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 32px;
+}
+
+.brand-campaign-edit-modal form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.brand-campaign-edit-modal form > label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.brand-campaign-edit-modal .campaign-description-field,
+.brand-campaign-edit-modal .brand-campaign-actions {
+  grid-column: 1 / -1;
+}
+
+.brand-campaign-edit-modal input,
+.brand-campaign-edit-modal textarea {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.brand-campaign-edit-modal .campaign-description-field textarea {
+  min-height: 260px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.brand-campaign-edit-modal .brand-campaign-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+/* Campaign description formatting toolbar */
+
+.campaign-formatting-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid #e5e0d8;
+  border-bottom: 0;
+  background: #f7f5f1;
+}
+
+.brand-dashboard .campaign-formatting-toolbar button {
+  min-height: 34px;
+  padding: 6px 12px;
+  border: 1px solid #ddd6cc;
+  border-radius: 6px;
+  background: #fff;
+  color: #333;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.brand-dashboard .campaign-formatting-toolbar button:hover {
+  border-color: #bd8b46;
+  color: #8e652f;
+  opacity: 1;
+}
+
+.brand-dashboard .campaign-formatting-toolbar button:focus-visible {
+  outline: 2px solid #8e652f;
+  outline-offset: 2px;
+}
+
+.brand-campaign-edit-modal .campaign-description-field textarea {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.campaign-description-hint {
+  color: #777;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+/* Responsive edit modal */
+
+@media (max-width: 600px) {
+  .brand-campaign-edit-modal {
+    width: calc(100vw - 24px);
+    max-height: 92dvh;
+    padding: 20px;
+  }
+
+  .brand-campaign-edit-modal form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .brand-campaign-edit-modal .campaign-description-field,
+  .brand-campaign-edit-modal .brand-campaign-actions {
+    grid-column: auto;
+  }
+}
+
+.influencer-dashboard .influencer-profile-form label .influencer-label-text {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: baseline;
+  align-self: flex-start;
+  width: fit-content;
+  gap: 4px;
+  line-height: 1.5;
+}
+
+.influencer-dashboard .influencer-profile-form label .influencer-required {
+  display: inline !important;
+  position: static !important;
+  color: #dc2626;
+  flex-shrink: 0;
 }

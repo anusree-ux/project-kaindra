@@ -75,6 +75,7 @@ import ModaInfluence from "./pages/ModaInfluence";
 import BrandDashboard from "./pages/BrandDashboard";
 import InfluencerDashboard from "./pages/InfluencerDashboard";
 import ModaTales from "./pages/ModaTales";
+import ModaTaleDetail from "./pages/ModaTaleDetail";
 import ModaAcademy from "./pages/ModaAcademy";
 import CourseLearning from "./pages/CourseLearning";
 import ModaInsights from "./pages/ModaInsights";
@@ -464,6 +465,10 @@ function App() {
                 <ModaTales />
               </PublicLayout>
             }
+          />
+          <Route
+            path="/modatales/:id"
+            element={<ModaTaleDetail />}
           />
 
           <Route

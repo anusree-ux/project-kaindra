@@ -31,6 +31,7 @@ const {
   getMyBrandProfile,
   createBrandProfile,
   updateBrandProfile,
+  getAdminBrandProfiles,
 } = require(
   "../../../controllers/modasphere/modainfluence/influenceBrandProfileController"
 );
@@ -47,6 +48,9 @@ const {
   getMyCreatorProfile,
   createCreatorProfile,
   updateCreatorProfile,
+  deleteCreatorProfile,
+  getAllCreatorProfilesForAdmin,
+  updateCreatorAccountStatus,
 } = require(
   "../../../controllers/modasphere/modainfluence/influenceCreatorProfileController"
 );
@@ -134,6 +138,11 @@ router.patch(
   updateCreatorProfileValidator,
   updateCreatorProfile
 );
+router.delete(
+  "/influencer-profile",
+  protect,
+  deleteCreatorProfile
+);
 
 // =====================================================
 // PUBLIC
@@ -187,6 +196,27 @@ router.delete(
   protect,
   authorize("admin"),
   deleteCampaign
+);
+
+router.get(
+  "/admin/influencers",
+  protect,
+  authorize("admin"),
+  getAllCreatorProfilesForAdmin
+);
+
+router.patch(
+  "/admin/influencers/:profileId/status",
+  protect,
+  authorize("admin"),
+  updateCreatorAccountStatus
+);
+
+router.get(
+  "/admin/brands",
+  protect,
+  authorize("admin"),
+  getAdminBrandProfiles
 );
 
 module.exports = router;

@@ -34,6 +34,11 @@ const userSchema = new mongoose.Schema(
       enum: ["user", "moderator", "admin"],
       default: "user",
     },
+    modaInfluenceStatus: {
+      type: String,
+      enum: ["Active", "Inactive"],
+      default: "Active",
+    },
     brands: {
       type: [String],
       enum: ["modasphere", "mototribe"],

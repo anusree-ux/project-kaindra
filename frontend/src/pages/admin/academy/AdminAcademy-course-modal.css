@@ -1,0 +1,432 @@
+.admin-academy-course-modal {
+  width: min(1100px, 100%);
+  max-height: min(92vh, 1000px);
+  overflow: auto;
+  box-sizing: border-box;
+  padding: 28px;
+  background: #fffdf9;
+  color: #171717;
+  border: 1px solid #e7dfd2;
+  border-radius: 18px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.24);
+}
+
+/* Modal header */
+
+.admin-academy-course-modal .admin-academy-modal-header {
+  position: sticky;
+  top: -28px;
+  z-index: 3;
+  padding: 4px 0 20px;
+  margin-bottom: 22px;
+  background: #fffdf9;
+  border-bottom: 1px solid #e9e1d5;
+}
+
+.admin-academy-course-modal .admin-academy-modal-header span {
+  display: block;
+  margin-bottom: 8px;
+  color: #9a7841;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.admin-academy-course-modal .admin-academy-modal-header h2 {
+  margin: 0;
+  font-size: clamp(24px, 3vw, 32px);
+  line-height: 1.2;
+}
+
+/* Course and lesson forms */
+
+.admin-academy-course-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 28px;
+}
+
+.admin-academy-form-field {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8px;
+  color: #302b24;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: left;
+}
+
+.admin-academy-form-field-full {
+  grid-column: 1 / -1;
+}
+
+.admin-academy-form-field input,
+.admin-academy-form-field select,
+.admin-academy-form-field textarea {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 11px 12px;
+  border: 1px solid #dcd4c7;
+  border-radius: 9px;
+  outline: none;
+  background: #fff;
+  color: #171717;
+  font: inherit;
+  font-weight: 400;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.admin-academy-form-field textarea {
+  resize: vertical;
+  line-height: 1.55;
+}
+
+.admin-academy-form-field input:focus,
+.admin-academy-form-field select:focus,
+.admin-academy-form-field textarea:focus {
+  border-color: #a8844b;
+  box-shadow: 0 0 0 3px rgba(168, 132, 75, 0.14);
+}
+
+.admin-academy-form-field small {
+  color: #777064;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+/* Featured-course checkbox */
+
+.admin-academy-checkbox-field {
+  display: flex;
+  align-items: center;
+  align-self: center;
+  gap: 10px;
+  min-height: 42px;
+  color: #302b24;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.admin-academy-checkbox-field input {
+  width: 17px;
+  height: 17px;
+  accent-color: #a8844b;
+}
+
+/* Module and submodule section headings */
+
+.admin-academy-module-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 24px 0 16px;
+  padding-top: 20px;
+  border-top: 1px solid #e9e1d5;
+}
+
+.admin-academy-module-heading h3,
+.admin-academy-module-heading h4 {
+  margin: 0 0 6px;
+  color: #201d18;
+}
+
+.admin-academy-module-heading p {
+  margin: 0;
+  color: #756e62;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.admin-academy-module-list {
+  display: grid;
+  gap: 16px;
+}
+
+/* Module, submodule, lesson and quiz cards */
+
+.admin-academy-module-card {
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid #e4dbcd;
+  border-radius: 13px;
+  background: #faf7f1;
+}
+
+.admin-academy-module-card .admin-academy-course-form {
+  margin: 16px 0;
+}
+
+.admin-academy-module-card-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 14px;
+  color: #29241c;
+  text-align: left;
+}
+
+.admin-academy-module-card-heading h3,
+.admin-academy-module-card-heading h4 {
+  margin: 0;
+  text-align: left;
+}
+
+/* Collapsible module, submodule and lesson headers */
+
+.admin-academy-course-modal .editor-module-header,
+.editor-module-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+.admin-academy-course-modal .editor-collapse-header,
+.editor-collapse-header {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  min-width: 0;
+  margin: 0;
+  padding: 8px 0;
+  border: 0;
+  background: transparent;
+  color: #29241c;
+  text-align: left;
+  cursor: pointer;
+}
+
+.admin-academy-course-modal .editor-collapse-header strong,
+.editor-collapse-header strong {
+  display: block;
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+
+.admin-academy-course-modal .editor-collapse-header svg,
+.editor-collapse-header svg {
+  flex-shrink: 0;
+}
+
+.editor-collapse-label {
+  margin-left: 6px;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.admin-academy-course-modal .editor-collapse-header:focus-visible,
+.editor-collapse-header:focus-visible {
+  outline: 2px solid #a8844b;
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+.admin-academy-course-modal .editor-module-header > .admin-academy-module-remove,
+.editor-module-header > .admin-academy-module-remove {
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.admin-academy-course-modal .editor-collapse-content,
+.editor-collapse-content {
+  width: 100%;
+  box-sizing: border-box;
+  padding-top: 16px;
+  text-align: left;
+}
+
+/* Buttons */
+
+.admin-academy-module-remove,
+.admin-academy-secondary-button,
+.admin-academy-primary-button,
+.admin-academy-module-card button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.admin-academy-primary-button {
+  border: 1px solid #1c1a16;
+  background: #1c1a16;
+  color: #fff;
+}
+
+.admin-academy-primary-button:hover:not(:disabled) {
+  background: #393126;
+}
+
+.admin-academy-secondary-button {
+  border: 1px solid #d8c8ad;
+  background: #fff;
+  color: #4a3820;
+}
+
+.admin-academy-secondary-button:hover:not(:disabled) {
+  background: #f4ecdf;
+}
+
+.admin-academy-module-remove {
+  flex-shrink: 0;
+  border: 1px solid #e5c6c1;
+  background: #fff8f7;
+  color: #9b3d32;
+}
+
+.admin-academy-module-remove:hover:not(:disabled) {
+  background: #fbe9e6;
+}
+
+.admin-academy-primary-button:disabled,
+.admin-academy-secondary-button:disabled,
+.admin-academy-module-remove:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Empty module state */
+
+.admin-academy-no-modules {
+  padding: 22px;
+  border: 1px dashed #d8c8ad;
+  border-radius: 10px;
+  background: #fcfaf6;
+  color: #756e62;
+  text-align: center;
+  font-size: 13px;
+}
+
+/* Modal footer */
+
+.admin-academy-course-modal .admin-academy-course-form-footer,
+.admin-academy-course-modal .admin-academy-modal-footer,
+.admin-academy-course-form-footer,
+.admin-academy-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  padding-top: 22px;
+  margin-top: 24px;
+  border-top: 1px solid #e9e1d5;
+}
+
+.admin-academy-course-modal .admin-academy-course-form-footer button,
+.admin-academy-course-modal .admin-academy-modal-footer button,
+.admin-academy-course-form-footer button,
+.admin-academy-modal-footer button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  min-width: 100px;
+  min-height: 42px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.admin-academy-course-modal .admin-academy-modal-close {
+  flex: 0 0 auto;
+}
+
+.admin-academy-course-modal .admin-academy-modal-footer .admin-academy-modal-close,
+.admin-academy-course-modal .admin-academy-course-form-footer .admin-academy-modal-close {
+  border: 1px solid #d8cfc1;
+  background: #fff;
+  color: #40382d;
+}
+
+.admin-academy-course-modal .admin-academy-modal-footer .admin-academy-modal-close:hover,
+.admin-academy-course-modal .admin-academy-course-form-footer .admin-academy-modal-close:hover {
+  background: #f4efe7;
+}
+
+/* Responsive layout */
+
+@media (max-width: 700px) {
+  .admin-academy-course-modal {
+    max-height: 95vh;
+    padding: 18px;
+    border-radius: 13px;
+  }
+
+  .admin-academy-course-modal .admin-academy-modal-header {
+    top: -18px;
+  }
+
+  .admin-academy-course-form {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .admin-academy-module-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .admin-academy-module-card {
+    padding: 14px;
+  }
+}
+
+@media (max-width: 600px) {
+  .admin-academy-course-modal .editor-module-header,
+  .editor-module-header {
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .admin-academy-course-modal .editor-collapse-header,
+  .editor-collapse-header {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .admin-academy-course-modal .editor-module-header > .admin-academy-module-remove,
+  .editor-module-header > .admin-academy-module-remove {
+    padding: 8px;
+    white-space: nowrap;
+  }
+
+  .admin-academy-course-modal .admin-academy-modal-footer,
+  .admin-academy-course-modal .admin-academy-course-form-footer,
+  .admin-academy-modal-footer,
+  .admin-academy-course-form-footer {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .admin-academy-course-modal .admin-academy-modal-footer button,
+  .admin-academy-course-modal .admin-academy-course-form-footer button,
+  .admin-academy-modal-footer button,
+  .admin-academy-course-form-footer button {
+    width: 100%;
+  }
+}

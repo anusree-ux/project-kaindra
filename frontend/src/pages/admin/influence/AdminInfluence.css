@@ -1,3 +1,4 @@
+
 .admin-influence-page {
   min-height: 100vh;
   background: #f7f5f1;
@@ -9,6 +10,8 @@
   width: min(1250px, 100%);
   margin: auto;
 }
+
+/* HEADER */
 
 .admin-influence-header {
   display: flex;
@@ -55,18 +58,28 @@
   color: #bd8b46;
 }
 
+/* CARDS */
+
 .admin-influence-card {
   background: #fff;
   border: 1px solid #e5e0d8;
 }
 
+.admin-influencers-section {
+  margin-top: 32px;
+}
+
+/* TABLE */
+
 .admin-influence-table-wrapper {
+  width: 100%;
   overflow-x: auto;
 }
 
 .admin-influence-table {
   width: 100%;
   min-width: 950px;
+  table-layout: fixed;
   border-collapse: collapse;
 }
 
@@ -79,26 +92,62 @@
   letter-spacing: 0.1em;
   text-align: left;
   border-bottom: 1px solid #e5e0d8;
+  overflow-wrap: anywhere;
 }
 
 .admin-influence-table td {
-  padding: 17px 15px;
+  padding: 14px 15px;
   border-bottom: 1px solid #eeeae4;
   color: #555;
   font-size: 11px;
-  vertical-align: middle;
+  vertical-align: top;
+  overflow-wrap: anywhere;
 }
 
 .admin-influence-table tbody tr:hover {
   background: #fdfcf9;
 }
 
+/* Campaign table column widths */
+
+.admin-influence-table th:nth-child(1) {
+  width: 15%;
+}
+
+.admin-influence-table th:nth-child(2) {
+  width: 17%;
+}
+
+.admin-influence-table th:nth-child(3) {
+  width: 14%;
+}
+
+.admin-influence-table th:nth-child(4) {
+  width: 25%;
+}
+
+.admin-influence-table th:nth-child(5) {
+  width: 17%;
+}
+
+.admin-influence-table th:nth-child(6) {
+  width: 12%;
+}
+
+/* Table cell content */
+
 .admin-influence-email,
 .admin-influence-type,
 .admin-influence-date {
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 6px;
+  max-width: 100%;
+}
+
+.admin-influence-email {
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .admin-influence-email svg,
@@ -106,17 +155,31 @@
 .admin-influence-date svg {
   color: #bd8b46;
   flex-shrink: 0;
+  margin-top: 1px;
 }
 
+/* Compact campaign message preview */
+
 .admin-influence-message {
-  max-width: 220px;
-  color: #777;
+  max-width: 100%;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
   line-height: 1.5;
+  color: #666;
 }
+
+/* View button */
 
 .admin-influence-view-button {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   padding: 8px 12px;
   border: 1px solid #ddd8cf;
@@ -126,12 +189,15 @@
   font-family: inherit;
   font-size: 10px;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .admin-influence-view-button:hover {
   border-color: #bd8b46;
   color: #bd8b46;
 }
+
+/* EMPTY STATE */
 
 .admin-influence-empty {
   padding: 90px 20px;
@@ -154,7 +220,7 @@
   font-size: 13px;
 }
 
-/* MODAL */
+/* CAMPAIGN DETAILS MODAL */
 
 .admin-influence-modal-overlay {
   position: fixed;
@@ -177,6 +243,7 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  gap: 16px;
   padding: 25px;
   border-bottom: 1px solid #eeeae4;
 }
@@ -191,9 +258,14 @@
 .admin-influence-modal-header h2 {
   margin: 8px 0 0;
   font-size: 24px;
+  overflow-wrap: anywhere;
 }
 
 .admin-influence-modal-header button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
   border: 0;
   background: transparent;
   cursor: pointer;
@@ -208,6 +280,7 @@
 }
 
 .admin-influence-details > div {
+  min-width: 0;
   padding: 18px;
   background: #fff;
 }
@@ -225,6 +298,13 @@
   color: #333;
   font-size: 12px;
   line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.admin-influence-details a {
+  color: #8e652f;
+  font-size: 12px;
+  overflow-wrap: anywhere;
 }
 
 .admin-influence-detail-message {
@@ -236,7 +316,121 @@
   color: #666;
   font-size: 12px;
   line-height: 1.7;
+  overflow-wrap: anywhere;
 }
+
+.admin-influence-delete-section {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.admin-influence-delete-button {
+  padding: 10px 16px;
+  border: 1px solid #c94c4c;
+  background: #fff;
+  color: #c03939;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.admin-influence-delete-button:hover {
+  background: #fff2f2;
+}
+
+/* REGISTERED INFLUENCERS */
+
+.admin-influencers-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 24px;
+}
+
+.admin-influencers-heading h2 {
+  margin: 0 0 8px;
+  font-size: 20px;
+}
+
+.admin-influencers-heading p {
+  margin: 0;
+  color: #777;
+  font-size: 12px;
+}
+
+.admin-influencers-message {
+  padding: 24px;
+  margin: 0;
+  color: #777;
+  font-size: 12px;
+}
+
+.admin-influencer-status {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.admin-influencer-status.is-active {
+  background: #e5f5e9;
+  color: #24733b;
+}
+
+.admin-influencer-status.is-inactive {
+  background: #fff0e8;
+  color: #b54720;
+}
+
+/* INFLUENCER DETAILS MODAL */
+
+.admin-influencer-modal {
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.admin-influencer-application {
+  padding: 12px 0;
+  border-bottom: 1px solid #e8e5e0;
+}
+
+.admin-influencer-application strong {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.admin-influencer-application p {
+  margin: 6px 0 0;
+}
+
+.admin-influencer-status-button {
+  padding: 11px 18px;
+  border: 0;
+  border-radius: 8px;
+  background: #242424;
+  color: #fff;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.admin-influencer-status-button:hover {
+  background: #444;
+}
+
+.admin-influencer-status-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* RESPONSIVE LAYOUT */
 
 @media (max-width: 700px) {
   .admin-influence-page {
@@ -258,5 +452,113 @@
 
   .admin-influence-detail-message {
     grid-column: auto;
+  }
+
+  .admin-influence-delete-section {
+    grid-column: auto;
+  }
+
+  .admin-influencers-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 18px;
+  }
+
+  .admin-influence-modal-overlay {
+    padding: 12px;
+  }
+
+  .admin-influence-modal-header {
+    padding: 18px;
+  }
+
+  .admin-influence-modal-header h2 {
+    font-size: 20px;
+  }
+
+  .admin-influence-details > div {
+    padding: 15px;
+  }
+}
+
+
+/* Registered Brands */
+
+.admin-brands-section {
+  margin-top: 32px;
+}
+
+.admin-brand-table-identity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 160px;
+}
+
+.admin-brand-table-logo,
+.admin-brand-table-placeholder {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 10px;
+}
+
+.admin-brand-table-logo {
+  object-fit: cover;
+}
+
+.admin-brand-table-placeholder,
+.admin-brand-details-logo-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0ece6;
+  color: #29251f;
+  font-weight: 700;
+}
+
+.admin-brand-table-placeholder {
+  font-size: 17px;
+}
+
+.admin-brand-details-identity {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.admin-brand-details-logo,
+.admin-brand-details-logo-placeholder {
+  width: 100px;
+  height: 100px;
+  border-radius: 16px;
+}
+
+.admin-brand-details-logo {
+  object-fit: cover;
+}
+
+.admin-brand-details-logo-placeholder {
+  font-size: 36px;
+}
+
+.admin-brand-modal .admin-influence-details a {
+  overflow-wrap: anywhere;
+}
+
+.admin-brand-modal .admin-influence-detail-message p {
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 600px) {
+  .admin-brand-table-identity {
+    min-width: 130px;
+  }
+
+  .admin-brand-table-logo,
+  .admin-brand-table-placeholder {
+    width: 32px;
+    height: 32px;
   }
 }
