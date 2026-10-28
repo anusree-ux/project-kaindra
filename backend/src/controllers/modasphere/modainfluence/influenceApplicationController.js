@@ -121,10 +121,36 @@ const withdrawApplication = async (req, res) => {
     if (!profile) {
       return res.status(403).json({
         success: false,
-        message: "Create an influencer profile before withdrawing an application.",
+        message:
+          "Create an influencer profile before withdrawing an application.",
       });
     }
 
+    // Keep the ownership check so another influencer receives 404.
+    const existingApplication = await InfluenceCampaignApplication.findOne({
+      _id: applicationId,
+      influencerProfile: profile._id,
+      deletedAt: { $exists: false },
+    }).select("_id status");
+
+    if (!existingApplication) {
+      return res.status(404).json({
+        success: false,
+        message: "Application not found.",
+      });
+    }
+
+    // An accepted, rejected, or already withdrawn application
+    // cannot be withdrawn again.
+    if (existingApplication.status !== "Pending") {
+      return res.status(409).json({
+        success: false,
+        message: "This application can no longer be withdrawn.",
+      });
+    }
+
+    // Change the status only. Do NOT set deletedAt:
+    // withdrawn applications must remain visible in history.
     const application = await InfluenceCampaignApplication.findOneAndUpdate(
       {
         _id: applicationId,
@@ -133,22 +159,18 @@ const withdrawApplication = async (req, res) => {
         deletedAt: { $exists: false },
       },
       {
-        $set: {
-          status: "Withdrawn",
-          deletedAt: new Date(),
-        },
+        $set: { status: "Withdrawn" },
       },
       {
-        new: true,
+        returnDocument: "after",
         runValidators: true,
       }
     ).select("_id status createdAt deletedAt");
 
     if (!application) {
-      return res.status(404).json({
+      return res.status(409).json({
         success: false,
-        message:
-          "Application not found, or it can no longer be withdrawn.",
+        message: "This application can no longer be withdrawn.",
       });
     }
 
