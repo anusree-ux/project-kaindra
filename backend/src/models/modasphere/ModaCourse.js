@@ -186,38 +186,52 @@ const modaCourseSchema = new mongoose.Schema(
   }
 );
 
+
 modaCourseSchema.statics.getLessons = (course) =>
   (course?.modules || []).flatMap((module) => {
     const directLessons = module.lessons || [];
-    const legacyLesson = !directLessons.length && module.content?.trim()
-      ? [module]
-      : [];
-    return [
-      ...legacyLesson,
-      ...directLessons,
-      ...(module.submodules || []).flatMap((submodule) => submodule.lessons || []),
-    ];
+
+    const legacyLesson =
+      !directLessons.length && module.content?.trim()
+        ? [module]
+        : [];
+
+    const submoduleLessons = (module.submodules || []).flatMap(
+      (submodule) => submodule.lessons || [],
+    );
+
+    return [...legacyLesson, ...directLessons, ...submoduleLessons];
   });
 
+  
 modaCourseSchema.statics.getProgress = (course, completedLessonIds = []) => {
-  const requiredLessons = ModaCourse.getLessons(course).filter(
+  const lessons = ModaCourse.getLessons(course);
+
+  const requiredLessons = lessons.filter(
     (lesson) => lesson.isRequired !== false,
   );
+
   const completedIds = new Set(completedLessonIds.map(String));
+
   const completedRequiredLessons = requiredLessons.filter((lesson) =>
     completedIds.has(String(lesson._id)),
   ).length;
+
   const totalRequiredLessons = requiredLessons.length;
+
   const progress = totalRequiredLessons
     ? Math.round((completedRequiredLessons / totalRequiredLessons) * 100)
     : 0;
+
   return {
     progress,
     completedRequiredLessons,
     totalRequiredLessons,
-    status: totalRequiredLessons > 0 && completedRequiredLessons === totalRequiredLessons
-      ? "Completed"
-      : "Enrolled",
+    status:
+      totalRequiredLessons > 0 &&
+      completedRequiredLessons === totalRequiredLessons
+        ? "Completed"
+        : "Enrolled",
   };
 };
 
