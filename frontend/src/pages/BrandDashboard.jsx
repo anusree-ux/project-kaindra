@@ -18,11 +18,11 @@ const emptyProfile = {
   instagram: "",
   facebook: "",
   youtube: "",
-  tiktok: "",
 };
 
 const campaignSectionHeading = /^(campaign goals?|goals?|objectives?|deliverables?|who can apply|eligibility(?: criteria)?|collaboration details|call to action)\s*:?\s*$/i;
 const campaignInlineSection = /^(campaign goals?|goals?|objectives?|deliverables?|who can apply|eligibility(?: criteria)?|collaboration details|call to action)\s*:\s*(.+)$/i;
+
 
 function parseCampaignMessage(message = "") {
   const blocks = [];
@@ -129,6 +129,7 @@ function BrandDashboard() {
   const detailsDialogRef = useRef(null);
   const detailsCloseButtonRef = useRef(null);
   const campaignTriggerRef = useRef(null);
+  const campaignDescriptionRef = useRef(null);
 
   useEffect(() => {
     if (!campaignDetails) return undefined;
@@ -198,6 +199,49 @@ function BrandDashboard() {
       email: campaign.email || "",
       campaignType: campaign.campaignType || "",
       message: campaign.message || "",
+    });
+  };
+
+  const insertCampaignFormatting = (type) => {
+    const textarea = campaignDescriptionRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const value = campaignEditForm.message;
+    const selected = value.slice(start, end);
+    let before = value.slice(0, start);
+    let after = value.slice(end);
+    let insertion = selected;
+
+    if (type === "bold") {
+      insertion = `**${selected || "bold text"}**`;
+    } else if (type === "italic") {
+      insertion = `*${selected || "italic text"}*`;
+    } else if (type === "heading") {
+      before += before && !before.endsWith("\n") ? "\n" : "";
+      insertion = `### ${selected || "Section heading"}`;
+    } else if (type === "bullet") {
+      insertion = selected
+        ? selected.split("\n").map((line) => `- ${line}`).join("\n")
+        : "- List item";
+    } else if (type === "numbered") {
+      insertion = selected
+        ? selected.split("\n").map((line, index) => `${index + 1}. ${line}`).join("\n")
+        : "1. List item";
+    }
+
+    const updated = before + insertion + after;
+
+    setCampaignEditForm((current) => ({
+      ...current,
+      message: updated,
+    }));
+
+    requestAnimationFrame(() => {
+      textarea.focus();
+      const cursor = before.length + insertion.length;
+      textarea.setSelectionRange(cursor, cursor);
     });
   };
 
@@ -382,7 +426,6 @@ function BrandDashboard() {
             instagram: data.socialLinks?.instagram || "",
             facebook: data.socialLinks?.facebook || "",
             youtube: data.socialLinks?.youtube || "",
-            tiktok: data.socialLinks?.tiktok || "",
           });
         } else {
           setForm(emptyProfile);
@@ -434,7 +477,6 @@ function BrandDashboard() {
         instagram: form.instagram.trim(),
         facebook: form.facebook.trim(),
         youtube: form.youtube.trim(),
-        tiktok: form.tiktok.trim(),
       },
     };
 
@@ -459,7 +501,6 @@ function BrandDashboard() {
         instagram: savedProfile?.socialLinks?.instagram || "",
         facebook: savedProfile?.socialLinks?.facebook || "",
         youtube: savedProfile?.socialLinks?.youtube || "",
-        tiktok: savedProfile?.socialLinks?.tiktok || "",
       });
       setEditing(false);
       setSuccess(response.data?.message || "Brand profile saved successfully.");
@@ -620,7 +661,7 @@ function BrandDashboard() {
 
             <h3 className="brand-profile-full-width">Social links</h3>
 
-            {["instagram", "facebook", "youtube", "tiktok"].map((platform) => (
+            {["instagram", "facebook", "youtube"].map((platform) => (
               <label key={platform}>
                 {platform.charAt(0).toUpperCase() + platform.slice(1)}
                 <input
@@ -662,47 +703,88 @@ function BrandDashboard() {
       ) : (
         profile && (
           <>
-            <section className="brand-dashboard-card">
-              <h2>Brand profile</h2>
 
-              {profile.logoUrl && (
-                <img
-                  className="brand-dashboard-logo"
-                  src={profile.logoUrl}
-                  alt={`${profile.brandName} logo`}
-                />
+            <section className="brand-dashboard-card brand-details-card">
+              <h2>Brand Details</h2>
+
+              <div className="brand-details-header">
+                <div className="brand-details-logo">
+                  {profile.logoUrl ? (
+                    <img
+                      src={profile.logoUrl}
+                      alt={`${profile.brandName} logo`}
+                    />
+                  ) : (
+                    <span>
+                      {(profile.brandName || "B").charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                </div>
+
+                <div className="brand-details-identity">
+                  <h3>{profile.brandName}</h3>
+                  {profile.category && (
+                    <p className="brand-details-category">{profile.category}</p>
+                  )}
+                  {profile.website && (
+                    <a href={profile.website} target="_blank" rel="noreferrer">
+                      {profile.website}
+                    </a>
+                  )}
+                </div>
+              </div>
+
+              {profile.description && (
+                <div className="brand-details-description">
+                  <h4>About the brand</h4>
+                  <p>{profile.description}</p>
+                </div>
               )}
 
-              <p><strong>Category:</strong> {profile.category}</p>
-              <p><strong>Email:</strong> {profile.contactEmail}</p>
+              <div className="brand-details-contact">
+                <h4>Contact Information</h4>
 
-              {profile.contactPhone && (
-                <p><strong>Phone:</strong> {profile.contactPhone}</p>
-              )}
+                <div className="brand-details-contact-grid">
+                  {profile.contactEmail && (
+                    <div className="brand-details-contact-item">
+                      <span>Email</span>
+                      <a href={`mailto:${profile.contactEmail}`}>
+                        {profile.contactEmail}
+                      </a>
+                    </div>
+                  )}
 
-              {profile.website && (
-                <p>
-                  <strong>Website:</strong>{" "}
-                  <a href={profile.website} target="_blank" rel="noreferrer">
-                    {profile.website}
-                  </a>
-                </p>
-              )}
-
-              {profile.description && <p>{profile.description}</p>}
+                  {profile.contactPhone && (
+                    <div className="brand-details-contact-item">
+                      <span>Phone</span>
+                      <a href={`tel:${profile.contactPhone}`}>
+                        {profile.contactPhone}
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
 
               {profile.socialLinks &&
-                Object.entries(profile.socialLinks).map(([platform, url]) =>
-                  url ? (
-                    <p key={platform}>
-                      <strong>
-                        {platform.charAt(0).toUpperCase() + platform.slice(1)}:
-                      </strong>{" "}
-                      <a href={url} target="_blank" rel="noreferrer">{url}</a>
-                    </p>
-                  ) : null
+                Object.entries(profile.socialLinks).some(([, url]) => url) && (
+                  <div className="brand-details-socials">
+                    <h4>Social Media</h4>
+                    {Object.entries(profile.socialLinks).map(([platform, url]) =>
+                      url ? (
+                        <a
+                          key={platform}
+                          href={url}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {platform.charAt(0).toUpperCase() + platform.slice(1)}
+                        </a>
+                      ) : null
+                    )}
+                  </div>
                 )}
             </section>
+
 
             <section className="brand-dashboard-card">
               <div className="brand-campaign-heading">
@@ -846,7 +928,6 @@ function BrandDashboard() {
               </section>
               <div className="brand-campaign-detail-meta">
                 <p><strong>Submitted:</strong> {new Date(campaignDetails.createdAt).toLocaleDateString()}</p>
-                <p><strong>Visibility:</strong> {campaignDetails.isPublic ? "Visible" : "Hidden"}</p>
               </div>
               {campaignNotice && (
                 <p
@@ -909,7 +990,7 @@ function BrandDashboard() {
           onClick={() => !campaignSaving && setCampaignBeingEdited(null)}
         >
           <section
-            className="brand-campaign-modal"
+            className="brand-campaign-modal brand-campaign-edit-modal"
             role="dialog"
             aria-modal="true"
             aria-labelledby="campaign-edit-title"
@@ -979,12 +1060,32 @@ function BrandDashboard() {
                   }
                 />
               </label>
-              <label>
+              <label className="campaign-description-field">
                 Campaign description
+
+                <div className="campaign-formatting-toolbar">
+                  <button type="button" onClick={() => insertCampaignFormatting("bold")}>
+                    <strong>B</strong>
+                  </button>
+                  <button type="button" onClick={() => insertCampaignFormatting("italic")}>
+                    <em>I</em>
+                  </button>
+                  <button type="button" onClick={() => insertCampaignFormatting("heading")}>
+                    Heading
+                  </button>
+                  <button type="button" onClick={() => insertCampaignFormatting("bullet")}>
+                    • Bullets
+                  </button>
+                  <button type="button" onClick={() => insertCampaignFormatting("numbered")}>
+                    1. Numbered
+                  </button>
+                </div>
+
                 <textarea
+                  ref={campaignDescriptionRef}
                   required
                   maxLength={3000}
-                  rows={5}
+                  rows={10}
                   value={campaignEditForm.message}
                   onChange={(event) =>
                     setCampaignEditForm((current) => ({
@@ -992,8 +1093,15 @@ function BrandDashboard() {
                       message: event.target.value,
                     }))
                   }
+                  placeholder={
+                    "Describe your campaign...\n\nCampaign Goals:\n- First goal\n- Second goal\n\nDeliverables:\n1. First deliverable"
+                  }
                 />
-              </label>
+
+                <span className="campaign-description-hint">
+                  Select text before applying bold or italic. Use headings and lists to organize campaign details.
+                </span>
+              </label>        
               <div className="brand-campaign-actions">
                 <button
                   type="button"

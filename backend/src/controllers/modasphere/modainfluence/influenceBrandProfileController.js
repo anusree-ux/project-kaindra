@@ -1,6 +1,9 @@
-
 const InfluenceBrandProfile = require(
   "../../../models/modasphere/modainfluence/InfluenceBrandProfile"
+);
+
+const InfluenceCampaign = require(
+  "../../../models/modasphere/modainfluence/InfluenceCampaign"
 );
 
 const allowedFields = [
@@ -131,8 +134,59 @@ const updateBrandProfile = async (req, res) => {
   }
 };
 
+
+const getAdminBrandProfiles = async (req, res) => {
+  try {
+    const brands = await InfluenceBrandProfile.find()
+      .populate("owner", "name email")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const campaignCounts = await InfluenceCampaign.aggregate([
+      {
+        $match: {
+          brandProfile: {
+            $in: brands.map((brand) => brand._id),
+          },
+        },
+      },
+      {
+        $group: {
+          _id: "$brandProfile",
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    const countByBrandId = new Map(
+      campaignCounts.map((item) => [
+        String(item._id),
+        item.count,
+      ])
+    );
+
+    return res.status(200).json({
+      success: true,
+      count: brands.length,
+      data: brands.map((brand) => ({
+        ...brand,
+        campaignCount: countByBrandId.get(String(brand._id)) || 0,
+      })),
+    });
+  } catch (error) {
+    console.error("Admin get brand profiles error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to load registered brands.",
+    });
+  }
+};
+
+
 module.exports = {
   getMyBrandProfile,
   createBrandProfile,
   updateBrandProfile,
+  getAdminBrandProfiles,
 };

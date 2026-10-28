@@ -23,6 +23,12 @@ const influenceCreatorProfileSchema = new mongoose.Schema(
       maxlength: 254,
       match: [/^\S+@\S+\.\S+$/, "Please provide a valid email address"],
     },
+    phoneNumber: {
+      type: String,
+      trim: true,
+      default: "",
+      maxlength: 20,
+    },
     category: { type: String, trim: true, default: "", maxlength: 100 },
     bio: { type: String, trim: true, default: "", maxlength: 2000 },
     website: { type: String, trim: true, default: "", maxlength: 500 },

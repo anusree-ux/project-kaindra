@@ -3,6 +3,7 @@ const InfluenceCampaign = require("../../../models/modasphere/modainfluence/Infl
 const InfluenceCampaignApplication = require("../../../models/modasphere/modainfluence/InfluenceCampaignApplication");
 const InfluenceBrandProfile = require("../../../models/modasphere/modainfluence/InfluenceBrandProfile");
 const InfluenceCreatorProfile = require("../../../models/modasphere/modainfluence/InfluenceCreatorProfile");
+const User = require("../../../models/core/User");
 
 const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 const publicCampaignFilter = () => ({
@@ -19,6 +20,17 @@ const createApplication = async (req, res) => {
     if (!influencerProfile) {
       return res.status(403).json({ success: false, message: "Create an influencer profile before applying." });
     }
+    const user = await User.findById(req.user._id)
+      .select("modaInfluenceStatus");
+
+    if (user?.modaInfluenceStatus === "Inactive") {
+      return res.status(403).json({
+        success: false,
+        message:
+          "Your ModaInfluence account is on hold. You cannot apply for campaigns.",
+      });
+    }
+
     const campaign = await InfluenceCampaign.findOne({
       ...publicCampaignFilter(),
       publicId: req.params.campaignId,
@@ -30,6 +42,7 @@ const createApplication = async (req, res) => {
     const existingApplication = await InfluenceCampaignApplication.findOne({
       campaign: campaign._id,
       influencerProfile: influencerProfile._id,
+      deletedAt: { $exists: false },
     }).select("_id");
     if (existingApplication) {
       return res.status(409).json({ success: false, message: "You have already applied to this campaign." });
@@ -89,35 +102,56 @@ const getMyApplications = async (req, res) => {
   }
 };
 
+
 const withdrawApplication = async (req, res) => {
   try {
     const { applicationId } = req.params;
+
     if (!isValidId(applicationId)) {
-      return res.status(400).json({ success: false, message: "Invalid application ID." });
+      return res.status(400).json({
+        success: false,
+        message: "Invalid application ID.",
+      });
     }
-    const profile = await InfluenceCreatorProfile.findOne({ owner: req.user._id }).select("_id");
+
+    const profile = await InfluenceCreatorProfile.findOne({
+      owner: req.user._id,
+    }).select("_id");
+
     if (!profile) {
-      return res.status(403).json({ success: false, message: "Create an influencer profile before withdrawing an application." });
-    }
-    const ownedApplication = await InfluenceCampaignApplication.findOne({
-      _id: applicationId,
-      influencerProfile: profile._id,
-    }).select("_id status");
-    if (!ownedApplication) {
-      return res.status(404).json({ success: false, message: "Application not found." });
-    }
-    if (ownedApplication.status !== "Pending") {
-      return res.status(409).json({ success: false, message: `A ${ownedApplication.status.toLowerCase()} application cannot be withdrawn.` });
+      return res.status(403).json({
+        success: false,
+        message: "Create an influencer profile before withdrawing an application.",
+      });
     }
 
     const application = await InfluenceCampaignApplication.findOneAndUpdate(
-      { _id: applicationId, influencerProfile: profile._id, status: "Pending" },
-      { $set: { status: "Withdrawn" } },
-      { new: true, runValidators: true }
-    ).select("_id status createdAt");
+      {
+        _id: applicationId,
+        influencerProfile: profile._id,
+        status: "Pending",
+        deletedAt: { $exists: false },
+      },
+      {
+        $set: {
+          status: "Withdrawn",
+          deletedAt: new Date(),
+        },
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
+    ).select("_id status createdAt deletedAt");
+
     if (!application) {
-      return res.status(409).json({ success: false, message: "This application can no longer be withdrawn." });
+      return res.status(404).json({
+        success: false,
+        message:
+          "Application not found, or it can no longer be withdrawn.",
+      });
     }
+
     return res.status(200).json({
       success: true,
       message: "Application withdrawn successfully.",
@@ -125,9 +159,14 @@ const withdrawApplication = async (req, res) => {
     });
   } catch (error) {
     console.error("Withdraw influence campaign application error:", error);
-    return res.status(500).json({ success: false, message: "Failed to withdraw application." });
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to withdraw application.",
+    });
   }
 };
+
 
 const deleteRejectedApplication = async (req, res) => {
   try {

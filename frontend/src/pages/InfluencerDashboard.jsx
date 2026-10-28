@@ -9,11 +9,11 @@ import "./BrandDashboard.css";
 const emptyProfile = {
   displayName: "",
   contactEmail: "",
+  phoneNumber: "",
   category: "",
   bio: "",
   website: "",
   instagram: "",
-  tiktok: "",
   youtube: "",
 };
 
@@ -118,11 +118,11 @@ function InfluencerDashboard() {
     setForm({
       displayName: profile.displayName || "",
       contactEmail: profile.contactEmail || "",
+      phoneNumber: profile.phoneNumber || "",
       category: profile.category || "",
       bio: profile.bio || "",
       website: profile.website || "",
       instagram: profile.socialLinks?.instagram || "",
-      tiktok: profile.socialLinks?.tiktok || "",
       youtube: profile.socialLinks?.youtube || "",
     });
   }, [profile]);
@@ -149,12 +149,12 @@ function InfluencerDashboard() {
     const payload = {
       displayName: form.displayName.trim(),
       contactEmail: form.contactEmail.trim(),
+      phoneNumber: form.phoneNumber.trim(),
       category: form.category.trim(),
       bio: form.bio.trim(),
       website: form.website.trim(),
       socialLinks: {
         instagram: form.instagram.trim(),
-        tiktok: form.tiktok.trim(),
         youtube: form.youtube.trim(),
       },
     };
@@ -228,48 +228,34 @@ function InfluencerDashboard() {
     }
   };
 
+
   const confirmWithdrawal = async () => {
     if (!withdrawalApplication || withdrawalInProgress.current) return;
 
+    const applicationId = withdrawalApplication._id;
+
     withdrawalInProgress.current = true;
-    setWithdrawingApplicationId(withdrawalApplication._id);
+    setWithdrawingApplicationId(applicationId);
     setApplicationsError("");
     setApplicationsNotice("");
 
     try {
-      const response = await apiClient.patch(
-        `/api/modasphere/influence/influencer-profile/applications/${withdrawalApplication._id}/withdraw`
+      await apiClient.patch(
+        `/api/modasphere/influence/influencer-profile/applications/${applicationId}/withdraw`
       );
 
+      // Remove the withdrawn application from the list immediately.
       setApplications((current) =>
-        current.map((application) =>
-          application._id === withdrawalApplication._id
-            ? {
-                ...application,
-                status: response.data?.data?.status || "Withdrawn",
-              }
-            : application
-        )
+        current.filter((application) => application._id !== applicationId)
       );
 
-      setApplicationsNotice(
-        response.data?.message || "Application withdrawn successfully."
-      );
+      setApplicationsNotice("Application withdrawn successfully.");
       setWithdrawalApplication(null);
     } catch (err) {
       setApplicationsError(
         err.response?.data?.message ||
           "Unable to withdraw this application."
       );
-
-      try {
-        const { data } = await apiClient.get(
-          "/api/modasphere/influence/influencer-profile/applications"
-        );
-        setApplications(data?.data || []);
-      } catch {
-        // Preserve the current list and display the original error.
-      }
     } finally {
       withdrawalInProgress.current = false;
       setWithdrawingApplicationId(null);
@@ -407,30 +393,50 @@ function InfluencerDashboard() {
           </div>
 
           <form className="brand-profile-form influencer-profile-form" onSubmit={handleSubmit}>
-            <label>
+          <label>
+            <span className="influencer-label-text">
               Name <span className="influencer-required">*</span>
-              <input
-                name="displayName"
-                value={form.displayName}
-                onChange={handleChange}
-                required
-                maxLength={100}
-                placeholder="Your public creator name"
-              />
-            </label>
+            </span>
+            <input
+              name="displayName"
+              value={form.displayName}
+              onChange={handleChange}
+              required
+              maxLength={100}
+              placeholder="Your public creator name"
+            />
+          </label>
 
-            <label>
+          <label>
+            <span className="influencer-label-text">
               Contact email <span className="influencer-required">*</span>
-              <input
-                type="email"
-                name="contactEmail"
-                value={form.contactEmail}
-                onChange={handleChange}
-                required
-                maxLength={254}
-                placeholder="you@example.com"
-              />
-            </label>
+            </span>
+            <input
+              type="email"
+              name="contactEmail"
+              value={form.contactEmail}
+              onChange={handleChange}
+              required
+              maxLength={254}
+              placeholder="you@example.com"
+            />
+          </label>
+
+          <label>
+            <span className="influencer-label-text">
+              Phone number <span className="influencer-required">*</span>
+            </span>
+            <input
+              type="tel"
+              name="phoneNumber"
+              value={form.phoneNumber}
+              onChange={handleChange}
+              required
+              maxLength={20}
+              autoComplete="tel"
+              placeholder="+91 98765 43210"
+            />
+          </label>
 
             <label>
               Category
@@ -476,7 +482,6 @@ function InfluencerDashboard() {
 
             {[
               ["instagram", "Instagram"],
-              ["tiktok", "TikTok"],
               ["youtube", "YouTube"],
             ].map(([name, label]) => (
               <label key={name}>
@@ -571,6 +576,18 @@ function InfluencerDashboard() {
                 <span>Contact email</span>
                 <p>{profile.contactEmail}</p>
               </div>
+              <div className="influencer-detail-item">
+                <span>Phone number</span>
+                <p>
+                  {profile.phoneNumber ? (
+                    <a href={`tel:${profile.phoneNumber}`}>
+                      {profile.phoneNumber}
+                    </a>
+                  ) : (
+                    "Not provided"
+                  )}
+                </p>
+              </div>
 
               <div className="influencer-detail-item">
                 <span>Category</span>
@@ -598,14 +615,12 @@ function InfluencerDashboard() {
             )}
 
             {(profile.socialLinks?.instagram ||
-              profile.socialLinks?.tiktok ||
               profile.socialLinks?.youtube) && (
               <div className="influencer-social-links">
                 <h3>Social profiles</h3>
                 <div className="influencer-social-list">
                   {[
                     ["instagram", "Instagram"],
-                    ["tiktok", "TikTok"],
                     ["youtube", "YouTube"],
                   ].map(([name, label]) =>
                     profile.socialLinks?.[name] ? (

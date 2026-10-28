@@ -5,6 +5,7 @@ const InfluenceBrandProfile = require(
   "../../../models/modasphere/modainfluence/InfluenceBrandProfile"
 );
 const { randomUUID } = require("crypto");
+const User = require("../../../models/core/User");
 
 // =========================================
 // CREATE CAMPAIGN REQUEST
@@ -17,6 +18,15 @@ const createCampaign = async (req, res) => {
     let email = req.body.email;
 
     if (req.user?._id) {
+      const user = await User.findById(req.user._id)
+        .select("modaInfluenceStatus");
+
+      if (user?.modaInfluenceStatus === "Inactive") {
+        return res.status(403).json({
+          success: false,
+          message: "Your ModaInfluence account is on hold. You cannot create campaigns.",
+        });
+      }
       const InfluenceBrandProfile = require(
         "../../../models/modasphere/modainfluence/InfluenceBrandProfile"
       );

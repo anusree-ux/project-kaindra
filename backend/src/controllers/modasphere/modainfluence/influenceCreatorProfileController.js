@@ -2,6 +2,8 @@ const InfluenceCreatorProfile = require(
   "../../../models/modasphere/modainfluence/InfluenceCreatorProfile"
 );
 
+const User = require("../../../models/core/User");
+
 const InfluenceCampaignApplication = require(
   "../../../models/modasphere/modainfluence/InfluenceCampaignApplication"
 );
@@ -9,6 +11,7 @@ const InfluenceCampaignApplication = require(
 const profileFields = [
   "displayName",
   "contactEmail",
+  "phoneNumber",
   "category",
   "bio",
   "website",
@@ -171,9 +174,116 @@ const deleteCreatorProfile = async (req, res) => {
   }
 };
 
+const getAllCreatorProfilesForAdmin = async (req, res) => {
+  try {
+    const profiles = await InfluenceCreatorProfile.find()
+      .sort({ createdAt: -1 })
+      .populate("owner", "name email avatar modaInfluenceStatus")
+      .lean();
+
+    const data = await Promise.all(
+      profiles.map(async (profile) => {
+        const applications = await InfluenceCampaignApplication.find({
+          influencerProfile: profile._id,
+          deletedAt: { $exists: false },
+        })
+          .sort({ createdAt: -1 })
+          .populate("campaign", "brand title campaignType")
+          .lean();
+
+        return {
+          ...profile,
+          applicationCount: applications.length,
+          applications: applications.map((application) => ({
+            _id: application._id,
+            status: application.status,
+            createdAt: application.createdAt,
+            campaign: application.campaign
+              ? {
+                  brand: application.campaign.brand,
+                  title:
+                    application.campaign.title ||
+                    application.campaign.campaignType,
+                  campaignType: application.campaign.campaignType,
+                }
+              : null,
+          })),
+          status: profile.owner?.modaInfluenceStatus || "Active",
+        };
+      })
+    );
+
+    return res.status(200).json({
+      success: true,
+      count: data.length,
+      data,
+    });
+  } catch (error) {
+    console.error("Admin get influencers error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to load influencers.",
+    });
+  }
+};
+
+const updateCreatorAccountStatus = async (req, res) => {
+  try {
+    const { profileId } = req.params;
+    const { status } = req.body;
+
+    if (!["Active", "Inactive"].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Status must be Active or Inactive.",
+      });
+    }
+
+    const profile = await InfluenceCreatorProfile.findById(profileId)
+      .select("owner");
+
+    if (!profile) {
+      return res.status(404).json({
+        success: false,
+        message: "Influencer profile not found.",
+      });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      profile.owner,
+      { $set: { modaInfluenceStatus: status } },
+      { new: true, runValidators: true }
+    ).select("_id modaInfluenceStatus");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Influencer account not found.",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message:
+        status === "Inactive"
+          ? "Influencer account placed on hold."
+          : "Influencer account reactivated.",
+      data: { status: user.modaInfluenceStatus },
+    });
+  } catch (error) {
+    console.error("Admin update influencer status error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update influencer status.",
+    });
+  }
+};
+
 module.exports = {
   getMyCreatorProfile,
   createCreatorProfile,
   updateCreatorProfile,
   deleteCreatorProfile,
+  getAllCreatorProfilesForAdmin,
+  updateCreatorAccountStatus, 
 };
