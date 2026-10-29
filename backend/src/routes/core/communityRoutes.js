@@ -4,14 +4,15 @@ const {
   getCommunityMembers,
   deleteCommunityMember,
 } = require("../../controllers/core/communityController");
+const { protect, authorize } = require("../../middleware/authMiddleware");
 
 const router = express.Router();
 
-router.route("/")
-  .get(getCommunityMembers)
-  .post(joinCommunity);
+// Admin only: view member records and delete member records.
+router.get("/", protect, authorize("admin"), getCommunityMembers);
+router.delete("/:id", protect, authorize("admin"), deleteCommunityMember);
 
-router.route("/:id")
-  .delete(deleteCommunityMember);
+// Public: join the community.
+router.post("/", joinCommunity);
 
 module.exports = router;
