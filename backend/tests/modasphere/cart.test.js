@@ -4,6 +4,7 @@ const app = require("../../src/app");
 const Product = require("../../src/models/modasphere/Product");
 const Cart = require("../../src/models/modasphere/Cart");
 const { createTestUser } = require("../helpers/testUser");
+const Drop = require("../../src/models/modasphere/Drop");
 
 describe("ModaSphere Cart System", () => {
   let seller;
@@ -15,6 +16,7 @@ describe("ModaSphere Cart System", () => {
   beforeEach(async () => {
     await Cart.deleteMany({});
     await Product.deleteMany({});
+    await Drop.deleteMany({});
 
     seller = await createTestUser({ name: "Cart Seller", role: "user" });
     buyer = await createTestUser({ name: "Cart Buyer", role: "user" });
@@ -253,6 +255,132 @@ describe("ModaSphere Cart System", () => {
     it("should reject unauthenticated access with 401", async () => {
       const res = await request(app).get("/api/modasphere/cart");
       expect(res.status).toBe(401);
+    });
+  });
+
+  describe("6. ModaDrop Purchase Validation", () => {
+    const createDrop = (productId, startTime, endTime) =>
+      Drop.create({
+        title: "Cart Regression Test Drop",
+        createdBy: seller.userId,
+        productIds: [productId],
+        startTime,
+        endTime,
+        status: "upcoming",
+      });
+
+    beforeEach(async () => {
+      await Product.findByIdAndUpdate(product1._id, {
+        isDrop: true,
+        dropStock: 5,
+      });
+    });
+
+    it("should reject a drop product not assigned to any event without crashing", async () => {
+      const res = await request(app)
+        .post("/api/modasphere/cart/items")
+        .set("Authorization", `Bearer ${buyer.token}`)
+        .send({
+          productId: product1._id,
+          quantity: 1,
+        });
+
+      expect(res.status).toBe(400);
+      expect(JSON.stringify(res.body)).not.toContain("ReferenceError");
+      expect(JSON.stringify(res.body)).not.toContain("productDrops");
+    });
+
+    it("should reject purchasing before a scheduled drop starts", async () => {
+      const now = Date.now();
+
+      await createDrop(
+        product1._id,
+        new Date(now + 60 * 60 * 1000),
+        new Date(now + 2 * 60 * 60 * 1000)
+      );
+
+      const res = await request(app)
+        .post("/api/modasphere/cart/items")
+        .set("Authorization", `Bearer ${buyer.token}`)
+        .send({
+          productId: product1._id,
+          quantity: 1,
+        });
+
+      expect(res.status).toBe(400);
+      expect(JSON.stringify(res.body)).toContain("upcoming");
+    });
+
+    it("should reject purchasing after a drop has ended", async () => {
+      const now = Date.now();
+
+      await createDrop(
+        product1._id,
+        new Date(now - 2 * 60 * 60 * 1000),
+        new Date(now - 60 * 60 * 1000)
+      );
+
+      const res = await request(app)
+        .post("/api/modasphere/cart/items")
+        .set("Authorization", `Bearer ${buyer.token}`)
+        .send({
+          productId: product1._id,
+          quantity: 1,
+        });
+
+      expect(res.status).toBe(400);
+      expect(JSON.stringify(res.body)).toContain("ended");
+    });
+
+    it("should allow adding a product assigned to one live drop", async () => {
+      const now = Date.now();
+
+      await createDrop(
+        product1._id,
+        new Date(now - 60 * 60 * 1000),
+        new Date(now + 60 * 60 * 1000)
+      );
+
+      const res = await request(app)
+        .post("/api/modasphere/cart/items")
+        .set("Authorization", `Bearer ${buyer.token}`)
+        .send({
+          productId: product1._id,
+          quantity: 1,
+        });
+
+      expect(res.status).toBe(200);
+      expect(res.body.status).toBe("success");
+      expect(res.body.data.cart.items).toHaveLength(1);
+    });
+
+    it("should reject a product assigned to multiple live drops", async () => {
+      const now = Date.now();
+
+      await createDrop(
+        product1._id,
+        new Date(now - 60 * 60 * 1000),
+        new Date(now + 60 * 60 * 1000)
+      );
+
+      await createDrop(
+        product1._id,
+        new Date(now - 30 * 60 * 1000),
+        new Date(now + 90 * 60 * 1000)
+      );
+
+      const res = await request(app)
+        .post("/api/modasphere/cart/items")
+        .set("Authorization", `Bearer ${buyer.token}`)
+        .send({
+          productId: product1._id,
+          quantity: 1,
+        });
+
+      expect(res.status).toBe(400);
+      expect(JSON.stringify(res.body)).toContain(
+        "multiple live ModaDrop events"
+      );
     });
   });
 });
