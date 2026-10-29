@@ -144,7 +144,7 @@ jobs:
           curl --fail --retry 5 --retry-delay 2 http://localhost/
 
           docker exec kaindra-backend \
-            wget --spider -q http://127.0.0.1:5000/health
+            wget --spider -q http://127.0.0.1:5000/ready
 
       - name: Show production logs on failure
         if: failure()

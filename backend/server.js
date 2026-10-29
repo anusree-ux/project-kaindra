@@ -11,6 +11,7 @@ const {
   initLocationSocketService,
 } = require("./src/services/mototribe/locationSocketService");
 const { initScheduler } = require("./src/scripts/scheduler");
+const connectDB = require("./src/config/database");
 
 const PORT = env.port;
 
@@ -25,12 +26,20 @@ const io = new Server(server, {
   },
 });
 
-// Initialize MotoTribe Live Location Socket Service & Background Scheduler
-initLocationSocketService(io);
-initScheduler();
+const startServer = async () => {
+  await connectDB();
 
-server.listen(PORT, () => {
-  console.log(
-    `Server running in ${env.nodeEnv} mode with Socket.io on http://localhost:${PORT}`
-  );
+  initLocationSocketService(io);
+  initScheduler();
+
+  server.listen(PORT, () => {
+    console.log(
+      `Server running in ${env.nodeEnv} mode with Socket.io on port ${PORT}`
+    );
+  });
+};
+
+startServer().catch((error) => {
+  console.error("Backend startup failed:", error.message);
+  process.exit(1);
 });
