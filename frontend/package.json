@@ -10,10 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "agora-rtc-sdk-ng": "^4.24.9",
     "@tiptap/pm": "^3.32.0",
     "@tiptap/react": "^3.32.0",
     "@tiptap/starter-kit": "^3.32.0",
+    "agora-rtc-sdk-ng": "^4.24.9",
     "axios": "^1.7.9",
     "dompurify": "^3.4.17",
     "lucide-react": "^0.475.0",
