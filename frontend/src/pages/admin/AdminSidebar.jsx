@@ -37,11 +37,6 @@ function AdminSidebar() {
       icon: Building2,
     },
     {
-      name: "Applications",
-      path: "/admin/applications",
-      icon: Users,
-    },
-    {
       name: "Settings",
       path: "/admin/settings",
       icon: Settings,

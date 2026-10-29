@@ -352,40 +352,6 @@ function AdminDashboard() {
             </div>
 
             {/* ================================
-                APPLICATIONS
-            ================================= */}
-            <div className="admin-management-card">
-              <div className="admin-card-icon">
-                <FileText size={24} />
-              </div>
-
-              <div className="admin-card-content">
-                <h3>
-                  Applications
-
-                  {totalApplications > 0 && (
-                    <span className="application-count">
-                      {totalApplications}
-                    </span>
-                  )}
-                </h3>
-
-                <p>
-                  Review applications submitted by
-                  candidates for Kaindra positions.
-                </p>
-
-                <Link
-                  to="/admin/applications"
-                  className="admin-card-link"
-                >
-                  View Applications
-                  <ArrowRight size={18} />
-                </Link>
-              </div>
-            </div>
-
-            {/* ================================
                 COMMUNITY
             ================================= */}
             <div className="admin-management-card">
