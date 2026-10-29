@@ -13,6 +13,7 @@ import {
   Megaphone,
   BarChart3,
   TrendingUp,
+  Tag,
 } from "lucide-react";
 
 import "./AdminDashboard.css";
@@ -36,6 +37,7 @@ function AdminDashboard() {
     growth: "12%",
   });
   const [academyEnrollmentCount, setAcademyEnrollmentCount] = useState(0);
+  const [activeDiscountCodeCount, setActiveDiscountCodeCount] = useState(0);
 
   useEffect(() => {
     const loadAcademyEnrollmentCount = async () => {
@@ -89,6 +91,51 @@ function AdminDashboard() {
       .catch((err) => {
         console.error("Error fetching admin stats:", err);
       });
+  }, []);
+
+  useEffect(() => {
+    const loadActiveDiscountCodes = async () => {
+      try {
+        const token =
+          sessionStorage.getItem("kaindraAdminAccessToken") ||
+          localStorage.getItem("token");
+
+        if (!token) return;
+
+        const response = await fetch(
+          `${API_BASE}/api/modasphere/discount-codes`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.message || "Failed to load discount codes");
+        }
+
+        const codes = Array.isArray(result.data?.discountCodes)
+          ? result.data.discountCodes
+          : [];
+
+        const now = new Date();
+
+        const activeCount = codes.filter(
+          (code) =>
+            code.isActive &&
+            (!code.expiryDate || new Date(code.expiryDate) >= now)
+        ).length;
+
+        setActiveDiscountCodeCount(activeCount);
+      } catch (error) {
+        console.error("Error fetching active discount codes:", error);
+      }
+    };
+
+    loadActiveDiscountCodes();
   }, []);
 
   // =============================
@@ -240,6 +287,11 @@ function AdminDashboard() {
       title: "ModaInfluence",
       value: influenceCampaignsCount,
       icon: Megaphone,
+    },
+    {
+      title: "Active Discount Codes",
+      value: activeDiscountCodeCount,
+      icon: Tag,
     },
   ];
 
@@ -414,6 +466,32 @@ function AdminDashboard() {
                   className="admin-card-link"
                 >
                   View Production Requests
+                  <ArrowRight size={18} />
+                </Link>
+              </div>
+            </div>
+
+             {/* ================================
+                DISCOUNT
+            ================================= */}
+            <div className="admin-management-card">
+              <div className="admin-card-icon">
+                <Tag size={24} />
+              </div>
+
+              <div className="admin-card-content">
+                <h3>Discount Codes</h3>
+
+                <p>
+                  Create and manage ModaDrop discount codes,
+                  usage limits, expiry dates, and active status.
+                </p>
+
+                <Link
+                  to="/admin/discount-codes"
+                  className="admin-card-link"
+                >
+                  Manage Discount Codes
                   <ArrowRight size={18} />
                 </Link>
               </div>

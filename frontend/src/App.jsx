@@ -84,6 +84,7 @@ import AdminLogin from "./pages/admin/AdminLogin";
 import ProtectedAdminRoute from "./pages/admin/ProtectedAdminRoute";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminCareers from "./pages/admin/careers/AdminCareers";
+import AdminDiscountCodes from "./pages/admin/discount-codes/AdminDiscountCodes";
 import AdminApplications from "./pages/admin/applications/AdminApplications";
 import AdminCommunity from "./pages/admin/community/AdminCommunity";
 import AdminManufactureRequests from "./pages/admin/manufacture/AdminManufactureRequests";
@@ -601,6 +602,15 @@ function App() {
             element={
               <ProtectedAdminRoute>
                 <AdminCareers />
+              </ProtectedAdminRoute>
+            }
+          />
+
+          <Route
+            path="/admin/discount-codes"
+            element={
+              <ProtectedAdminRoute>
+                <AdminDiscountCodes />
               </ProtectedAdminRoute>
             }
           />

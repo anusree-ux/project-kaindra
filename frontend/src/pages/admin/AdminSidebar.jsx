@@ -8,6 +8,7 @@ import {
   Users,
   Settings,
   LogOut,
+  Tag,
 } from "lucide-react";
 
 import "./AdminSidebar.css";
@@ -25,6 +26,11 @@ function AdminSidebar() {
       name: "Careers",
       path: "/admin/careers",
       icon: Briefcase,
+    },
+    {
+      name: "Discount Codes",
+      path: "/admin/discount-codes",
+      icon: Tag,
     },
     {
       name: "News",
