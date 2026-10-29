@@ -62,7 +62,9 @@ jobs:
 
   docker:
     name: Docker - Production Images
-    runs-on: ubuntu-latest
+    # MongoDB 8.0 exits on Linux kernels 6.19 through 7.0.13.
+    # Ubuntu 22.04's GitHub-hosted runner uses a compatible 6.8 kernel.
+    runs-on: ubuntu-22.04
 
     env:
       ECR_REGISTRY: local
