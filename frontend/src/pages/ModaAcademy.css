@@ -5,9 +5,11 @@
 .modaacademy-page {
   background: #f7f5f1;
   color: #171717;
-  overflow: hidden;
-}
 
+  /* Prevent horizontal overflow only.
+     Normal vertical scrolling remains available. */
+  overflow-x: hidden;
+}
 .modaacademy-container {
   width: min(1180px, calc(100% - 48px));
   margin: 0 auto;
@@ -338,10 +340,17 @@
 /* =========================================
    MY LEARNING
 ========================================= */
-
 .modaacademy-my-learning {
-  padding: 120px 0;
+  min-height: calc(100vh - 85px);
+
+  padding: 120px 0 80px;
+
   background: #f7f5f1;
+
+  box-sizing: border-box;
+}
+#my-learning {
+  scroll-margin-top: 85px;
 }
 
 .modaacademy-no-learning {

@@ -426,77 +426,75 @@ function ModaStudio() {
 
 
       {/* =====================================================
-          SERVICES
-      ===================================================== */}
+    SERVICES
+===================================================== */}
 
-      <section className="modastudio-services">
+<section className="modastudio-services">
 
-        <div className="modastudio-container">
+  <div className="modastudio-container modastudio-services-container">
 
-          <div className="modastudio-section-heading light">
+    <div className="modastudio-section-heading light">
 
-            <div>
-              <span className="modastudio-small-label">
-                WHAT WE CREATE
-              </span>
+      <div>
+        <span className="modastudio-small-label">
+          WHAT WE CREATE
+        </span>
 
-              <h2>
-                From first idea
-                <br />
-                to final direction.
-              </h2>
+        <h2>
+          From first idea
+          <br />
+          to final direction.
+        </h2>
+      </div>
+
+    </div>
+
+    <div className="modastudio-services-list">
+
+      {services.map((service) => {
+
+        const Icon = service.icon;
+
+        return (
+          <article
+            className="modastudio-service-row"
+            key={service.number}
+          >
+
+            <span className="modastudio-service-number">
+              {service.number}
+            </span>
+
+            <div className="modastudio-service-icon">
+              <Icon size={25} strokeWidth={1.4} />
             </div>
 
-          </div>
+            <div className="modastudio-service-content">
 
+              <h3>
+                {service.title}
+              </h3>
 
-          <div className="modastudio-services-list">
+              <p>
+                {service.text}
+              </p>
 
-            {services.map((service) => {
+            </div>
 
-              const Icon = service.icon;
+            <ArrowRight
+              className="modastudio-service-arrow"
+              size={22}
+            />
 
-              return (
-                <article
-                  className="modastudio-service-row"
-                  key={service.number}
-                >
+          </article>
+        );
+      })}
 
-                  <span className="service-number">
-                    {service.number}
-                  </span>
+    </div>
 
-                  <div className="service-icon">
-                    <Icon size={25} strokeWidth={1.4} />
-                  </div>
+  </div>
 
-                  <div className="service-content">
-
-                    <h3>
-                      {service.title}
-                    </h3>
-
-                    <p>
-                      {service.text}
-                    </p>
-
-                  </div>
-
-                  <ArrowRight
-                    className="service-arrow"
-                    size={21}
-                  />
-
-                </article>
-              );
-            })}
-
-          </div>
-
-        </div>
-
-      </section>
-
+</section>
 
       {/* =====================================================
           CREATION PROCESS

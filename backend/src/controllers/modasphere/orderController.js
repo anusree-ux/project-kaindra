@@ -246,7 +246,7 @@ const checkout = async (req, res, next) => {
         if (totalUsed >= discount.maxTotalUses) {
           return next(
             new AppError(
-              "This discount code has reached its maximum usage limit.",
+              "This  has reached its maximum usage limit.",
               400
             )
           );

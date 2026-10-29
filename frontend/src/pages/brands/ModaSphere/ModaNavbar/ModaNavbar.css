@@ -1,353 +1,584 @@
-/* =========================
-   MODASPHERE NAVBAR
-========================= */
+/* ========================================
+   MODASPHERE SECOND NAVBAR
+======================================== */
 
-.moda-navbar {
-  position: sticky;
-  top: 0;
-  z-index: 1000;
+.moda-secondary-navbar {
+  position: relative;
 
   width: 100%;
-  min-height: 82px;
+  height: 58px;
 
-  background: rgba(255, 255, 255, 0.97);
-  border-bottom: 1px solid #dedbd5;
+  display: block;
+
+  background: #171717;
+
+  border-bottom: 1px solid #2c2c2c;
+
+  z-index: 900;
+}
+
+
+/* ========================================
+   NAVBAR CONTAINER
+======================================== */
+
+.moda-secondary-container {
+  width: 100%;
+  max-width: 1500px;
+  height: 58px;
+
+  margin: 0 auto;
+  padding: 0 40px;
 
   display: flex;
   align-items: center;
 
-  padding: 0 28px;
+  gap: 15px;
 
   box-sizing: border-box;
 }
 
 
-/* =========================
-   BRAND
-========================= */
+/* ========================================
+   HAMBURGER
+======================================== */
 
-.moda-brand {
+.moda-hamburger {
   flex-shrink: 0;
 
-  display: flex;
-  align-items: center;
+  width: 36px;
+  height: 36px;
 
-  gap: 14px;
-
-  text-decoration: none;
-  color: #151515;
-}
-
-.moda-brand-mark {
-  width: 52px;
-  height: 52px;
+  padding: 0;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  border: 1px solid #bd8b46;
+  background: transparent;
 
-  color: #bd8b46;
+  color: #ffffff;
 
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 29px;
-  font-weight: 400;
+  border: 1px solid #3b3b3b;
+  border-radius: 50%;
 
-  box-sizing: border-box;
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
 }
 
-.moda-brand-name {
-  color: #151515;
+.moda-hamburger:hover {
+  background: #c4944d;
 
-  font-family: Georgia, "Times New Roman", serif;
+  color: #171717;
 
-  font-size: 24px;
-  font-weight: 500;
+  border-color: #c4944d;
 
-  letter-spacing: 3.5px;
-  line-height: 1;
+  transform: scale(1.04);
+}
+
+
+/* ========================================
+   MODASPHERE BRAND
+======================================== */
+
+.moda-secondary-brand {
+  flex-shrink: 0;
+
+  color: #c4944d;
+
+  text-decoration: none;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  letter-spacing: 2.5px;
 
   white-space: nowrap;
+
+  transition: color 0.2s ease;
 }
 
-.moda-brand-tagline {
-  margin-top: 6px;
+.moda-secondary-brand:hover {
+  color: #ffffff;
+}
+
+
+/* ========================================
+   DESCRIPTION
+======================================== */
+
+.moda-secondary-description {
+  margin-left: 8px;
+  padding-left: 22px;
+
+  border-left: 1px solid #3a3a3a;
 
   color: #777777;
 
   font-size: 11px;
   font-weight: 500;
 
-  letter-spacing: 2px;
+  letter-spacing: 0.8px;
 
   white-space: nowrap;
 }
 
 
-/* =========================
-   NAV LINKS
-========================= */
+/* ========================================
+   DARK PAGE OVERLAY
+======================================== */
 
-.moda-nav-links {
-  flex: 1;
+.moda-menu-overlay {
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 2998;
+
+  background: rgba(0, 0, 0, 0.5);
+
+  backdrop-filter: blur(2px);
+
+  opacity: 0;
+  visibility: hidden;
+
+  pointer-events: none;
+
+  transition:
+    opacity 0.35s ease,
+    visibility 0.35s ease;
+}
+
+.moda-menu-overlay.open {
+  opacity: 1;
+  visibility: visible;
+
+  pointer-events: auto;
+}
+
+
+/* ========================================
+   LEFT DRAWER
+======================================== */
+
+.moda-menu-drawer {
+  position: fixed;
+
+  top: 0;
+  left: 0;
+
+  width: min(420px, 90vw);
+  height: 100vh;
+
+  background: #171717;
+
+  color: #ffffff;
+
+  z-index: 2999;
+
+  transform: translateX(-105%);
+
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  box-shadow:
+    20px 0 60px rgba(0, 0, 0, 0.35);
+
+  transition:
+    transform 0.4s cubic-bezier(0.77, 0, 0.18, 1);
+}
+
+.moda-menu-drawer.open {
+  transform: translateX(0);
+}
+
+
+/* ========================================
+   DRAWER HEADER
+======================================== */
+
+.moda-drawer-header {
+  width: 100%;
+  height: 76px;
+
+  padding: 0 28px;
 
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
 
-  gap: 16px;
+  border-bottom:
+    1px solid rgba(255, 255, 255, 0.09);
 
-  margin-left: 30px;
-
-  white-space: nowrap;
+  box-sizing: border-box;
 }
 
-.moda-nav-links a {
-  position: relative;
 
-  color: #222222;
+/* ========================================
+   DRAWER LOGO
+======================================== */
+
+.moda-drawer-logo {
+  color: #c4944d;
 
   text-decoration: none;
 
-  font-family: Arial, sans-serif;
+  font-size: 17px;
+  font-weight: 800;
 
-  font-size: 13px;
+  letter-spacing: 3px;
+}
+
+
+/* ========================================
+   CLOSE BUTTON
+======================================== */
+
+.moda-drawer-close {
+  flex-shrink: 0;
+
+  width: 38px;
+  height: 38px;
+
+  padding: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(255, 255, 255, 0.06);
+
+  color: #ffffff;
+
+  border:
+    1px solid rgba(255, 255, 255, 0.12);
+
+  border-radius: 50%;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.3s ease;
+}
+
+.moda-drawer-close:hover {
+  background: #ffffff;
+
+  color: #171717;
+
+  transform: rotate(90deg);
+}
+
+
+/* ========================================
+   DRAWER CONTENT
+======================================== */
+
+.moda-drawer-content {
+  min-height: calc(100vh - 76px);
+
+  padding: 28px;
+
+  display: flex;
+  flex-direction: column;
+
+  box-sizing: border-box;
+}
+
+
+/* ========================================
+   DRAWER HEADING
+======================================== */
+
+.moda-drawer-heading {
+  margin-bottom: 20px;
+}
+
+.moda-drawer-heading > span {
+  display: block;
+
+  margin-bottom: 7px;
+
+  color: #c4944d;
+
+  font-size: 9px;
+  font-weight: 700;
+
+  letter-spacing: 3px;
+}
+
+.moda-drawer-heading p {
+  margin: 0;
+
+  color: #777777;
+
+  font-size: 12px;
+  font-weight: 400;
+}
+
+
+/* ========================================
+   LINKS CONTAINER
+======================================== */
+
+.moda-drawer-links {
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+}
+
+
+/* ========================================
+   DRAWER LINK
+======================================== */
+
+.moda-drawer-link {
+  position: relative;
+
+  width: 100%;
+  min-height: 48px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 14px;
+
+  color: #d7d7d7;
+
+  border-bottom:
+    1px solid rgba(255, 255, 255, 0.07);
+
+  text-decoration: none;
+
+  box-sizing: border-box;
+
+  transition:
+    color 0.2s ease,
+    padding-left 0.25s ease,
+    background 0.2s ease;
+}
+
+
+/* NUMBER */
+
+.moda-drawer-number {
+  width: 22px;
+
+  flex-shrink: 0;
+
+  color: #5f5f5f;
+
+  font-size: 9px;
+  font-weight: 700;
+
+  letter-spacing: 1px;
+
+  transition: color 0.2s ease;
+}
+
+
+/* LINK NAME */
+
+.moda-drawer-link-name {
+  flex: 1;
+
+  font-size: 16px;
   font-weight: 500;
 
-  letter-spacing: 1.3px;
-
-  transition: color 0.25s ease;
-}
-
-.moda-nav-links a:hover {
-  color: #bd8b46;
+  letter-spacing: 0.2px;
 }
 
 
-/* =========================
-   HOVER LINE
-========================= */
+/* ARROW */
 
-.moda-nav-links a::after {
+.moda-drawer-arrow {
+  flex-shrink: 0;
+
+  color: #c4944d;
+
+  opacity: 0;
+
+  transform: translateX(-8px);
+
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+
+/* ========================================
+   LINK HOVER
+======================================== */
+
+.moda-drawer-link:hover {
+  padding-left: 7px;
+
+  color: #ffffff;
+}
+
+.moda-drawer-link:hover .moda-drawer-number {
+  color: #c4944d;
+}
+
+.moda-drawer-link:hover .moda-drawer-arrow {
+  opacity: 1;
+
+  transform: translateX(0);
+}
+
+
+/* ========================================
+   ACTIVE LINK
+======================================== */
+
+.moda-drawer-link.active {
+  color: #c4944d;
+}
+
+.moda-drawer-link.active::before {
   content: "";
 
   position: absolute;
 
-  left: 0;
-  bottom: -7px;
+  left: -28px;
 
-  width: 0;
-  height: 1px;
+  width: 3px;
+  height: 24px;
 
-  background: #bd8b46;
+  background: #c4944d;
 
-  transition: width 0.25s ease;
+  border-radius: 0 3px 3px 0;
 }
 
-.moda-nav-links a:hover::after {
-  width: 100%;
+.moda-drawer-link.active .moda-drawer-number {
+  color: #c4944d;
 }
 
+.moda-drawer-link.active .moda-drawer-arrow {
+  opacity: 1;
 
-/* =========================
-   MENU BUTTON
-========================= */
-
-.moda-menu {
-  display: none;
-
-  border: 1px solid #dedbd5;
-
-  background: transparent;
-
-  color: #222222;
-
-  padding: 7px;
-
-  cursor: pointer;
+  transform: translateX(0);
 }
 
 
-/* =========================
-   LAPTOP
-========================= */
+/* ========================================
+   DRAWER FOOTER
+======================================== */
 
-@media (max-width: 1400px) {
+.moda-drawer-footer {
+  margin-top: auto;
 
-  .moda-navbar {
-    padding: 0 20px;
-  }
+  padding-top: 35px;
+}
 
-  .moda-nav-links {
-    gap: 12px;
-    margin-left: 20px;
-  }
+.moda-drawer-footer > span {
+  display: block;
 
-  .moda-nav-links a {
-    font-size: 12px;
-    letter-spacing: 1px;
-  }
+  margin-bottom: 7px;
 
-  .moda-brand-name {
-    font-size: 21px;
-    letter-spacing: 3px;
-  }
+  color: #555555;
+
+  font-size: 9px;
+  font-weight: 800;
+
+  letter-spacing: 3px;
+}
+
+.moda-drawer-footer p {
+  margin: 0;
+
+  color: #777777;
+
+  font-size: 11px;
+
+  letter-spacing: 0.5px;
 }
 
 
-/* =========================
-   SMALL LAPTOP
-========================= */
-
-@media (max-width: 1200px) {
-
-  .moda-navbar {
-    min-height: 76px;
-    padding: 0 16px;
-  }
-
-  .moda-brand-mark {
-    width: 46px;
-    height: 46px;
-    font-size: 26px;
-  }
-
-  .moda-brand-name {
-    font-size: 19px;
-    letter-spacing: 2.5px;
-  }
-
-  .moda-brand-tagline {
-    font-size: 11px;
-  }
-
-  .moda-nav-links {
-    gap: 9px;
-    margin-left: 15px;
-  }
-
-  .moda-nav-links a {
-    font-size: 11px;
-    letter-spacing: 0.8px;
-  }
-}
-
-
-/* =========================
+/* ========================================
    TABLET
-========================= */
+======================================== */
 
-@media (max-width: 1000px) {
+@media (max-width: 900px) {
 
-  .moda-navbar {
-    min-height: 72px;
-
-    justify-content: space-between;
+  .moda-secondary-navbar {
+    height: 54px;
   }
 
-  .moda-nav-links {
-    display: none;
+  .moda-secondary-container {
+    height: 54px;
+
+    padding: 0 20px;
+
+    gap: 12px;
   }
 
-  .moda-menu {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-}
-
-
-/* =========================
-   MOBILE
-========================= */
-
-@media (max-width: 600px) {
-
-  .moda-navbar {
-    padding: 0 14px;
+  .moda-hamburger {
+    width: 34px;
+    height: 34px;
   }
 
-  .moda-brand {
-    gap: 10px;
-  }
+  .moda-secondary-brand {
+    font-size: 12px;
 
-  .moda-brand-mark {
-    width: 42px;
-    height: 42px;
-    font-size: 24px;
-  }
-
-  .moda-brand-name {
-    font-size: 17px;
     letter-spacing: 2px;
   }
 
-  .moda-brand-tagline {
-    font-size: 5.5px;
-    letter-spacing: 1.3px;
-  }
-}
-
-
-/* =========================
-   SMALL MOBILE
-========================= */
-
-@media (max-width: 400px) {
-
-  .moda-brand-mark {
-    width: 38px;
-    height: 38px;
-    font-size: 22px;
-  }
-
-  .moda-brand-name {
-    font-size: 15px;
-    letter-spacing: 1.5px;
-  }
-
-  .moda-brand-tagline {
+  .moda-secondary-description {
     display: none;
   }
 }
-.moda-nav-links .moda-home-link {
-  position: relative;
 
-  color: #222222;
-  text-decoration: none;
 
-  font-family: Arial, sans-serif;
-  font-size: 13px;
-  font-weight: 500;
+/* ========================================
+   MOBILE
+======================================== */
 
-  letter-spacing: 1.3px;
+@media (max-width: 600px) {
 
-  cursor: pointer;
+  .moda-secondary-container {
+    padding: 0 15px;
+  }
 
-  transition: color 0.25s ease;
-}
+  .moda-menu-drawer {
+    width: min(350px, 92vw);
+  }
 
-.moda-nav-links .moda-home-link:hover {
-  color: #bd8b46;
-}
+  .moda-drawer-header {
+    height: 68px;
 
-.moda-nav-links .moda-home-link::after {
-  content: "";
+    padding: 0 20px;
+  }
 
-  position: absolute;
+  .moda-drawer-logo {
+    font-size: 15px;
 
-  left: 0;
-  bottom: -7px;
+    letter-spacing: 2.5px;
+  }
 
-  width: 0;
-  height: 1px;
+  .moda-drawer-content {
+    min-height: calc(100vh - 68px);
 
-  background: #bd8b46;
+    padding: 24px 20px;
+  }
 
-  transition: width 0.25s ease;
-}
+  .moda-drawer-link {
+    min-height: 46px;
+  }
 
-.moda-nav-links .moda-home-link:hover::after {
-  width: 100%;
+  .moda-drawer-link-name {
+    font-size: 15px;
+  }
+
+  .moda-drawer-link.active::before {
+    left: -20px;
+  }
 }
