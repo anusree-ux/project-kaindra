@@ -27,6 +27,7 @@ const io = new Server(server, {
 });
 
 const startServer = async () => {
+  env.validateProductionEnvironment();
   await connectDB();
 
   initLocationSocketService(io);
