@@ -1,6 +1,7 @@
 import { useState } from "react";
+import { Loader2 } from "lucide-react";
 
-const ShipOrderModal = ({ open, onClose }) => {
+const ShipOrderModal = ({ open, onClose, onShip, loading, error }) => {
   const [carrier, setCarrier] = useState("");
   const [tracking, setTracking] = useState("");
 
@@ -8,13 +9,12 @@ const ShipOrderModal = ({ open, onClose }) => {
 
   const submit = (event) => {
     event.preventDefault();
-
-    console.log({
-      carrier,
-      tracking,
-    });
-
-    onClose();
+    if (onShip) {
+      onShip({
+        carrier,
+        trackingNumber: tracking,
+      });
+    }
   };
 
   return (
@@ -40,12 +40,29 @@ const ShipOrderModal = ({ open, onClose }) => {
       >
         <h2>Ship order</h2>
 
+        {error && (
+          <div
+            style={{
+              background: "#fee2e2",
+              border: "1px solid #ef4444",
+              color: "#b91c1c",
+              borderRadius: 8,
+              padding: "10px 14px",
+              marginBottom: 16,
+              fontSize: 13,
+            }}
+          >
+            {error}
+          </div>
+        )}
+
         <div className="dashboard-form">
           <div className="dashboard-field">
             <label>Shipping carrier</label>
 
             <input
               value={carrier}
+              placeholder="e.g. BlueDart, Delhivery, FedEx"
               onChange={(e) =>
                 setCarrier(e.target.value)
               }
@@ -58,6 +75,7 @@ const ShipOrderModal = ({ open, onClose }) => {
 
             <input
               value={tracking}
+              placeholder="e.g. BLD123456789IN"
               onChange={(e) =>
                 setTracking(e.target.value)
               }
@@ -70,17 +88,25 @@ const ShipOrderModal = ({ open, onClose }) => {
               display: "flex",
               justifyContent: "flex-end",
               gap: 10,
+              marginTop: 10,
             }}
           >
             <button
               type="button"
               className="dashboard-btn dashboard-btn-secondary"
               onClick={onClose}
+              disabled={loading}
             >
               Cancel
             </button>
 
-            <button className="dashboard-btn dashboard-btn-primary">
+            <button
+              type="submit"
+              className="dashboard-btn dashboard-btn-primary"
+              disabled={loading}
+              style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+            >
+              {loading && <Loader2 size={15} style={{ animation: "spin 1s linear infinite" }} />}
               Confirm shipment
             </button>
           </div>

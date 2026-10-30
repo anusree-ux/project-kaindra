@@ -12,6 +12,7 @@ import {
 
 import { useAuth } from "../../../../../context/AuthContext";
 import GoogleAuthButton from "../../../../../components/GoogleAuthButton/GoogleAuthButton";
+import { getBusinessProfileStatus } from "../services/dashboardApi";
 
 import "./DashboardLogin.css";
 
@@ -44,7 +45,9 @@ const DashboardLogin = () => {
       from !==
         "/businesses/modasphere/dashboard/login" &&
       from !==
-        "/businesses/modasphere/dashboard/signup"
+        "/businesses/modasphere/dashboard/signup" &&
+      from !==
+        "/businesses/modasphere/dashboard/profile-setup"
     ) {
       return from;
     }
@@ -52,29 +55,44 @@ const DashboardLogin = () => {
     return "/businesses/modasphere/dashboard";
   }, [location.state]);
 
-  // If the user already has a valid session,
-  // send them directly to the dashboard.
-  useEffect(() => {
-    if (!loading && authenticated) {
-      navigate(getRedirectPath(), {
+  // Check if user has an existing Seller or Manufacturer profile in DB
+  const routeUserBasedOnProfile = useCallback(async () => {
+    try {
+      const status = await getBusinessProfileStatus();
+      if (status?.exists && status?.isProfileComplete) {
+        // Email ID already exists in Seller/Manufacturer table -> continue to dashboard
+        navigate(getRedirectPath(), {
+          replace: true,
+        });
+      } else {
+        // New user -> direct them to profile setup
+        navigate("/businesses/modasphere/dashboard/profile-setup", {
+          replace: true,
+        });
+      }
+    } catch {
+      navigate("/businesses/modasphere/dashboard/profile-setup", {
         replace: true,
       });
+    }
+  }, [getRedirectPath, navigate]);
+
+  // If the user already has a valid session, check their profile status
+  useEffect(() => {
+    if (!loading && authenticated) {
+      routeUserBasedOnProfile();
     }
   }, [
     authenticated,
     loading,
-    navigate,
-    getRedirectPath,
+    routeUserBasedOnProfile,
   ]);
 
   // Called by the existing GoogleAuthButton
   // after Google authentication succeeds.
   const handleGoogleSuccess = () => {
     setError("");
-
-    navigate(getRedirectPath(), {
-      replace: true,
-    });
+    routeUserBasedOnProfile();
   };
 
   // Called when Google authentication fails.

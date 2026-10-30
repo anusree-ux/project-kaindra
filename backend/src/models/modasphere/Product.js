@@ -1,4 +1,4 @@
-﻿const mongoose = require("mongoose");
+const mongoose = require("mongoose");
 
 const productSchema = new mongoose.Schema(
   {
@@ -14,6 +14,16 @@ const productSchema = new mongoose.Schema(
       trim: true,
     },
     description: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    brand: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    shopName: {
       type: String,
       trim: true,
       default: "",

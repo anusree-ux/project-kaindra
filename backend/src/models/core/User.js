@@ -49,6 +49,10 @@ const userSchema = new mongoose.Schema(
       default: [],
       select: false,
     },
+    welcomeEmailSent: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

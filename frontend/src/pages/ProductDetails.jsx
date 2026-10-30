@@ -12,6 +12,7 @@ import apiClient from "../services/apiClient";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import ProductReview from "./brands/ModaSphere/ModaMartReviews/ProductReview";
+import { getCategoryLabel } from "../constants/categories";
 import "./ProductDetails.css";
 
 function ProductDetails() {
@@ -155,7 +156,13 @@ function ProductDetails() {
     : [product.image || "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&q=80"];
 
   const currentImageUrl = rawImages[selectedImage] || rawImages[0];
-  const brandName = product.sellerId?.name || product.brand || "ModaSphere Studio";
+  const brandName =
+    product.sellerId?.businessName ||
+    product.sellerId?.shopName ||
+    product.brand ||
+    product.shopName ||
+    product.sellerId?.name ||
+    "ModaSphere Studio";
 
   return (
     <main className="product-details-page">
@@ -199,8 +206,8 @@ function ProductDetails() {
 
           {/* ================= PRODUCT INFORMATION ================= */}
           <div className="product-info">
-            <p className="product-category" style={{ textTransform: "capitalize" }}>
-              {product.category}
+            <p className="product-category">
+              {getCategoryLabel(product.category)}
             </p>
 
             <h1>{product.name}</h1>
@@ -227,7 +234,7 @@ function ProductDetails() {
             <div className="product-meta">
               <div>
                 <span>Category</span>
-                <strong style={{ textTransform: "capitalize" }}>{product.category}</strong>
+                <strong>{getCategoryLabel(product.category)}</strong>
               </div>
 
               <div>

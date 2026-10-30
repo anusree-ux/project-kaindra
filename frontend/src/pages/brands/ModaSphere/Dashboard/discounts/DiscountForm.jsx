@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft, Loader2, Save } from "lucide-react";
+import { createDiscountCode } from "../services/dashboardApi";
 
 const DiscountForm = () => {
   const navigate = useNavigate();
@@ -13,6 +15,8 @@ const DiscountForm = () => {
     usageLimit: "",
     expiry: "",
   });
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
 
   const update = (event) => {
     setForm((current) => ({
@@ -21,27 +25,71 @@ const DiscountForm = () => {
     }));
   };
 
-  const submit = (event) => {
+  const submit = async (event) => {
     event.preventDefault();
+    setSubmitting(true);
+    setError(null);
 
-    console.log("Frontend discount:", form);
+    try {
+      const discountType = form.type === "fixed" ? "flat" : form.type;
+      await createDiscountCode({
+        code: form.code.trim().toUpperCase(),
+        discountType,
+        discountValue: Number(form.value),
+        minOrderAmount: form.minimumOrder ? Number(form.minimumOrder) : 0,
+        maxTotalUses: form.usageLimit ? Number(form.usageLimit) : null,
+        expiryDate: form.expiry ? new Date(form.expiry).toISOString() : null,
+      });
 
-    navigate(
-      "/businesses/modasphere/dashboard/discounts"
-    );
+      navigate("/businesses/modasphere/dashboard/discounts");
+    } catch (err) {
+      console.error("Failed to save discount code:", err);
+      setError(
+        err.response?.data?.message ||
+        err.message ||
+        "Failed to create discount code."
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
     <div className="dashboard-page">
       <div className="dashboard-page-header">
         <div>
-          <h1>
+          <button
+            className="dashboard-btn dashboard-btn-secondary"
+            onClick={() => navigate(-1)}
+            type="button"
+          >
+            <ArrowLeft size={16} />
+            Back
+          </button>
+
+          <h1 style={{ marginTop: 18 }}>
             {discountId
               ? "Edit Discount"
               : "Create Discount"}
           </h1>
         </div>
       </div>
+
+      {error && (
+        <div
+          style={{
+            background: "#fee2e2",
+            border: "1px solid #ef4444",
+            color: "#b91c1c",
+            borderRadius: 8,
+            padding: "12px 16px",
+            marginBottom: 20,
+            fontSize: 14,
+          }}
+        >
+          {error}
+        </div>
+      )}
 
       <form onSubmit={submit}>
         <div className="dashboard-card">
@@ -50,6 +98,7 @@ const DiscountForm = () => {
               <label>Discount code</label>
               <input
                 name="code"
+                placeholder="e.g. SUMMER25"
                 value={form.code}
                 onChange={update}
                 required
@@ -64,10 +113,10 @@ const DiscountForm = () => {
                 onChange={update}
               >
                 <option value="percentage">
-                  Percentage
+                  Percentage (%)
                 </option>
                 <option value="fixed">
-                  Fixed amount
+                  Fixed amount (₹)
                 </option>
               </select>
             </div>
@@ -76,6 +125,8 @@ const DiscountForm = () => {
               <label>Value</label>
               <input
                 type="number"
+                min="1"
+                max={form.type === "percentage" ? "100" : undefined}
                 name="value"
                 value={form.value}
                 onChange={update}
@@ -84,9 +135,10 @@ const DiscountForm = () => {
             </div>
 
             <div className="dashboard-field">
-              <label>Minimum order</label>
+              <label>Minimum order amount (₹)</label>
               <input
                 type="number"
+                min="0"
                 name="minimumOrder"
                 value={form.minimumOrder}
                 onChange={update}
@@ -94,10 +146,12 @@ const DiscountForm = () => {
             </div>
 
             <div className="dashboard-field">
-              <label>Usage limit</label>
+              <label>Total usage limit</label>
               <input
                 type="number"
+                min="1"
                 name="usageLimit"
+                placeholder="Unlimited if empty"
                 value={form.usageLimit}
                 onChange={update}
               />
@@ -116,10 +170,22 @@ const DiscountForm = () => {
         </div>
 
         <button
+          type="submit"
           className="dashboard-btn dashboard-btn-primary"
-          style={{ marginTop: 20 }}
+          disabled={submitting}
+          style={{ marginTop: 20, display: "inline-flex", alignItems: "center", gap: 8 }}
         >
-          Save discount
+          {submitting ? (
+            <>
+              <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} />
+              Saving discount...
+            </>
+          ) : (
+            <>
+              <Save size={16} />
+              Save discount
+            </>
+          )}
         </button>
       </form>
     </div>

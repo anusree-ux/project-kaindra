@@ -52,10 +52,21 @@ const manufacturerSchema = new mongoose.Schema(
       trim: true,
       lowercase: true,
     },
+    email: {
+      type: String,
+      default: "",
+      trim: true,
+      lowercase: true,
+      index: true,
+    },
     contactPhone: {
       type: String,
       default: "",
       trim: true,
+    },
+    isProfileComplete: {
+      type: Boolean,
+      default: true,
     },
     verificationStatus: {
       type: String,

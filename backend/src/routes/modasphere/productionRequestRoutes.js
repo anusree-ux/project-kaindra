@@ -14,7 +14,7 @@ const { protect } = require("../../middleware/authMiddleware");
 
 const router = express.Router();
 
-router.use(protect);
+router.use("/production-requests", protect);
 
 // Static / collection routes defined BEFORE parameterized ones
 router.post("/production-requests", createProductionRequest);

@@ -1,92 +1,171 @@
+import { useEffect, useState } from "react";
 import {
   IndianRupee,
   Package,
   ShoppingBag,
   Rocket,
+  RefreshCw,
 } from "lucide-react";
 
 import StatCard from "../components/StatCard";
 import SalesTrendChart from "../components/SalesTrendChart";
 import LowStockPanel from "./LowStockPanel";
 import DropsSummary from "./DropsSummary";
+import {
+  getSellerSummary,
+  getSellerSalesTrend,
+  getSellerLowStock,
+  getSellerProducts,
+  getSellerDrops,
+} from "../services/dashboardApi";
 
-const salesData = [
-  { label: "Mon", sales: 12000 },
-  { label: "Tue", sales: 18000 },
-  { label: "Wed", sales: 15000 },
-  { label: "Thu", sales: 26000 },
-  { label: "Fri", sales: 22000 },
-  { label: "Sat", sales: 34000 },
-  { label: "Sun", sales: 29000 },
+const defaultTrend = [
+  { label: "Mon", sales: 0 },
+  { label: "Tue", sales: 0 },
+  { label: "Wed", sales: 0 },
+  { label: "Thu", sales: 0 },
+  { label: "Fri", sales: 0 },
+  { label: "Sat", sales: 0 },
+  { label: "Sun", sales: 0 },
 ];
 
-const Overview = () => (
-  <div className="dashboard-page">
-    <div className="dashboard-page-header">
-      <div>
-        <h1>Overview</h1>
-        <p>
-          Monitor your ModaSphere business performance.
-        </p>
-      </div>
-    </div>
+const Overview = () => {
+  const [loading, setLoading] = useState(true);
+  const [summary, setSummary] = useState({
+    totalRevenue: 0,
+    distinctOrders: 0,
+    totalUnitsSold: 0,
+  });
+  const [salesTrend, setSalesTrend] = useState(defaultTrend);
+  const [products, setProducts] = useState([]);
+  const [drops, setDrops] = useState([]);
+  const [lowStock, setLowStock] = useState([]);
 
-    <div className="dashboard-stats-grid">
-      <StatCard
-        title="Total Revenue"
-        value="₹1,28,450"
-        change="+12.4% this month"
-        icon={IndianRupee}
-      />
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [sumRes, trendRes, prodRes, dropRes, lowRes] = await Promise.allSettled([
+        getSellerSummary(),
+        getSellerSalesTrend({ interval: "day" }),
+        getSellerProducts(),
+        getSellerDrops(),
+        getSellerLowStock(),
+      ]);
 
-      <StatCard
-        title="Orders"
-        value="248"
-        change="+8.2% this month"
-        icon={ShoppingBag}
-      />
+      if (sumRes.status === "fulfilled" && sumRes.value) {
+        setSummary(sumRes.value);
+      }
+      if (trendRes.status === "fulfilled" && Array.isArray(trendRes.value) && trendRes.value.length > 0) {
+        setSalesTrend(trendRes.value);
+      }
+      if (prodRes.status === "fulfilled" && Array.isArray(prodRes.value)) {
+        setProducts(prodRes.value);
+      }
+      if (dropRes.status === "fulfilled" && Array.isArray(dropRes.value)) {
+        setDrops(dropRes.value);
+      }
+      if (lowRes.status === "fulfilled" && Array.isArray(lowRes.value)) {
+        setLowStock(lowRes.value);
+      }
+    } catch (err) {
+      console.error("[Overview] Error fetching dashboard data:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      <StatCard
-        title="Products"
-        value="64"
-        description="58 currently active"
-        icon={Package}
-      />
+  useEffect(() => {
+    fetchData();
+  }, []);
 
-      <StatCard
-        title="Active Drops"
-        value="4"
-        description="2 scheduled"
-        icon={Rocket}
-      />
-    </div>
+  const activeProducts = products.filter((p) => p.status === "active").length;
+  const activeDrops = drops.filter((d) => d.status === "active").length;
+  const scheduledDrops = drops.filter((d) => d.status === "scheduled").length;
 
-    <div className="dashboard-card">
-      <div className="dashboard-card-header">
+  const formattedRevenue = new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  }).format(summary.totalRevenue || 0);
+
+  return (
+    <div className="dashboard-page">
+      <div className="dashboard-page-header">
         <div>
-          <h2>Sales trend</h2>
+          <h1>Overview</h1>
+          <p>
+            Monitor your live ModaSphere business and sales performance.
+          </p>
         </div>
 
-        <span
-          style={{
-            color: "#777",
-            fontSize: 12,
-          }}
+        <button
+          className="dashboard-btn dashboard-btn-secondary"
+          onClick={fetchData}
+          disabled={loading}
+          style={{ display: "flex", alignItems: "center", gap: 6 }}
         >
-          Last 7 days
-        </span>
+          <RefreshCw size={14} className={loading ? "spin" : ""} />
+          <span>{loading ? "Syncing..." : "Refresh"}</span>
+        </button>
       </div>
 
-      <div className="dashboard-card-body">
-        <SalesTrendChart data={salesData} />
+      <div className="dashboard-stats-grid">
+        <StatCard
+          title="Total Revenue"
+          value={formattedRevenue}
+          description="Gross lifetime sales"
+          icon={IndianRupee}
+        />
+
+        <StatCard
+          title="Orders"
+          value={String(summary.distinctOrders || 0)}
+          description={`${summary.totalUnitsSold || 0} total units sold`}
+          icon={ShoppingBag}
+        />
+
+        <StatCard
+          title="Products"
+          value={String(products.length)}
+          description={`${activeProducts} currently active`}
+          icon={Package}
+        />
+
+        <StatCard
+          title="Active Drops"
+          value={String(activeDrops)}
+          description={`${scheduledDrops} scheduled drops`}
+          icon={Rocket}
+        />
+      </div>
+
+      <div className="dashboard-card">
+        <div className="dashboard-card-header">
+          <div>
+            <h2>Sales trend</h2>
+          </div>
+
+          <span
+            style={{
+              color: "#777",
+              fontSize: 12,
+            }}
+          >
+            Daily volume
+          </span>
+        </div>
+
+        <div className="dashboard-card-body">
+          <SalesTrendChart data={salesTrend} />
+        </div>
+      </div>
+
+      <div className="dashboard-two-column">
+        <LowStockPanel items={lowStock.length > 0 ? lowStock : products.filter((p) => (p.stock ?? 10) < 10)} />
+        <DropsSummary drops={drops} />
       </div>
     </div>
-
-    <div className="dashboard-two-column">
-      <LowStockPanel />
-      <DropsSummary />
-    </div>
-  </div>
-);
+  );
+};
 
 export default Overview;

@@ -1,6 +1,17 @@
 import { useEffect, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Lock, ShoppingBag, ShieldCheck, AlertCircle, Loader2 } from "lucide-react";
+import {
+  ArrowLeft,
+  Lock,
+  ShoppingBag,
+  ShieldCheck,
+  AlertCircle,
+  Loader2,
+  Tag,
+  Sparkles,
+  Check,
+  CheckCircle2,
+} from "lucide-react";
 import apiClient from "../services/apiClient";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
@@ -66,6 +77,8 @@ function Checkout() {
   const [discount, setDiscount] = useState(null);
   const [discountLoading, setDiscountLoading] = useState(false);
   const [discountError, setDiscountError] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
 
   const [submitting, setSubmitting] = useState(false);
   const [verifying, setVerifying] = useState(false);
@@ -102,6 +115,32 @@ function Checkout() {
       navigate("/businesses/modamart/cart", { replace: true });
     }
   }, [cartLoading, isAuthenticated, cart, navigate]);
+
+  // Fetch suggested discount codes ranked by highest savings
+  useEffect(() => {
+    let isMounted = true;
+    if (subtotal > 0) {
+      setSuggestionsLoading(true);
+      apiClient
+        .get(`/api/modasphere/discount-codes/suggest?subtotal=${subtotal}`)
+        .then((res) => {
+          if (isMounted) {
+            setSuggestions(res.data?.data?.suggestions || []);
+          }
+        })
+        .catch((err) => {
+          console.warn("Failed to load discount suggestions:", err);
+        })
+        .finally(() => {
+          if (isMounted) setSuggestionsLoading(false);
+        });
+    } else {
+      setSuggestions([]);
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [subtotal]);
 
   // Dynamically load Razorpay Checkout script once
   useEffect(() => {
@@ -160,8 +199,9 @@ function Checkout() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleApplyDiscount = async () => {
-    if (!discountCode.trim()) {
+  const handleApplyDiscount = async (codeOverride) => {
+    const code = (codeOverride || discountCode || "").trim().toUpperCase();
+    if (!code) {
       setDiscountError("Please enter a discount code.");
       return;
     }
@@ -172,16 +212,23 @@ function Checkout() {
 
     try {
       const response = await apiClient.post("/api/modasphere/discount-codes/validate", {
-        code: discountCode.trim(),
+        code,
         orderAmount: subtotal,
       });
 
       setDiscount(response.data?.data);
+      setDiscountCode(response.data?.data?.code || code);
     } catch (err) {
       setDiscountError(err.response?.data?.message || err.message || "Invalid discount code.");
     } finally {
       setDiscountLoading(false);
     }
+  };
+
+  const handleRemoveDiscount = () => {
+    setDiscount(null);
+    setDiscountCode("");
+    setDiscountError("");
   };
 
   // Verify Razorpay payment signature with up to 3 retries for 5xx/network errors
@@ -618,7 +665,10 @@ function Checkout() {
 
             {/* DISCOUNT CODE SECTION */}
             <div className="discount-section">
-              <label htmlFor="discountCode">Discount Code</label>
+              <label htmlFor="discountCode" className="discount-label">
+                <Tag size={13} />
+                <span>Promotional Code</span>
+              </label>
               <div className="discount-input-row">
                 <input
                   id="discountCode"
@@ -626,23 +676,161 @@ function Checkout() {
                   value={discountCode}
                   onChange={(e) => {
                     setDiscountCode(e.target.value.toUpperCase());
-                    setDiscount(null);
+                    if (discount) setDiscount(null);
                     setDiscountError("");
                   }}
                   placeholder="Enter code"
                   disabled={discountLoading || submitting || verifying}
                 />
-                <button
-                  type="button"
-                  onClick={handleApplyDiscount}
-                  disabled={discountLoading || submitting || verifying}
-                >
-                  {discountLoading ? "Applying..." : "Apply"}
-                </button>
+                {discount ? (
+                  <button
+                    type="button"
+                    className="discount-remove-btn"
+                    onClick={handleRemoveDiscount}
+                    disabled={discountLoading || submitting || verifying}
+                  >
+                    Remove
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handleApplyDiscount()}
+                    disabled={
+                      discountLoading ||
+                      submitting ||
+                      verifying ||
+                      !discountCode.trim()
+                    }
+                  >
+                    {discountLoading ? "Applying..." : "Apply"}
+                  </button>
+                )}
               </div>
 
-              {discountError && <p className="discount-error">{discountError}</p>}
-              {discount && <p className="discount-success">{discount.code} applied successfully.</p>}
+              {discountError && (
+                <p className="discount-error">{discountError}</p>
+              )}
+
+              {discount && (
+                <div className="discount-applied-banner">
+                  <div className="discount-applied-info">
+                    <CheckCircle2 size={16} />
+                    <div>
+                      <strong>{discount.code} applied</strong>
+                      <span>
+                        {discount.creatorRole === "admin"
+                          ? "Platform Offer"
+                          : `Posted by ${discount.creatorName || "Seller"}`}
+                      </span>
+                    </div>
+                  </div>
+                  <span className="discount-applied-val">
+                    -₹{(discount.discountAmount || 0).toLocaleString("en-IN")}
+                  </span>
+                </div>
+              )}
+
+              {/* RECOMMENDED COUPONS (HIGHEST SAVINGS FIRST) */}
+              {suggestions.length > 0 && (
+                <div className="suggested-offers-box">
+                  <div className="suggested-offers-header">
+                    <div className="suggested-offers-title">
+                      <Sparkles size={13} style={{ color: "#eab308" }} />
+                      <span>Available Coupons</span>
+                    </div>
+                    <span className="suggested-offers-count">
+                      {suggestions.length} offer{suggestions.length > 1 ? "s" : ""}
+                    </span>
+                  </div>
+
+                  <div className="suggested-offers-list">
+                    {suggestions.map((item) => {
+                      const isApplied = discount?.code === item.code;
+                      return (
+                        <div
+                          key={item.code}
+                          className={`suggested-offer-card ${
+                            item.isHighestSavings ? "highest-savings" : ""
+                          } ${isApplied ? "applied" : ""}`}
+                        >
+                          {item.isHighestSavings && (
+                            <div className="best-savings-badge">
+                              <Sparkles size={10} />
+                              HIGHEST SAVINGS
+                            </div>
+                          )}
+
+                          <div className="offer-main">
+                            <div className="offer-badge-row">
+                              <span className="coupon-code-pill">
+                                {item.code}
+                              </span>
+                              <span className="offer-discount-tag">
+                                {item.discountType === "percentage"
+                                  ? `${item.discountValue}% OFF`
+                                  : `₹${item.discountValue} FLAT`}
+                              </span>
+                            </div>
+
+                            <p className="offer-creator-label">
+                              {item.creatorRole === "admin"
+                                ? "🛡️ ModaSphere Official"
+                                : `🏬 ${item.creatorName}`}
+                            </p>
+
+                            <div className="offer-meta-row">
+                              {item.meetsMinOrder ? (
+                                <span className="savings-highlight">
+                                  Save ₹{item.savings.toLocaleString("en-IN")}
+                                </span>
+                              ) : (
+                                <span className="min-order-shortfall">
+                                  Add ₹
+                                  {item.minOrderShortfall.toLocaleString(
+                                    "en-IN"
+                                  )}{" "}
+                                  more to unlock
+                                </span>
+                              )}
+                              {item.minOrderAmount > 0 && (
+                                <span className="min-order-pill">
+                                  Min ₹{item.minOrderAmount}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="offer-action">
+                            {isApplied ? (
+                              <button
+                                type="button"
+                                className="coupon-applied-btn"
+                                onClick={handleRemoveDiscount}
+                                title="Click to remove"
+                              >
+                                <Check size={12} /> Applied
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                className="coupon-apply-btn"
+                                onClick={() => handleApplyDiscount(item.code)}
+                                disabled={
+                                  !item.meetsMinOrder ||
+                                  discountLoading ||
+                                  submitting
+                                }
+                              >
+                                {item.meetsMinOrder ? "Apply" : "Locked"}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="checkout-summary-row">

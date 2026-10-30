@@ -7,10 +7,16 @@ import {
   ShoppingBag,
   SlidersHorizontal,
   Loader2,
+  ArrowUpDown,
 } from "lucide-react";
 import apiClient from "../services/apiClient";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
+import {
+  MODAMART_CATEGORIES,
+  getCategoryValue,
+  getCategoryLabel,
+} from "../constants/categories";
 import "./ModaMart.css";
 
 function ModaMart() {
@@ -22,20 +28,12 @@ function ModaMart() {
   const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
+  const [sort, setSort] = useState("newest");
   const [wishlist, setWishlist] = useState([]);
   const [addingId, setAddingId] = useState(null);
   const [toastMessage, setToastMessage] = useState("");
 
-  const categories = [
-    "All",
-    "Apparel",
-    "Ethnic",
-    "Accessories",
-    "Footwear",
-    "Men",
-    "Women",
-    "Streetwear",
-  ];
+  const categories = MODAMART_CATEGORIES;
 
   // Fetch real products from backend
   useEffect(() => {
@@ -49,14 +47,13 @@ function ModaMart() {
           params.search = search.trim();
         }
         if (category !== "All") {
-          const catLower = category.toLowerCase();
-          // If category is a standard DB category
-          if (["apparel", "ethnic", "accessories", "footwear", "beauty", "jewelry", "home", "other"].includes(catLower)) {
-            params.category = catLower;
-          } else {
-            // Otherwise filter by tag (e.g. men, women, streetwear)
-            params.tag = catLower;
+          const catVal = getCategoryValue(category);
+          if (catVal) {
+            params.category = catVal;
           }
+        }
+        if (sort) {
+          params.sort = sort;
         }
 
         const response = await apiClient.get("/api/modasphere/products", { params });
@@ -85,7 +82,7 @@ function ModaMart() {
       isMounted = false;
       clearTimeout(debounceTimer);
     };
-  }, [search, category]);
+  }, [search, category, sort]);
 
   // Fetch user wishlist on mount
   useEffect(() => {
@@ -266,13 +263,41 @@ function ModaMart() {
             </div>
           </div>
 
-          {/* RESULT COUNT */}
-          <div className="modamart-result">
+          {/* RESULT COUNT & SORT */}
+          <div className="modamart-result" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
             <p>
               {loading
                 ? "Loading products..."
                 : `${products.length} product${products.length === 1 ? "" : "s"} available`}
             </p>
+
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <ArrowUpDown size={15} style={{ color: "#777" }} />
+              <label htmlFor="modamart-sort" style={{ fontSize: "13px", color: "#666", fontWeight: 500 }}>
+                Sort:
+              </label>
+              <select
+                id="modamart-sort"
+                value={sort}
+                onChange={(e) => setSort(e.target.value)}
+                style={{
+                  padding: "6px 12px",
+                  borderRadius: "6px",
+                  border: "1px solid #d8d5ce",
+                  backgroundColor: "#fff",
+                  fontSize: "13px",
+                  fontWeight: 500,
+                  cursor: "pointer",
+                  color: "#111",
+                  outline: "none",
+                }}
+              >
+                <option value="newest">Newest Arrivals</option>
+                <option value="price_asc">Price: Low to High</option>
+                <option value="price_desc">Price: High to Low</option>
+                <option value="popular">Most Popular</option>
+              </select>
+            </div>
           </div>
 
           {/* LOADING SKELETON */}
@@ -355,7 +380,12 @@ function ModaMart() {
                   "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&q=80";
 
                 const brandName =
-                  product.sellerId?.name || product.brand || "ModaSphere Studio";
+                  product.sellerId?.businessName ||
+                  product.sellerId?.shopName ||
+                  product.brand ||
+                  product.shopName ||
+                  product.sellerId?.name ||
+                  "ModaSphere Studio";
 
                 return (
                   <article className="modamart-product-card" key={productId}>
@@ -365,6 +395,28 @@ function ModaMart() {
                         alt={product.name}
                         loading="lazy"
                       />
+
+                      {product.isDrop && (
+                        <span
+                          style={{
+                            position: "absolute",
+                            top: "15px",
+                            left: "15px",
+                            backgroundColor: "#111",
+                            color: "#c9964a",
+                            padding: "4px 8px",
+                            fontSize: "11px",
+                            fontWeight: 700,
+                            letterSpacing: "0.08em",
+                            borderRadius: "4px",
+                            textTransform: "uppercase",
+                            boxShadow: "0 2px 6px rgba(0,0,0,0.25)",
+                            zIndex: 2,
+                          }}
+                        >
+                          ModaDrop
+                        </span>
+                      )}
 
                       <button
                         className="product-wishlist"
@@ -394,7 +446,7 @@ function ModaMart() {
                       </h3>
 
                       <p className="product-category" style={{ textTransform: "capitalize" }}>
-                        {product.category}
+                        {getCategoryLabel(product.category)}
                       </p>
 
                       <div className="product-bottom">

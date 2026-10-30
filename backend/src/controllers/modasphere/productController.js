@@ -1,5 +1,6 @@
 const Product = require("../../models/modasphere/Product");
 const Drop = require("../../models/modasphere/Drop");
+const Seller = require("../../models/modasphere/Seller");
 const {
   uploadProductImage,
   deleteProductImage,
@@ -8,6 +9,7 @@ const {
   notifyNextProductDropWaitlistUser,
 } = require("../../services/modasphere/dropService");
 const AppError = require("../../utils/AppError");
+const { normalizeCategory } = require("../../constants/categories");
 
 /**
  * Helper to parse tags from comma-separated string or array
@@ -34,7 +36,7 @@ const parseTags = (tagsInput) => {
 const createProduct = async (req, res, next) => {
   const uploadedImages = [];
   try {
-    const { name, description, category, price, stock, isDrop, dropReleaseAt, dropStock, tags } = req.body;
+    const { name, description, category, price, stock, isDrop, dropReleaseAt, dropStock, tags, brand } = req.body;
     const productIsDrop = isDrop === true || isDrop === "true";
 
     if (dropReleaseAt && isNaN(new Date(dropReleaseAt).getTime())) {
@@ -70,32 +72,59 @@ const createProduct = async (req, res, next) => {
 
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {
-        const uploaded = await uploadProductImage(file.buffer, "modasphere/products");
+        const uploaded = await uploadProductImage(file.buffer);
         uploadedImages.push(uploaded);
       }
     }
+
+    // Lookup seller profile to retrieve actual shop / business name
+    const sellerProfile = await Seller.findOne({
+      $or: [
+        { userId: req.user._id },
+        ...(req.user.email ? [{ email: req.user.email.toLowerCase().trim() }] : []),
+      ],
+    });
+    const resolvedShopName = (sellerProfile?.businessName || "").trim();
+    const resolvedBrand = (brand || resolvedShopName || req.user.name || "ModaSphere Studio").trim();
 
     const product = await Product.create({
       sellerId: req.user._id,
       name: name.trim(),
       description: description ? description.trim() : "",
-      category: category ? category.trim().toLowerCase() : "apparel",
+      brand: resolvedBrand,
+      shopName: resolvedShopName || resolvedBrand,
+      category: normalizeCategory(category),
       tags: parseTags(tags),
       price: Number(price),
       stock: stock !== undefined && stock !== null ? Math.max(0, parseInt(stock, 10) || 0) : 0,
-      isDrop: isDrop === true || isDrop === "true",
+      isDrop: productIsDrop,
       dropReleaseAt: dropReleaseAt ? new Date(dropReleaseAt) : null,
       dropStock:
           dropStock !== undefined && dropStock !== null
             ? Math.max(0, parseInt(dropStock, 10) || 0)
-            : null,
+            : (productIsDrop ? Math.max(0, parseInt(stock, 10) || 0) : null),
       images: uploadedImages,
-      status: "draft",
+      status: "active",
     });
+
+    if (product.isDrop) {
+      await Drop.create({
+        title: product.name,
+        description: product.description || `Exclusive release: ${product.name}`,
+        coverImage: product.images?.[0] || { url: "", publicId: "" },
+        productIds: [product._id],
+        startTime: product.dropReleaseAt || new Date(),
+        maxPerUser: 2,
+        createdBy: req.user._id,
+        status: product.dropReleaseAt && new Date(product.dropReleaseAt) > new Date() ? "upcoming" : "live",
+      }).catch((err) => {
+        console.warn("[productController] Auto Drop creation note:", err.message);
+      });
+    }
 
     res.status(201).json({
       status: "success",
-      message: "Product created as draft successfully.",
+      message: "Product created and published successfully.",
       data: { product },
     });
   } catch (error) {
@@ -128,7 +157,7 @@ const updateProduct = async (req, res, next) => {
 
     if (name !== undefined) product.name = name.trim();
     if (description !== undefined) product.description = description.trim();
-    if (category !== undefined) product.category = category.trim().toLowerCase();
+    if (category !== undefined) product.category = normalizeCategory(category);
     if (price !== undefined) product.price = Number(price);
     if (stock !== undefined) product.stock = Math.max(0, parseInt(stock, 10) || 0);
     if (isDrop !== undefined) {
@@ -191,7 +220,7 @@ const updateProduct = async (req, res, next) => {
 
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {
-        const uploaded = await uploadProductImage(file.buffer, "modasphere/products");
+        const uploaded = await uploadProductImage(file.buffer);
         product.images.push(uploaded);
       }
     }
@@ -399,10 +428,41 @@ const getProducts = async (req, res, next) => {
       Product.countDocuments(query),
     ]);
 
+    // Attach seller shop / businessName to each product
+    const sellerUserIds = [
+      ...new Set(
+        products
+          .map((p) => p.sellerId?._id || p.sellerId)
+          .filter(Boolean)
+          .map((id) => id.toString())
+      ),
+    ];
+    const sellerProfiles = await Seller.find({
+      userId: { $in: sellerUserIds },
+    }).select("userId businessName");
+    const sellerShopMap = new Map(
+      sellerProfiles.map((s) => [s.userId.toString(), s.businessName])
+    );
+
+    const formattedProducts = products.map((prod) => {
+      const pObj = prod.toObject ? prod.toObject() : { ...prod };
+      const sId = (pObj.sellerId?._id || pObj.sellerId || "").toString();
+      const shop = sellerShopMap.get(sId) || pObj.shopName || pObj.brand || "";
+      if (shop) {
+        pObj.shopName = shop;
+        pObj.brand = pObj.brand || shop;
+        if (pObj.sellerId && typeof pObj.sellerId === "object") {
+          pObj.sellerId.businessName = shop;
+          pObj.sellerId.shopName = shop;
+        }
+      }
+      return pObj;
+    });
+
     res.status(200).json({
       status: "success",
       data: {
-        products,
+        products: formattedProducts,
         pagination: {
           total,
           page: pageNum,
@@ -439,9 +499,24 @@ const getProductById = async (req, res, next) => {
       return next(new AppError("Product not found.", 404));
     }
 
+    const sellerProfile = await Seller.findOne({
+      userId: product.sellerId?._id || product.sellerId,
+    }).select("businessName");
+
+    const prodObj = product.toObject ? product.toObject() : { ...product };
+    const shop = sellerProfile?.businessName || prodObj.shopName || prodObj.brand || "";
+    if (shop) {
+      prodObj.shopName = shop;
+      prodObj.brand = prodObj.brand || shop;
+      if (prodObj.sellerId && typeof prodObj.sellerId === "object") {
+        prodObj.sellerId.businessName = shop;
+        prodObj.sellerId.shopName = shop;
+      }
+    }
+
     res.status(200).json({
       status: "success",
-      data: { product },
+      data: { product: prodObj },
     });
   } catch (error) {
     next(error);
