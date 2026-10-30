@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Lock, Mail, Eye, EyeOff, LogIn } from "lucide-react";
 import "./AdminLogin.css";
@@ -49,6 +49,7 @@ function AdminLogin() {
       sessionStorage.setItem("kaindraAdminAuthenticated", "true");
       sessionStorage.setItem("kaindraAdminAccessToken", accessToken);
       sessionStorage.setItem("kaindraAdminUser", JSON.stringify(user));
+      localStorage.setItem("token", accessToken);
 
       navigate("/admin");
     } catch (error) {

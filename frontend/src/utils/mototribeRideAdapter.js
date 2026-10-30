@@ -14,6 +14,30 @@ export function formatMongoRide(r) {
   const cleanTitle = r.title || (startLoc + " to " + destLoc);
   const dist = Number(r.distanceKm) || 150;
 
+  const realStops = Array.isArray(r.stops)
+    ? r.stops
+        .map((s) => (typeof s === "object" ? s.name || s.address || String(s) : String(s)))
+        .map((s) => (typeof s === "string" ? s.trim() : s))
+        .filter(Boolean)
+    : [];
+
+  const fullRoutePath = [startLoc, ...realStops, destLoc].join(" → ");
+  const organizerName = r.organizerId?.name || (r.isOrganizer ? "You (Organizer)" : "Organizer");
+  const avatarInitials = organizerName
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase() || "OR";
+
+  const durationStr = r.durationDays
+    ? `${r.durationDays} ${r.durationDays === 1 ? "Day" : "Days"}`
+    : `${Math.ceil(dist / 120)} Days`;
+
+  const parsedBudget = typeof r.budget === "number"
+    ? r.budget
+    : (Number(String(r.budget || "5000").replace(/[^\d]/g, "")) || 5000);
+
   return {
     id: r._id ? String(r._id) : (r.id ? String(r.id) : "custom-ride"),
     _id: r._id ? String(r._id) : (r.id ? String(r.id) : "custom-ride"),
@@ -22,20 +46,22 @@ export function formatMongoRide(r) {
     start: startLoc,
     origin: startLoc,
     destination: destLoc,
+    startDate: r.startDate,
+    rawStatus: r.status,
     date: yyyy + "-" + mm + "-" + dd,
     time: timeStr !== "00:00" ? timeStr : "06:00",
     type: "ADVENTURE",
     difficulty: dist > 300 ? "ADVANCED" : "INTERMEDIATE",
-    organizer: r.organizerId?.name || (r.isOrganizer ? "You (Organizer)" : "Organizer"),
+    organizer: organizerName,
     organizerType: "COMMUNITY",
-    riders: r.participantsCount || 2,
-    maxRiders: r.maxRiders || 10,
+    riders: r.participantsCount || 1,
+    maxRiders: r.maxRiders || 1,
     isOrganizer: !!r.isOrganizer,
     distance: dist,
     distanceLabel: dist + " KM",
-    duration: Math.ceil(dist / 120) + " Days",
-    route: startLoc + " → " + destLoc,
-    description: "Official MotoTribe journey planned from " + startLoc + " to " + destLoc + ".",
+    duration: durationStr,
+    route: fullRoutePath,
+    description: r.description || ("Official MotoTribe journey planned from " + startLoc + " to " + destLoc + "."),
     requirements: [
       "Helmet and full riding gear required",
       "Motorcycle in good mechanical condition",
@@ -43,7 +69,7 @@ export function formatMongoRide(r) {
       "Emergency medical ID card and hydration kit",
     ],
     safety: "Follow group riding etiquette and keep safe braking distances on highways and ghat curves.",
-    status: r.status === "ongoing" ? "LIVE" : "UPCOMING",
+    status: r.status === "ongoing" ? "LIVE" : (r.status ? r.status.toUpperCase() : "UPCOMING"),
     vehicle: r.vehicleId ? {
       name: r.vehicleId.vehicleName || "Royal Enfield Himalayan 450",
       registration: r.vehicleId.registrationNumber || "KA-01",
@@ -55,25 +81,38 @@ export function formatMongoRide(r) {
       fuelType: "petrol",
       mileage: 30,
     },
-    stops: [
-      "Fuel & Refreshment Junction",
-      "Scenic Valley Viewpoint",
-      "Highway Rest Stop"
-    ],
+    stops: realStops,
     participants: [
-      { id: "1", name: r.organizerId?.name || "Kaindra User", role: "ORGANIZER", status: "READY", avatar: "KU" },
-      { id: "2", name: "Shreya Mahalingshetti", role: "RIDER", status: "READY", avatar: "SM" },
+      { id: r.organizerId?._id ? String(r.organizerId._id) : "1", name: organizerName, role: "ORGANIZER", status: "READY", avatar: avatarInitials },
     ],
-    journeyIntelligence: {
-      fuelStops: Math.max(1, Math.round(dist / 140)),
-      restStops: 2,
-      serviceStops: 1,
-      accommodationStops: dist > 300 ? 2 : 0,
-      scenicStops: 3,
-      elevationGain: dist > 300 ? "1,450 M" : "680 M",
-      weatherRisk: "MODERATE",
-      roadQuality: "GOOD (HIGHWAY & GHAT PASSES)",
-    },
-    budget: r.budget ? "₹" + r.budget.toLocaleString("en-IN") : "₹12,500",
+    journeyIntelligence: r.journeyIntelligence
+      ? {
+          fuelStops: Number(r.journeyIntelligence.fuelStops ?? Math.max(1, Math.round(dist / 140))),
+          restStops: Number(r.journeyIntelligence.restStops ?? (realStops.length > 0 ? realStops.length : 2)),
+          serviceStops: Number(r.journeyIntelligence.serviceStops ?? 1),
+          accommodationStops: Number(r.journeyIntelligence.accommodationStops ?? (dist > 300 ? 2 : 0)),
+          scenicStops: Number(r.journeyIntelligence.scenicStops ?? Math.max(1, realStops.length)),
+          elevationGain: r.journeyIntelligence.elevationGain || (dist > 300 ? "1,450 M" : "680 M"),
+          weatherRisk: r.journeyIntelligence.weatherRisk || "MODERATE",
+          roadQuality: r.journeyIntelligence.roadQuality || "GOOD (HIGHWAY & GHAT PASSES)",
+          places: Array.isArray(r.journeyIntelligence.places) ? r.journeyIntelligence.places : [],
+        }
+      : {
+          fuelStops: Math.max(1, Math.round(dist / 140)),
+          restStops: realStops.length > 0 ? realStops.length : 2,
+          serviceStops: 1,
+          accommodationStops: dist > 300 ? 2 : 0,
+          scenicStops: Math.max(1, realStops.length),
+          elevationGain: dist > 300 ? "1,450 M" : "680 M",
+          weatherRisk: "MODERATE",
+          roadQuality: "GOOD (HIGHWAY & GHAT PASSES)",
+          places: [],
+        },
+    budget: parsedBudget,
+    originLat: r.originLat,
+    originLng: r.originLng,
+    destLat: r.destLat,
+    destLng: r.destLng,
+    routeInfo: r.routeInfo || null,
   };
 }

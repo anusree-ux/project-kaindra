@@ -63,6 +63,31 @@
   background: #bd8b46;
 }
 
+.modainfluence-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.modainfluence-secondary-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 20px;
+  border: 1px solid #171717;
+  background: transparent;
+  color: #171717;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  transition: 0.25s ease;
+}
+
+.modainfluence-secondary-btn:hover {
+  border-color: #bd8b46;
+  color: #bd8b46;
+}
+
 /* SECTIONS */
 
 .modainfluence-section {
@@ -247,6 +272,14 @@
   gap: 12px;
 }
 
+.modainfluence-campaign-title-label {
+  display: grid;
+  gap: 7px;
+  color: #625e59;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
 .modainfluence-form input,
 .modainfluence-form textarea {
   width: 100%;
@@ -293,6 +326,209 @@
   color: #777;
   line-height: 1.6;
   margin-bottom: 25px;
+}
+
+.modainfluence-public-campaigns {
+  padding: 90px 0;
+  background: #f8f6f2;
+}
+
+.modainfluence-public-campaign-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 22px;
+}
+
+.modainfluence-public-campaign-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 0 22px 18px;
+  background: #fff;
+  border: 1px solid #e5dfd5;
+  border-radius: 12px;
+}
+
+.modainfluence-public-campaign-open {
+  display: block;
+  width: 100%;
+  padding: 20px 0 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.modainfluence-public-campaign-open:focus-visible,
+.modainfluence-public-campaign-details:focus-visible,
+.modainfluence-public-campaign-apply:focus-visible,
+.modainfluence-campaign-details-close:focus-visible {
+  outline: 3px solid #bd8b46;
+  outline-offset: 3px;
+}
+
+.modainfluence-public-campaign-card h3 { margin: 12px 0 6px; }
+.modainfluence-public-campaign-type { margin: 0 0 8px; font-size: 0.88rem; color: #777; }
+.modainfluence-public-campaign-card p { line-height: 1.6; color: #625e59; }
+.modainfluence-public-campaign-brand { font-weight: 600; }
+.modainfluence-public-campaign-date { font-size: 0.85rem; color: #777; }
+.modainfluence-public-campaign-preview {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0 0 14px;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+.modainfluence-public-campaign-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: auto;
+}
+.modainfluence-public-campaign-details {
+  padding: 8px 0;
+  border: 0;
+  background: none;
+  color: #5a392e;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.modainfluence-public-campaign-apply {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0;
+  padding: 9px 16px;
+  border: 0;
+  border-radius: 6px;
+  background: #171717;
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.modainfluence-public-campaign-apply:hover { background: #bd8b46; }
+.modainfluence-public-campaign-apply:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+.modainfluence-public-campaign-applied,
+.modainfluence-application-notice {
+  margin: 10px 0 0;
+  font-size: 0.9rem;
+}
+.modainfluence-application-notice.error { color: #9e3434; }
+.modainfluence-application-notice.success,
+.modainfluence-public-campaign-applied { color: #356b48; }
+.modainfluence-campaign-error,
+.modainfluence-application-alert { color: #9e3434; }
+.modainfluence-empty-campaigns { text-align: center; color: #777; }
+
+.modainfluence-campaign-details-backdrop {
+  padding: 18px;
+}
+
+.modainfluence-campaign-details-dialog {
+  display: flex;
+  flex-direction: column;
+  width: min(760px, 100%);
+  max-height: min(90dvh, 850px);
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 24px 70px rgb(0 0 0 / 24%);
+}
+
+.modainfluence-campaign-details-header,
+.modainfluence-campaign-details-footer {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 24px 28px;
+  background: #fff;
+}
+
+.modainfluence-campaign-details-header {
+  border-bottom: 1px solid #e5dfd5;
+}
+
+.modainfluence-campaign-details-header span {
+  color: #bd8b46;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+}
+
+.modainfluence-campaign-details-header h2 {
+  margin: 9px 0 5px;
+  font-size: clamp(24px, 4vw, 34px);
+}
+
+.modainfluence-campaign-details-header p {
+  margin: 0;
+  color: #625e59;
+  font-weight: 600;
+}
+
+.modainfluence-campaign-details-close {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+  border: 1px solid #ddd7ce;
+  border-radius: 50%;
+  background: #fff;
+  color: #171717;
+  cursor: pointer;
+}
+
+.modainfluence-campaign-details-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 24px 28px;
+  overscroll-behavior: contain;
+}
+
+.modainfluence-campaign-details-content p,
+.modainfluence-campaign-details-content ul,
+.modainfluence-campaign-details-content ol {
+  margin: 0 0 15px;
+  color: #625e59;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.modainfluence-campaign-details-content h3 {
+  margin: 22px 0 10px;
+  color: #171717;
+  font-size: 1.1rem;
+}
+
+.modainfluence-campaign-details-content h3:first-child { margin-top: 0; }
+.modainfluence-campaign-details-content ul,
+.modainfluence-campaign-details-content ol { padding-left: 24px; }
+.modainfluence-campaign-details-content li + li { margin-top: 5px; }
+.modainfluence-campaign-details-date { padding-top: 12px; border-top: 1px solid #e5dfd5; }
+
+.modainfluence-campaign-details-footer {
+  align-items: center;
+  border-top: 1px solid #e5dfd5;
+}
+
+.modainfluence-campaign-details-footer span {
+  color: #356b48;
+  font-size: 0.9rem;
 }
 
 /* RESPONSIVE */
@@ -353,5 +589,30 @@
 
   .modainfluence-form {
     padding: 28px 20px;
+  }
+
+  .modainfluence-public-campaign-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .modainfluence-campaign-details-backdrop {
+    align-items: end;
+    padding: 8px;
+  }
+
+  .modainfluence-campaign-details-dialog {
+    width: 100%;
+    max-height: calc(100dvh - 16px);
+  }
+
+  .modainfluence-campaign-details-header,
+  .modainfluence-campaign-details-content,
+  .modainfluence-campaign-details-footer {
+    padding: 18px;
+  }
+
+  .modainfluence-campaign-details-footer {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }

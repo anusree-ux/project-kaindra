@@ -90,12 +90,12 @@ function FuelPrice() {
         location: form.city.trim(),
       });
 
-      setMessage("Fuel price submitted directly to the database!");
+      setMessage("Fuel price report submitted successfully!");
       setMessageType("success");
       setForm(initialForm);
       await fetchFuelPrices();
     } catch (err) {
-      const errMsg = err.response?.data?.message || "Failed to submit fuel price to database.";
+      const errMsg = err.response?.data?.message || "Failed to submit fuel price report.";
       setMessage(errMsg);
       setMessageType("error");
     } finally {
@@ -349,7 +349,7 @@ function FuelPrice() {
             <div className="fuel-disclaimer">
               <span aria-hidden="true">ℹ️</span>
 
-              Live prices directly synchronized from community submissions in MongoDB.
+              Live prices directly synchronized from community submissions.
             </div>
           </div>
         </div>
@@ -420,7 +420,7 @@ function FuelPrice() {
           <div className="fuel-report-list">
             {loading ? (
               <div className="fuel-empty">
-                Loading fuel price reports from database...
+                Loading fuel price reports...
               </div>
             ) : filteredPrices.length > 0 ? (
               filteredPrices.map((item) => (
@@ -462,7 +462,7 @@ function FuelPrice() {
               ))
             ) : (
               <div className="fuel-empty">
-                No fuel price reports found in the database. Be the first to report one!
+                No fuel price reports found. Be the first to report one!
               </div>
             )}
           </div>

@@ -1,3 +1,4 @@
+
 #!/bin/bash
 
 set -euo pipefail
@@ -7,19 +8,20 @@ SECRET_NAME="${SECRET_NAME:?SECRET_NAME is required}"
 ECR_REGISTRY="${ECR_REGISTRY:?ECR_REGISTRY is required}"
 IMAGE_TAG="${IMAGE_TAG:?IMAGE_TAG is required}"
 GITHUB_REPOSITORY="${GITHUB_REPOSITORY:?GITHUB_REPOSITORY is required}"
+GITHUB_SHA="${GITHUB_SHA:?GITHUB_SHA is required}"
 
 APP_DIR="/opt/kaindra"
 ENV_FILE="$APP_DIR/.env"
 NGINX_DIR="$APP_DIR/nginx"
 
-RAW_BASE_URL="https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/${IMAGE_TAG}"
+RAW_BASE_URL="https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/${GITHUB_SHA}"
 
 echo "Preparing application directory..."
 
 mkdir -p "$APP_DIR"
 mkdir -p "$NGINX_DIR"
 
-echo "Downloading deployment files from GitHub commit: $IMAGE_TAG"
+echo "Downloading deployment files from GitHub commit: $GITHUB_SHA"
 
 curl -fsSL \
   "$RAW_BASE_URL/docker/docker-compose.deploy.yml" \
@@ -51,7 +53,7 @@ aws ecr get-login-password \
       --username AWS \
       --password-stdin "$ECR_REGISTRY"
 
-echo "Pulling Docker images for commit: $IMAGE_TAG"
+echo "Pulling Docker images with tag: $IMAGE_TAG"
 
 docker pull "${ECR_REGISTRY}/kaindra-dev-backend:${IMAGE_TAG}"
 docker pull "${ECR_REGISTRY}/kaindra-dev-frontend:${IMAGE_TAG}"

@@ -1,0 +1,431 @@
+/* =========================================
+   MODAMART FASHION LOOKBOOK
+========================================= */
+
+.modamart-lookbook {
+  position: relative;
+
+  width: 100%;
+  height: 620px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  overflow: hidden;
+
+  background:
+    linear-gradient(
+      135deg,
+      #f7f5f2 0%,
+      #ffffff 50%,
+      #f2efeb 100%
+    );
+
+  isolation: isolate;
+}
+
+
+/* =========================================
+   LARGE BACKGROUND MODAMART TEXT
+========================================= */
+
+.lookbook-background-text {
+  position: absolute;
+
+  top: 50%;
+  left: 50%;
+
+  transform: translate(-50%, -50%);
+
+  z-index: -1;
+
+  font-size: clamp(100px, 16vw, 260px);
+  font-weight: 900;
+
+  letter-spacing: 18px;
+
+  color: rgba(0, 0, 0, 0.035);
+
+  white-space: nowrap;
+
+  user-select: none;
+}
+
+
+/* =========================================
+   MAIN CENTER SECTION
+========================================= */
+
+.lookbook-main {
+  position: relative;
+
+  z-index: 5;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 45px;
+
+  width: min(850px, 70vw);
+}
+
+
+/* =========================================
+   MAIN IMAGE
+========================================= */
+
+.lookbook-image-wrapper {
+  position: relative;
+
+  width: 380px;
+  height: 480px;
+
+  flex-shrink: 0;
+
+  overflow: hidden;
+
+  background: #eeeeee;
+
+  box-shadow:
+    0 25px 60px rgba(0, 0, 0, 0.15);
+}
+
+
+.lookbook-main-image {
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  object-fit: cover;
+  object-position: center;
+
+  animation: lookbookImageEnter 0.7s ease;
+}
+
+
+@keyframes lookbookImageEnter {
+  from {
+    opacity: 0;
+    transform: scale(1.05);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+
+/* =========================================
+   IMAGE NUMBER
+========================================= */
+
+.lookbook-number {
+  position: absolute;
+
+  top: 15px;
+  left: 15px;
+
+  width: 45px;
+  height: 45px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(255, 255, 255, 0.92);
+
+  color: #111111;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  letter-spacing: 2px;
+}
+
+
+/* =========================================
+   TEXT
+========================================= */
+
+.lookbook-content {
+  width: 320px;
+}
+
+
+.lookbook-label {
+  display: block;
+
+  margin-bottom: 16px;
+
+  color: #777777;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  letter-spacing: 4px;
+
+  text-transform: uppercase;
+}
+
+
+.lookbook-content h2 {
+  margin: 0 0 20px;
+
+  color: #111111;
+
+  font-family: Georgia, "Times New Roman", serif;
+
+  font-size: clamp(42px, 4vw, 70px);
+
+  font-weight: 400;
+
+  line-height: 0.95;
+
+  text-transform: uppercase;
+}
+
+
+.lookbook-content p {
+  margin: 0;
+
+  color: #555555;
+
+  font-size: 10px;
+  font-weight: 600;
+
+  line-height: 1.8;
+
+  letter-spacing: 2px;
+}
+
+
+/* =========================================
+   SIDE IMAGES
+========================================= */
+
+.lookbook-side-card {
+  position: absolute;
+
+  top: 50%;
+
+  transform: translateY(-50%);
+
+  z-index: 2;
+
+  width: 230px;
+  height: 330px;
+
+  padding: 0;
+
+  overflow: hidden;
+
+  border: none;
+
+  background: transparent;
+
+  cursor: pointer;
+
+  opacity: 0.58;
+
+  transition:
+    opacity 0.4s ease,
+    transform 0.4s ease;
+}
+
+
+.lookbook-side-card img {
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  object-fit: cover;
+  object-position: center;
+
+  filter: grayscale(25%);
+}
+
+
+.lookbook-left-card {
+  left: -45px;
+}
+
+
+.lookbook-right-card {
+  right: -45px;
+}
+
+
+.lookbook-side-card:hover {
+  opacity: 0.9;
+}
+
+
+.lookbook-left-card:hover {
+  transform:
+    translateY(-50%)
+    translateX(12px);
+}
+
+
+.lookbook-right-card:hover {
+  transform:
+    translateY(-50%)
+    translateX(-12px);
+}
+
+
+/* =========================================
+   INDICATORS
+========================================= */
+
+.lookbook-indicators {
+  position: absolute;
+
+  left: 50%;
+  bottom: 25px;
+
+  transform: translateX(-50%);
+
+  z-index: 10;
+
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+}
+
+
+.lookbook-dot {
+  width: 6px;
+  height: 6px;
+
+  padding: 0;
+
+  border: none;
+  border-radius: 50%;
+
+  background: rgba(0, 0, 0, 0.25);
+
+  cursor: pointer;
+
+  transition:
+    width 0.3s ease,
+    background 0.3s ease,
+    border-radius 0.3s ease;
+}
+
+
+.lookbook-dot.active {
+  width: 30px;
+
+  border-radius: 10px;
+
+  background: #111111;
+}
+
+
+/* =========================================
+   TABLET
+========================================= */
+
+@media (max-width: 1000px) {
+
+  .modamart-lookbook {
+    height: 580px;
+  }
+
+  .lookbook-main {
+    width: 75vw;
+    gap: 30px;
+  }
+
+  .lookbook-image-wrapper {
+    width: 330px;
+    height: 430px;
+  }
+
+  .lookbook-content {
+    width: 260px;
+  }
+
+  .lookbook-side-card {
+    width: 180px;
+    height: 280px;
+  }
+
+  .lookbook-left-card {
+    left: -90px;
+  }
+
+  .lookbook-right-card {
+    right: -90px;
+  }
+}
+
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 700px) {
+
+  .modamart-lookbook {
+    height: 600px;
+
+    padding: 25px 20px 55px;
+  }
+
+  .lookbook-main {
+    width: 100%;
+
+    flex-direction: column;
+
+    gap: 18px;
+  }
+
+  .lookbook-image-wrapper {
+    width: min(82vw, 330px);
+    height: 390px;
+  }
+
+  .lookbook-content {
+    width: 100%;
+
+    text-align: center;
+  }
+
+  .lookbook-label {
+    margin-bottom: 8px;
+
+    font-size: 9px;
+  }
+
+  .lookbook-content h2 {
+    margin-bottom: 10px;
+
+    font-size: 34px;
+  }
+
+  .lookbook-content p {
+    font-size: 8px;
+  }
+
+  .lookbook-side-card {
+    display: none;
+  }
+
+  .lookbook-background-text {
+    font-size: 90px;
+
+    letter-spacing: 8px;
+  }
+
+  .lookbook-indicators {
+    bottom: 18px;
+  }
+}

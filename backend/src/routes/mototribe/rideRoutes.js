@@ -11,6 +11,7 @@ const {
   startRide,
   completeRide,
   cancelRide,
+  deleteRide,
   confirmParticipant,
   getLiveLocations,
 } = require("../../controllers/mototribe/rideController");
@@ -46,10 +47,11 @@ router.post("/rides/:id/join", joinRide);
 router.get("/rides/:id/participants", getRideParticipants);
 router.patch("/rides/:id/participants/:userId/confirm", confirmParticipant);
 
-// Ride Lifecycle Status Transitions (Organizer Only)
+// Ride Lifecycle Status Transitions & Deletion (Organizer Only)
 router.patch("/rides/:id/start", startRide);
 router.patch("/rides/:id/complete", completeRide);
 router.patch("/rides/:id/cancel", cancelRide);
+router.delete("/rides/:id", deleteRide);
 
 // Live Location Tracking REST Fallback
 router.get("/rides/:id/live-locations", getLiveLocations);

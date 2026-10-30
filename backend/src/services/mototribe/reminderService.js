@@ -34,13 +34,24 @@ const checkAndSendReminders = async () => {
 
     const processRideReminders = async (rides, reminderType) => {
       for (const ride of rides) {
+        // Collect all participants (both planning and confirmed)
         const participants = await RideParticipant.find({
           rideId: ride._id,
-          status: "confirmed",
+          status: { $in: ["planning", "confirmed"] },
         });
 
-        for (const participant of participants) {
-          const uId = participant.userId;
+        // Ensure both organizer and all participants are included
+        const recipientUserIds = new Set();
+        if (ride.organizerId) {
+          recipientUserIds.add(ride.organizerId.toString());
+        }
+        for (const p of participants) {
+          if (p.userId) {
+            recipientUserIds.add(p.userId.toString());
+          }
+        }
+
+        for (const uId of recipientUserIds) {
 
           // Check if already sent
           const existing = await RideReminder.findOne({
@@ -77,24 +88,34 @@ const checkAndSendReminders = async () => {
           );
 
           const isOneHour = reminderType === "1h";
-          const subject = isOneHour
-            ? `⚡ [1-Hour Alert] Final Prep: ${ride.title} departs soon!`
-            : `🏍️ [24-Hour Reminder] Get Ready: ${ride.title} starts tomorrow!`;
+          const msRemaining = Math.max(0, new Date(ride.startDate).getTime() - Date.now());
+          const hoursRemaining = Math.max(1, Math.round(msRemaining / (60 * 60 * 1000)));
+
+          let alertBadgeText = "📅 24-Hour Ride Reminder";
+          let subject = `🏍️ [24-Hour Reminder] Get Ready: ${ride.title} starts tomorrow!`;
+          let departureDescription = `Your upcoming journey <strong>${ride.title}</strong> is scheduled for departure in <strong>24 hours</strong>. Review the journey details below.`;
+
+          if (isOneHour) {
+            alertBadgeText = "⚡ Final 1-Hour Departure Alert";
+            subject = `⚡ [1-Hour Alert] Final Prep: ${ride.title} departs soon!`;
+            departureDescription = `Your scheduled ride <strong>${ride.title}</strong> is rolling out in approximately <strong>1 hour</strong>. Please finalize your gear, check tire pressure, and prepare to rendezvous at the start point.`;
+          } else if (hoursRemaining < 20) {
+            alertBadgeText = `📅 ${hoursRemaining}-Hour Ride Reminder`;
+            subject = `🏍️ [${hoursRemaining}-Hour Reminder] Get Ready: ${ride.title} departs in ~${hoursRemaining} hours!`;
+            departureDescription = `Your upcoming journey <strong>${ride.title}</strong> is scheduled for departure in approximately <strong>${hoursRemaining} hours</strong>. Review the journey details below.`;
+          }
 
           const htmlBody = `
             <div style="max-width: 600px; margin: 0 auto; background: #0c0d10; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; border: 1px solid rgba(212, 160, 62, 0.3); border-radius: 12px; overflow: hidden;">
               <div style="background: linear-gradient(135deg, #18191f 0%, #0c0d10 100%); padding: 28px 24px; border-bottom: 1px solid rgba(212, 160, 62, 0.2); text-align: center;">
                 <span style="display: inline-block; font-size: 11px; letter-spacing: 3px; font-weight: 800; color: #d4a03e; text-transform: uppercase; margin-bottom: 8px;">M O T O T R I B E &bull; R I D E &bull; A L E R T</span>
-                <h1 style="margin: 0; font-size: 22px; font-weight: 800; color: #ffffff; letter-spacing: 0.5px;">${isOneHour ? "⚡ Final 1-Hour Departure Alert" : "📅 24-Hour Ride Reminder"}</h1>
+                <h1 style="margin: 0; font-size: 22px; font-weight: 800; color: #ffffff; letter-spacing: 0.5px;">${alertBadgeText}</h1>
               </div>
 
               <div style="padding: 28px 24px;">
                 <p style="font-size: 15px; color: #d1d5db; margin-top: 0;">Hi <strong>${user.name || "Rider"}</strong>,</p>
                 <p style="font-size: 14px; color: #9ca3af; line-height: 1.6;">
-                  ${isOneHour
-                    ? `Your scheduled ride <strong>${ride.title}</strong> is rolling out in approximately <strong>1 hour</strong>. Please finalize your gear, check tire pressure, and prepare to rendezvous at the start point.`
-                    : `Your upcoming journey <strong>${ride.title}</strong> is scheduled for departure in <strong>24 hours</strong>. Review the journey details below.`
-                  }
+                  ${departureDescription}
                 </p>
 
                 <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 20px; margin: 24px 0;">

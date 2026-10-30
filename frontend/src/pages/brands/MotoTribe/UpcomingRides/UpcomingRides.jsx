@@ -13,6 +13,39 @@ const filters = [
   "OFFICIAL",
 ];
 
+const getRideDateHelper = (ride) => {
+  if (!ride || !ride.date) return new Date();
+  return new Date(`${ride.date}T${ride.time || "06:00"}:00`);
+};
+
+const getCurrentStatusHelper = (ride, currentNow) => {
+  if (ride.status === "completed" || ride.status === "cancelled") {
+    return ride.status.toUpperCase();
+  }
+
+  const startDate = getRideDateHelper(ride);
+  const durationDays = ride.durationDays || 1;
+  const durationMs = durationDays * 24 * 60 * 60 * 1000;
+  const endDate = new Date(startDate.getTime() + durationMs);
+
+  const timeUntilStart = startDate.getTime() - currentNow.getTime();
+  const timeUntilEnd = endDate.getTime() - currentNow.getTime();
+
+  if (timeUntilEnd <= 0) {
+    return "COMPLETED";
+  }
+
+  if (timeUntilStart <= 0) {
+    return "LIVE";
+  }
+
+  if (timeUntilStart <= 60 * 60 * 1000) {
+    return "STARTING";
+  }
+
+  return ride.status || "UPCOMING";
+};
+
 function UpcomingRides() {
   const navigate = useNavigate();
   const { isAuthenticated, openAuthModal } = useAuth();
@@ -63,11 +96,21 @@ function UpcomingRides() {
           cleanTitle = insidePart ? `${mainPart} (${insidePart})` : mainPart;
         }
 
+        const realStops = Array.isArray(r.stops)
+          ? r.stops
+              .map((s) => (typeof s === "object" ? s.name || s.address || String(s) : String(s)))
+              .map((s) => (typeof s === "string" ? s.trim() : s))
+              .filter(Boolean)
+          : [];
+        const startLoc = typeof r.origin === "object" ? r.origin.name : r.origin || "Origin";
+        const destLoc = typeof r.destination === "object" ? r.destination.name : r.destination || "Destination";
+        const fullRoute = [startLoc, ...realStops, destLoc].join(" → ");
+
         return {
           id: r._id,
           name: cleanTitle,
-          start: typeof r.origin === "object" ? r.origin.name : r.origin || "Origin",
-          destination: typeof r.destination === "object" ? r.destination.name : r.destination || "Destination",
+          start: startLoc,
+          destination: destLoc,
           date: `${yyyy}-${mm}-${dd}`,
           time: timeStr !== "00:00" ? timeStr : "06:00",
           type: "ADVENTURE",
@@ -79,9 +122,10 @@ function UpcomingRides() {
           isOrganizer: !!r.isOrganizer,
           requestRequired: false,
           distance: `${r.distanceKm || 150} KM`,
-          duration: `${Math.ceil((r.distanceKm || 150) / 120)} Days`,
-          route: `${r.origin} → ${r.destination}`,
-          description: r.description || `User ride planned from ${r.origin} to ${r.destination}.`,
+          duration: r.durationDays ? `${r.durationDays} ${r.durationDays === 1 ? "Day" : "Days"}` : `${Math.ceil((r.distanceKm || 150) / 120)} Days`,
+          route: fullRoute,
+          stops: realStops,
+          description: r.description || `User ride planned from ${startLoc} to ${destLoc}.`,
           requirements: [
             "Helmet and full riding gear required",
             "Motorcycle in good mechanical condition",
@@ -95,8 +139,8 @@ function UpcomingRides() {
 
       setRides(dbFormatted);
       setSelectedRide((prev) => {
-        if (!prev) return dbFormatted.length > 0 ? dbFormatted[0] : null;
-        return dbFormatted.find((item) => item.id === prev.id) || (dbFormatted.length > 0 ? dbFormatted[0] : null);
+        if (!dbFormatted || dbFormatted.length === 0) return null;
+        return dbFormatted.find((item) => item.id === prev?.id) || dbFormatted[0];
       });
     } catch (err) {
       console.error("Error fetching live upcoming rides:", err);
@@ -114,9 +158,20 @@ function UpcomingRides() {
       fetchUpcomingRides();
     };
 
+    const handleRideDeleted = (e) => {
+      const deletedId = e.detail?.rideId;
+      if (deletedId) {
+        setRides((prev) => prev.filter((r) => String(r.id) !== String(deletedId)));
+        setSelectedRide((prev) => (String(prev?.id) === String(deletedId) ? null : prev));
+      }
+      fetchUpcomingRides();
+    };
+
     window.addEventListener("mototribe:ride-created", handleRideCreated);
+    window.addEventListener("mototribe:ride-deleted", handleRideDeleted);
     return () => {
       window.removeEventListener("mototribe:ride-created", handleRideCreated);
+      window.removeEventListener("mototribe:ride-deleted", handleRideDeleted);
     };
   }, [fetchUpcomingRides]);
 
@@ -131,41 +186,11 @@ function UpcomingRides() {
     return () => clearInterval(timer);
   }, []);
 
-  const getRideDate = (ride) => {
-    if (!ride || !ride.date) return new Date();
-    return new Date(`${ride.date}T${ride.time || "06:00"}:00`);
-  };
+  // getRideDateHelper and getCurrentStatusHelper are defined at module scope
 
-  const getCurrentStatus = (ride) => {
-    if (ride.status === "completed" || ride.status === "cancelled") {
-      return ride.status.toUpperCase();
-    }
-
-    const startDate = getRideDate(ride);
-    const durationDays = ride.durationDays || 1;
-    const durationMs = durationDays * 24 * 60 * 60 * 1000;
-    const endDate = new Date(startDate.getTime() + durationMs);
-
-    const timeUntilStart = startDate.getTime() - now.getTime();
-    const timeUntilEnd = endDate.getTime() - now.getTime();
-
-    if (timeUntilEnd <= 0) {
-      return "COMPLETED";
-    }
-
-    if (timeUntilStart <= 0) {
-      return "LIVE";
-    }
-
-    if (timeUntilStart <= 60 * 60 * 1000) {
-      return "STARTING";
-    }
-
-    return ride.status || "UPCOMING";
-  };
 
   const getCountdown = (ride) => {
-    const target = getRideDate(ride);
+    const target = getRideDateHelper(ride);
     const difference = target.getTime() - now.getTime();
 
     if (difference <= 0) {
@@ -192,8 +217,8 @@ function UpcomingRides() {
   const filteredRides = useMemo(() => {
     // Exclude rides that are completed, cancelled, or whose departure date/time has passed (unless currently LIVE)
     const activeUpcomingRides = rides.filter((ride) => {
-      const currentStatus = getCurrentStatus(ride);
-      const rideDate = getRideDate(ride);
+      const currentStatus = getCurrentStatusHelper(ride, now);
+      const rideDate = getRideDateHelper(ride);
       const isPast = rideDate.getTime() < now.getTime() && currentStatus !== "LIVE";
 
       return (
@@ -329,12 +354,17 @@ function UpcomingRides() {
     });
   };
 
-  const selectedCountdown = selectedRide
-    ? getCountdown(selectedRide)
+  const activeSelectedRide = useMemo(() => {
+    if (!filteredRides || filteredRides.length === 0) return null;
+    return filteredRides.find((item) => item.id === selectedRide?.id) || filteredRides[0];
+  }, [filteredRides, selectedRide]);
+
+  const selectedCountdown = activeSelectedRide
+    ? getCountdown(activeSelectedRide)
     : null;
 
-  const selectedStatus = selectedRide
-    ? getCurrentStatus(selectedRide)
+  const selectedStatus = activeSelectedRide
+    ? getCurrentStatusHelper(activeSelectedRide, now)
     : "UPCOMING";
 
   return (
@@ -412,7 +442,7 @@ function UpcomingRides() {
               ))}
             </div>
 
-            <div className="upcoming-rides-layout">
+            <div className={`upcoming-rides-layout ${filteredRides.length === 0 ? "no-rides" : ""}`}>
               <div className="ride-list">
                 <div className="ride-list-header">
                   <span>
@@ -432,12 +462,12 @@ function UpcomingRides() {
                       letterSpacing: "1px",
                     }}
                   >
-                    LOADING UPCOMING RIDES FROM DATABASE...
+                    LOADING UPCOMING RIDES...
                   </div>
                 ) : filteredRides.length > 0 ? (
                   filteredRides.map((ride) => {
                     const countdown = getCountdown(ride);
-                    const status = getCurrentStatus(ride);
+                    const status = getCurrentStatusHelper(ride, now);
                     const maxCap = ride.maxRiders > 0 ? ride.maxRiders : 1;
                     const rawPercent = Math.round((ride.riders / maxCap) * 100);
                     const progressPercent = Math.min(100, Math.max(0, rawPercent));
@@ -446,7 +476,7 @@ function UpcomingRides() {
                       <article
                         key={ride.id}
                         className={`ride-card ${
-                          selectedRide?.id === ride.id ? "selected" : ""
+                          activeSelectedRide?.id === ride.id ? "selected" : ""
                         }`}
                         onClick={() => setSelectedRide(ride)}
                       >
@@ -551,7 +581,7 @@ function UpcomingRides() {
                   >
                     <div style={{ fontSize: "24px", marginBottom: "8px" }}>🏍️</div>
                     <h3 style={{ fontSize: "14px", letterSpacing: "1px", color: "#fff", marginBottom: "6px" }}>
-                      NO UPCOMING RIDES IN DATABASE
+                      NO UPCOMING RIDES SCHEDULED
                     </h3>
                     <p style={{ fontSize: "12px", color: "rgba(255, 255, 255, 0.5)", margin: 0 }}>
                       Plan a ride using the AI Route Builder above to schedule your first journey!
@@ -560,7 +590,7 @@ function UpcomingRides() {
                 )}
               </div>
 
-              {selectedRide && (
+              {activeSelectedRide && filteredRides.length > 0 && (
                 <aside className="ride-detail-panel">
                   <div className="detail-topline">
                     <span>RIDE EVENT</span>
@@ -573,10 +603,10 @@ function UpcomingRides() {
                     </span>
                   </div>
 
-                  <h3>{selectedRide.name}</h3>
+                  <h3>{activeSelectedRide.name}</h3>
 
                   <p className="detail-description">
-                    {selectedRide.description}
+                    {activeSelectedRide.description}
                   </p>
 
                   <div className="ur-detail-route">
@@ -585,7 +615,7 @@ function UpcomingRides() {
 
                       <div className="ur-point-info">
                         <small>START</small>
-                        <strong>{selectedRide.start}</strong>
+                        <strong>{activeSelectedRide.start}</strong>
                       </div>
                     </div>
 
@@ -596,7 +626,7 @@ function UpcomingRides() {
 
                       <div className="ur-point-info">
                         <small>DESTINATION</small>
-                        <strong>{selectedRide.destination}</strong>
+                        <strong>{activeSelectedRide.destination}</strong>
                       </div>
                     </div>
                   </div>
@@ -604,22 +634,22 @@ function UpcomingRides() {
                   <div className="detail-stats">
                     <div>
                       <span>DATE</span>
-                      <strong>{formatDate(selectedRide.date)}</strong>
+                      <strong>{formatDate(activeSelectedRide.date)}</strong>
                     </div>
 
                     <div>
                       <span>START TIME</span>
-                      <strong>{selectedRide.time}</strong>
+                      <strong>{activeSelectedRide.time}</strong>
                     </div>
 
                     <div>
                       <span>DISTANCE</span>
-                      <strong>{selectedRide.distance}</strong>
+                      <strong>{activeSelectedRide.distance}</strong>
                     </div>
 
                     <div>
                       <span>DURATION</span>
-                      <strong>{selectedRide.duration}</strong>
+                      <strong>{activeSelectedRide.duration}</strong>
                     </div>
                   </div>
 
@@ -662,16 +692,16 @@ function UpcomingRides() {
                   <div className="detail-section">
                     <span className="detail-label">ROUTE</span>
 
-                    <p>{selectedRide.route}</p>
+                    <p>{activeSelectedRide.route}</p>
                   </div>
 
                   <div className="detail-section">
                     <span className="detail-label">RIDE PROFILE</span>
 
                     <div className="profile-tags">
-                      <span>{selectedRide.type}</span>
-                      <span>{selectedRide.difficulty}</span>
-                      <span>{selectedRide.organizerType}</span>
+                      <span>{activeSelectedRide.type}</span>
+                      <span>{activeSelectedRide.difficulty}</span>
+                      <span>{activeSelectedRide.organizerType}</span>
                     </div>
                   </div>
 
@@ -679,7 +709,7 @@ function UpcomingRides() {
                     <span className="detail-label">REQUIREMENTS</span>
 
                     <ul className="requirements-list">
-                      {selectedRide.requirements.map((requirement) => (
+                      {activeSelectedRide.requirements.map((requirement) => (
                         <li key={requirement}>
                           <span>+</span>
                           {requirement}
@@ -691,29 +721,29 @@ function UpcomingRides() {
                   <div className="detail-section safety-note">
                     <span className="detail-label">SAFETY NOTE</span>
 
-                    <p>{selectedRide.safety}</p>
+                    <p>{activeSelectedRide.safety}</p>
                   </div>
 
                   <div className="detail-participants">
                     <div>
                       <span>PARTICIPANTS</span>
                       <strong>
-                        {selectedRide.riders} / {selectedRide.maxRiders}
+                        {activeSelectedRide.riders} / {activeSelectedRide.maxRiders}
                       </strong>
                     </div>
 
                     <div className="participant-dots">
                       {Array.from({
-                        length: Math.min(selectedRide.riders, 8),
+                        length: Math.min(activeSelectedRide.riders, 8),
                       }).map((_, index) => (
                         <span key={index}>
                           {index + 1}
                         </span>
                       ))}
 
-                      {selectedRide.riders > 8 && (
+                      {activeSelectedRide.riders > 8 && (
                         <span className="more">
-                          +{selectedRide.riders - 8}
+                          +{activeSelectedRide.riders - 8}
                         </span>
                       )}
                     </div>
@@ -721,44 +751,44 @@ function UpcomingRides() {
 
                   <button
                     className={`primary-ride-action ${
-                      selectedRide.isOrganizer
+                      activeSelectedRide.isOrganizer
                         ? "organizer-badge"
-                        : isJoined(selectedRide.id)
+                        : isJoined(activeSelectedRide.id)
                         ? "joined"
                         : ""
                     }`}
-                    onClick={() => handlePrimaryAction(selectedRide)}
+                    onClick={() => handlePrimaryAction(activeSelectedRide)}
                     disabled={
-                      selectedRide.isOrganizer ||
-                      (selectedRide.riders >= selectedRide.maxRiders &&
-                        !isJoined(selectedRide.id) &&
-                        !selectedRide.requestRequired)
+                      activeSelectedRide.isOrganizer ||
+                      (activeSelectedRide.riders >= activeSelectedRide.maxRiders &&
+                        !isJoined(activeSelectedRide.id) &&
+                        !activeSelectedRide.requestRequired)
                     }
                   >
-                    {getButtonLabel(selectedRide)}
-                    {!selectedRide.isOrganizer && <span>→</span>}
+                    {getButtonLabel(activeSelectedRide)}
+                    {!activeSelectedRide.isOrganizer && <span>→</span>}
                   </button>
 
-                  {selectedRide.requestRequired &&
-                    isRequested(selectedRide.id) && (
+                  {activeSelectedRide.requestRequired &&
+                    isRequested(activeSelectedRide.id) && (
                       <div className="request-message">
                         <span>✓</span>
                         Your request has been recorded for this demo ride.
                       </div>
                     )}
 
-                  {isJoined(selectedRide.id) && (
+                  {isJoined(activeSelectedRide.id) && (
                     <div className="joined-message">
                       <span>✓</span>
                       You are confirmed for this ride! You can now join the live tracking and chat with other members.
                     </div>
                   )}
 
-                  {(isJoined(selectedRide.id) || selectedRide.isOrganizer) && (
+                  {(isJoined(activeSelectedRide.id) || activeSelectedRide.isOrganizer) && (
                     <button
                       type="button"
                       className="live-chat-navigate-action"
-                      onClick={() => navigate(`/businesses/mototribe/ride/${selectedRide.id}/live`)}
+                      onClick={() => navigate(`/businesses/mototribe/ride/${activeSelectedRide.id}/live`)}
                     >
                       <span>ENTER LIVE RIDE & GROUP CHAT</span>
                       <span>💬 →</span>
@@ -768,7 +798,7 @@ function UpcomingRides() {
                   <button
                     type="button"
                     className="view-details-navigate-action"
-                    onClick={() => navigate(`/businesses/mototribe/ride/${selectedRide.id}`)}
+                    onClick={() => navigate(`/businesses/mototribe/ride/${activeSelectedRide.id}`)}
                   >
                     <span>VIEW FULL RIDE DETAILS</span>
                     <span>↗</span>

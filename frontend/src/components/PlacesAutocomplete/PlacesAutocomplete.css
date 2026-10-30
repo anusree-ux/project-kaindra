@@ -147,3 +147,70 @@
   text-align: center;
   background: rgba(255, 255, 255, 0.02);
 }
+
+/* GPS Button & Current Location Styling */
+.input-with-icon input {
+  padding-right: 36px !important;
+}
+
+.gps-locate-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  color: #c9964a;
+}
+
+.gps-locate-btn:hover {
+  background: rgba(201, 150, 74, 0.2);
+  transform: translateY(-50%) scale(1.15);
+}
+
+.gps-locate-btn.loading {
+  animation: gpsPulse 1s infinite alternate;
+}
+
+@keyframes gpsPulse {
+  from {
+    opacity: 0.4;
+    transform: translateY(-50%) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) scale(1.15);
+  }
+}
+
+.places-dropdown-item.current-location-item {
+  background: rgba(201, 150, 74, 0.1);
+  border-bottom: 1px solid rgba(201, 150, 74, 0.3);
+}
+
+.places-dropdown-item.current-location-item:hover,
+.places-dropdown-item.current-location-item.active {
+  background: rgba(201, 150, 74, 0.25);
+  border-left: 3px solid #c9964a;
+}
+
+.places-dropdown-item.current-location-item .places-icon {
+  background: rgba(201, 150, 74, 0.25);
+  border-color: #c9964a;
+  color: #ffffff;
+}
+
+.places-dropdown-item.current-location-item strong {
+  color: #c9964a;
+  font-weight: 700;
+}
+

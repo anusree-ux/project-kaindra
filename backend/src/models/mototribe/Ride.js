@@ -21,6 +21,41 @@ const routeInfoSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const poiPlaceSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true },
+    address: { type: String, default: "" },
+    category: {
+      type: String,
+      enum: ["fuel", "rest_stop", "repair_shop", "hotel", "food", "scenic_spot", "other"],
+      default: "other",
+    },
+    latitude: { type: Number },
+    longitude: { type: Number },
+    rating: { type: Number, default: null },
+    isOpenNow: { type: Boolean, default: null },
+    distanceMeters: { type: Number, default: null },
+    googlePlaceId: { type: String, default: "" },
+  },
+  { _id: false }
+);
+
+const journeyIntelligenceSchema = new mongoose.Schema(
+  {
+    fuelStops: { type: Number, default: 0 },
+    restStops: { type: Number, default: 0 },
+    serviceStops: { type: Number, default: 0 },
+    accommodationStops: { type: Number, default: 0 },
+    scenicStops: { type: Number, default: 0 },
+    elevationGain: { type: String, default: "680 M" },
+    weatherRisk: { type: String, default: "LOW" },
+    roadQuality: { type: String, default: "GOOD (HIGHWAY & GHAT PASSES)" },
+    places: [poiPlaceSchema],
+    computedAt: { type: Date, default: Date.now },
+  },
+  { _id: false }
+);
+
 const rideSchema = new mongoose.Schema(
   {
     organizerId: {
@@ -50,6 +85,12 @@ const rideSchema = new mongoose.Schema(
       required: [true, "Destination is required"],
       trim: true,
     },
+    stops: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
     originLat: { type: Number },
     originLng: { type: Number },
     destLat: { type: Number },
@@ -75,7 +116,7 @@ const rideSchema = new mongoose.Schema(
     },
     maxRiders: {
       type: Number,
-      default: 1,
+      default: 20,
       min: [1, "Max riders must be at least 1"],
     },
     status: {
@@ -85,6 +126,10 @@ const rideSchema = new mongoose.Schema(
     },
     routeInfo: {
       type: routeInfoSchema,
+      default: null,
+    },
+    journeyIntelligence: {
+      type: journeyIntelligenceSchema,
       default: null,
     },
   },

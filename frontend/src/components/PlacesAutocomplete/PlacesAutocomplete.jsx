@@ -402,11 +402,13 @@ export default function PlacesAutocomplete({
   onSelect,
   placeholder = "Search location...",
   icon = "📍",
+  allowCurrentLocation = true,
 }) {
   const [suggestions, setSuggestions] = useState([]);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [loading, setLoading] = useState(false);
+  const [gpsLoading, setGpsLoading] = useState(false);
 
   const inputRef = useRef(null);
   const wrapperRef = useRef(null);
@@ -424,81 +426,240 @@ export default function PlacesAutocomplete({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const searchLocations = useCallback((query) => {
-    const clean = query.trim().toLowerCase();
-    if (!clean) {
-      setSuggestions([]);
-      setOpen(false);
+  // Fetch live device GPS location using browser Geolocation & reverse geocoding
+  const handleFetchCurrentLocation = useCallback(async () => {
+    if (!("geolocation" in navigator)) {
+      alert("Geolocation is not supported by your browser.");
       return;
     }
 
-    // 1. INSTANT LOCAL MATCH (0ms response)
-    const localMatches = LOCAL_DESTINATIONS.filter((item) => {
-      const m = item.main.toLowerCase();
-      const s = item.secondary.toLowerCase();
-      const d = item.description.toLowerCase();
-      return m.includes(clean) || s.includes(clean) || d.includes(clean);
-    }).map((item) => ({
-      placeId: "loc-" + item.main.toLowerCase().replace(/\s+/g, "-"),
-      main: item.main,
-      secondary: item.secondary,
-      description: item.description,
-      coordinates: { lat: item.lat, lon: item.lon },
-    }));
+    setGpsLoading(true);
 
-    // Immediately show local matches with zero delay
-    setSuggestions(localMatches);
-    setOpen(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        const accuracyMeters = pos.coords.accuracy ? Math.round(pos.coords.accuracy) : null;
 
-    // 2. Fetch live predictions from Photon in background for extra locations
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    abortControllerRef.current = new AbortController();
-    const signal = abortControllerRef.current.signal;
+        let formattedAddress = "";
+        let mainName = "Your Location";
 
-    setLoading(true);
+        // 1. Try Google Maps Geocoder first (building & street-level accuracy)
+        if (window.google?.maps?.Geocoder) {
+          try {
+            const geocoder = new window.google.maps.Geocoder();
+            const gResult = await new Promise((resolve) => {
+              geocoder.geocode({ location: { lat, lng: lon } }, (results, status) => {
+                if (status === "OK" && Array.isArray(results) && results.length > 0) {
+                  resolve(results[0]);
+                } else {
+                  resolve(null);
+                }
+              });
+            });
 
-    const photonUrl = "https://photon.komoot.io/api/?q=" + encodeURIComponent(clean) + "&limit=6";
-    fetch(photonUrl, { signal })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (signal.aborted || !data?.features) return;
-        const onlineItems = [];
-        const seenNames = new Set(localMatches.map((m) => m.main.toLowerCase()));
+            if (gResult) {
+              formattedAddress = gResult.formatted_address;
+              const sublocality = gResult.address_components?.find((c) =>
+                c.types.includes("sublocality") || c.types.includes("neighborhood")
+              )?.long_name;
+              const city = gResult.address_components?.find((c) =>
+                c.types.includes("locality")
+              )?.long_name;
 
-        for (const f of data.features) {
-          const props = f.properties || {};
-          const name = props.name;
-          if (!name || seenNames.has(name.toLowerCase())) continue;
-          seenNames.add(name.toLowerCase());
-
-          const parts = [props.district || props.city || props.county, props.state, props.country].filter(Boolean);
-          onlineItems.push({
-            placeId: "ph-" + (props.osm_id || Math.random()),
-            main: name,
-            secondary: parts.join(", ") || props.country || "",
-            description: [name, ...parts].join(", "),
-            coordinates: f.geometry?.coordinates?.length === 2 ? { lon: f.geometry.coordinates[0], lat: f.geometry.coordinates[1] } : null,
-          });
+              if (sublocality && city) {
+                mainName = `${sublocality}, ${city}`;
+              } else if (sublocality || city) {
+                mainName = sublocality || city;
+              }
+            }
+          } catch (gErr) {
+            console.warn("[PlacesAutocomplete] Google geocoder note:", gErr);
+          }
         }
 
-        setSuggestions((prev) => {
-          const combined = [...prev];
-          const existingIds = new Set(combined.map((c) => c.main.toLowerCase()));
-          for (const item of onlineItems) {
-            if (!existingIds.has(item.main.toLowerCase())) {
-              combined.push(item);
+        // 2. Fallback to OpenStreetMap Nominatim with detailed road, neighborhood, & building parsing
+        if (!formattedAddress) {
+          try {
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`
+            );
+            if (response.ok) {
+              const data = await response.json();
+              const addr = data.address || {};
+              const road =
+                addr.road || addr.street || addr.pedestrian || addr.footway || "";
+              const area =
+                addr.suburb ||
+                addr.neighbourhood ||
+                addr.residential ||
+                addr.city_district ||
+                addr.subdivision ||
+                "";
+              const city =
+                addr.city || addr.town || addr.village || addr.county || "";
+              const state = addr.state || "";
+              const postcode = addr.postcode || "";
+
+              const parts = [road, area, city, state, postcode].filter(Boolean);
+              if (parts.length > 0) {
+                formattedAddress = parts.join(", ");
+                mainName = area || city || "Your Location";
+              } else if (data.display_name) {
+                formattedAddress = data.display_name;
+              }
             }
+          } catch (e) {
+            console.warn("[PlacesAutocomplete] Reverse geocoding note:", e);
           }
-          return combined;
+        }
+
+        const selectedText = formattedAddress || `GPS Location (${lat.toFixed(5)}, ${lon.toFixed(5)})`;
+
+        const currentLocSuggestion = {
+          placeId: "gps-live-device-location",
+          main: mainName ? `Your Location (${mainName})` : "Your Location",
+          secondary: accuracyMeters ? `${selectedText} (±${accuracyMeters}m)` : selectedText,
+          description: selectedText,
+          coordinates: { lat, lon, lng: lon, accuracy: accuracyMeters },
+          isCurrentLocation: true,
+        };
+
+        onChange(selectedText);
+        if (onSelect) {
+          onSelect(selectedText, currentLocSuggestion);
+        }
+        setGpsLoading(false);
+        setOpen(false);
+        setSuggestions([]);
+      },
+      (err) => {
+        console.warn("[PlacesAutocomplete] GPS error:", err.message);
+        setGpsLoading(false);
+        alert(
+          "Unable to fetch precise device location. Please ensure location access is allowed in your browser."
+        );
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0, // Force fresh hardware GPS fix
+      }
+    );
+  }, [onChange, onSelect]);
+
+  const searchLocations = useCallback(
+    (query) => {
+      const clean = query.trim().toLowerCase();
+      if (!clean) {
+        setSuggestions([]);
+        setOpen(false);
+        return;
+      }
+
+      const currentLocationItem = allowCurrentLocation
+        ? {
+            placeId: "gps-current-location-item",
+            main: "Your Location",
+            secondary: gpsLoading
+              ? "Detecting your device location..."
+              : "Use current GPS location",
+            description: "Your Location",
+            isCurrentLocation: true,
+            icon: "🎯",
+          }
+        : null;
+
+      // 1. INSTANT LOCAL MATCH (0ms response)
+      const localMatches = LOCAL_DESTINATIONS.filter((item) => {
+        const m = item.main.toLowerCase();
+        const s = item.secondary.toLowerCase();
+        const d = item.description.toLowerCase();
+        return m.includes(clean) || s.includes(clean) || d.includes(clean);
+      }).map((item) => ({
+        placeId: "loc-" + item.main.toLowerCase().replace(/\s+/g, "-"),
+        main: item.main,
+        secondary: item.secondary,
+        description: item.description,
+        coordinates: { lat: item.lat, lon: item.lon },
+      }));
+
+      // Prepend Your Location item if allowed
+      const combinedInitial = currentLocationItem
+        ? [currentLocationItem, ...localMatches]
+        : localMatches;
+
+      setSuggestions(combinedInitial);
+      setOpen(true);
+
+      // 2. Fetch live predictions from Photon in background for extra locations
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      abortControllerRef.current = new AbortController();
+      const signal = abortControllerRef.current.signal;
+
+      setLoading(true);
+
+      const photonUrl =
+        "https://photon.komoot.io/api/?q=" +
+        encodeURIComponent(clean) +
+        "&limit=6";
+      fetch(photonUrl, { signal })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (signal.aborted || !data?.features) return;
+          const onlineItems = [];
+          const seenNames = new Set(
+            localMatches.map((m) => m.main.toLowerCase())
+          );
+
+          for (const f of data.features) {
+            const props = f.properties || {};
+            const name = props.name;
+            if (!name || seenNames.has(name.toLowerCase())) continue;
+            seenNames.add(name.toLowerCase());
+
+            const parts = [
+              props.district || props.city || props.county,
+              props.state,
+              props.country,
+            ].filter(Boolean);
+            onlineItems.push({
+              placeId: "ph-" + (props.osm_id || Math.random()),
+              main: name,
+              secondary: parts.join(", ") || props.country || "",
+              description: [name, ...parts].join(", "),
+              coordinates:
+                f.geometry?.coordinates?.length === 2
+                  ? {
+                      lon: f.geometry.coordinates[0],
+                      lat: f.geometry.coordinates[1],
+                    }
+                  : null,
+            });
+          }
+
+          setSuggestions((prev) => {
+            const combined = [...prev];
+            const existingIds = new Set(
+              combined.map((c) => c.main.toLowerCase())
+            );
+            for (const item of onlineItems) {
+              if (!existingIds.has(item.main.toLowerCase())) {
+                combined.push(item);
+              }
+            }
+            return combined;
+          });
+        })
+        .catch(() => {})
+        .finally(() => {
+          if (!signal.aborted) setLoading(false);
         });
-      })
-      .catch(() => {})
-      .finally(() => {
-        if (!signal.aborted) setLoading(false);
-      });
-  }, []);
+    },
+    [allowCurrentLocation, gpsLoading]
+  );
 
   const handleInputChange = (e) => {
     const val = e.target.value;
@@ -508,7 +669,6 @@ export default function PlacesAutocomplete({
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
     if (val.trim().length >= 1) {
-      // Execute local match instantly without delay
       searchLocations(val);
     } else {
       setOpen(false);
@@ -517,10 +677,23 @@ export default function PlacesAutocomplete({
   };
 
   const handleFocus = () => {
+    const currentLocationItem = allowCurrentLocation
+      ? {
+          placeId: "gps-current-location-item",
+          main: "Your Location",
+          secondary: gpsLoading
+            ? "Detecting your device location..."
+            : "Use current GPS location",
+          description: "Your Location",
+          isCurrentLocation: true,
+          icon: "🎯",
+        }
+      : null;
+
     if (value && value.trim().length >= 1) {
       searchLocations(value);
     } else {
-      // Show top recommended motorcycling hubs on empty focus
+      // Show Your Location + top recommended locations on empty focus
       const topPicks = LOCAL_DESTINATIONS.slice(0, 7).map((item) => ({
         placeId: "loc-" + item.main.toLowerCase().replace(/\s+/g, "-"),
         main: item.main,
@@ -528,12 +701,19 @@ export default function PlacesAutocomplete({
         description: item.description,
         coordinates: { lat: item.lat, lon: item.lon },
       }));
-      setSuggestions(topPicks);
+      setSuggestions(
+        currentLocationItem ? [currentLocationItem, ...topPicks] : topPicks
+      );
       setOpen(true);
     }
   };
 
   const handleSelect = (suggestion) => {
+    if (suggestion.isCurrentLocation) {
+      handleFetchCurrentLocation();
+      return;
+    }
+
     const selectedText = suggestion.description || suggestion.main;
     onChange(selectedText);
     if (onSelect) {
@@ -563,7 +743,9 @@ export default function PlacesAutocomplete({
       setActiveIndex((prev) => (prev + 1) % suggestions.length);
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
-      setActiveIndex((prev) => (prev - 1 + suggestions.length) % suggestions.length);
+      setActiveIndex(
+        (prev) => (prev - 1 + suggestions.length) % suggestions.length
+      );
     } else if (e.key === "Escape") {
       setOpen(false);
     }
@@ -572,7 +754,9 @@ export default function PlacesAutocomplete({
   return (
     <div className="places-autocomplete-wrapper" ref={wrapperRef}>
       <div className="input-with-icon">
-        <i className="places-input-icon">{loading ? "⚡" : icon}</i>
+        <i className="places-input-icon">
+          {loading || gpsLoading ? "⚡" : icon}
+        </i>
 
         <input
           ref={inputRef}
@@ -591,14 +775,20 @@ export default function PlacesAutocomplete({
             <button
               type="button"
               key={s.placeId}
-              className={"places-dropdown-item" + (activeIndex === idx ? " active" : "")}
+              className={
+                "places-dropdown-item" +
+                (s.isCurrentLocation ? " current-location-item" : "") +
+                (activeIndex === idx ? " active" : "")
+              }
               onMouseDown={(e) => {
                 e.preventDefault();
               }}
               onMouseEnter={() => setActiveIndex(idx)}
               onClick={() => handleSelect(s)}
             >
-              <span className="places-icon">📍</span>
+              <span className="places-icon">
+                {s.icon || (s.isCurrentLocation ? "🎯" : "📍")}
+              </span>
               <div className="places-text">
                 <strong>{s.main}</strong>
                 {s.secondary && <small>{s.secondary}</small>}

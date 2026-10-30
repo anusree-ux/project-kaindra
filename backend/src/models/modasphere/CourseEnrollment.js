@@ -1,5 +1,39 @@
 const mongoose = require("mongoose");
 
+const academyTaskSubmissionSchema = new mongoose.Schema(
+  {
+    lessonId: {
+      type: String,
+      required: true,
+    },
+    fileUrl: {
+      type: String,
+      required: true,
+    },
+    filePublicId: {
+      type: String,
+      required: true,
+    },
+    fileName: {
+      type: String,
+      required: true,
+    },
+    mimeType: {
+      type: String,
+      required: true,
+    },
+    fileSize: {
+      type: Number,
+      required: true,
+    },
+    submittedAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  { _id: false },
+);
+
 const modaAcademyEnrollmentSchema = new mongoose.Schema(
   {
     enrollmentId: {
@@ -61,15 +95,9 @@ const modaAcademyEnrollmentSchema = new mongoose.Schema(
       lowercase: true,
     },
 
-    phone: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-
     experience: {
       type: String,
-      required: true,
+      required: false,
       enum: ["Beginner", "Intermediate", "Advanced"],
     },
 
@@ -84,6 +112,16 @@ const modaAcademyEnrollmentSchema = new mongoose.Schema(
       min: 0,
       max: 100,
       default: 0,
+    },
+
+    completedLessonIds: {
+      type: [String],
+      default: [],
+    },
+
+    taskSubmissions: {
+      type: [academyTaskSubmissionSchema],
+      default: [],
     },
 
     enrolledAt: {

@@ -5,9 +5,11 @@
 .modaacademy-page {
   background: #f7f5f1;
   color: #171717;
-  overflow: hidden;
-}
 
+  /* Prevent horizontal overflow only.
+     Normal vertical scrolling remains available. */
+  overflow-x: hidden;
+}
 .modaacademy-container {
   width: min(1180px, calc(100% - 48px));
   margin: 0 auto;
@@ -338,10 +340,17 @@
 /* =========================================
    MY LEARNING
 ========================================= */
-
 .modaacademy-my-learning {
-  padding: 120px 0;
+  min-height: calc(100vh - 85px);
+
+  padding: 120px 0 80px;
+
   background: #f7f5f1;
+
+  box-sizing: border-box;
+}
+#my-learning {
+  scroll-margin-top: 85px;
 }
 
 .modaacademy-no-learning {
@@ -380,59 +389,158 @@
   gap: 20px;
 }
 
+
 .modaacademy-learning-card {
+  min-width: 0;
   padding: 30px;
-  background: white;
+  background: #fff;
   border: 1px solid #ddd9d2;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  box-sizing: border-box;
 }
 
+.modaacademy-learning-card:hover {
+  border-color: #bd8b46;
+  box-shadow: 0 8px 24px rgba(23, 23, 23, 0.06);
+}
+
+/* Card header */
 .learning-card-header {
+  position: relative;
   display: flex;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 20px;
+  gap: 16px;
 }
 
-.learning-card-header > div > span {
+.learning-card-header > div:first-child {
+  min-width: 0;
+}
+
+.learning-card-header > div:first-child > span {
+  display: block;
   color: #bd8b46;
   font-size: 10px;
   letter-spacing: 2px;
+  overflow-wrap: anywhere;
 }
 
 .learning-card-header h3 {
   margin: 12px 0 0;
   font-size: 21px;
+  line-height: 1.4;
   font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
-.learning-card-header > svg {
+/* Check icon and three-dot menu */
+.learning-card-actions {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.learning-card-actions > svg {
   color: #bd8b46;
   flex-shrink: 0;
 }
 
+.learning-card-menu-trigger {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #514b43;
+  background: #fff;
+  border: 1px solid #e5e1db;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.learning-card-menu-trigger:hover {
+  background: #f7f5f1;
+  border-color: #bd8b46;
+}
+
+.learning-card-menu-trigger:focus-visible,
+.learning-card-resume:focus-visible,
+.learning-card-unenroll:focus-visible {
+  outline: 2px solid #bd8b46;
+  outline-offset: 3px;
+}
+
+/* Dropdown menu */
+.learning-card-menu {
+  position: absolute;
+  z-index: 20;
+  top: 43px;
+  right: 0;
+  min-width: 150px;
+  padding: 6px;
+  background: #fff;
+  border: 1px solid #e5e1db;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.learning-card-unenroll {
+  width: 100%;
+  padding: 11px 12px;
+  border: 0;
+  background: transparent;
+  color: #b42318;
+  text-align: left;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.learning-card-unenroll:hover {
+  background: #fef3f2;
+}
+
+.learning-card-unenroll:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Student, level and status */
 .learning-card-info {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 15px;
   margin-top: 30px;
 }
 
 .learning-card-info div {
+  min-width: 0;
   padding-top: 14px;
   border-top: 1px solid #e5e1db;
 }
 
-.learning-card-info span {
+.learning-card-info span,
+.learning-progress-top > span {
   display: block;
   margin-bottom: 7px;
   color: #999;
   font-size: 9px;
+  font-weight: 400;
   letter-spacing: 1.5px;
+  text-transform: uppercase;
 }
 
 .learning-card-info strong {
+  display: block;
   font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
+/* Course progress */
 .learning-progress {
   margin-top: 30px;
 }
@@ -440,8 +548,15 @@
 .learning-progress-top {
   display: flex;
   justify-content: space-between;
+  gap: 12px;
   margin-bottom: 9px;
-  font-size: 12px;
+  font-size: 9px;
+}
+
+.learning-progress-top strong {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .learning-progress-bar {
@@ -454,7 +569,69 @@
   display: block;
   height: 100%;
   background: #bd8b46;
+  transition: width 0.3s ease;
 }
+
+/* Resume Learning button */
+.learning-card-resume {
+  width: fit-content;
+  min-height: 40px;
+  margin-top: 20px;
+  margin-left: auto;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  border: 1px solid #171717;
+  background: #171717;
+  color: #fff;
+
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.25s ease, border-color 0.25s ease;
+}
+
+.learning-card-resume:hover {
+  background: #bd8b46;
+  border-color: #bd8b46;
+}
+
+/* Responsive card layout */
+@media (max-width: 700px) {
+  .modaacademy-learning-card {
+    padding: 22px;
+  }
+
+  .learning-card-info {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 24px;
+  }
+
+  .learning-card-header h3 {
+    font-size: 19px;
+  }
+
+  .learning-card-actions {
+    gap: 6px;
+  }
+
+  .learning-card-menu-trigger {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+@media (max-width: 380px) {
+  .learning-card-info {
+    grid-template-columns: 1fr;
+  }
+}
+
 
 /* =========================================
    LEARNING AREAS

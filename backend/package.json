@@ -8,7 +8,8 @@
     "dev": "nodemon server.js",
     "test": "jest --runInBand",
     "seed:fuel": "node scripts/seedFuelPrices.js",
-    "seed:badges": "node scripts/seedBadges.js"
+    "seed:badges": "node scripts/seedBadges.js",
+    "seed:admin": "node scripts/seedAdmin.js"
   },
   "keywords": [],
   "author": "",

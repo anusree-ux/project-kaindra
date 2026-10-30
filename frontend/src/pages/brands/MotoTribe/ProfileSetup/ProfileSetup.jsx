@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../../../context/AuthContext";
+import apiClient from "../../../../services/apiClient";
 import "./ProfileSetup.css";
 
 const MAX_CONTACTS = 3;
@@ -19,7 +21,9 @@ const createEmptyProfile = () => ({
 
 function getInitialProfile() {
   try {
-    const savedProfile = localStorage.getItem("mototribe_rider_profile");
+    const savedProfile = localStorage.getItem(
+      "mototribe_rider_profile"
+    );
 
     if (savedProfile) {
       const parsedProfile = JSON.parse(savedProfile);
@@ -44,7 +48,9 @@ function getInitialProfile() {
       };
     }
 
-    const signupData = localStorage.getItem("mototribe_verified_signup");
+    const signupData = localStorage.getItem(
+      "mototribe_verified_signup"
+    );
 
     if (signupData) {
       const parsedSignup = JSON.parse(signupData);
@@ -63,18 +69,46 @@ function getInitialProfile() {
 
 function ProfileSetup() {
   const navigate = useNavigate();
+  const { isAuthenticated, user, updateUser } = useAuth();
 
   const [profile, setProfile] = useState(getInitialProfile);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
+  // Sync with backend rider profile if authenticated
   useEffect(() => {
-    return () => {
-      setIsSaving(false);
-    };
-  }, []);
+    if (!isAuthenticated) return;
 
+    const fetchBackendProfile = async () => {
+      try {
+        const res = await apiClient.get("/api/mototribe/rider-profile/me");
+        const backendProf = res.data?.data?.profile;
+        if (backendProf) {
+          setProfile((prev) => {
+            const remoteContacts = (backendProf.emergencyContacts || []).map((c) => ({
+              name: c.name || "",
+              phone: c.phoneNumber || "",
+              relationship: c.relationship || "",
+            }));
+
+            return {
+              ...prev,
+              name: prev.name || user?.name || "",
+              contacts: remoteContacts.length > 0 ? remoteContacts : prev.contacts,
+            };
+          });
+        }
+      } catch (err) {
+        // Silent fallback to local storage
+        console.warn("Could not fetch remote rider profile:", err);
+      }
+    };
+
+    fetchBackendProfile();
+  }, [isAuthenticated, user?.name]);
+
+  // Handle profile information changes
   const handleProfileChange = (event) => {
     const { name, value } = event.target;
 
@@ -87,6 +121,7 @@ function ProfileSetup() {
     setSuccess("");
   };
 
+  // Handle emergency contact changes
   const handleContactChange = (index, field, value) => {
     let updatedValue = value;
 
@@ -112,24 +147,33 @@ function ProfileSetup() {
     setSuccess("");
   };
 
+  // Add an emergency contact
   const addContact = () => {
     if (profile.contacts.length >= MAX_CONTACTS) {
-      setError("You can add a maximum of 3 emergency contacts.");
+      setError(
+        "You can add a maximum of 3 emergency contacts."
+      );
       return;
     }
 
     setProfile((previous) => ({
       ...previous,
-      contacts: [...previous.contacts, createEmptyContact()],
+      contacts: [
+        ...previous.contacts,
+        createEmptyContact(),
+      ],
     }));
 
     setError("");
     setSuccess("");
   };
 
+  // Remove an emergency contact
   const removeContact = (index) => {
     if (profile.contacts.length === 1) {
-      setError("At least one emergency contact section must remain.");
+      setError(
+        "At least one emergency contact section must remain."
+      );
       return;
     }
 
@@ -144,6 +188,7 @@ function ProfileSetup() {
     setSuccess("");
   };
 
+  // Validate the rider profile
   const validateProfile = () => {
     const name = profile.name.trim();
     const region = profile.region.trim();
@@ -179,7 +224,11 @@ function ProfileSetup() {
       return "Please add at least one emergency contact.";
     }
 
-    for (let index = 0; index < profile.contacts.length; index += 1) {
+    for (
+      let index = 0;
+      index < profile.contacts.length;
+      index += 1
+    ) {
       const contact = profile.contacts[index];
 
       const contactName = contact.name.trim();
@@ -221,7 +270,8 @@ function ProfileSetup() {
     return "";
   };
 
-  const handleSave = (event) => {
+  // Save profile information
+  const handleSave = async (event) => {
     event.preventDefault();
 
     if (isSaving) {
@@ -244,6 +294,7 @@ function ProfileSetup() {
       name: profile.name.trim(),
       experience: profile.experience,
       region: profile.region.trim(),
+
       contacts: profile.contacts
         .filter(
           (contact) =>
@@ -256,6 +307,7 @@ function ProfileSetup() {
           phone: contact.phone.trim(),
           relationship: contact.relationship.trim(),
         })),
+
       updatedAt: new Date().toISOString(),
     };
 
@@ -264,32 +316,82 @@ function ProfileSetup() {
         "mototribe_rider_profile",
         JSON.stringify(profileToSave)
       );
+      localStorage.setItem(
+        "mototribeProfile",
+        JSON.stringify(profileToSave)
+      );
+
+      const existingBrands = Array.isArray(user?.brands) ? user.brands : ["modasphere"];
+      const updatedBrands = existingBrands.includes("mototribe")
+        ? existingBrands
+        : [...existingBrands, "mototribe"];
+
+      const localUserPayload = {
+        name: profileToSave.name,
+        brands: updatedBrands,
+        isRider: true,
+      };
 
       const existingUser = localStorage.getItem("mototribe_user");
-
       if (existingUser) {
         try {
           const parsedUser = JSON.parse(existingUser);
-
           localStorage.setItem(
             "mototribe_user",
             JSON.stringify({
               ...parsedUser,
-              name: profileToSave.name,
+              ...localUserPayload,
             })
           );
         } catch (error) {
           console.error("Unable to update MotoTribe user:", error);
         }
+      } else {
+        localStorage.setItem(
+          "mototribe_user",
+          JSON.stringify(localUserPayload)
+        );
       }
 
-      setSuccess("Profile saved successfully.");
+      // Sync to real backend if authenticated
+      if (isAuthenticated) {
+        try {
+          const res = await apiClient.post("/api/mototribe/rider-profile", {
+            name: profileToSave.name,
+            experience: profileToSave.experience,
+            region: profileToSave.region,
+            emergencyContacts: profileToSave.contacts.map((c) => ({
+              name: c.name,
+              phoneNumber: c.phone,
+              relationship: c.relationship,
+            })),
+          });
+
+          if (res.data?.data?.user && updateUser) {
+            updateUser(res.data.data.user);
+          } else if (updateUser) {
+            updateUser(localUserPayload);
+          }
+        } catch (apiErr) {
+          console.warn("Unable to sync rider profile to API:", apiErr);
+          if (updateUser) {
+            updateUser(localUserPayload);
+          }
+        }
+      } else if (updateUser) {
+        updateUser(localUserPayload);
+      }
+
+      setSuccess("Profile completed! Welcome to MotoTribe, Rider.");
 
       window.setTimeout(() => {
         navigate("/businesses/mototribe/vehicles");
       }, 700);
     } catch (storageError) {
-      console.error("Unable to save rider profile:", storageError);
+      console.error(
+        "Unable to save rider profile:",
+        storageError
+      );
 
       setError(
         "Unable to save your profile. Please try again."
@@ -299,19 +401,40 @@ function ProfileSetup() {
     }
   };
 
+  // Skip profile setup
   const handleSkip = () => {
     navigate("/businesses/mototribe/vehicles");
+  };
+
+  // Back button
+  const handleBack = () => {
+    navigate(-1);
   };
 
   return (
     <main className="profile-setup-page">
       <div className="profile-setup-container">
+
+        {/* Back Button */}
+        <button
+          type="button"
+          className="profile-back-button"
+          onClick={handleBack}
+          aria-label="Go back to the previous page"
+        >
+          <span className="profile-back-arrow">←</span>
+          <span>BACK</span>
+        </button>
+
+        {/* Page Header */}
         <header className="profile-setup-header">
           <span className="profile-eyebrow">
             MOTOTRIBE RIDER PROFILE
           </span>
 
-          <h1>Complete Your Rider Profile</h1>
+          <h1>
+            Complete Your Rider Profile
+          </h1>
 
           <p>
             Add your riding details and emergency contacts to make
@@ -319,11 +442,17 @@ function ProfileSetup() {
           </p>
         </header>
 
-        <form className="profile-card" onSubmit={handleSave}>
+        {/* Profile Form */}
+        <form
+          className="profile-card"
+          onSubmit={handleSave}
+        >
+          {/* Rider Information */}
           <section>
             <div className="section-heading">
               <div>
                 <h2>Rider Information</h2>
+
                 <p>
                   Tell us a little about your riding experience
                   and region.
@@ -368,15 +497,19 @@ function ProfileSetup() {
                   <option value="">
                     Select experience
                   </option>
+
                   <option value="Beginner">
                     Beginner
                   </option>
+
                   <option value="Intermediate">
                     Intermediate
                   </option>
+
                   <option value="Experienced">
                     Experienced
                   </option>
+
                   <option value="Professional">
                     Professional
                   </option>
@@ -403,6 +536,7 @@ function ProfileSetup() {
             </div>
           </section>
 
+          {/* Emergency Contacts */}
           <section className="emergency-section">
             <div className="section-heading">
               <div>
@@ -432,7 +566,9 @@ function ProfileSetup() {
                       <span>
                         {index === 0
                           ? "Primary Contact"
-                          : `Contact ${index + 1} of ${profile.contacts.length}`}
+                          : `Contact ${index + 1} of ${
+                              profile.contacts.length
+                            }`}
                       </span>
                     </div>
 
@@ -450,9 +586,7 @@ function ProfileSetup() {
 
                   <div className="form-grid contact-form-grid">
                     <div className="form-group">
-                      <label
-                        htmlFor={`contact-name-${index}`}
-                      >
+                      <label htmlFor={`contact-name-${index}`}>
                         Name <span>*</span>
                       </label>
 
@@ -474,9 +608,7 @@ function ProfileSetup() {
                     </div>
 
                     <div className="form-group">
-                      <label
-                        htmlFor={`contact-phone-${index}`}
-                      >
+                      <label htmlFor={`contact-phone-${index}`}>
                         Phone <span>*</span>
                       </label>
 
@@ -543,6 +675,7 @@ function ProfileSetup() {
             )}
           </section>
 
+          {/* Error Message */}
           {error && (
             <div
               className="profile-message error"
@@ -552,6 +685,7 @@ function ProfileSetup() {
             </div>
           )}
 
+          {/* Success Message */}
           {success && (
             <div
               className="profile-message success"
@@ -561,6 +695,7 @@ function ProfileSetup() {
             </div>
           )}
 
+          {/* Form Actions */}
           <div className="profile-actions">
             <button
               type="button"

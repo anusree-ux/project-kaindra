@@ -1,3 +1,4 @@
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../../../context/AuthContext";
 import apiClient from "../../../../services/apiClient";
@@ -5,6 +6,7 @@ import "./RidePassport.css";
 
 function RidePassport() {
   const { user, isAuthenticated, openAuthModal } = useAuth();
+
   const [passportData, setPassportData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [selectedKey, setSelectedKey] = useState(null);
@@ -16,13 +18,17 @@ function RidePassport() {
     }
 
     setLoading(true);
+
     try {
-      const res = await apiClient.get("/api/mototribe/rider-profile/me/passport");
+      const res = await apiClient.get(
+        "/api/mototribe/rider-profile/me/passport"
+      );
+
       if (res.data?.data) {
         setPassportData(res.data.data);
       }
     } catch (err) {
-      console.error("Failed to load passport & achievements from DB:", err);
+      console.error("Failed to load passport and achievements:", err);
     } finally {
       setLoading(false);
     }
@@ -33,50 +39,60 @@ function RidePassport() {
   }, [fetchPassport]);
 
   const profile = passportData?.profile;
-  const earnedBadges = passportData?.earnedBadges || [];
-  const unearnedBadges = passportData?.unearnedBadges || [];
+  const earnedBadges = useMemo(
+    () => passportData?.earnedBadges || [],
+    [passportData]
+  );
+  const unearnedBadges = useMemo(
+    () => passportData?.unearnedBadges || [],
+    [passportData]
+  );
 
   const totalRides = profile?.totalRidesCompleted || 0;
   const totalDistance = profile?.totalDistanceKm || 0;
 
-  // Combine and format all badges from DB
   const allBadges = useMemo(() => {
     const list = [];
-    earnedBadges.forEach((b) => {
-      let curVal = b.criteriaValue;
-      if (b.criteriaType === "ridesCompleted") curVal = totalRides;
-      if (b.criteriaType === "totalDistanceKm") curVal = totalDistance;
+
+    const stats = {
+      ridesCompleted: totalRides,
+      totalDistanceKm: totalDistance,
+      regionsExplored: profile?.regionsExplored?.length || 0,
+      rideGroupsJoined: profile?.rideGroupsJoined || 0,
+    };
+
+    earnedBadges.forEach((badge) => {
+      const currentValue =
+        stats[badge.criteriaType] ?? badge.criteriaValue;
 
       list.push({
-        key: b.key,
-        name: b.name,
-        description: b.description,
-        criteriaType: b.criteriaType,
-        criteriaValue: b.criteriaValue,
-        currentValue: Math.max(curVal, b.criteriaValue),
+        key: badge.key,
+        name: badge.name,
+        description: badge.description,
+        criteriaType: badge.criteriaType,
+        criteriaValue: badge.criteriaValue,
+        currentValue: Math.max(currentValue, badge.criteriaValue),
         isEarned: true,
-        earnedAt: b.earnedAt,
+        earnedAt: badge.earnedAt,
       });
     });
 
-    unearnedBadges.forEach((b) => {
-      let curVal = 0;
-      if (b.criteriaType === "ridesCompleted") curVal = totalRides;
-      if (b.criteriaType === "totalDistanceKm") curVal = totalDistance;
+    unearnedBadges.forEach((badge) => {
+      const currentValue = stats[badge.criteriaType] ?? 0;
 
       list.push({
-        key: b.key,
-        name: b.name,
-        description: b.description,
-        criteriaType: b.criteriaType,
-        criteriaValue: b.criteriaValue,
-        currentValue: curVal,
+        key: badge.key,
+        name: badge.name,
+        description: badge.description,
+        criteriaType: badge.criteriaType,
+        criteriaValue: badge.criteriaValue,
+        currentValue,
         isEarned: false,
       });
     });
 
     return list;
-  }, [earnedBadges, unearnedBadges, totalRides, totalDistance]);
+  }, [earnedBadges, unearnedBadges, totalRides, totalDistance, profile]);
 
   useEffect(() => {
     if (allBadges.length > 0 && !selectedKey) {
@@ -84,221 +100,528 @@ function RidePassport() {
     }
   }, [allBadges, selectedKey]);
 
-  const selectedBadge = allBadges.find((b) => b.key === selectedKey) || allBadges[0] || null;
-  const selectedIndex = allBadges.findIndex((b) => b.key === selectedKey);
+  const selectedBadge =
+    allBadges.find((badge) => badge.key === selectedKey) ||
+    allBadges[0] ||
+    null;
 
-  const riderLevel = totalRides > 10 ? "VETERAN RIDER" : totalRides > 3 ? "EXPLORER" : "ROOKIE RIDER";
-  const progressPercent = Math.min(100, Math.max(15, (totalRides % 5) * 20 + 20));
+  const selectedIndex = allBadges.findIndex(
+    (badge) => badge.key === selectedBadge?.key
+  );
+
+  const riderLevel =
+    totalRides > 10
+      ? "VETERAN RIDER"
+      : totalRides > 3
+        ? "EXPLORER"
+        : totalRides >= 1
+          ? "ACTIVE RIDER"
+          : "ROOKIE RIDER";
+
+  const nextTierTarget =
+    totalRides < 5 ? 5 : totalRides < 10 ? 10 : 25;
+
+  const progressPercent = Math.min(
+    100,
+    Math.round((totalRides / nextTierTarget) * 100)
+  );
+
+  const getBadgeProgress = (badge) => {
+    if (badge.isEarned) return 100;
+
+    const required = Number(badge.criteriaValue) || 1;
+    const current = Number(badge.currentValue) || 0;
+
+    return Math.min(100, Math.round((current / required) * 100));
+  };
+
+  const formatCriteriaType = (criteriaType = "") =>
+    criteriaType.replace(/([A-Z])/g, " $1").toUpperCase();
 
   return (
     <section className="ride-passport" id="passport">
       <div className="passport-container">
-
         {/* HEADER */}
         <header className="passport-header">
           <div>
             <div className="passport-eyebrow">
-              <span /> RIDER IDENTITY & ACHIEVEMENTS
+              <span />
+              RIDER IDENTITY &amp; ACHIEVEMENTS
             </div>
+
             <h2>
-              RIDE. RECORD.<br />
+              RIDE. RECORD.
+              <br />
               <span>REMEMBER.</span>
             </h2>
           </div>
+
           <div className="passport-intro">
             <p>
-              Your verified motorcycle ride passport and earned database achievement seals directly synced with your rider profile.
+              Your verified motorcycle ride passport and earned milestone
+              achievement seals, synced directly with your rider profile.
             </p>
           </div>
         </header>
 
-        {/* GRID */}
+        {/* TOP CREDENTIALS GRID */}
         <div className="passport-grid">
           {/* PASSPORT CARD */}
           <div className="passport-card">
-            <div className="passport-card-top">
-              <div className="passport-rider-info">
-                <span className="rider-id-label">
-                  RIDER ID / MT-2026-{(user?._id || "0000").slice(-6).toUpperCase()}
+            <div className="passport-card-header">
+              <div className="passport-chip">
+                <span className="chip-icon">✦</span>
+                <span className="chip-text">
+                  MOTO TRIBE VERIFIED CREDENTIAL
                 </span>
-                <div className="passport-rider-name">
-                  <h3>{user?.name || "MOTOTRIBE RIDER"}</h3>
-                </div>
-                <span className="rider-level">
-                  {profile?.preferredRideType?.toUpperCase() || riderLevel}
+              </div>
+
+              <span className="passport-id">
+                MT-2026-{(user?._id || "F3A40C").slice(-6).toUpperCase()}
+              </span>
+            </div>
+
+            {/* RIDER HERO */}
+            <div className="passport-rider-hero">
+              <div className="passport-rider-main">
+                <span className="passport-eyebrow-mini">
+                  OFFICIAL RIDER IDENTITY
                 </span>
-                <div className="level-bar">
-                  <span style={{ width: `${progressPercent}%` }} />
+
+                <h3 className="passport-rider-name">
+                  {user?.name || "MOTOTRIBE RIDER"}
+                </h3>
+
+                <div className="passport-tier-badge">
+                  <span className="tier-star">★</span>
+                  <span className="tier-label">
+                    {profile?.preferredRideType?.toUpperCase() ||
+                      riderLevel}
+                  </span>
+                  <span className="tier-dot" />
                 </div>
               </div>
 
-              <div className="passport-stamp">
-                <span>VERIFIED</span>
-                <strong>{totalRides} RIDES</strong>
+              <div className="passport-stamp-seal">
+                <div className="stamp-seal-border">
+                  <span className="stamp-sub">MOTO TRIBE</span>
+                  <strong className="stamp-count">{totalRides}</strong>
+                  <span className="stamp-unit">
+                    {totalRides === 1 ? "JOURNEY" : "JOURNEYS"}
+                  </span>
+                  <span className="stamp-status">VERIFIED ✓</span>
+                </div>
               </div>
             </div>
 
-            <div className="passport-card-bottom">
-              <div>
-                <span>RIDES</span>
-                <strong>{totalRides}</strong>
+            {/* LEVEL PROGRESSION */}
+            <div className="passport-level-tracker">
+              <div className="tracker-labels">
+                <span>RANK PROGRESSION • {riderLevel}</span>
+                <strong>
+                  {totalRides} / {nextTierTarget} RIDES TO NEXT TIER
+                </strong>
               </div>
-              <div>
-                <span>DISTANCE</span>
-                <strong>{totalDistance.toLocaleString()} KM</strong>
+
+              <div className="tracker-bar">
+                <div
+                  className="tracker-fill"
+                  style={{
+                    width: `${Math.max(15, progressPercent)}%`,
+                  }}
+                />
               </div>
-              <div>
-                <span>BADGES</span>
-                <strong>{earnedBadges.length}</strong>
+            </div>
+
+            {/* PASSPORT METRICS */}
+            <div className="passport-card-metrics">
+              <div className="metric-cell">
+                <span className="metric-label">RIDES</span>
+                <strong className="metric-value">{totalRides}</strong>
+                <span className="metric-hint">VERIFIED</span>
               </div>
-              <div>
-                <span>STATUS</span>
-                <strong>{isAuthenticated ? "VERIFIED" : "GUEST"}</strong>
+
+              <div className="metric-cell">
+                <span className="metric-label">DISTANCE</span>
+                <strong className="metric-value">
+                  {Number(totalDistance).toLocaleString()} <small>KM</small>
+                </strong>
+                <span className="metric-hint">LIFETIME</span>
+              </div>
+
+              <div className="metric-cell">
+                <span className="metric-label">BADGES</span>
+                <strong className="metric-value">
+                  {earnedBadges.length} <small>/ {allBadges.length}</small>
+                </strong>
+                <span className="metric-hint">UNLOCKED</span>
+              </div>
+
+              <div className="metric-cell status-cell">
+                <span className="metric-label">STATUS</span>
+                <strong className="metric-value status-badge">
+                  {isAuthenticated ? "VERIFIED ✓" : "GUEST"}
+                </strong>
+                <span className="metric-hint">VERIFIED</span>
               </div>
             </div>
           </div>
 
-          {/* STATS */}
+          {/* STAT DISPLAY GRID */}
           <div className="passport-stats">
             <div className="passport-stat">
-              <span>01 / RECORDED RIDES</span>
-              <strong>{totalRides}</strong>
-              <small>DATABASE VERIFIED JOURNEYS</small>
+              <div className="stat-header">
+                <div className="stat-index-badge">
+                  <span className="stat-index">01</span>
+                  <span className="stat-label-mini">RIDES</span>
+                </div>
+                <span className="stat-icon-wrap">🛣️</span>
+              </div>
+
+              <div className="stat-content">
+                <span className="stat-title">RECORDED RIDES</span>
+                <div className="stat-value-display">
+                  <span className="stat-big-number">{totalRides}</span>
+                  <span className="stat-value-tag">VERIFIED</span>
+                </div>
+                <span className="stat-caption">
+                  OFFICIALLY VERIFIED JOURNEYS
+                </span>
+              </div>
             </div>
+
             <div className="passport-stat">
-              <span>02 / TOTAL DISTANCE</span>
-              <strong>{totalDistance.toLocaleString()}</strong>
-              <small>LIFETIME KILOMETRES</small>
+              <div className="stat-header">
+                <div className="stat-index-badge">
+                  <span className="stat-index">02</span>
+                  <span className="stat-label-mini">DISTANCE</span>
+                </div>
+                <span className="stat-icon-wrap">⚡</span>
+              </div>
+
+              <div className="stat-content">
+                <span className="stat-title">TOTAL DISTANCE</span>
+                <div className="stat-value-display">
+                  <span className="stat-big-number">
+                    {Number(totalDistance).toLocaleString()}
+                  </span>
+                  <span className="stat-unit-gold">KM</span>
+                </div>
+                <span className="stat-caption">
+                  LIFETIME ROAD KILOMETRES
+                </span>
+              </div>
             </div>
+
             <div className="passport-stat">
-              <span>03 / EARNED BADGES</span>
-              <strong>{earnedBadges.length}</strong>
-              <small>ACHIEVEMENT SEALS</small>
+              <div className="stat-header">
+                <div className="stat-index-badge">
+                  <span className="stat-index">03</span>
+                  <span className="stat-label-mini">BADGES</span>
+                </div>
+                <span className="stat-icon-wrap">🎖️</span>
+              </div>
+
+              <div className="stat-content">
+                <span className="stat-title">EARNED BADGES</span>
+                <div className="stat-value-display">
+                  <span className="stat-big-number">
+                    {earnedBadges.length}
+                  </span>
+                  <span className="stat-fraction-gold">
+                    / {allBadges.length}
+                  </span>
+                </div>
+                <span className="stat-caption">ACHIEVEMENT SEALS</span>
+              </div>
             </div>
+
             <div className="passport-stat">
-              <span>04 / EXPLORER RANK</span>
-              <strong>{riderLevel}</strong>
-              <small>COMMUNITY TIER</small>
+              <div className="stat-header">
+                <div className="stat-index-badge">
+                  <span className="stat-index">04</span>
+                  <span className="stat-label-mini">STATUS</span>
+                </div>
+                <span className="stat-icon-wrap">🛡️</span>
+              </div>
+
+              <div className="stat-content">
+                <span className="stat-title">EXPLORER RANK</span>
+                <div className="stat-value-display">
+                  <span className="stat-big-number stat-rank-text">
+                    {riderLevel}
+                  </span>
+                </div>
+                <span className="stat-caption">COMMUNITY TIER</span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* ACHIEVEMENTS / BADGES */}
+        {/* ACHIEVEMENTS REGISTRY */}
         <div className="achievement-section">
           <div className="achievement-heading">
-            <div>
-              <span>ACHIEVEMENT REGISTRY</span>
-              <strong>DATABASE RIDER BADGES & MILESTONES</strong>
+            <div className="heading-left">
+              <span className="heading-eyebrow">
+                ACHIEVEMENT REGISTRY
+              </span>
+              <h3>OFFICIAL RIDER BADGES &amp; MILESTONES</h3>
+              <p>
+                Official milestones unlocked as you complete journeys across
+                the road.
+              </p>
             </div>
-            <small>{earnedBadges.length} OF {allBadges.length} BADGES UNLOCKED</small>
+
+            <div className="heading-summary-pill">
+              <div className="pill-metric">
+                <strong>{earnedBadges.length}</strong>
+                <span>OF {allBadges.length} BADGES UNLOCKED</span>
+              </div>
+
+              <div className="pill-track">
+                <div
+                  className="pill-fill"
+                  style={{
+                    width: `${
+                      Math.round(
+                        (earnedBadges.length / (allBadges.length || 1)) * 100
+                      )
+                    }%`,
+                  }}
+                />
+              </div>
+            </div>
           </div>
 
-          <div className="achievement-layout">
-            {/* BADGES LIST */}
-            <div className="achievement-list">
-              {allBadges.map((badge, idx) => {
-                const isSelected = selectedBadge?.key === badge.key;
-                return (
-                  <button
-                    key={badge.key}
-                    type="button"
-                    className={`achievement-item ${isSelected ? "active" : ""}`}
-                    onClick={() => setSelectedKey(badge.key)}
+          {loading && (
+            <p className="passport-loading">Loading your rider passport...</p>
+          )}
+
+          {!loading && !isAuthenticated && (
+            <div className="passport-login-prompt">
+              <p>Sign in to view your rider passport and achievements.</p>
+              <button type="button" onClick={openAuthModal}>
+                SIGN IN
+              </button>
+            </div>
+          )}
+
+          {!loading && isAuthenticated && (
+            <div className="achievement-layout">
+              {/* BADGES LIST */}
+              <div className="achievement-list">
+                {allBadges.length === 0 && (
+                  <p>No achievements available yet. Complete a ride to get
+                    started.</p>
+                )}
+
+                {allBadges.map((badge, idx) => {
+                  const isSelected = selectedBadge?.key === badge.key;
+                  const percent = getBadgeProgress(badge);
+
+                  return (
+                    <button
+                      key={badge.key}
+                      type="button"
+                      className={`achievement-item ${
+                        isSelected ? "active" : ""
+                      } ${badge.isEarned ? "earned" : "locked"}`}
+                      onClick={() => setSelectedKey(badge.key)}
+                    >
+                      <span className="achievement-number">
+                        {String(idx + 1).padStart(2, "0")}
+                      </span>
+
+                      <div
+                        className={`achievement-badge-icon ${
+                          badge.isEarned ? "unlocked" : "locked"
+                        }`}
+                      >
+                        {badge.isEarned ? "★" : "🔒"}
+                      </div>
+
+                      <div className="achievement-info">
+                        <span className="badge-tag">
+                          {formatCriteriaType(badge.criteriaType)}
+                        </span>
+                        <strong className="badge-title">{badge.name}</strong>
+
+                        <div className="badge-mini-bar">
+                          <div
+                            className="badge-mini-fill"
+                            style={{ width: `${percent}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="achievement-badge-right">
+                        {badge.isEarned ? (
+                          <span className="earned-badge-chip">
+                            EARNED ✓
+                          </span>
+                        ) : (
+                          <span className="progress-badge-chip">
+                            {Number(badge.currentValue).toLocaleString()} /{" "}
+                            {Number(badge.criteriaValue).toLocaleString()}
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* BADGE DETAIL */}
+              {selectedBadge ? (
+                <div className="achievement-detail">
+                  <div className="detail-top-row">
+                    <span className="detail-category">
+                      {formatCriteriaType(selectedBadge.criteriaType)}
+                    </span>
+                    <span className="detail-number">
+                      MILESTONE{" "}
+                      {String(selectedIndex >= 0 ? selectedIndex + 1 : 1).padStart(
+                        2,
+                        "0"
+                      )}
+                    </span>
+                  </div>
+
+                  <div
+                    className={`showcase-medal ${
+                      selectedBadge.isEarned ? "unlocked" : "locked"
+                    }`}
                   >
-                    <span className="achievement-number">
-                      {String(idx + 1).padStart(2, "0")}
-                    </span>
+                    <div className="medal-glow" />
+                    <div className="medal-rings">
+                      <span className="medal-symbol">
+                        {selectedBadge.isEarned ? "★" : "🔒"}
+                      </span>
+                    </div>
+                  </div>
 
-                    <div className={`achievement-badge ${badge.isEarned ? "unlocked" : ""}`}>
-                      {badge.isEarned ? "★" : "○"}
+                  <h3 className="showcase-title">{selectedBadge.name}</h3>
+
+                  <p className="showcase-description">
+                    {selectedBadge.description}
+                  </p>
+
+                  <div className="showcase-progress-card">
+                    <div className="progress-card-header">
+                      <span>CRITERIA REQUIREMENT</span>
+                      <strong>
+                        {getBadgeProgress(selectedBadge)}% COMPLETED
+                      </strong>
                     </div>
 
-                    <div className="achievement-info">
-                      <small>{badge.criteriaType.replace(/([A-Z])/g, " $1").toUpperCase()}</small>
-                      <strong>{badge.name}</strong>
+                    <div className="progress-card-bar">
+                      <div
+                        className="progress-card-fill"
+                        style={{
+                          width: `${getBadgeProgress(selectedBadge)}%`,
+                        }}
+                      />
                     </div>
 
-                    <span className="achievement-progress">
-                      {badge.isEarned ? "EARNED" : `${badge.currentValue}/${badge.criteriaValue}`}
+                    <div className="progress-card-counts">
+                      <span>
+                        CURRENT:{" "}
+                        <strong>
+                          {Number(selectedBadge.currentValue).toLocaleString()}
+                        </strong>
+                      </span>
+                      <span>
+                        REQUIRED:{" "}
+                        <strong>
+                          {Number(selectedBadge.criteriaValue).toLocaleString()}
+                        </strong>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div
+                    className={`showcase-status-banner ${
+                      selectedBadge.isEarned ? "unlocked" : "locked"
+                    }`}
+                  >
+                    <span className="banner-icon">
+                      {selectedBadge.isEarned ? "✓" : "⏳"}
                     </span>
-                  </button>
-                );
-              })}
+
+                    <div className="banner-details">
+                      <strong>
+                        {selectedBadge.isEarned
+                          ? "ACHIEVEMENT EARNED & VERIFIED"
+                          : "MILESTONE IN PROGRESS"}
+                      </strong>
+
+                      <small>
+                        {selectedBadge.isEarned
+                          ? `Certified milestone${
+                              selectedBadge.earnedAt
+                                ? ` • ${new Date(
+                                    selectedBadge.earnedAt
+                                  ).toLocaleDateString("en-US", {
+                                    month: "short",
+                                    day: "numeric",
+                                    year: "numeric",
+                                  })}`
+                                : ""
+                            }`
+                          : `Complete ${Math.max(
+                              0,
+                              Number(selectedBadge.criteriaValue || 0) -
+                                Number(selectedBadge.currentValue || 0)
+                            ).toLocaleString()} more to unlock this achievement.`}
+                      </small>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="achievement-detail empty">
+                  <p>
+                    Select an achievement from the registry to inspect its
+                    unlock criteria.
+                  </p>
+                </div>
+              )}
             </div>
-
-            {/* BADGE DETAIL */}
-            {selectedBadge ? (
-              <div className="achievement-detail">
-                <span className="detail-number">
-                  0{selectedIndex >= 0 ? selectedIndex + 1 : 1}
-                </span>
-
-                <div className={`large-badge ${selectedBadge.isEarned ? "unlocked" : ""}`}>
-                  {selectedBadge.isEarned ? "★" : "🔒"}
-                </div>
-
-                <span className="detail-category">
-                  {selectedBadge.criteriaType.replace(/([A-Z])/g, " $1").toUpperCase()}
-                </span>
-
-                <h3>{selectedBadge.name}</h3>
-                <p>{selectedBadge.description}</p>
-
-                <div className="achievement-progress-detail">
-                  <div className="progress-label">
-                    <span>PROGRESS</span>
-                    <strong>
-                      {selectedBadge.isEarned
-                        ? "100%"
-                        : `${Math.min(100, Math.round((selectedBadge.currentValue / selectedBadge.criteriaValue) * 100))}%`}
-                    </strong>
-                  </div>
-                  <div className="progress-track">
-                    <span
-                      style={{
-                        width: selectedBadge.isEarned
-                          ? "100%"
-                          : `${Math.min(100, Math.round((selectedBadge.currentValue / selectedBadge.criteriaValue) * 100))}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div className="achievement-status">
-                  <span>ACHIEVEMENT STATUS</span>
-                  <strong>
-                    {selectedBadge.isEarned
-                      ? `UNLOCKED ${selectedBadge.earnedAt ? "• " + new Date(selectedBadge.earnedAt).toLocaleDateString() : ""}`
-                      : `IN PROGRESS (${selectedBadge.currentValue} / ${selectedBadge.criteriaValue})`}
-                  </strong>
-                </div>
-              </div>
-            ) : (
-              <div className="achievement-detail">
-                <p>Select a badge to view unlock criteria.</p>
-              </div>
-            )}
-          </div>
+          )}
         </div>
 
         {/* FOOTER */}
-        <div className="passport-footer">
-          <div>
+        <footer className="passport-footer">
+          <div className="footer-brand">
             <span>DIGITAL IDENTITY</span>
             <strong>MOTOTRIBE PASSPORT</strong>
           </div>
-          <div className="rank-progress">
-            <span>LVL {Math.floor(totalRides / 3) + 1}</span>
-            <div>
-              <span style={{ width: `${Math.min(100, (totalRides % 3) * 33.3 + 20)}%` }} />
-            </div>
-            <span>LVL {Math.floor(totalRides / 3) + 2}</span>
-          </div>
-          <p>
-            Badges and achievements are automatically verified and awarded by Mongoose database triggers upon journey completion.
-          </p>
-        </div>
 
+          <div className="footer-level">
+            <span className="level-badge">
+              LVL {Math.floor(totalRides / 3) + 1}
+            </span>
+
+            <div className="level-bar-track">
+              <span
+                style={{
+                  width: `${Math.min(
+                    100,
+                    (totalRides % 3) * 33.3 + 25
+                  )}%`,
+                }}
+              />
+            </div>
+
+            <span className="level-badge">
+              LVL {Math.floor(totalRides / 3) + 2}
+            </span>
+          </div>
+
+          <p className="footer-note">
+            Badges and ride statistics are automatically validated and
+            awarded upon completion of each journey.
+          </p>
+        </footer>
       </div>
     </section>
   );

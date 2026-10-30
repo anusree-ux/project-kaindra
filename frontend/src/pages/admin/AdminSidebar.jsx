@@ -8,6 +8,7 @@ import {
   Users,
   Settings,
   LogOut,
+  Tag,
 } from "lucide-react";
 
 import "./AdminSidebar.css";
@@ -27,6 +28,11 @@ function AdminSidebar() {
       icon: Briefcase,
     },
     {
+      name: "Discount Codes",
+      path: "/admin/discount-codes",
+      icon: Tag,
+    },
+    {
       name: "News",
       path: "/admin/news",
       icon: Newspaper,
@@ -35,11 +41,6 @@ function AdminSidebar() {
       name: "Businesses",
       path: "/admin/businesses",
       icon: Building2,
-    },
-    {
-      name: "Applications",
-      path: "/admin/applications",
-      icon: Users,
     },
     {
       name: "Settings",

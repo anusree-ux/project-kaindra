@@ -1,6 +1,44 @@
 const Cart = require("../../models/modasphere/Cart");
 const Product = require("../../models/modasphere/Product");
+const {
+  getDropStatusAt,
+  getDropsForProducts,
+  isDropLiveAt,
+} = require("../../services/modasphere/dropService");
 const AppError = require("../../utils/AppError");
+
+const getProductDropForPurchase = async (product) => {
+  const drops = await getDropsForProducts([product._id]);
+  const now = new Date();
+  const liveDrops = drops.filter((drop) => isDropLiveAt(drop, now));
+  const scheduledDrops = drops.filter(
+    (drop) => getDropStatusAt(drop, now) !== "ended"
+  );
+  const requiresLiveEvent = product.isDrop || scheduledDrops.length > 0;
+
+  if (!requiresLiveEvent) {
+    return { drop: null };
+  }
+
+  if (liveDrops.length > 1) {
+    return { error: "This product is assigned to multiple live ModaDrop events." };
+  }
+  if (liveDrops.length === 1) {
+    return { drop: liveDrops[0] };
+  }
+
+  const currentStatus = drops.length === 0
+    ? "not assigned to a scheduled ModaDrop event"
+    : scheduledDrops.length
+      ? getDropStatusAt(scheduledDrops[0], now)
+      : "ended";
+  return {
+    error:
+      currentStatus === "not assigned to a scheduled ModaDrop event"
+        ? `This ModaDrop product is ${currentStatus}.`
+        : `This ModaDrop product is not available for purchase because its event is currently "${currentStatus}".`,
+  };
+};
 
 /**
  * Helper to format cart response and calculate subtotal & total items
@@ -120,38 +158,24 @@ const addItemToCart = async (req, res, next) => {
       (item) => item.productId.toString() === productId.toString()
     );
 
+    const { drop, error: dropError } = await getProductDropForPurchase(product);
+    if (dropError) {
+      return next(new AppError(dropError, 400));
+    }
+
     let requestedTotalQty = numQuantity;
     if (existingItemIndex > -1) {
       requestedTotalQty = cart.items[existingItemIndex].quantity + numQuantity;
     }
 
-    const availableStock = product.isDrop
+    const availableStock = drop
       ? product.dropStock
       : product.stock;
-
-    if (product.isDrop) {
-      if (!product.dropReleaseAt) {
-        return next(
-          new AppError("This drop does not have a release date configured.", 400)
-        );
-      }
-
-      if (new Date() < new Date(product.dropReleaseAt)) {
-        return next(
-          new AppError(
-            `This drop has not been released yet. It will be available on ${new Date(
-              product.dropReleaseAt
-            ).toISOString()}.`,
-            400
-          )
-        );
-      }
-    }
 
     if (availableStock === null || availableStock === undefined || availableStock <= 0) {
       return next(
         new AppError(
-          product.isDrop
+          drop
             ? "This drop is sold out."
             : "This product is currently out of stock.",
           400
@@ -226,31 +250,19 @@ const updateCartItem = async (req, res, next) => {
       return next(new AppError("Product is no longer available.", 400));
     }
 
-    const availableStock = product.isDrop
+    const { drop, error: dropError } = await getProductDropForPurchase(product);
+    if (dropError) {
+      return next(new AppError(dropError, 400));
+    }
+
+    const availableStock = drop
       ? product.dropStock
       : product.stock;
-
-    if (product.isDrop) {
-      if (!product.dropReleaseAt) {
-        return next(
-          new AppError("This drop does not have a release date configured.", 400)
-        );
-      }
-
-      if (new Date() < new Date(product.dropReleaseAt)) {
-        return next(
-          new AppError(
-            "This drop has not been released yet.",
-            400
-          )
-        );
-      }
-    }
 
     if (availableStock === null || availableStock === undefined || availableStock <= 0) {
       return next(
         new AppError(
-          product.isDrop
+          drop
             ? "This drop is sold out."
             : "This product is currently out of stock.",
           400

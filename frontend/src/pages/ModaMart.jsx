@@ -1,36 +1,39 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import ModaMartSlideshow from "./brands/ModaSphere/ModaMartSlideshow/ModaMartSlideshow";
 import {
   Heart,
   Search,
   ShoppingBag,
   SlidersHorizontal,
   Loader2,
+  ArrowUpDown,
 } from "lucide-react";
 import apiClient from "../services/apiClient";
+import { useAuth } from "../context/AuthContext";
+import { useCart } from "../context/CartContext";
+import {
+  MODAMART_CATEGORIES,
+  getCategoryValue,
+  getCategoryLabel,
+} from "../constants/categories";
 import "./ModaMart.css";
 
 function ModaMart() {
+  const { isAuthenticated, openAuthModal } = useAuth();
+  const { cartCount, addToCart: addToCartContext } = useCart();
+
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
+  const [sort, setSort] = useState("newest");
   const [wishlist, setWishlist] = useState([]);
-  const [cart, setCart] = useState(() => {
-    return JSON.parse(localStorage.getItem("modamartCart") || "[]");
-  });
+  const [addingId, setAddingId] = useState(null);
+  const [toastMessage, setToastMessage] = useState("");
 
-  const categories = [
-    "All",
-    "Apparel",
-    "Ethnic",
-    "Accessories",
-    "Footwear",
-    "Men",
-    "Women",
-    "Streetwear",
-  ];
+  const categories = MODAMART_CATEGORIES;
 
   // Fetch real products from backend
   useEffect(() => {
@@ -44,14 +47,13 @@ function ModaMart() {
           params.search = search.trim();
         }
         if (category !== "All") {
-          const catLower = category.toLowerCase();
-          // If category is a standard DB category
-          if (["apparel", "ethnic", "accessories", "footwear", "beauty", "jewelry", "home", "other"].includes(catLower)) {
-            params.category = catLower;
-          } else {
-            // Otherwise filter by tag (e.g. men, women, streetwear)
-            params.tag = catLower;
+          const catVal = getCategoryValue(category);
+          if (catVal) {
+            params.category = catVal;
           }
+        }
+        if (sort) {
+          params.sort = sort;
         }
 
         const response = await apiClient.get("/api/modasphere/products", { params });
@@ -80,7 +82,7 @@ function ModaMart() {
       isMounted = false;
       clearTimeout(debounceTimer);
     };
-  }, [search, category]);
+  }, [search, category, sort]);
 
   // Fetch user wishlist on mount
   useEffect(() => {
@@ -134,76 +136,31 @@ function ModaMart() {
   };
 
   const addToCart = async (product) => {
-    try {
-      const productId = product._id || product.id;
+    if (!isAuthenticated) {
+      openAuthModal("login");
+      return;
+    }
 
-      await apiClient.post("/api/modasphere/cart/items", {
-        productId,
-        quantity: 1,
-      });
+    const productId = product._id || product.id;
+    setAddingId(productId);
+    setToastMessage("");
 
-      // Keep the local cart only for the cart-count UI for now.
-      setCart((currentCart) => {
-        const existingProduct = currentCart.find(
-          (item) =>
-            String(item.id || item._id) === String(productId)
-        );
+    const result = await addToCartContext(productId, 1);
+    setAddingId(null);
 
-        const productImage =
-          product.images?.[0]?.url ||
-          (typeof product.images?.[0] === "string"
-            ? product.images[0]
-            : "") ||
-          product.image ||
-          "";
-
-        const brandName =
-          product.sellerId?.name ||
-          product.brand ||
-          "ModaSphere Studio";
-
-        const updatedCart = existingProduct
-          ? currentCart.map((item) =>
-              String(item.id || item._id) === String(productId)
-                ? {
-                    ...item,
-                    quantity: item.quantity + 1,
-                  }
-                : item
-            )
-          : [
-              ...currentCart,
-              {
-                id: productId,
-                _id: productId,
-                name: product.name,
-                price: product.price,
-                category: product.category,
-                brand: brandName,
-                image: productImage,
-                images: product.images,
-                quantity: 1,
-              },
-            ];
-
-        localStorage.setItem(
-          "modamartCart",
-          JSON.stringify(updatedCart)
-        );
-
-        return updatedCart;
-      });
-    } catch (err) {
-      console.error("Failed to add product to cart:", err);
-      alert(
-        err.response?.data?.message ||
-          "Failed to add product to cart."
-      );
+    if (result.success) {
+      setToastMessage(`${product.name} added to cart!`);
+      setTimeout(() => setToastMessage(""), 3000);
+    } else {
+      setToastMessage(result.message || "Failed to add to cart.");
+      setTimeout(() => setToastMessage(""), 4000);
     }
   };
 
   return (
     <main className="modamart-page">
+      {/* MODAMART FASHION SLIDESHOW */}
+    <ModaMartSlideshow />
       {/* HERO */}
       <section className="modamart-hero">
         <div className="modamart-container">
@@ -227,6 +184,32 @@ function ModaMart() {
       {/* SHOP HEADER */}
       <section className="modamart-shop">
         <div className="modamart-container">
+          {toastMessage && (
+            <div
+              style={{
+                background: "#111",
+                color: "#fff",
+                padding: "12px 20px",
+                borderRadius: "6px",
+                marginBottom: "20px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                fontSize: "14px",
+                fontWeight: 500,
+                borderLeft: "4px solid #c9964a",
+              }}
+            >
+              <span>{toastMessage}</span>
+              <button
+                onClick={() => setToastMessage("")}
+                style={{ background: "none", border: "none", color: "#888", cursor: "pointer" }}
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
           <div className="modamart-shop-top">
             <div>
               <span className="modamart-label">SHOP MODASPHERE</span>
@@ -246,9 +229,7 @@ function ModaMart() {
 
               <Link to="/businesses/modamart/cart" className="modamart-cart">
                 <ShoppingBag size={19} />
-                <span>
-                  {cart.reduce((total, item) => total + item.quantity, 0)}
-                </span>
+                <span>{cartCount}</span>
               </Link>
 
               <Link
@@ -282,13 +263,41 @@ function ModaMart() {
             </div>
           </div>
 
-          {/* RESULT COUNT */}
-          <div className="modamart-result">
+          {/* RESULT COUNT & SORT */}
+          <div className="modamart-result" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
             <p>
               {loading
                 ? "Loading products..."
                 : `${products.length} product${products.length === 1 ? "" : "s"} available`}
             </p>
+
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <ArrowUpDown size={15} style={{ color: "#777" }} />
+              <label htmlFor="modamart-sort" style={{ fontSize: "13px", color: "#666", fontWeight: 500 }}>
+                Sort:
+              </label>
+              <select
+                id="modamart-sort"
+                value={sort}
+                onChange={(e) => setSort(e.target.value)}
+                style={{
+                  padding: "6px 12px",
+                  borderRadius: "6px",
+                  border: "1px solid #d8d5ce",
+                  backgroundColor: "#fff",
+                  fontSize: "13px",
+                  fontWeight: 500,
+                  cursor: "pointer",
+                  color: "#111",
+                  outline: "none",
+                }}
+              >
+                <option value="newest">Newest Arrivals</option>
+                <option value="price_asc">Price: Low to High</option>
+                <option value="price_desc">Price: High to Low</option>
+                <option value="popular">Most Popular</option>
+              </select>
+            </div>
           </div>
 
           {/* LOADING SKELETON */}
@@ -371,7 +380,12 @@ function ModaMart() {
                   "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&q=80";
 
                 const brandName =
-                  product.sellerId?.name || product.brand || "ModaSphere Studio";
+                  product.sellerId?.businessName ||
+                  product.sellerId?.shopName ||
+                  product.brand ||
+                  product.shopName ||
+                  product.sellerId?.name ||
+                  "ModaSphere Studio";
 
                 return (
                   <article className="modamart-product-card" key={productId}>
@@ -381,6 +395,28 @@ function ModaMart() {
                         alt={product.name}
                         loading="lazy"
                       />
+
+                      {product.isDrop && (
+                        <span
+                          style={{
+                            position: "absolute",
+                            top: "15px",
+                            left: "15px",
+                            backgroundColor: "#111",
+                            color: "#c9964a",
+                            padding: "4px 8px",
+                            fontSize: "11px",
+                            fontWeight: 700,
+                            letterSpacing: "0.08em",
+                            borderRadius: "4px",
+                            textTransform: "uppercase",
+                            boxShadow: "0 2px 6px rgba(0,0,0,0.25)",
+                            zIndex: 2,
+                          }}
+                        >
+                          ModaDrop
+                        </span>
+                      )}
 
                       <button
                         className="product-wishlist"
@@ -410,7 +446,7 @@ function ModaMart() {
                       </h3>
 
                       <p className="product-category" style={{ textTransform: "capitalize" }}>
-                        {product.category}
+                        {getCategoryLabel(product.category)}
                       </p>
 
                       <div className="product-bottom">
@@ -418,8 +454,11 @@ function ModaMart() {
                           ₹{product.price?.toLocaleString("en-IN")}
                         </strong>
 
-                        <button onClick={() => addToCart(product)}>
-                          Add to Cart
+                        <button
+                          onClick={() => addToCart(product)}
+                          disabled={addingId === productId}
+                        >
+                          {addingId === productId ? "Adding..." : "Add to Cart"}
                         </button>
                       </div>
                     </div>

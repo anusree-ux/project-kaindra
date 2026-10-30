@@ -1,13 +1,16 @@
 const cloudinary = require("../../config/cloudinary");
 const AppError = require("../../utils/AppError");
 
+const CLOUDINARY_PRODUCTS_FOLDER =
+  process.env.CLOUDINARY_PRODUCTS_FOLDER || "kaindra_modamart_products";
+
 /**
- * Uploads an image buffer to Cloudinary under the ModaSphere products directory
+ * Uploads an image buffer to Cloudinary under the dedicated ModaMart products directory
  * @param {Buffer} fileBuffer
  * @param {string} folder
  * @returns {Promise<{url: string, publicId: string}>}
  */
-const uploadProductImage = (fileBuffer, folder = "modasphere/products") => {
+const uploadProductImage = (fileBuffer, folder = CLOUDINARY_PRODUCTS_FOLDER) => {
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
       {

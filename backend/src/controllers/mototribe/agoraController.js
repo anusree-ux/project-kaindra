@@ -35,6 +35,30 @@ const getAgoraToken = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc    Get active call status for a ride
+ * @route   GET /api/mototribe/rides/:id/call-status
+ * @access  Private
+ */
+const getCallStatus = async (req, res, next) => {
+  try {
+    const rideId = req.params.id;
+    const { getActiveCall } = require("../../services/mototribe/locationSocketService");
+    const activeCall = getActiveCall(rideId);
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        active: Boolean(activeCall),
+        call: activeCall || null,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getAgoraToken,
+  getCallStatus,
 };

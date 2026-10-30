@@ -59,72 +59,80 @@ export function AuthProvider({ children }) {
     checkAuth();
   }, [checkAuth]);
 
-  // Login handler
-  const login = useCallback(async (email, password) => {
+
+  // Google OAuth Login handler (bypasses OTP completely)
+  const loginWithGoogle = useCallback(async (googleData) => {
     try {
-      const res = await apiClient.post("/api/auth/login", { email, password });
+      const res = await apiClient.post("/api/auth/google", googleData);
       const accessToken = res.data?.accessToken;
       const user = res.data?.data?.user || res.data?.user;
+      const isNewUser = Boolean(res.data?.isNewUser || res.data?.data?.isNewUser);
 
       if (accessToken && user) {
         updateToken(accessToken);
         setUser(user);
         closeAuthModal();
-        return {
-          success: true,
-          user,
-        };
+
+        try {
+          const mtUser = {
+            id: user._id || user.id,
+            name: user.name || "Google User",
+            email: user.email || "",
+            role: user.role || "user",
+            brands: user.brands || [],
+          };
+          localStorage.setItem("mototribe_user", JSON.stringify(mtUser));
+        } catch {
+          // Ignore localStorage errors; Google login can still succeed.
+        }
+
+        return { success: true, user, isNewUser };
       }
+
       return {
         success: false,
-        message: "Login failed: Missing token or user profile in response.",
+        message: "Google login failed: Missing token or user profile.",
       };
     } catch (error) {
       const resp = error.response?.data;
-
-      // Handle unverified phone number case (403 with userId)
-      if (error.response?.status === 403 && resp?.userId) {
-        openAuthModal("otp", {
-          userId: resp.userId,
-          phoneNumber: resp.phoneNumber || "your registered phone number",
-        });
-        return {
-          success: false,
-          needsOtp: true,
-          message: resp.message || "Phone number not verified. Please enter OTP.",
-        };
-      }
-
       return {
         success: false,
-        message: resp?.message || "Login failed. Please check your credentials.",
+        message: resp?.message || "Google authentication failed. Please try again.",
       };
     }
-  }, [closeAuthModal, openAuthModal, updateToken]);
+  }, [closeAuthModal, updateToken]);
 
-  // Signup handler
+  // Login handler - passwordless Google OAuth
+  const login = useCallback(async (credentials) => {
+    if (
+      typeof credentials === "object" &&
+      credentials !== null &&
+      (credentials.credential || credentials.googleId)
+    ) {
+      return loginWithGoogle(credentials);
+    }
+
+    return {
+      success: false,
+      message: "Password authentication is disabled. Please sign in with Google.",
+    };
+  }, [loginWithGoogle]);
+
+  // Signup handler - passwordless Google OAuth
   const signup = useCallback(async (formData) => {
-    try {
-      const res = await apiClient.post("/api/auth/signup", formData);
-      const data = res.data?.data || res.data;
-
-      if (data?.userId) {
-        const otpData = {
-          userId: data.userId,
-          phoneNumber: data.phoneNumber || formData.phoneNumber,
-        };
-        openAuthModal("otp", otpData);
-        return { success: true, data: otpData };
-      }
-      return { success: false, message: "Signup failed. Missing user ID in response." };
-    } catch (error) {
-      const resp = error.response?.data;
-      return {
-        success: false,
-        message: resp?.message || "Registration failed. Please check your input.",
-      };
+    if (
+      typeof formData === "object" &&
+      formData !== null &&
+      (formData.credential || formData.googleId)
+    ) {
+      return loginWithGoogle(formData);
     }
-  }, [openAuthModal]);
+
+    return {
+      success: false,
+      message: "Password signup is disabled. Please sign up with Google.",
+    };
+  }, [loginWithGoogle]);
 
   // Verify OTP handler
   const verifyOtp = useCallback(async (userId, otpCode) => {
@@ -177,8 +185,36 @@ export function AuthProvider({ children }) {
       updateToken(null);
       setUser(null);
       setPendingOtpData(null);
+      try {
+        localStorage.removeItem("mototribeVehicles");
+        localStorage.removeItem("mototribeProfile");
+        localStorage.removeItem("mototribe_user");
+      } catch {
+        // Ignore localStorage errors
+      }
     }
   }, [updateToken]);
+
+  // Update current user state in React and localStorage
+  const updateUser = useCallback((updatedFieldsOrUser) => {
+    setUser((prev) => {
+      if (!prev) return updatedFieldsOrUser;
+      const merged = { ...prev, ...updatedFieldsOrUser };
+      try {
+        const stored = localStorage.getItem("mototribe_user");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          localStorage.setItem(
+            "mototribe_user",
+            JSON.stringify({ ...parsed, ...merged })
+          );
+        }
+      } catch {
+        // Ignore storage errors
+      }
+      return merged;
+    });
+  }, []);
 
   const value = useMemo(
     () => ({
@@ -192,10 +228,13 @@ export function AuthProvider({ children }) {
       openAuthModal,
       closeAuthModal,
       login,
+      loginWithGoogle,
       signup,
       verifyOtp,
       resendOtp,
       logout,
+      setUser,
+      updateUser,
     }),
     [
       user,
@@ -207,10 +246,12 @@ export function AuthProvider({ children }) {
       openAuthModal,
       closeAuthModal,
       login,
+      loginWithGoogle,
       signup,
       verifyOtp,
       resendOtp,
       logout,
+      updateUser,
     ]
   );
 

@@ -65,19 +65,26 @@ export function NotificationProvider({ children }) {
       const list = res.data.data?.notifications || [];
       const count = res.data.data?.unreadCount || 0;
 
+      // Filter out notifications older than 24 hours
+      const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
+      const validList = list.filter((item) => {
+        if (!item.createdAt) return true;
+        return Date.now() - new Date(item.createdAt).getTime() <= TWENTY_FOUR_HOURS_MS;
+      });
+
       // Check for brand new unread notifications to trigger OS device push popup
       if (!initialLoadRef.current && isPolling) {
-        list.forEach((item) => {
+        validList.forEach((item) => {
           if (!item.isRead && !seenIdsRef.current.has(item._id)) {
             triggerDeviceNotification(item);
           }
         });
       }
 
-      list.forEach((item) => seenIdsRef.current.add(item._id));
+      validList.forEach((item) => seenIdsRef.current.add(item._id));
       initialLoadRef.current = false;
 
-      setNotifications(list);
+      setNotifications(validList);
       setUnreadCount(count);
     } catch (err) {
       // Ignore polling auth errors

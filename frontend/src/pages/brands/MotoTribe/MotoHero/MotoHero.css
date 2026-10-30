@@ -520,6 +520,18 @@
   letter-spacing: 1px;
 }
 
+.ai-data.ai-data-locked {
+  transition: background 0.2s ease;
+}
+
+.ai-data.ai-data-locked:hover {
+  background: rgba(214, 168, 62, 0.08);
+}
+
+.ai-data.ai-data-locked:hover strong {
+  color: #d6a83e;
+}
+
 
 /* =========================================================
    AI BUTTON

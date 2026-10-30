@@ -796,3 +796,446 @@
     font-size: 6px;
   }
 }
+
+/* =========================================================
+   AGORA RTC GRID & TILES STYLING
+========================================================= */
+
+.agora-call-alert {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.agora-call-alert.error {
+  background: rgba(229, 57, 53, 0.12);
+  border: 1px solid rgba(229, 57, 53, 0.35);
+  color: #ff8a80;
+}
+
+.agora-call-alert.info {
+  background: rgba(201, 164, 93, 0.1);
+  border: 1px solid rgba(201, 164, 93, 0.3);
+  color: #f0ebe2;
+}
+
+.agora-call-alert p {
+  margin: 0;
+  flex: 1;
+}
+
+.agora-call-alert button {
+  padding: 6px 12px;
+  background: #c9a45d;
+  border: none;
+  border-radius: 4px;
+  color: #000;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.agora-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  color: #a8a299;
+  font-size: 11px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.agora-checkbox-label input[type="checkbox"] {
+  accent-color: #c9a45d;
+  cursor: pointer;
+}
+
+/* GRID */
+.agora-call-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  padding: 16px;
+  background: #080808;
+  min-height: 380px;
+}
+
+.agora-video-tile {
+  position: relative;
+  height: 280px;
+  background: #141311;
+  border: 1px solid #2e2a22;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.agora-self-tile {
+  border-color: #55442a;
+}
+
+.agora-video-canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.agora-video-canvas.hidden {
+  opacity: 0;
+  visibility: hidden;
+  position: absolute;
+  pointer-events: none;
+}
+
+.agora-self-canvas video {
+  transform: scaleX(-1); /* Mirror local webcam preview */
+}
+
+.agora-avatar-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at center, #24201a, #0b0b0a 70%);
+}
+
+.agora-avatar-circle {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #181612;
+  border: 2px solid #5b4b32;
+  color: #c9a45d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 800;
+  box-shadow: 0 0 30px rgba(201, 164, 93, 0.12);
+}
+
+.agora-audio-indicator {
+  color: #7d776e;
+  font-size: 9px;
+  letter-spacing: 1px;
+  font-weight: 700;
+}
+
+.agora-tile-meta {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 10px 14px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, transparent 100%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.agora-tile-meta strong {
+  color: #f3efe7;
+  font-size: 11px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agora-tile-badges {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.agora-muted-badge,
+.agora-camoff-badge {
+  font-size: 9px;
+  font-weight: 800;
+  padding: 3px 6px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ffd54f;
+  letter-spacing: 0.5px;
+}
+
+/* INCOMING CALL CENTER-STAGE MODAL */
+.agora-incoming-call-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.agora-incoming-call-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.agora-incoming-call-modal {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 460px;
+  background: #14120e;
+  border: 1.5px solid #c9a45d;
+  border-radius: 18px;
+  padding: 32px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.95), 0 0 44px rgba(201, 164, 93, 0.4);
+  animation: callModalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1), ringPulse 2s infinite;
+}
+
+@keyframes callModalPop {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes ringPulse {
+  0%, 100% {
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.95), 0 0 24px rgba(201, 164, 93, 0.3);
+  }
+  50% {
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.95), 0 0 48px rgba(201, 164, 93, 0.65);
+  }
+}
+
+.agora-incoming-call-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #252013;
+  border: 2px solid #c9a45d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  color: #c9a45d;
+  margin-bottom: 18px;
+  animation: iconBounce 0.9s infinite alternate ease-in-out;
+}
+
+@keyframes iconBounce {
+  from { transform: scale(0.94); }
+  to { transform: scale(1.08); }
+}
+
+.agora-incoming-call-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.agora-incoming-eyebrow {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  color: #c9a45d;
+  text-transform: uppercase;
+}
+
+.agora-incoming-call-info h3 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: #f7f3ea;
+  letter-spacing: 0.5px;
+}
+
+.agora-incoming-call-info p {
+  margin: 0;
+  font-size: 13px;
+  color: #9c958a;
+  line-height: 1.5;
+}
+
+.agora-incoming-call-info p strong {
+  color: #e5c378;
+}
+
+.agora-incoming-call-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.agora-incoming-btn-accept {
+  width: 100%;
+  padding: 13px 20px;
+  border: none;
+  border-radius: 8px;
+  background: #22c55e;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(34, 197, 94, 0.4);
+}
+
+.agora-incoming-btn-accept:hover {
+  background: #16a34a;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(34, 197, 94, 0.55);
+}
+
+.agora-incoming-btn-voice-opt {
+  width: 100%;
+  padding: 11px 20px;
+  border: 1px solid #4a4030;
+  border-radius: 8px;
+  background: #1e1b15;
+  color: #e5c378;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.18s ease;
+}
+
+.agora-incoming-btn-voice-opt:hover {
+  background: #2b251a;
+  border-color: #c9a45d;
+  color: #fff;
+}
+
+.agora-incoming-btn-decline {
+  width: 100%;
+  padding: 10px 16px;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 8px;
+  background: rgba(239, 68, 68, 0.08);
+  color: #ef4444;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.agora-incoming-btn-decline:hover {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+/* ACTIVE CALL ALERT BANNER */
+.agora-active-call-alert-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 20px;
+  padding: 16px 20px;
+  border: 1.5px solid #c9a45d;
+  border-radius: 12px;
+  background: radial-gradient(circle at 10% 50%, #292013 0%, #11100e 100%);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 16px rgba(201, 164, 93, 0.2);
+  flex-wrap: wrap;
+}
+
+.agora-active-call-alert-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.agora-live-pulse-badge {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.25);
+  animation: liveBadgePulse 1.4s infinite ease-in-out;
+}
+
+@keyframes liveBadgePulse {
+  0%, 100% {
+    box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(34, 197, 94, 0.5);
+  }
+}
+
+.agora-active-call-alert-left strong {
+  display: block;
+  font-size: 13px;
+  color: #f7f3ea;
+  letter-spacing: 0.06em;
+}
+
+.agora-active-call-alert-left p {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: #9c958a;
+}
+
+.agora-banner-pick-btn {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 7px;
+  background: #c9a45d;
+  color: #0d0c0a;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.18s ease;
+}
+
+.agora-banner-pick-btn:hover {
+  background: #deb66c;
+  transform: translateY(-1px);
+}
+
+.mototribe-ride-call-start-actions button.video {
+  border-color: #c9a45d;
+  background: #181510;
+  color: #e5c378;
+}
+
+.mototribe-ride-call-start-actions button.video:hover {
+  background: #221d15;
+  color: #ffde8a;
+}

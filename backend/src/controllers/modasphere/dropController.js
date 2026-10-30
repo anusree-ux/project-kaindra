@@ -1,8 +1,13 @@
-﻿const Drop = require("../../models/modasphere/Drop");
+const mongoose = require("mongoose");
+const Drop = require("../../models/modasphere/Drop");
 const DropWaitlist = require("../../models/modasphere/DropWaitlist");
 const ProductDropWaitlist = require("../../models/modasphere/ProductDropWaitlist");
 const Product = require("../../models/modasphere/Product");
-const { getUserPurchaseCountInDrop } = require("../../services/modasphere/dropService");
+const {
+  getDropStatusAt,
+  getUserPurchaseCountInDrop,
+  updateDropStatuses,
+} = require("../../services/modasphere/dropService");
 const AppError = require("../../utils/AppError");
 
 /**
@@ -23,6 +28,15 @@ const createDrop = async (req, res, next) => {
       return next(new AppError("Invalid startTime date format.", 400));
     }
 
+    if (!productIds.every((id) => mongoose.Types.ObjectId.isValid(id))) {
+      return next(new AppError("Every productId must be a valid product ID.", 400));
+    }
+
+    const normalizedProductIds = productIds.map((id) => id.toString());
+    if (new Set(normalizedProductIds).size !== normalizedProductIds.length) {
+      return next(new AppError("A product can only be included once in a drop.", 400));
+    }
+
     let parsedEndTime = null;
     if (endTime) {
       parsedEndTime = new Date(endTime);
@@ -31,7 +45,12 @@ const createDrop = async (req, res, next) => {
       }
     }
 
-    const products = await Product.find({ _id: { $in: productIds } });
+    const parsedMaxPerUser = maxPerUser === undefined ? 2 : Number(maxPerUser);
+    if (!Number.isInteger(parsedMaxPerUser) || parsedMaxPerUser < 1) {
+      return next(new AppError("maxPerUser must be a positive integer.", 400));
+    }
+
+    const products = await Product.find({ _id: { $in: normalizedProductIds } });
     if (products.length !== productIds.length) {
       return next(new AppError("One or more specified products do not exist.", 404));
     }
@@ -41,6 +60,37 @@ const createDrop = async (req, res, next) => {
     );
     if (notOwned) {
       return next(new AppError("You can only include products that you own in a drop.", 403));
+    }
+
+    const ineligibleProduct = products.some(
+      (product) =>
+        product.status !== "active" ||
+        !product.isDrop ||
+        !Number.isFinite(product.dropStock) ||
+        product.dropStock < 0
+    );
+    if (ineligibleProduct) {
+      return next(
+        new AppError(
+          "Every product in a drop must be an active ModaDrop product with valid drop inventory.",
+          400
+        )
+      );
+    }
+
+    const eventEndForOverlap = parsedEndTime || new Date(8640000000000000);
+    const overlappingDrop = await Drop.findOne({
+      productIds: { $in: normalizedProductIds },
+      startTime: { $lt: eventEndForOverlap },
+      $or: [{ endTime: null }, { endTime: { $gt: parsedStartTime } }],
+    });
+    if (overlappingDrop) {
+      return next(
+        new AppError(
+          "A product cannot be assigned to overlapping ModaDrop events.",
+          400
+        )
+      );
     }
 
     const now = new Date();
@@ -58,12 +108,18 @@ const createDrop = async (req, res, next) => {
       description: description || "",
       coverImage: coverImage || { url: "", publicId: "" },
       createdBy: req.user._id,
-      productIds,
+      productIds: normalizedProductIds,
       startTime: parsedStartTime,
       endTime: parsedEndTime,
-      maxPerUser: maxPerUser !== undefined ? Number(maxPerUser) : 2,
+      maxPerUser: parsedMaxPerUser,
       status: initialStatus,
     });
+
+    // Ensure all products in the drop are active and marked as drops so they appear in ModaMart
+    await Product.updateMany(
+      { _id: { $in: normalizedProductIds } },
+      { $set: { isDrop: true, status: "active" } }
+    );
 
     res.status(201).json({
       status: "success",
@@ -85,10 +141,14 @@ const getDrops = async (req, res, next) => {
     const { status } = req.query;
     const filter = {};
 
-    if (status && ["upcoming", "live", "ended"].includes(status)) {
+    if (status && !["upcoming", "live", "ended"].includes(status)) {
+      return next(new AppError("Invalid ModaDrop status filter.", 400));
+    }
+    if (status) {
       filter.status = status;
     }
 
+    await updateDropStatuses();
     const drops = await Drop.find(filter)
       .populate("productIds")
       .populate("createdBy", "name")
@@ -111,6 +171,7 @@ const getDrops = async (req, res, next) => {
 const getDropById = async (req, res, next) => {
   try {
     const { id } = req.params;
+    await updateDropStatuses();
     const drop = await Drop.findById(id)
       .populate("productIds")
       .populate("createdBy", "name");
@@ -142,10 +203,11 @@ const joinWaitlist = async (req, res, next) => {
       return next(new AppError("ModaDrop not found.", 404));
     }
 
-    if (drop.status !== "upcoming") {
+    const currentStatus = getDropStatusAt(drop);
+    if (currentStatus !== "upcoming") {
       return next(
         new AppError(
-          `Waitlist is only available for upcoming drops. This drop is currently "${drop.status}".`,
+          `Waitlist is only available for upcoming drops. This drop is currently "${currentStatus}".`,
           400
         )
       );
@@ -242,11 +304,17 @@ const getUpcomingProductDrops = async (req, res, next) => {
   try {
     const now = new Date();
 
-    const products = await Product.find({
-      isDrop: true,
-      dropReleaseAt: { $gt: now },
-      status: "active",
-    }).sort({ dropReleaseAt: 1 });
+    const drops = await Drop.find({ startTime: { $gt: now } })
+      .populate("productIds")
+      .sort({ startTime: 1 });
+    const products = [
+      ...new Map(
+        drops
+          .flatMap((drop) => drop.productIds)
+          .filter((product) => product && product.isDrop && product.status === "active")
+          .map((product) => [product._id.toString(), product])
+      ).values(),
+    ];
 
     res.status(200).json({
       status: "success",
@@ -266,11 +334,20 @@ const getLiveProductDrops = async (req, res, next) => {
   try {
     const now = new Date();
 
-    const products = await Product.find({
-      isDrop: true,
-      dropReleaseAt: { $lte: now },
-      status: "active",
-    }).sort({ dropReleaseAt: 1 });
+    const drops = await Drop.find({
+      startTime: { $lte: now },
+      $or: [{ endTime: null }, { endTime: { $gt: now } }],
+    })
+      .populate("productIds")
+      .sort({ startTime: 1 });
+    const products = [
+      ...new Map(
+        drops
+          .flatMap((drop) => drop.productIds)
+          .filter((product) => product && product.isDrop && product.status === "active")
+          .map((product) => [product._id.toString(), product])
+      ).values(),
+    ];
 
     res.status(200).json({
       status: "success",
@@ -377,9 +454,13 @@ const getProductDropWaitlistPosition = async (req, res, next) => {
 
     const position = await ProductDropWaitlist.countDocuments({
       productId: product._id,
-      joinedAt: {
-        $lte: waitlistEntry.joinedAt,
-      },
+      $or: [
+        { joinedAt: { $lt: waitlistEntry.joinedAt } },
+        {
+          joinedAt: waitlistEntry.joinedAt,
+          _id: { $lte: waitlistEntry._id },
+        },
+      ],
     });
 
     res.status(200).json({

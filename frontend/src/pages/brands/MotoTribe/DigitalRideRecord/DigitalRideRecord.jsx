@@ -1,4 +1,4 @@
-﻿import {
+import {
   useCallback,
   useEffect,
   useMemo,
@@ -30,12 +30,44 @@ function formatLongDate(dateString) {
 }
 
 function DigitalRideRecord() {
-  const { isAuthenticated, openAuthModal } = useAuth();
+  const { isAuthenticated, openAuthModal, user } = useAuth();
   const [rides, setRides] = useState([]);
   const [selectedRecordId, setSelectedRecordId] = useState(null);
   const [activeFilter, setActiveFilter] = useState("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showAllRides, setShowAllRides] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
+
+  const handleDeleteRide = async (rideId, rideName) => {
+    if (!rideId) return;
+    const confirmDelete = window.confirm(
+      `Permanently delete planned ride "${rideName || "this ride"}"?\n\nThis will remove it completely from the database before it starts. This action cannot be undone.`
+    );
+    if (!confirmDelete) return;
+
+    setDeletingId(rideId);
+    try {
+      await apiClient.delete(`/api/mototribe/rides/${rideId}`);
+      setRides((prev) => prev.filter((r) => String(r.id) !== String(rideId)));
+      if (String(selectedRecordId) === String(rideId)) {
+        setSelectedRecordId(null);
+      }
+
+      // Broadcast event so UpcomingRides and all other sections immediately update without reload!
+      window.dispatchEvent(
+        new CustomEvent("mototribe:ride-deleted", { detail: { rideId } })
+      );
+
+      alert("Ride successfully deleted from the database.");
+    } catch (err) {
+      console.error("Failed to delete ride:", err);
+      const msg = err.response?.data?.message || err.message || "Failed to delete ride.";
+      alert(msg);
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   const fetchRecords = useCallback(async () => {
     if (!isAuthenticated) {
@@ -50,35 +82,71 @@ function DigitalRideRecord() {
       ]);
 
       let combinedRides = [];
-      if (historyRes.status === "fulfilled" && historyRes.value.data?.data?.rides) {
-        combinedRides = historyRes.value.data.data.rides;
-      }
-      if (combinedRides.length === 0 && allRidesRes.status === "fulfilled" && allRidesRes.value.data?.data?.rides) {
-        combinedRides = allRidesRes.value.data.data.rides;
+      if (historyRes.status === "fulfilled" && Array.isArray(historyRes.value.data?.data?.rides)) {
+        combinedRides = [...historyRes.value.data.data.rides];
       }
 
-      const formatted = combinedRides.map((r) => ({
-        id: r._id,
-        name: r.title || "MotoTribe Ride",
-        type: (r.rideType || "ADVENTURE").toUpperCase(),
-        start: r.origin || "Origin",
-        destination: r.destination || "Destination",
-        distanceKm: r.distanceKm || 0,
-        hours: r.durationHours || Math.round((r.distanceKm || 0) / 45) || 0,
-        date: r.startDate || r.createdAt || new Date().toISOString(),
-        status: (r.status || "PLANNING").toUpperCase(),
-        verification: r.status === "completed" ? "VERIFIED GPS LOG" : "SCHEDULED JOURNEY",
-        vehicle: r.vehicleId
-          ? { name: r.vehicleId.vehicleName, fuelType: r.vehicleId.fuelType }
-          : { name: null, fuelType: "Petrol" },
-        expenses: {
-          fuel: Math.round((r.distanceKm || 0) * 2.8),
-          food: 450,
-          toll: 150,
-          other: 100,
-        },
-        notes: r.description || "Scenic journey logged on MotoTribe network.",
-      }));
+      if (allRidesRes.status === "fulfilled" && Array.isArray(allRidesRes.value.data?.data?.rides)) {
+        const userPlatformRides = allRidesRes.value.data.data.rides.filter(
+          (r) => r.isOrganizer || r.userParticipationStatus === "confirmed"
+        );
+        const existingIds = new Set(combinedRides.map((r) => String(r._id || r.id)));
+        for (const r of userPlatformRides) {
+          if (!existingIds.has(String(r._id || r.id))) {
+            combinedRides.push(r);
+          }
+        }
+      }
+
+      const currentUserId = user?._id || user?.id;
+
+      const formatted = combinedRides.map((r) => {
+        const isOrg =
+          Boolean(r.isOrganizer) ||
+          String(r.organizerId?._id || r.organizerId || "") === String(currentUserId || "");
+
+        const rawStatus = (r.status || "planning").toLowerCase();
+        const sDate = r.startDate ? new Date(r.startDate) : null;
+        // Check if ride has already started (status is ongoing/active/completed or start date is in past)
+        const hasStarted =
+          rawStatus === "ongoing" ||
+          rawStatus === "active" ||
+          rawStatus === "completed" ||
+          (sDate && sDate.getTime() <= Date.now());
+
+        // Can only delete if user is the organizer, status is planning, and ride has not started yet
+        const canDelete = isOrg && !hasStarted && rawStatus === "planning";
+
+        return {
+          id: r._id,
+          name: r.title || "MotoTribe Ride",
+          type: (r.rideType || "ADVENTURE").toUpperCase(),
+          start: r.origin || "Origin",
+          destination: r.destination || "Destination",
+          distanceKm: r.distanceKm || 0,
+          hours: r.durationHours || Math.round((r.distanceKm || 0) / 45) || 0,
+          date: r.startDate || r.createdAt || new Date().toISOString(),
+          status: (r.status || "PLANNING").toUpperCase(),
+          rawStatus,
+          hasStarted,
+          canDelete,
+          isOrganizer: isOrg,
+          verification: r.status === "completed" ? "VERIFIED GPS LOG" : (hasStarted ? "IN PROGRESS" : "SCHEDULED JOURNEY"),
+          vehicle: r.vehicleId
+            ? { name: r.vehicleId.vehicleName, fuelType: r.vehicleId.fuelType }
+            : { name: null, fuelType: "Petrol" },
+          expenses: {
+            fuel: Math.round((r.distanceKm || 0) * 2.8),
+            food: 450,
+            toll: 150,
+            other: 100,
+          },
+          notes: r.description || "Scenic journey logged on MotoTribe network.",
+        };
+      });
+
+      // Sort recent rides first
+      formatted.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
       setRides(formatted);
     } catch (err) {
@@ -86,16 +154,38 @@ function DigitalRideRecord() {
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, user]);
 
-  useEffect(() => { fetchRecords(); }, [fetchRecords]);
+  useEffect(() => {
+    fetchRecords();
+
+    const handleRideCreated = () => {
+      fetchRecords();
+    };
+
+    const handleRideDeleted = (e) => {
+      const deletedId = e.detail?.rideId;
+      if (deletedId) {
+        setRides((prev) => prev.filter((r) => String(r.id || r._id) !== String(deletedId)));
+        setSelectedRecordId((prev) => (String(prev) === String(deletedId) ? null : prev));
+      }
+      fetchRecords();
+    };
+
+    window.addEventListener("mototribe:ride-created", handleRideCreated);
+    window.addEventListener("mototribe:ride-deleted", handleRideDeleted);
+    return () => {
+      window.removeEventListener("mototribe:ride-created", handleRideCreated);
+      window.removeEventListener("mototribe:ride-deleted", handleRideDeleted);
+    };
+  }, [fetchRecords]);
 
   const lifetimeStats = useMemo(() => {
     const totalDistance = rides.reduce((sum, r) => sum + (r.distanceKm || 0), 0);
     const totalHours = rides.reduce((sum, r) => sum + (r.hours || 0), 0);
     const totalJourneys = rides.length;
     const verifiedJourneys = rides.filter((r) => r.status === "COMPLETED").length;
-    return { totalDistance, totalHours, totalJourneys, verifiedJourneys, averageMileage: 38 };
+    return { totalDistance, totalHours, totalJourneys, verifiedJourneys };
   }, [rides]);
 
   const filteredRides = useMemo(() => {
@@ -111,13 +201,19 @@ function DigitalRideRecord() {
     });
   }, [activeFilter, rides, searchQuery]);
 
+  const visibleRides = useMemo(() => {
+    if (showAllRides) return filteredRides;
+    return filteredRides.slice(0, 3);
+  }, [filteredRides, showAllRides]);
+
   const selectedRide = useMemo(
     () => rides.find((r) => r.id === selectedRecordId) || null,
     [rides, selectedRecordId]
   );
 
   return (
-    <section className="digital-record-section" id="records">
+    <section className="digital-record-section" id="ride-record">
+      <span id="records" style={{ position: "relative", top: -80, visibility: "hidden" }} />
       <div className="record-container">
 
         {/* HEADER */}
@@ -127,12 +223,12 @@ function DigitalRideRecord() {
             <h2>Digital Ride <span>Record</span></h2>
             <p>
               Your verified motorcycle ride history, journey telemetry, and
-              expense records stored securely in MongoDB.
+              expense records stored securely.
             </p>
           </div>
           <div className="record-network-indicator">
             <span style={{ width: 8, height: 8, borderRadius: "50%", background: isAuthenticated ? "#75c987" : "#666", display: "inline-block", boxShadow: isAuthenticated ? "0 0 10px rgba(117,201,135,0.6)" : "none" }} />
-            {isAuthenticated ? "LIVE DATABASE CONNECTED" : "NOT CONNECTED"}
+            {isAuthenticated ? "LIVE NETWORK CONNECTED" : "NOT CONNECTED"}
           </div>
         </div>
 
@@ -152,11 +248,6 @@ function DigitalRideRecord() {
             <span>JOURNEYS</span>
             <strong>{lifetimeStats.totalJourneys}</strong>
             <small>{lifetimeStats.verifiedJourneys} Completed</small>
-          </div>
-          <div className="record-stat-card">
-            <span>AVG MILEAGE</span>
-            <strong>{lifetimeStats.averageMileage} KM/L</strong>
-            <small>Database Fleet Average</small>
           </div>
           <div className="record-stat-card">
             <span>FUEL COST</span>
@@ -198,7 +289,7 @@ function DigitalRideRecord() {
         {/* RECORD LIST */}
         {loading ? (
           <div className="record-empty">
-            <h2>Loading digital ride logs from database...</h2>
+            <h2>Loading digital ride logs...</h2>
           </div>
         ) : filteredRides.length > 0 ? (
           <div className="record-list-panel">
@@ -213,7 +304,7 @@ function DigitalRideRecord() {
               </button>
             </div>
 
-            {filteredRides.map((ride) => (
+            {visibleRides.map((ride) => (
               <div
                 className={`digital-record-card ${selectedRecordId === ride.id ? "selected" : ""}`}
                 key={ride.id}
@@ -274,9 +365,36 @@ function DigitalRideRecord() {
                   >
                     VIEW LOG DETAILS
                   </button>
+                  {ride.canDelete && (
+                    <button
+                      type="button"
+                      className="delete-record-button"
+                      disabled={deletingId === ride.id}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteRide(ride.id, ride.name);
+                      }}
+                      title="Permanently delete this planned ride before it starts"
+                    >
+                      {deletingId === ride.id ? "DELETING..." : "DELETE RIDE 🗑"}
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
+
+            {filteredRides.length > 3 && (
+              <div className="record-more-rides-container">
+                <button
+                  type="button"
+                  className="record-more-rides-btn"
+                  onClick={() => setShowAllRides((prev) => !prev)}
+                >
+                  <span>{showAllRides ? "Show Less" : `More rides (${filteredRides.length - 3})`}</span>
+                  <span className="record-more-icon">{showAllRides ? "▴" : "▾"}</span>
+                </button>
+              </div>
+            )}
           </div>
         ) : (
           <div className="record-empty">
@@ -385,6 +503,24 @@ function DigitalRideRecord() {
                 <strong>{selectedRide.status}</strong>
               </div>
             </div>
+
+            {selectedRide.canDelete && (
+              <div className="modal-delete-action">
+                <button
+                  type="button"
+                  className="modal-delete-btn"
+                  disabled={deletingId === selectedRide.id}
+                  onClick={() => handleDeleteRide(selectedRide.id, selectedRide.name)}
+                >
+                  {deletingId === selectedRide.id
+                    ? "DELETING FROM DATABASE..."
+                    : "PERMANENTLY DELETE RIDE 🗑"}
+                </button>
+                <small>
+                  Only planned rides that have not started yet can be deleted by the organizer.
+                </small>
+              </div>
+            )}
           </div>
         </div>
       )}

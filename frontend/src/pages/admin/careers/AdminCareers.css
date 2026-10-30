@@ -453,3 +453,158 @@
     width: 100%;
   }
 }
+
+
+/* =========================
+   APPLICATIONS IN CAREERS
+========================= */
+
+.career-application-summary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+  color: #666;
+  font-size: 14px;
+}
+
+.career-application-summary > svg {
+  color: #bd8b46;
+  flex-shrink: 0;
+}
+
+.career-view-applications-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 4px;
+  padding: 9px 13px;
+  border: 1px solid #bd8b46;
+  border-radius: 7px;
+  background: #fff;
+  color: #93672e;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.career-view-applications-button:hover {
+  background: #bd8b46;
+  color: #fff;
+}
+
+.career-back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  margin-bottom: 18px;
+  border: none;
+  background: transparent;
+  color: #666;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.career-back-button:hover {
+  color: #bd8b46;
+}
+
+.career-application-total {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 180px;
+  padding: 16px 20px;
+  border: 1px solid #e5e2dc;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.career-application-total > svg {
+  color: #bd8b46;
+}
+
+.career-application-total > span {
+  font-size: 26px;
+  font-weight: 700;
+  color: #222;
+}
+
+.career-application-total > small {
+  color: #777;
+  font-size: 13px;
+}
+
+.applications-status {
+  padding: 36px 20px;
+  border: 1px solid #e5e2dc;
+  border-radius: 12px;
+  background: #fff;
+  color: #666;
+  text-align: center;
+}
+
+.application-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.application-delete-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #dc4444;
+  cursor: pointer;
+}
+
+.application-delete-button:hover {
+  background: #fff0f0;
+}
+
+.application-extra a {
+  color: #a9783b;
+  text-decoration: underline;
+  overflow-wrap: anywhere;
+}
+
+.application-resume-view,
+.application-resume-download {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 12px 6px 0;
+  font-weight: 600;
+}
+
+.application-resume-download {
+  color: #287d4a !important;
+}
+
+@media (max-width: 700px) {
+  .career-application-summary {
+    align-items: flex-start;
+  }
+
+  .career-view-applications-button {
+    margin-left: 0;
+  }
+
+  .career-application-total {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .application-card-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

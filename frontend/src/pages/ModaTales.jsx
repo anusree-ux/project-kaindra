@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import {
   Play,
@@ -7,6 +8,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import "./ModaTales.css";
+import apiClient from "../services/apiClient";
 
 const stories = [
   {
@@ -27,6 +29,7 @@ const stories = [
 ];
 
 function ModaTales() {
+  const navigate = useNavigate();
   const [showForm, setShowForm] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [approvedTales, setApprovedTales] = useState([]);
@@ -56,36 +59,27 @@ function ModaTales() {
 
   const handleSubmit = async (e) => {
   e.preventDefault();
-
-    const formData = new FormData(e.target);
+    const form = e.target;
+    const formData = new FormData(form);
 
     const story = {
-      name: formData.get("name"),
-      email: formData.get("email"),
+      title: formData.get("title"),
       storyType: formData.get("storyType"),
       message: formData.get("message"),
     };
 
     try {
-      const response = await fetch("/api/modasphere/tales", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(story),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to submit story");
-      }
+      await apiClient.post("/api/modasphere/tales", story);
 
       setSubmitted(true);
-      e.target.reset();
+      form.reset();
     } catch (error) {
       console.error("ModaTales submission error:", error);
-      alert(error.message || "Failed to submit story. Please try again.");
+      alert(
+          error.response?.data?.message ||
+            error.message ||
+            "Failed to submit story. Please try again."
+      );
     }
   };
 
@@ -149,7 +143,12 @@ function ModaTales() {
 
                   <button
                     type="button"
-                    onClick={() => setShowForm(true)}
+                    onClick={() => {
+                      // Category filtering can be added later.
+                      document
+                        .getElementById("modatales-stories")
+                        ?.scrollIntoView({ behavior: "smooth" });
+                    }}
                   >
                     Explore
                     <ArrowRight size={15} />
@@ -157,26 +156,58 @@ function ModaTales() {
                 </article>
               );
             })}
-            
-            {!loadingTales &&
-              approvedTales.map((tale) => (
-                <article
-                  className="modatales-card"
-                  key={tale._id}
-                >
-                  <div className="modatales-card-icon">
-                    <BookOpen size={23} />
-                  </div>
-
-                  <h3>{tale.name}</h3>
-
-                  <p>{tale.message}</p>
-
-                  <small>{tale.storyType}</small>
-                </article>
-              ))}
           </div>
 
+          <section
+            className="modatales-stories"
+            id="modatales-stories"
+          >
+            {loadingTales ? (
+              <p>Loading stories...</p>
+            ) : approvedTales.length === 0 ? (
+              <p>No stories are available yet. Check back soon.</p>
+            ) : (
+              <div className="modatales-grid">
+                {approvedTales.map((tale) => (
+                  <article
+                    className="modatales-card modatales-story-card"
+                    key={tale._id}
+                  >
+                    <div className="modatales-card-icon">
+                      <BookOpen size={23} />
+                    </div>
+
+                    <small className="modatales-story-type">
+                      {tale.storyType || "Fashion"}
+                    </small>
+
+                    <h3>{tale.title}</h3>
+
+                    <p>
+                      {tale.message.length > 160
+                        ? `${tale.message.slice(0, 160).trim()}...`
+                        : tale.message}
+                    </p>
+
+                    <small className="modatales-story-author">
+                      By {tale.name || "ModaTales Author"}
+                    </small>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        navigate(`/modatales/${tale._id}`)
+                      }
+                    >
+                      Read Story
+                      <ArrowRight size={15} />
+                    </button>
+                  </article>
+
+                ))}
+              </div>
+            )}
+          </section>
         </div>
       </section>
 
@@ -244,16 +275,9 @@ function ModaTales() {
 
                 <form onSubmit={handleSubmit}>
                   <input
-                    name="name"
+                    name="title"
                     type="text"
-                    placeholder="Your name"
-                    required
-                  />
-
-                  <input
-                    name="email"
-                    type="email"
-                    placeholder="Email address"
+                    placeholder="Story title"
                     required
                   />
 

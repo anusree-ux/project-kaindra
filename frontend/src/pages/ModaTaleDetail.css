@@ -1,0 +1,115 @@
+.modatale-detail {
+  min-height: 80vh;
+  padding: 48px 24px 80px;
+  background: var(--background, #fff);
+  color: var(--foreground, #242424);
+}
+
+.modatale-detail-container {
+  max-width: 850px;
+  margin: 0 auto;
+}
+
+.modatale-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 48px;
+  padding: 10px 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.modatale-article-header {
+  padding-bottom: 32px;
+  border-bottom: 1px solid #e7e3df;
+}
+
+.modatale-article-category {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  color: #8a6748;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.modatale-article-header h1 {
+  max-width: 780px;
+  margin: 0 0 24px;
+  font-family: Georgia, serif;
+  font-size: clamp(32px, 5vw, 54px);
+  font-weight: 500;
+  line-height: 1.15;
+}
+
+.modatale-article-author {
+  color: #777;
+  font-size: 14px;
+}
+
+.modatale-article-body {
+  max-width: 740px;
+  margin: 36px auto 0;
+  font-size: 17px;
+  line-height: 1.95;
+  overflow-wrap: anywhere;
+}
+
+.modatale-article-body p {
+  margin: 0 0 24px;
+  white-space: pre-line;
+}
+
+.modatale-article-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 56px;
+  padding-top: 24px;
+  border-top: 1px solid #e7e3df;
+}
+
+.modatale-article-footer p {
+  font-family: Georgia, serif;
+  font-size: 20px;
+}
+
+.modatale-article-footer button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border: 1px solid #242424;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.modatale-article-footer button:hover {
+  background: #242424;
+  color: #fff;
+}
+
+@media (max-width: 600px) {
+  .modatale-detail {
+    padding: 28px 18px 56px;
+  }
+
+  .modatale-back-btn {
+    margin-bottom: 32px;
+  }
+
+  .modatale-article-body {
+    font-size: 16px;
+    line-height: 1.8;
+  }
+}

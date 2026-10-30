@@ -1,17 +1,24 @@
 const Order = require("../../models/modasphere/Order");
+const Shipment = require("../../models/modasphere/Shipment");
 const Cart = require("../../models/modasphere/Cart");
 const Product = require("../../models/modasphere/Product");
 const Drop = require("../../models/modasphere/Drop");
 const DiscountCode = require("../../models/modasphere/DiscountCode");
-const { getUserPurchaseCountInDrop } = require("../../services/modasphere/dropService");
+const {
+  getDropStatusAt,
+  getUserPurchaseCountInDrop,
+  isDropLiveAt,
+  notifyNextProductDropWaitlistUser,
+} = require("../../services/modasphere/dropService");
 const {
   createRazorpayOrder,
   verifyPaymentSignature,
   initiateRefund,
 } = require("../../services/modasphere/paymentService");
 const {
-  notifyNextProductDropWaitlistUser,
-} = require("../../services/modasphere/dropService");
+  finalizePaidOrder,
+  refundCancelledOrderPayment,
+} = require("../../services/modasphere/orderFinalizationService");
 const AppError = require("../../utils/AppError");
 
 /**
@@ -47,43 +54,82 @@ const checkout = async (req, res, next) => {
       );
     }
 
-    // 1. Validate ModaDrop restrictions (drop status and maxPerUser limit)
-    const cartProductIds = cart.items.map((i) => (i.productId && i.productId._id) ? i.productId._id : i.productId);
-    const relevantDrops = await Drop.find({ productIds: { $in: cartProductIds } });
+    // Event dates, not product-level release dates or cached status, control availability.
+    const now = new Date();
+    const cartProductIds = cart.items
+      .filter((item) => item.productId && item.productId._id)
+      .map((item) => item.productId._id);
+    const relevantDrops = await Drop.find({
+      productIds: { $in: cartProductIds },
+    });
+    const dropsByProductId = new Map();
+    for (const drop of relevantDrops) {
+      for (const productId of drop.productIds) {
+        const key = productId.toString();
+        const productDrops = dropsByProductId.get(key) || [];
+        productDrops.push(drop);
+        dropsByProductId.set(key, productDrops);
+      }
+    }
 
-    if (relevantDrops.length > 0) {
-      for (const drop of relevantDrops) {
-        if (drop.status !== "live") {
-          return next(
-            new AppError(
-              `Cannot purchase items from drop "${drop.title}" because the drop is currently "${drop.status}". Purchases are only permitted during live drops.`,
-              400
-            )
-          );
-        }
+    const dropByProductId = new Map();
+    const quantityByDropId = new Map();
+    for (const item of cart.items) {
+      const product = item.productId;
+      if (!product || !product._id) {
+        continue;
+      }
 
-        const dropProductIds = drop.productIds.map((id) => id.toString());
-        let currentDropOrderQty = 0;
-        for (const item of cart.items) {
-          const pId = (item.productId && item.productId._id ? item.productId._id : item.productId).toString();
-          if (dropProductIds.includes(pId)) {
-            currentDropOrderQty += item.quantity;
-          }
-        }
+      const productDrops = dropsByProductId.get(product._id.toString()) || [];
+      const liveDrops = productDrops.filter((drop) => isDropLiveAt(drop, now));
+      const scheduledDrops = productDrops.filter(
+        (drop) => getDropStatusAt(drop, now) !== "ended"
+      );
 
-        const existingPurchasedCount = await getUserPurchaseCountInDrop(
-          req.user._id,
-          drop._id
+      if (!product.isDrop && scheduledDrops.length === 0) {
+        continue;
+      }
+
+      if (liveDrops.length !== 1) {
+        const status = liveDrops.length > 1
+          ? "assigned to multiple live ModaDrop events"
+          : productDrops.length === 0
+            ? "not assigned to a scheduled ModaDrop event"
+            : `currently "${getDropStatusAt(scheduledDrops[0] || productDrops[0], now)}"`;
+        return next(
+          new AppError(
+            `Cannot purchase "${product.name}" because its ModaDrop event is ${status}.`,
+            400
+          )
         );
+      }
 
-        if (existingPurchasedCount + currentDropOrderQty > drop.maxPerUser) {
-          return next(
-            new AppError(
-              `Purchase limit exceeded for drop "${drop.title}". Limit is ${drop.maxPerUser} per customer. You have already purchased ${existingPurchasedCount} and are attempting to checkout ${currentDropOrderQty}.`,
-              400
-            )
-          );
-        }
+      const drop = liveDrops[0];
+      dropByProductId.set(product._id.toString(), drop);
+      const dropKey = drop._id.toString();
+      quantityByDropId.set(
+        dropKey,
+        (quantityByDropId.get(dropKey) || 0) + item.quantity
+      );
+    }
+
+    for (const drop of relevantDrops) {
+      const currentDropOrderQty = quantityByDropId.get(drop._id.toString());
+      if (!currentDropOrderQty) {
+        continue;
+      }
+
+      const existingPurchasedCount = await getUserPurchaseCountInDrop(
+        req.user._id,
+        drop._id
+      );
+      if (existingPurchasedCount + currentDropOrderQty > drop.maxPerUser) {
+        return next(
+          new AppError(
+            `Purchase limit exceeded for drop "${drop.title}". Limit is ${drop.maxPerUser} per customer. You have already purchased ${existingPurchasedCount} and are attempting to checkout ${currentDropOrderQty}.`,
+            400
+          )
+        );
       }
     }
 
@@ -103,28 +149,8 @@ const checkout = async (req, res, next) => {
         );
       }
 
-      // ModaDrop validation
-      if (product.isDrop) {
-        if (!product.dropReleaseAt) {
-          return next(
-            new AppError(
-              `Drop "${product.name}" does not have a release date configured.`,
-              400
-            )
-          );
-        }
-
-        if (new Date() < new Date(product.dropReleaseAt)) {
-          return next(
-            new AppError(
-              `Drop "${product.name}" has not been released yet. It will be available on ${new Date(
-                product.dropReleaseAt
-              ).toISOString()}.`,
-              400
-            )
-          );
-        }
-
+      const associatedDrop = dropByProductId.get(product._id.toString());
+      if (associatedDrop) {
         if (
           product.dropStock === null ||
           product.dropStock === undefined ||
@@ -167,6 +193,8 @@ const checkout = async (req, res, next) => {
         name: product.name,
         price: itemPrice,
         quantity: item.quantity,
+        dropId: associatedDrop?._id || null,
+        isDrop: Boolean(associatedDrop),
       });
     }
 
@@ -244,19 +272,19 @@ const checkout = async (req, res, next) => {
       }
 
       if (discount.discountType === "percentage") {
-        discountAmount =
-          (subtotalAmount * discount.discountValue) / 100;
+        discountAmount = (subtotalAmount * discount.discountValue) / 100;
       } else {
         discountAmount = discount.discountValue;
       }
 
       discountAmount = Math.min(discountAmount, subtotalAmount);
+      discountAmount = Math.round(discountAmount * 100) / 100;
 
       appliedDiscountCode = discount.code;
     }
 
     const totalAmount = Math.max(
-      subtotalAmount - discountAmount,
+      Math.round((subtotalAmount - discountAmount) * 100) / 100,
       0
     );
 
@@ -313,12 +341,27 @@ const verifyPayment = async (req, res, next) => {
     const { id } = req.params;
     const { razorpayPaymentId, razorpaySignature } = req.body;
 
+    if (!razorpayPaymentId || !razorpaySignature) {
+      return next(
+        new AppError(
+          "Payment verification requires razorpayPaymentId and razorpaySignature.",
+          400
+        )
+      );
+    }
+
     const order = await Order.findById(id);
     if (!order) {
       return next(new AppError("Order not found.", 404));
     }
 
-    if (order.buyerId.toString() !== req.user._id.toString()) {
+    // 1. Buyer ownership check BEFORE any other logic
+    const isBuyer =
+      order.buyerId &&
+      (order.buyerId._id || order.buyerId).toString() ===
+        req.user._id.toString();
+
+    if (!isBuyer) {
       return next(
         new AppError("Not authorized to verify payment for this order.", 403)
       );
@@ -349,106 +392,61 @@ const verifyPayment = async (req, res, next) => {
       );
     }
 
-    // Reserve/decrement inventory before marking the order as paid.
-    const updatedStockItems = [];
+    const { order: finalizedOrder, outcome } = await finalizePaidOrder(
+      order._id,
+      razorpayPaymentId,
+      razorpaySignature
+    );
 
-    try {
-      for (const item of order.items) {
-        const product = await Product.findById(item.productId);
-
-        if (!product) {
-          throw new AppError(
-            `Product "${item.name}" no longer exists.`,
-            400
-          );
-        }
-
-        if (product.isDrop) {
-          const updatedProduct = await Product.findOneAndUpdate(
-            {
-              _id: item.productId,
-              isDrop: true,
-              dropStock: { $gte: item.quantity },
-            },
-            {
-              $inc: { dropStock: -item.quantity },
-            },
-            { new: true }
-          );
-
-          if (!updatedProduct) {
-            throw new AppError(
-              `Insufficient drop stock for "${item.name}". The drop may have sold out.`,
-              400
-            );
-          }
-
-          updatedStockItems.push({
-            productId: item.productId,
-            quantity: item.quantity,
-            isDrop: true,
-          });
-        } else {
-          const updatedProduct = await Product.findOneAndUpdate(
-            {
-              _id: item.productId,
-              isDrop: false,
-              stock: { $gte: item.quantity },
-            },
-            {
-              $inc: { stock: -item.quantity },
-            },
-            { new: true }
-          );
-
-          if (!updatedProduct) {
-            throw new AppError(
-              `Insufficient stock for "${item.name}". The product may have sold out.`,
-              400
-            );
-          }
-
-          updatedStockItems.push({
-            productId: item.productId,
-            quantity: item.quantity,
-            isDrop: false,
-          });
-        }
-      }
-    } catch (stockError) {
-      // Restore inventory if a later item failed.
-      for (const item of updatedStockItems) {
-        if (item.isDrop) {
-          await Product.findByIdAndUpdate(item.productId, {
-            $inc: { dropStock: item.quantity },
-          });
-        } else {
-          await Product.findByIdAndUpdate(item.productId, {
-            $inc: { stock: item.quantity },
-          });
-        }
-      }
-
-      return next(stockError);
+    if (outcome === "paid") {
+      return res.status(200).json({
+        status: "success",
+        message: "Payment verified successfully. Order confirmed.",
+        data: { order: finalizedOrder },
+      });
     }
 
-    // Only mark the order as paid after all inventory was successfully reserved.
-    order.status = "paid";
-    order.razorpayPaymentId = razorpayPaymentId;
-    order.razorpaySignature = razorpaySignature;
-    await order.save();
-
-    // Clear user's Cart
-    const cart = await Cart.findOne({ userId: req.user._id });
-    if (cart) {
-      cart.items = [];
-      await cart.save();
+    if (outcome === "already_paid") {
+      return res.status(200).json({
+        status: "success",
+        message: "Order is already paid.",
+        data: { order: finalizedOrder },
+      });
     }
 
-    res.status(200).json({
-      status: "success",
-      message: "Payment verified successfully. Order confirmed.",
-      data: { order },
+    if (outcome === "out_of_stock") {
+      return res.status(409).json({
+        status: "fail",
+        message: "Item sold out. Your payment is being refunded.",
+        data: { order: finalizedOrder },
+      });
+    }
+
+    if (outcome === "not_pending") {
+      if (finalizedOrder.status === "cancelled") {
+        const refundResult = await refundCancelledOrderPayment(
+          finalizedOrder._id,
+          razorpayPaymentId
+        );
+        const refOrder = refundResult?.order || finalizedOrder;
+        return res.status(409).json({
+          status: "fail",
+          message: "This order expired. Your payment is being refunded.",
+          data: { order: refOrder },
+        });
+      }
+
+      return res.status(409).json({
+        status: "fail",
+        message: `Order cannot be paid. Current status is "${finalizedOrder.status}".`,
+        data: { order: finalizedOrder },
+      });
+    }
+
+    return res.status(400).json({
+      status: "fail",
+      message: "Order payment could not be finalized.",
+      data: { order: finalizedOrder },
     });
   } catch (error) {
     next(error);
@@ -526,9 +524,12 @@ const getOrderById = async (req, res, next) => {
       responseData.sellerSubtotal = sellerSubtotal;
     }
 
+    const shipment = await Shipment.findOne({ orderId: order._id });
+    responseData.shipment = shipment;
+
     res.status(200).json({
       status: "success",
-      data: { order: responseData },
+      data: { order: responseData, shipment },
     });
   } catch (error) {
     next(error);
@@ -580,6 +581,8 @@ const getSellerOrders = async (req, res, next) => {
 const shipOrder = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const { carrier, trackingNumber, estimatedDeliveryDate } = req.body || {};
+
     const order = await Order.findById(id);
 
     if (!order) {
@@ -610,15 +613,56 @@ const shipOrder = async (req, res, next) => {
       );
     }
 
+    if (!carrier) {
+      return next(new AppError("Carrier is required to ship an order.", 400));
+    }
+
+    if (!trackingNumber) {
+      return next(new AppError("Tracking number is required to ship an order.", 400));
+    }
+
     // Known simplification: updates the whole order's status to "shipped", rather
     // than per-item / per-seller shipment tracking. Out of scope for now as single-seller orders are the common case.
     order.status = "shipped";
     await order.save();
 
+    let shipment = await Shipment.findOne({ orderId: order._id });
+    if (!shipment) {
+      shipment = await Shipment.create({
+        orderId: order._id,
+        carrier,
+        trackingNumber,
+        estimatedDeliveryDate: estimatedDeliveryDate || null,
+        status: req.body.status || "pending_pickup",
+        timeline: [
+          {
+            status: req.body.status || "pending_pickup",
+            note: req.body.note || "Shipment order created by seller.",
+            timestamp: new Date(),
+          },
+        ],
+      });
+    } else {
+      shipment.carrier = carrier;
+      shipment.trackingNumber = trackingNumber;
+      if (estimatedDeliveryDate) {
+        shipment.estimatedDeliveryDate = estimatedDeliveryDate;
+      }
+      if (req.body.status) {
+        shipment.status = req.body.status;
+        shipment.timeline.push({
+          status: req.body.status,
+          note: req.body.note || `Status updated to ${req.body.status}`,
+          timestamp: new Date(),
+        });
+      }
+      await shipment.save();
+    }
+
     res.status(200).json({
       status: "success",
       message: "Order marked as shipped.",
-      data: { order },
+      data: { order, shipment },
     });
   } catch (error) {
     next(error);
@@ -662,10 +706,21 @@ const deliverOrder = async (req, res, next) => {
     order.status = "delivered";
     await order.save();
 
+    let shipment = await Shipment.findOne({ orderId: order._id });
+    if (shipment) {
+      shipment.status = "delivered";
+      shipment.timeline.push({
+        status: "delivered",
+        note: "Confirmed received by buyer",
+        timestamp: new Date(),
+      });
+      await shipment.save();
+    }
+
     res.status(200).json({
       status: "success",
       message: "Order marked as delivered.",
-      data: { order },
+      data: { order, shipment: shipment || undefined },
     });
   } catch (error) {
     next(error);
@@ -719,7 +774,9 @@ const cancelOrder = async (req, res, next) => {
           continue;
         }
 
-        if (product.isDrop) {
+        const usesDropStock =
+          item.isDrop === undefined ? product.isDrop : item.isDrop;
+        if (usesDropStock) {
           await Product.findByIdAndUpdate(item.productId, {
             $inc: { dropStock: item.quantity },
           });

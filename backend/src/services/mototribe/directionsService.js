@@ -54,17 +54,29 @@ const geocodeLocation = async (addressText) => {
     );
   }
 
-  if (data.status === "REQUEST_DENIED") {
+  if (data.status === "REQUEST_DENIED" || data.status === "OVER_QUERY_LIMIT") {
+    try {
+      const nomUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
+        addressText
+      )}&format=json&limit=1`;
+      const nomRes = await fetch(nomUrl, {
+        headers: { "User-Agent": "MotoTribe-Geocoding/1.0" },
+      });
+      if (nomRes.ok) {
+        const nomData = await nomRes.json();
+        if (Array.isArray(nomData) && nomData.length > 0) {
+          return {
+            lat: parseFloat(nomData[0].lat),
+            lng: parseFloat(nomData[0].lon),
+          };
+        }
+      }
+    } catch (nomErr) {
+      console.warn("[DirectionsService] Nominatim fallback note:", nomErr.message);
+    }
     throw new AppError(
       `Google Geocoding API Request Denied: ${data.error_message || ""}`,
       403
-    );
-  }
-
-  if (data.status === "OVER_QUERY_LIMIT") {
-    throw new AppError(
-      "Google Geocoding API quota exceeded. Please try again later.",
-      429
     );
   }
 
@@ -122,17 +134,35 @@ const getRoute = async (originLat, originLng, destLat, destLng) => {
     );
   }
 
-  if (data.status === "REQUEST_DENIED") {
+  if (data.status === "REQUEST_DENIED" || data.status === "OVER_QUERY_LIMIT") {
+    try {
+      const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${originLng},${originLat};${destLng},${destLat}?overview=full&steps=true`;
+      const osrmRes = await fetch(osrmUrl);
+      if (osrmRes.ok) {
+        const osrmData = await osrmRes.json();
+        if (osrmData.code === "Ok" && osrmData.routes?.length > 0) {
+          const r = osrmData.routes[0];
+          const leg = r.legs[0] || {};
+          return {
+            distanceMeters: Math.round(r.distance || 0),
+            durationSeconds: Math.round(r.duration || 0),
+            durationInTrafficSeconds: Math.round(r.duration || 0),
+            polyline: r.geometry || "",
+            steps: (leg.steps || []).map((s) => ({
+              instruction: s.maneuver?.instruction || s.name || "Proceed along route",
+              distanceMeters: Math.round(s.distance || 0),
+              durationSeconds: Math.round(s.duration || 0),
+            })),
+            computedAt: new Date(),
+          };
+        }
+      }
+    } catch (osrmErr) {
+      console.warn("[DirectionsService] OSRM fallback note:", osrmErr.message);
+    }
     throw new AppError(
       `Google Directions API Request Denied: ${data.error_message || ""}`,
       403
-    );
-  }
-
-  if (data.status === "OVER_QUERY_LIMIT") {
-    throw new AppError(
-      "Google Directions API quota exceeded. Please try again later.",
-      429
     );
   }
 
@@ -289,7 +319,7 @@ const analyzeRoute = async (origin, destination, waypoints = []) => {
       const coordString = allCoords.map((c) => `${c.lon},${c.lat}`).join(";");
 
       const osrmRes = await fetch(
-        `https://router.project-osrm.org/route/v1/driving/${coordString}?overview=false`
+        `https://router.project-osrm.org/route/v1/driving/${coordString}?overview=full&geometries=geojson`
       );
       if (osrmRes.ok) {
         const data = await osrmRes.json();

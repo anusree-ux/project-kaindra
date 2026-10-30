@@ -283,7 +283,7 @@ function LiveRiders() {
           <div>
             <span className="location-pulse" />
             <span>
-              {loading ? "Connecting to live database..." : "Showing active riders across the MotoTribe network"}
+              {loading ? "Connecting to live network..." : "Showing active riders across the MotoTribe network"}
             </span>
           </div>
 

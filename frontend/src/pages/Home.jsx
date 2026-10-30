@@ -3,7 +3,7 @@
 import Gallery from "../sections/Gallery/Gallery";
 
 import Timeline from "../sections/Timeline/Timeline";
-
+import VisionMission from "./brands/ModaSphere/VisionMission/VisionMission";
 // ModaSphere sections
 
 import ModaHero from "./brands/ModaSphere/ModaHero/ModaHero";
@@ -28,7 +28,7 @@ function Home() {
 
         <ModaHero />
 
-
+        <VisionMission />
 
         <CorePillars />
 

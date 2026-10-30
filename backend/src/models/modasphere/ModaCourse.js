@@ -1,5 +1,38 @@
 const mongoose = require("mongoose");
 
+const quizQuestionSchema = new mongoose.Schema({
+  question: { type: String, required: true, trim: true },
+  options: { type: [String], required: true, validate: (items) => items.length >= 2 },
+  correctAnswerIndex: {
+    type: Number,
+    required: true,
+    min: 0,
+    validate: { validator(value) { return value < (this.options || []).length; }, message: "Correct answer must reference an available option" },
+  },
+}, { _id: true });
+
+const courseLessonSchema = new mongoose.Schema({
+  title: { type: String, required: true, trim: true, maxlength: 200 },
+  description: { type: String, trim: true, maxlength: 500 },
+  content: { type: String, default: "" },
+  type: { type: String, enum: ["video", "article", "quiz", "task"], default: "article" },
+  videoUrl: { type: String, trim: true },
+  durationMinutes: { type: Number, min: 1 },
+  order: { type: Number, min: 1 },
+  isRequired: { type: Boolean, default: true },
+  quizQuestions: { type: [quizQuestionSchema], default: undefined },
+  passingScore: { type: Number, min: 0, max: 100, default: 70 },
+  taskInstructions: { type: String, trim: true },
+  submissionRequirements: { type: String, trim: true },
+}, { _id: true });
+
+const courseSubmoduleSchema = new mongoose.Schema({
+  title: { type: String, required: true, trim: true, maxlength: 200 },
+  description: { type: String, trim: true, maxlength: 500 },
+  order: { type: Number, min: 1 },
+  lessons: { type: [courseLessonSchema], default: [] },
+}, { _id: true });
+
 const courseModuleSchema = new mongoose.Schema(
   {
     title: {
@@ -17,7 +50,7 @@ const courseModuleSchema = new mongoose.Schema(
 
     content: {
       type: String,
-      required: [true, "Module content is required"],
+      default: "",
     },
 
     type: {
@@ -33,7 +66,7 @@ const courseModuleSchema = new mongoose.Schema(
 
     order: {
       type: Number,
-      required: [true, "Module order is required"],
+      default: 1,
       min: [1, "Module order must be at least 1"],
     },
 
@@ -41,6 +74,8 @@ const courseModuleSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    lessons: { type: [courseLessonSchema], default: [] },
+    submodules: { type: [courseSubmoduleSchema], default: [] },
   },
   {
     _id: true,
@@ -150,6 +185,55 @@ const modaCourseSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+
+modaCourseSchema.statics.getLessons = (course) =>
+  (course?.modules || []).flatMap((module) => {
+    const directLessons = module.lessons || [];
+
+    const legacyLesson =
+      !directLessons.length && module.content?.trim()
+        ? [module]
+        : [];
+
+    const submoduleLessons = (module.submodules || []).flatMap(
+      (submodule) => submodule.lessons || [],
+    );
+
+    return [...legacyLesson, ...directLessons, ...submoduleLessons];
+  });
+
+  
+modaCourseSchema.statics.getProgress = (course, completedLessonIds = []) => {
+  const lessons = ModaCourse.getLessons(course);
+
+  const requiredLessons = lessons.filter(
+    (lesson) => lesson.isRequired !== false,
+  );
+
+  const completedIds = new Set(completedLessonIds.map(String));
+
+  const completedRequiredLessons = requiredLessons.filter((lesson) =>
+    completedIds.has(String(lesson._id)),
+  ).length;
+
+  const totalRequiredLessons = requiredLessons.length;
+
+  const progress = totalRequiredLessons
+    ? Math.round((completedRequiredLessons / totalRequiredLessons) * 100)
+    : 0;
+
+  return {
+    progress,
+    completedRequiredLessons,
+    totalRequiredLessons,
+    status:
+      totalRequiredLessons > 0 &&
+      completedRequiredLessons === totalRequiredLessons
+        ? "Completed"
+        : "Enrolled",
+  };
+};
 
 const ModaCourse = mongoose.model("ModaCourse", modaCourseSchema);
 

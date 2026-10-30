@@ -1,12 +1,10 @@
 /**
  * MSG91 SMS Service — Flow API v5 (per-template routing)
  *
- * Replaces the previous AWS SNS integration. Each SMS type (OTP, SOS)
- * maps to a separate DLT-approved MSG91 Flow template.
+ * Dedicated to MotoTribe SOS Emergency Alerts.
  *
  * Environment variables:
  *   MSG91_AUTH_KEY          – your MSG91 authkey
- *   MSG91_OTP_TEMPLATE_ID  – Flow template for OTP messages
  *   MSG91_SOS_TEMPLATE_ID  – Flow template for SOS emergency alerts
  */
 
@@ -14,13 +12,6 @@ const MSG91_API_URL = "https://control.msg91.com/api/v5/flow/";
 
 // Maps templateType → { envVar, buildRecipient }
 const TEMPLATE_CONFIG = {
-  otp: {
-    envVar: "MSG91_OTP_TEMPLATE_ID",
-    buildRecipient: (mobiles, variables) => ({
-      mobiles,
-      OTP: variables.otpCode,
-    }),
-  },
   sos: {
     envVar: "MSG91_SOS_TEMPLATE_ID",
     buildRecipient: (mobiles, variables) => ({

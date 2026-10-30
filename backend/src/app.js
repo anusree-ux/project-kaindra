@@ -1,7 +1,7 @@
-﻿const express = require("express");
+const express = require("express");
 const cors = require("cors");
+const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
-const connectDB = require("./config/database");
 const authRoutes = require("./routes/core/authRoutes");
 const rideRoutes = require("./routes/mototribe/rideRoutes");
 const placesRoutes = require("./routes/mototribe/placesRoutes");
@@ -24,23 +24,26 @@ const careerRoutes = require("./routes/core/careerRoutes");
 const applicationRoutes = require("./routes/core/applicationRoutes");
 const communityRoutes = require("./routes/core/communityRoutes");
 const adminRoutes = require("./routes/core/adminRoutes");
-const orderRoutes = require("./routes/core/orderRoutes");
 const talesRoutes = require("./routes/modasphere/talesRoutes");
 const academyRoutes = require("./routes/modasphere/academyRoutes");
 const influenceRoutes = require("./routes/modasphere/modainfluence/influenceRoutes");
 const productRoutes = require("./routes/modasphere/productRoutes");
 const discountCodeRoutes = require("./routes/modasphere/discountCodeRoutes");
+const shipmentRoutes = require("./routes/modasphere/shipmentRoutes");
 const cartRoutes = require("./routes/modasphere/cartRoutes");
 const modasphereOrderRoutes = require("./routes/modasphere/orderRoutes");
 const wishlistRoutes = require("./routes/modasphere/wishlistRoutes");
 const reviewRoutes = require("./routes/modasphere/reviewRoutes");
+const insightsRoutes = require("./routes/modasphere/insightsRoutes");
 const dropRoutes = require("./routes/modasphere/dropRoutes");
+const designRoutes = require("./routes/modasphere/designRoutes");
+const manufacturerRoutes = require("./routes/modasphere/manufacturerRoutes");
+const productionRequestRoutes = require("./routes/modasphere/productionRequestRoutes");
+const sellerRoutes = require("./routes/modasphere/sellerRoutes");
+const webhookRoutes = require("./routes/modasphere/webhookRoutes");
 const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
-
-// Connect to Database
-connectDB();
 
 // CORS Middleware (allow requests from frontend app)
 app.use(
@@ -50,8 +53,14 @@ app.use(
   })
 );
 
-// Body parser
-app.use(express.json());
+// Body parser with raw body buffer capture for webhook signature verification
+app.use(
+  express.json({
+    verify: (req, res, buf) => {
+      req.rawBody = buf;
+    },
+  })
+);
 
 // Cookie parser
 app.use(cookieParser());
@@ -67,6 +76,32 @@ app.get("/health", (req, res) => {
     status: "ok",
     service: "backend",
   });
+});
+
+app.get("/ready", async (req, res) => {
+  try {
+    if (mongoose.connection.readyState !== 1 || !mongoose.connection.db) {
+      return res.status(503).json({
+        status: "not_ready",
+        service: "backend",
+        database: "disconnected",
+      });
+    }
+
+    await mongoose.connection.db.admin().ping();
+
+    return res.status(200).json({
+      status: "ready",
+      service: "backend",
+      database: "connected",
+    });
+  } catch {
+    return res.status(503).json({
+      status: "not_ready",
+      service: "backend",
+      database: "unavailable",
+    });
+  }
 });
 
 // API Routes
@@ -92,8 +127,8 @@ app.use("/api/community", communityRoutes);
 app.use("/api/v1/admin", adminRoutes);
 app.use("/api/admin", adminRoutes);
 
-app.use("/api/v1/orders", orderRoutes);
-app.use("/api/orders", orderRoutes);
+app.use("/api/v1/orders", modasphereOrderRoutes);
+app.use("/api/orders", modasphereOrderRoutes);
 
 // ModaSphere Routes
 app.use("/api/modasphere/tales", talesRoutes);
@@ -108,6 +143,9 @@ app.use("/api/v1/modasphere/influence", influenceRoutes);
 app.use("/api/modasphere/products", productRoutes);
 app.use("/api/v1/modasphere/products", productRoutes);
 
+app.use("/api/modasphere/shipments", shipmentRoutes);
+app.use("/api/v1/modasphere/shipments", shipmentRoutes);
+
 app.use("/api/modasphere/discount-codes", discountCodeRoutes);
 app.use("/api/v1/modasphere/discount-codes", discountCodeRoutes);
 
@@ -117,14 +155,32 @@ app.use("/api/v1/modasphere/cart", cartRoutes);
 app.use("/api/modasphere/orders", modasphereOrderRoutes);
 app.use("/api/v1/modasphere/orders", modasphereOrderRoutes);
 
+app.use("/api/modasphere/webhooks", webhookRoutes);
+app.use("/api/v1/modasphere/webhooks", webhookRoutes);
+
 app.use("/api/modasphere/wishlist", wishlistRoutes);
 app.use("/api/v1/modasphere/wishlist", wishlistRoutes);
 
 app.use("/api/modasphere/drops", dropRoutes);
 app.use("/api/v1/modasphere/drops", dropRoutes);
 
+app.use("/api/modasphere/insights", insightsRoutes);
+app.use("/api/v1/modasphere/insights", insightsRoutes);
+
 app.use("/api/modasphere", reviewRoutes);
 app.use("/api/v1/modasphere", reviewRoutes);
+
+app.use("/api/modasphere", designRoutes);
+app.use("/api/v1/modasphere", designRoutes);
+
+app.use("/api/modasphere", manufacturerRoutes);
+app.use("/api/v1/modasphere", manufacturerRoutes);
+
+app.use("/api/modasphere", productionRequestRoutes);
+app.use("/api/v1/modasphere", productionRequestRoutes);
+
+app.use("/api/modasphere", sellerRoutes);
+app.use("/api/v1/modasphere", sellerRoutes);
 
 // MotoTribe Routes (supports both /api/mototribe and /api/v1/mototribe)
 app.use("/api/v1/mototribe", directionsRoutes);

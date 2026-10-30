@@ -1,7 +1,11 @@
-name: Deploy Dev
+
+name: Deploy
 
 on:
-  push:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
     branches:
       - main
   workflow_dispatch:
@@ -15,15 +19,20 @@ env:
   ECR_REGISTRY: 868843318280.dkr.ecr.ap-south-1.amazonaws.com
   EC2_INSTANCE_ID: i-03bb9514c0ffffadc
   SECRET_NAME: kaindra-dev/backend-env
+  IMAGE_TAG: ${{ github.sha }}-${{ github.run_number }}-${{ github.run_attempt }}
 
 jobs:
   deploy:
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'main')
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Diagnose GitHub OIDC claims
         uses: actions/github-script@v7
         with:
@@ -46,11 +55,11 @@ jobs:
         run: |
           docker build \
             --target production \
-            -t "$ECR_REGISTRY/kaindra-dev-backend:${{ github.sha }}" \
+            -t "$ECR_REGISTRY/kaindra-dev-backend:$IMAGE_TAG" \
             ./backend
 
           docker push \
-            "$ECR_REGISTRY/kaindra-dev-backend:${{ github.sha }}"
+            "$ECR_REGISTRY/kaindra-dev-backend:$IMAGE_TAG"
 
       - name: Build and push frontend image
         run: |
@@ -58,24 +67,26 @@ jobs:
             --target production \
             --build-arg VITE_GOOGLE_CLIENT_ID="${{ vars.VITE_GOOGLE_CLIENT_ID }}" \
             --build-arg VITE_GOOGLE_MAPS_API_KEY="${{ vars.GOOGLE_MAPS_API_KEY }}" \
-            -t "$ECR_REGISTRY/kaindra-dev-frontend:${{ github.sha }}" \
+            -t "$ECR_REGISTRY/kaindra-dev-frontend:$IMAGE_TAG" \
             ./frontend
 
           docker push \
-            "$ECR_REGISTRY/kaindra-dev-frontend:${{ github.sha }}"
+            "$ECR_REGISTRY/kaindra-dev-frontend:$IMAGE_TAG"
 
       - name: Deploy to EC2 via SSM
         run: |
           COMMANDS=$(jq -n \
             --arg repo "${{ github.repository }}" \
             --arg sha "${{ github.sha }}" \
+            --arg github_sha "${{ github.sha }}" \
+            --arg image_tag "$IMAGE_TAG" \
             --arg region "$AWS_REGION" \
             --arg secret "$SECRET_NAME" \
             --arg registry "$ECR_REGISTRY" \
             '[
               ("curl -fsSL https://raw.githubusercontent.com/" + $repo + "/" + $sha + "/docker/deploy.sh -o /tmp/deploy.sh"),
               "chmod +x /tmp/deploy.sh",
-              ("AWS_REGION=" + $region + " SECRET_NAME=" + $secret + " ECR_REGISTRY=" + $registry + " IMAGE_TAG=" + $sha + " GITHUB_REPOSITORY=" + $repo + " /tmp/deploy.sh")
+              ("AWS_REGION=" + $region + " SECRET_NAME=" + $secret + " ECR_REGISTRY=" + $registry + " IMAGE_TAG=" + $image_tag + " GITHUB_SHA=" + $github_sha + " GITHUB_REPOSITORY=" + $repo + " /bin/bash /tmp/deploy.sh")
             ]')
 
           COMMAND_ID=$(aws ssm send-command \
@@ -83,7 +94,7 @@ jobs:
             --instance-ids "$EC2_INSTANCE_ID" \
             --document-name "AWS-RunShellScript" \
             --parameters "{\"commands\":$COMMANDS}" \
-            --comment "Deploy ${{ github.sha }} to Kaindra dev EC2" \
+            --comment "Deploy $IMAGE_TAG to Kaindra dev EC2" \
             --query "Command.CommandId" \
             --output text)
 

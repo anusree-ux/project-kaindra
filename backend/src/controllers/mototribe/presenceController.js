@@ -271,6 +271,49 @@ const getRidersNearby = async (req, res, next) => {
       });
     }
 
+    // Only append other registered community riders when no filter is requested or filter is "all"
+    if (!filter || filter === "all") {
+      const existingUserIds = new Set(ridersList.map((r) => r.userId.toString()));
+      existingUserIds.add(req.user._id.toString());
+
+      const privatePresences = await RiderPresence.find({ visibility: "private" }).select("userId");
+      const privateUserIds = new Set(privatePresences.map((p) => p.userId.toString()));
+
+      const otherRiderProfiles = await RiderProfile.find({
+        userId: { $nin: Array.from(existingUserIds) },
+      })
+        .populate("userId", "name city email createdAt")
+        .limit(10)
+        .lean();
+
+      for (const profile of otherRiderProfiles) {
+        if (!profile.userId) continue;
+        const otherUser = profile.userId;
+        const targetUserId = otherUser._id;
+        if (privateUserIds.has(targetUserId.toString())) continue;
+
+        const defaultVehicle =
+          (await Vehicle.findOne({ userId: targetUserId, isDefault: true }).lean()) ||
+          (await Vehicle.findOne({ userId: targetUserId }).lean());
+        const primaryVehicleName = defaultVehicle ? defaultVehicle.vehicleName : null;
+        const trustScore = await calculateTrustScore(targetUserId);
+
+        ridersList.push({
+          userId: targetUserId,
+          name: otherUser.name || "Rider",
+          location: otherUser.city || "Active Community",
+          preferredRideType: profile.preferredRideType || "adventure",
+          trustScore,
+          primaryVehicleName: primaryVehicleName || profile.motorcycle || "Motorcycle",
+          totalRidesCompleted: profile.totalRidesCompleted || 0,
+          distanceKm: 25,
+          status: "idle",
+          visibility: "community",
+          currentJourney: null,
+        });
+      }
+    }
+
     res.status(200).json({
       status: "success",
       results: ridersList.length,
@@ -329,6 +372,9 @@ const getRiderProfileCard = async (req, res, next) => {
     }
 
     const profile = await RiderProfile.findOne({ userId: targetUserId });
+    if (!profile) {
+      return next(new AppError("Rider profile not found.", 404));
+    }
     const trustScore = await calculateTrustScore(targetUserId);
 
     const defaultVehicle =

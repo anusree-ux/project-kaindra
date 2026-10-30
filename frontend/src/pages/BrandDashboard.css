@@ -1,0 +1,1766 @@
+/* =========================================================
+   SHARED BRAND / INFLUENCER DASHBOARD
+   ========================================================= */
+
+.brand-dashboard {
+  min-height: 80vh;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 48px 24px;
+  color: #202020;
+}
+
+.brand-dashboard-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.brand-dashboard-eyebrow {
+  margin: 0 0 10px;
+  color: #777;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.brand-dashboard h1 {
+  margin: 0 0 12px;
+  font-size: clamp(28px, 4vw, 42px);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.brand-dashboard h2 {
+  margin: 0 0 18px;
+  font-size: 22px;
+}
+
+.brand-dashboard p {
+  line-height: 1.7;
+}
+
+.brand-dashboard button {
+  border: 0;
+  border-radius: 8px;
+  padding: 12px 18px;
+  background: #171717;
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    opacity 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.brand-dashboard button:hover {
+  opacity: 0.82;
+}
+
+.brand-dashboard button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.brand-dashboard button:focus-visible,
+.brand-dashboard a:focus-visible {
+  outline: 3px solid #bd8b46;
+  outline-offset: 3px;
+}
+
+.brand-dashboard-card {
+  margin-bottom: 24px;
+  padding: 28px;
+  border: 1px solid #e8e8e8;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 5px 20px rgb(0 0 0 / 3%);
+}
+
+.brand-dashboard-card p {
+  overflow-wrap: anywhere;
+}
+
+.brand-dashboard-card a {
+  color: inherit;
+  overflow-wrap: anywhere;
+}
+
+.brand-dashboard-logo {
+  display: block;
+  width: 88px;
+  height: 88px;
+  margin-bottom: 20px;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  object-fit: contain;
+}
+
+.brand-dashboard-error {
+  margin: 16px 0;
+  padding: 12px 16px;
+  border: 1px solid #f0caca;
+  border-radius: 8px;
+  background: #fff5f5;
+  color: #a12626;
+}
+
+.brand-dashboard-success {
+  margin: 16px 0;
+  padding: 12px 16px;
+  border: 1px solid #c8e6d2;
+  border-radius: 8px;
+  background: #f2fbf5;
+  color: #216b3a;
+}
+
+.brand-dashboard .brand-profile-secondary {
+  border: 1px solid #dedede;
+  background: #fff;
+  color: #202020;
+}
+
+/* =========================================================
+   PROFILE FORMS
+   ========================================================= */
+
+.brand-profile-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.brand-profile-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.brand-profile-form input,
+.brand-profile-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: 1px solid #dedede;
+  border-radius: 8px;
+  background: #fff;
+  color: #202020;
+  font: inherit;
+  font-weight: 400;
+  outline: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.brand-profile-form input:focus,
+.brand-profile-form textarea:focus {
+  border-color: #967746;
+  box-shadow: 0 0 0 3px rgb(150 119 70 / 12%);
+}
+
+.brand-profile-form textarea {
+  resize: vertical;
+}
+
+.brand-profile-form h3 {
+  margin: 8px 0 0;
+  font-size: 18px;
+}
+
+.brand-profile-full-width {
+  grid-column: 1 / -1;
+}
+
+.brand-profile-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+/* =========================================================
+   BRAND CAMPAIGN LIST
+   ========================================================= */
+
+.brand-campaign-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 16px;
+  margin: 18px 0 24px;
+}
+
+.brand-campaign-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.brand-campaign-heading h2 {
+  margin: 0;
+}
+
+.brand-campaign-empty {
+  margin: 16px 0 24px;
+}
+
+.brand-campaign-item {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 14px 16px 16px;
+  border: 1px solid #e8e8e8;
+  border-radius: 12px;
+  background: #fff;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.brand-campaign-item:focus-within,
+.brand-campaign-item:hover {
+  border-color: #c8b18b;
+  box-shadow: 0 5px 18px rgb(0 0 0 / 5%);
+}
+
+.brand-campaign-card-topline {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+}
+
+.brand-campaign-visibility-label,
+.brand-campaign-submitted-date {
+  color: #777;
+  font-size: 0.82rem;
+}
+
+.brand-campaign-visibility-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 7px !important;
+  border: 1px solid #dedede !important;
+  border-radius: 50% !important;
+  background: #fff !important;
+  color: #292929 !important;
+}
+
+.brand-campaign-visibility-icon svg,
+.brand-campaign-modal-visibility svg {
+  width: 18px;
+  height: 18px;
+}
+
+.brand-dashboard .brand-campaign-card-open {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  min-width: 0;
+  padding: 8px 0 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+}
+
+.brand-dashboard .brand-campaign-card-open:hover {
+  opacity: 1;
+}
+
+.brand-dashboard .brand-campaign-card-open:focus-visible,
+.brand-campaign-visibility-icon:focus-visible,
+.brand-campaign-modal-close:focus-visible {
+  outline: 3px solid #bd8b46;
+  outline-offset: 3px;
+}
+
+.brand-campaign-item h3 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+
+.brand-campaign-description-preview {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0 0 12px;
+  color: #666;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.brand-campaign-card-type,
+.brand-campaign-details-type {
+  margin: 0 0 8px;
+  color: #777;
+  font-size: 0.88rem;
+}
+
+.brand-campaign-submitted-date {
+  margin-top: auto;
+}
+
+.brand-campaign-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.brand-dashboard .brand-campaign-delete {
+  background: #a12626;
+}
+
+/* =========================================================
+   BRAND CAMPAIGN MODALS
+   ========================================================= */
+
+.brand-campaign-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgb(0 0 0 / 55%);
+}
+
+.brand-campaign-modal {
+  width: min(100%, 560px);
+  max-height: min(90vh, 720px);
+  overflow-y: auto;
+  padding: 28px;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 20px 60px rgb(0 0 0 / 20%);
+}
+
+.brand-campaign-details-modal {
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 760px);
+  max-height: min(90dvh, 860px);
+  overflow: hidden;
+  padding: 0;
+}
+
+.brand-campaign-details-header,
+.brand-campaign-details-actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 24px 28px;
+  background: #fff;
+}
+
+.brand-campaign-details-header {
+  border-bottom: 1px solid #ece8e1;
+}
+
+.brand-campaign-details-header .brand-dashboard-eyebrow {
+  margin-bottom: 8px;
+}
+
+.brand-campaign-details-header h2 {
+  margin: 0;
+}
+
+.brand-campaign-details-brand {
+  margin: 6px 0 0;
+  color: #777;
+}
+
+.brand-dashboard .brand-campaign-modal-close {
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+  border: 1px solid #dedede;
+  border-radius: 50%;
+  background: #fff;
+  color: #222;
+}
+
+.brand-campaign-details-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 24px 28px;
+  overscroll-behavior: contain;
+}
+
+.brand-campaign-detail-section h3 {
+  margin: 0 0 14px;
+  font-size: 1.1rem;
+}
+
+.brand-campaign-detail-section h3:not(:first-child) {
+  margin-top: 24px;
+}
+
+.brand-campaign-detail-section p,
+.brand-campaign-detail-section ul,
+.brand-campaign-detail-section ol {
+  margin: 0 0 14px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.brand-campaign-detail-section ul,
+.brand-campaign-detail-section ol {
+  padding-left: 24px;
+}
+
+.brand-campaign-detail-section li + li {
+  margin-top: 5px;
+}
+
+.brand-campaign-detail-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #ece8e1;
+}
+
+.brand-campaign-detail-meta p {
+  margin: 0;
+}
+
+.brand-campaign-details-actions {
+  align-items: center;
+  flex-wrap: wrap;
+  border-top: 1px solid #ece8e1;
+}
+
+.brand-campaign-details-actions .brand-campaign-actions {
+  justify-content: flex-end;
+  margin: 0;
+}
+
+.brand-dashboard .brand-campaign-modal-visibility {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.brand-applications-modal {
+  width: min(100%, 760px);
+}
+
+.brand-application-list {
+  display: grid;
+  gap: 14px;
+  margin: 20px 0;
+}
+
+.brand-application-item {
+  padding: 18px;
+  border: 1px solid #e8e8e8;
+  border-radius: 10px;
+}
+
+.brand-application-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.brand-application-title-row h3 {
+  margin: 0;
+}
+
+.brand-campaign-visibility-note {
+  color: #765b35;
+  font-size: 0.9rem;
+}
+
+.brand-application-status {
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: #f1eee8;
+  font-size: 0.85rem;
+}
+
+.brand-application-status.accepted {
+  background: #e4f3e8;
+  color: #24623a;
+}
+
+.brand-application-status.rejected {
+  background: #f8e5e5;
+  color: #8b3030;
+}
+
+.brand-application-status.withdrawn {
+  background: #eee9e1;
+  color: #5e5549;
+}
+
+.brand-application-withdrawn-note {
+  color: #6b5e4e;
+  font-size: 0.92rem;
+}
+
+.brand-campaign-modal form,
+.brand-campaign-modal label {
+  display: grid;
+  gap: 10px;
+}
+
+.brand-campaign-modal form {
+  gap: 18px;
+}
+
+.brand-campaign-modal input,
+.brand-campaign-modal textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: 1px solid #dedede;
+  border-radius: 8px;
+  background: #fff;
+  color: #202020;
+  font: inherit;
+}
+
+.brand-campaign-modal textarea {
+  resize: vertical;
+}
+
+.brand-campaign-modal .brand-campaign-actions {
+  justify-content: flex-end;
+}
+
+
+.brand-details-card {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.brand-details-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.brand-details-logo {
+  width: 100px;
+  height: 100px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 18px;
+  background: #f0ece6;
+  color: #29251f;
+  font-size: 36px;
+  font-weight: 700;
+}
+
+.brand-details-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.brand-details-identity h3 {
+  margin: 0 0 8px;
+  font-size: 24px;
+}
+
+.brand-details-category {
+  margin: 0 0 8px;
+  color: #777;
+}
+
+.brand-details-identity a,
+.brand-details-contact-item a,
+.brand-details-socials a {
+  color: inherit;
+  overflow-wrap: anywhere;
+}
+
+.brand-details-description,
+.brand-details-contact,
+.brand-details-socials {
+  padding-top: 18px;
+  border-top: 1px solid #e8e3dc;
+}
+
+.brand-details-description h4,
+.brand-details-contact h4,
+.brand-details-socials h4 {
+  margin: 0 0 12px;
+  font-size: 15px;
+}
+
+.brand-details-description p {
+  margin: 0;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.brand-details-contact-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.brand-details-contact-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.brand-details-contact-item span {
+  color: #777;
+  font-size: 13px;
+}
+
+.brand-details-socials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+}
+
+.brand-details-socials h4 {
+  width: 100%;
+}
+
+@media (max-width: 600px) {
+  .brand-details-header {
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .brand-details-logo {
+    width: 76px;
+    height: 76px;
+    border-radius: 14px;
+  }
+
+  .brand-details-identity h3 {
+    font-size: 20px;
+  }
+
+  .brand-details-contact-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* =========================================================
+   INFLUENCER DASHBOARD
+   All new styles are scoped to avoid changing the brand UI.
+   ========================================================= */
+
+.influencer-dashboard {
+  --influencer-accent: #95764b;
+  --influencer-accent-dark: #6f5430;
+  --influencer-border: #e9e5df;
+  --influencer-muted: #77716a;
+  --influencer-surface: #faf9f7;
+}
+
+.influencer-dashboard .influencer-dashboard-header {
+  align-items: center;
+  padding-bottom: 28px;
+  border-bottom: 1px solid var(--influencer-border);
+}
+
+.influencer-dashboard .brand-dashboard-eyebrow {
+  color: var(--influencer-accent);
+}
+
+.influencer-dashboard .brand-dashboard-header > div > p:last-child {
+  max-width: 620px;
+  margin: 0;
+  color: var(--influencer-muted);
+  font-size: 15px;
+}
+
+.influencer-dashboard .influencer-explore-link,
+.influencer-dashboard .influencer-empty-state a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  flex: 0 0 auto;
+  padding: 12px 16px;
+  border: 1px solid var(--influencer-border);
+  border-radius: 9px;
+  background: #fff;
+  color: #292722;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.influencer-dashboard .influencer-explore-link:hover,
+.influencer-dashboard .influencer-empty-state a:hover {
+  border-color: #c8b18b;
+  background: #faf7f1;
+  transform: translateY(-1px);
+}
+
+.influencer-dashboard .brand-dashboard-card {
+  border-color: var(--influencer-border);
+  border-radius: 16px;
+  box-shadow: 0 6px 24px rgb(30 24 15 / 3%);
+}
+
+.influencer-dashboard .brand-dashboard-card > h2 {
+  margin-bottom: 20px;
+}
+
+.influencer-dashboard .influencer-profile-editor {
+  padding: 32px;
+}
+
+.influencer-dashboard .influencer-section-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  min-width: 0;
+}
+
+.influencer-dashboard .influencer-section-heading > div:last-child {
+  min-width: 0;
+}
+
+.influencer-dashboard .influencer-section-heading h2 {
+  margin: 0 0 5px;
+  font-size: 21px;
+  line-height: 1.4;
+}
+
+.influencer-dashboard .influencer-section-heading p {
+  margin: 0;
+  color: var(--influencer-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.influencer-dashboard .influencer-section-icon {
+  display: grid;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid #e9dfcf;
+  border-radius: 12px;
+  background: #f8f3e9;
+  color: var(--influencer-accent-dark);
+}
+
+.influencer-dashboard .influencer-profile-form {
+  margin-top: 28px;
+  gap: 22px;
+}
+
+.influencer-dashboard .influencer-profile-form label {
+  gap: 9px;
+  color: #35322d;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.influencer-dashboard .influencer-profile-form input,
+.influencer-dashboard .influencer-profile-form textarea {
+  min-width: 0;
+  padding: 13px 14px;
+  border-color: #e2ded7;
+  border-radius: 9px;
+  background: #fff;
+  font-size: 14px;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.influencer-dashboard .influencer-profile-form input::placeholder,
+.influencer-dashboard .influencer-profile-form textarea::placeholder {
+  color: #aaa49b;
+}
+
+.influencer-dashboard .influencer-profile-form input:focus,
+.influencer-dashboard .influencer-profile-form textarea:focus {
+  border-color: var(--influencer-accent);
+  box-shadow: 0 0 0 3px rgb(149 118 75 / 12%);
+}
+
+.influencer-dashboard .influencer-required {
+  color: #a12626;
+}
+
+.influencer-dashboard .influencer-field-hint {
+  align-self: flex-end;
+  color: #8b857c;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.influencer-dashboard .influencer-social-heading {
+  padding-top: 8px;
+  border-top: 1px solid #eeeae4;
+}
+
+.influencer-dashboard .influencer-social-heading h3 {
+  margin: 18px 0 4px;
+  font-size: 16px;
+}
+
+.influencer-dashboard .influencer-social-heading p {
+  margin: 0;
+  color: var(--influencer-muted);
+  font-size: 13px;
+}
+
+.influencer-dashboard .influencer-form-actions {
+  padding-top: 20px;
+  border-top: 1px solid #eeeae4;
+}
+
+.influencer-dashboard .influencer-form-actions button,
+.influencer-dashboard .influencer-edit-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.influencer-dashboard .influencer-form-actions button[type="submit"] {
+  background: #25231f;
+}
+
+.influencer-dashboard .influencer-form-actions .brand-profile-secondary {
+  border-color: #e2ded7;
+  background: #fff;
+}
+
+/* Profile overview */
+
+.influencer-dashboard .influencer-profile-overview {
+  padding: 28px;
+}
+
+.influencer-dashboard .influencer-card-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 26px;
+}
+
+.influencer-dashboard .influencer-edit-button {
+  flex: 0 0 auto;
+  padding: 10px 13px;
+  border: 1px solid #e2ded7;
+  border-radius: 9px;
+  background: #fff;
+  color: #37332d;
+  font-size: 13px;
+}
+
+.influencer-dashboard .influencer-edit-button:hover {
+  border-color: #c8b18b;
+  background: #faf7f1;
+  opacity: 1;
+}
+
+.influencer-dashboard .influencer-profile-identity {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 22px;
+  border: 1px solid #eee8de;
+  border-radius: 12px;
+  background: linear-gradient(110deg, #faf7f1, #fff);
+}
+
+.influencer-dashboard .influencer-avatar {
+  display: grid;
+  flex: 0 0 58px;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  border: 1px solid #e3d5be;
+  border-radius: 50%;
+  background: #efe5d4;
+  color: #70552e;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.influencer-dashboard .influencer-profile-identity h3 {
+  margin: 0 0 5px;
+  font-size: 20px;
+  overflow-wrap: anywhere;
+}
+
+.influencer-dashboard .influencer-profile-identity p {
+  margin: 0;
+  color: var(--influencer-muted);
+  font-size: 13px;
+}
+
+.influencer-dashboard .influencer-profile-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  margin-top: 24px;
+}
+
+.influencer-dashboard .influencer-detail-item {
+  min-width: 0;
+}
+
+.influencer-dashboard .influencer-detail-item > span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--influencer-muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.influencer-dashboard .influencer-detail-item > p {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.influencer-dashboard .influencer-detail-item a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #775a32;
+  text-decoration: none;
+}
+
+.influencer-dashboard .influencer-detail-item a:hover {
+  text-decoration: underline;
+}
+
+.influencer-dashboard .influencer-profile-bio,
+.influencer-dashboard .influencer-social-links {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #eeeae4;
+}
+
+.influencer-dashboard .influencer-profile-bio h3,
+.influencer-dashboard .influencer-social-links h3 {
+  margin: 0 0 10px;
+  font-size: 14px;
+}
+
+.influencer-dashboard .influencer-profile-bio p {
+  margin: 0;
+  color: #5e5952;
+  font-size: 14px;
+  line-height: 1.8;
+  white-space: pre-wrap;
+}
+
+.influencer-dashboard .influencer-social-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.influencer-dashboard .influencer-social-list a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border: 1px solid #e9e2d6;
+  border-radius: 8px;
+  background: #faf8f4;
+  color: #604b2d;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+
+.influencer-dashboard .influencer-social-list a:hover {
+  background: #f1e9dc;
+}
+
+/* Applications section */
+
+.influencer-dashboard .influencer-applications {
+  padding: 28px;
+}
+
+.influencer-dashboard .influencer-applications-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.influencer-dashboard .influencer-applications-header .influencer-section-heading {
+  min-width: 0;
+}
+
+.influencer-dashboard .influencer-application-count {
+  flex: 0 0 auto;
+  padding: 7px 11px;
+  border: 1px solid #e9e2d6;
+  border-radius: 999px;
+  background: #faf7f1;
+  color: #70552e;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.influencer-dashboard .influencer-application-list {
+  display: grid;
+  gap: 14px;
+}
+
+.influencer-dashboard .influencer-application-item {
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid #e9e5df;
+  border-radius: 12px;
+  background: #fff;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.influencer-dashboard .influencer-application-item:hover {
+  border-color: #d9c7aa;
+  box-shadow: 0 5px 18px rgb(40 30 15 / 4%);
+}
+
+.influencer-dashboard .influencer-application-card-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.influencer-dashboard .influencer-application-card-heading > div:first-child {
+  min-width: 0;
+}
+
+.influencer-dashboard .influencer-application-card-heading h3 {
+  margin: 0 0 6px;
+  font-size: 16px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.influencer-dashboard .influencer-application-brand {
+  margin: 0;
+  color: var(--influencer-muted);
+  font-size: 13px;
+}
+
+.influencer-dashboard .influencer-application-heading-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.influencer-dashboard .influencer-application-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: #f2eee6;
+  color: #665b49;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.influencer-dashboard .influencer-application-status.pending {
+  border-color: #f0dfb4;
+  background: #fff7e4;
+  color: #8a641c;
+}
+
+.influencer-dashboard .influencer-application-status.accepted {
+  border-color: #c9e7d0;
+  background: #eaf7ed;
+  color: #27683a;
+}
+
+.influencer-dashboard .influencer-application-status.rejected {
+  border-color: #f0cccc;
+  background: #fff0f0;
+  color: #a12626;
+}
+
+.influencer-dashboard .influencer-application-status.withdrawn {
+  border-color: #e3ddd4;
+  background: #f2efeb;
+  color: #6b6257;
+}
+
+.influencer-dashboard .influencer-application-delete {
+  display: inline-grid;
+  flex: 0 0 34px;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 7px;
+  border: 1px solid #eedada;
+  border-radius: 9px;
+  background: #fff;
+  color: #a12626;
+}
+
+.influencer-dashboard .influencer-application-delete:hover {
+  border-color: #e4b7b7;
+  background: #fff3f3;
+  opacity: 1;
+}
+
+.influencer-dashboard .influencer-application-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 22px;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid #f0ede8;
+}
+
+.influencer-dashboard .influencer-application-meta p {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  font-size: 12px;
+}
+
+.influencer-dashboard .influencer-application-meta span {
+  color: var(--influencer-muted);
+}
+
+.influencer-dashboard .influencer-application-meta strong {
+  color: #39352e;
+  font-weight: 600;
+}
+
+.influencer-dashboard .influencer-application-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.influencer-dashboard .influencer-withdraw-button {
+  padding: 9px 12px;
+  border-color: #e2ded7;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.influencer-dashboard .influencer-withdraw-button:hover {
+  border-color: #c8b18b;
+  background: #faf7f1;
+  opacity: 1;
+}
+
+.influencer-dashboard .influencer-withdraw-explanation {
+  margin: 14px 0 0;
+  padding: 11px 13px;
+  border-left: 3px solid #9abfa1;
+  border-radius: 0 7px 7px 0;
+  background: #f3f9f4;
+  color: #3f6747;
+  font-size: 13px;
+}
+
+.influencer-dashboard .influencer-view-campaign {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 15px;
+  color: #775a32;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.influencer-dashboard .influencer-view-campaign:hover {
+  text-decoration: underline;
+}
+
+/* Loading and empty states */
+
+.influencer-dashboard .influencer-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 140px;
+  color: var(--influencer-muted);
+  text-align: center;
+}
+
+.influencer-dashboard .influencer-loading p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.influencer-dashboard .influencer-loading-spinner {
+  display: inline-block;
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #e8e0d3;
+  border-top-color: var(--influencer-accent);
+  border-radius: 50%;
+  animation: influencer-spin 0.7s linear infinite;
+}
+
+@keyframes influencer-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.influencer-dashboard .influencer-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  text-align: center;
+}
+
+.influencer-dashboard .influencer-empty-state > svg {
+  margin-bottom: 14px;
+  color: var(--influencer-accent);
+}
+
+.influencer-dashboard .influencer-empty-state h1,
+.influencer-dashboard .influencer-empty-state h3 {
+  margin: 0 0 8px;
+  font-size: 20px;
+}
+
+.influencer-dashboard .influencer-empty-state p {
+  max-width: 420px;
+  margin: 0 0 18px;
+  color: var(--influencer-muted);
+  font-size: 14px;
+}
+
+.influencer-dashboard .influencer-empty-icon {
+  display: grid;
+  width: 64px;
+  height: 64px;
+  place-items: center;
+  margin-bottom: 16px;
+  border: 1px solid #e9dfcf;
+  border-radius: 18px;
+  background: #f8f3e9;
+  color: var(--influencer-accent-dark);
+}
+
+.influencer-dashboard .influencer-empty-state button {
+  margin-top: 4px;
+}
+
+/* Feedback and confirmation dialogs */
+
+.influencer-dashboard .influencer-feedback {
+  margin: 0 0 22px;
+  padding: 14px 16px;
+  border: 1px solid;
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.influencer-dashboard .influencer-feedback-error {
+  border-color: #f0caca;
+  background: #fff5f5;
+  color: #a12626;
+}
+
+.influencer-dashboard .influencer-feedback-success {
+  border-color: #c8e6d2;
+  background: #f2fbf5;
+  color: #216b3a;
+}
+
+.influencer-dashboard .influencer-withdraw-dialog {
+  width: min(100%, 470px);
+  padding: 28px;
+  border: 1px solid #eee8de;
+  border-radius: 16px;
+}
+
+.influencer-dashboard .influencer-withdraw-dialog h2 {
+  margin: 0 0 12px;
+  font-size: 22px;
+}
+
+.influencer-dashboard .influencer-withdraw-dialog > p {
+  margin: 0;
+  color: #6c665d;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.influencer-dashboard .influencer-withdraw-dialog .brand-campaign-actions {
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+
+.influencer-dashboard .influencer-withdraw-dialog .brand-profile-secondary {
+  border-color: #e2ded7;
+  background: #fff;
+}
+
+.influencer-dashboard .influencer-withdraw-dialog .brand-campaign-delete {
+  background: #a12626;
+}
+
+/* =========================================================
+   RESPONSIVE LAYOUT
+   ========================================================= */
+
+@media (max-width: 640px) {
+  .brand-dashboard {
+    padding: 32px 16px;
+  }
+
+  .brand-dashboard-header {
+    flex-direction: column;
+  }
+
+  .brand-dashboard-card {
+    padding: 20px;
+  }
+
+  .brand-profile-form {
+    grid-template-columns: 1fr;
+  }
+
+  .brand-profile-full-width {
+    grid-column: auto;
+  }
+
+  .brand-profile-actions {
+    flex-wrap: wrap;
+  }
+
+  .brand-campaign-item {
+    padding: 12px 14px 14px;
+  }
+
+  .brand-campaign-heading {
+    align-items: stretch;
+  }
+
+  .brand-campaign-actions button {
+    flex: 1 1 auto;
+  }
+
+  .brand-campaign-modal {
+    padding: 20px;
+  }
+
+  .brand-campaign-details-backdrop {
+    align-items: end;
+    padding: 8px;
+  }
+
+  .brand-campaign-details-modal {
+    width: 100%;
+    max-height: calc(100dvh - 16px);
+    border-radius: 14px;
+  }
+
+  .brand-campaign-details-header,
+  .brand-campaign-details-body,
+  .brand-campaign-details-actions {
+    padding: 18px;
+  }
+
+  .brand-campaign-details-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .brand-campaign-details-actions .brand-campaign-actions {
+    justify-content: stretch;
+  }
+
+  .brand-campaign-details-actions .brand-campaign-actions button {
+    flex: 1 1 100%;
+  }
+
+  /* Influencer mobile layout */
+
+  .influencer-dashboard .influencer-dashboard-header {
+    align-items: stretch;
+    gap: 18px;
+  }
+
+  .influencer-dashboard .influencer-explore-link {
+    align-self: flex-start;
+  }
+
+  .influencer-dashboard .influencer-profile-editor,
+  .influencer-dashboard .influencer-profile-overview,
+  .influencer-dashboard .influencer-applications {
+    padding: 20px;
+  }
+
+  .influencer-dashboard .influencer-section-heading {
+    gap: 11px;
+  }
+
+  .influencer-dashboard .influencer-section-icon {
+    flex-basis: 38px;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+  }
+
+  .influencer-dashboard .influencer-section-heading h2 {
+    font-size: 18px;
+  }
+
+  .influencer-dashboard .influencer-profile-form {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+    margin-top: 22px;
+  }
+
+  .influencer-dashboard .influencer-profile-form .brand-profile-full-width {
+    grid-column: auto;
+  }
+
+  .influencer-dashboard .influencer-form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .influencer-dashboard .influencer-form-actions button {
+    width: 100%;
+  }
+
+  .influencer-dashboard .influencer-card-topline {
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .influencer-dashboard .influencer-edit-button {
+    padding: 9px;
+    font-size: 0;
+  }
+
+  .influencer-dashboard .influencer-edit-button svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .influencer-dashboard .influencer-profile-identity {
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .influencer-dashboard .influencer-avatar {
+    flex-basis: 48px;
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+  }
+
+  .influencer-dashboard .influencer-profile-identity h3 {
+    font-size: 17px;
+  }
+
+  .influencer-dashboard .influencer-profile-details {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 17px;
+  }
+
+  .influencer-dashboard .influencer-applications-header {
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .influencer-dashboard .influencer-application-count {
+    padding: 6px 8px;
+    font-size: 10px;
+  }
+
+  .influencer-dashboard .influencer-application-item {
+    padding: 15px;
+  }
+
+  .influencer-dashboard .influencer-application-card-heading {
+    gap: 9px;
+  }
+
+  .influencer-dashboard .influencer-application-heading-actions {
+    gap: 5px;
+  }
+
+  .influencer-dashboard .influencer-application-status {
+    padding: 5px 7px;
+    font-size: 10px;
+  }
+
+  .influencer-dashboard .influencer-application-delete {
+    flex-basis: 30px;
+    width: 30px;
+    height: 30px;
+  }
+
+  .influencer-dashboard .influencer-application-meta {
+    gap: 8px;
+  }
+
+  .influencer-dashboard .influencer-withdraw-dialog {
+    padding: 22px;
+  }
+
+  .influencer-dashboard .influencer-withdraw-dialog .brand-campaign-actions {
+    flex-direction: column-reverse;
+  }
+
+  .influencer-dashboard .influencer-withdraw-dialog .brand-campaign-actions button {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .influencer-dashboard *,
+  .influencer-dashboard *::before,
+  .influencer-dashboard *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.influencer-profile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.influencer-dashboard .influencer-profile-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 10px 14px;
+}
+
+.influencer-dashboard .influencer-delete-profile-button {
+  background: #fff;
+  color: #b42318;
+  border: 1px solid #e7b7b3;
+}
+
+.influencer-dashboard .influencer-delete-profile-button:hover {
+  background: #fef2f2;
+  opacity: 1;
+}
+
+@media (max-width: 560px) {
+  .influencer-profile-actions {
+    width: 100%;
+  }
+
+  .influencer-profile-actions button {
+    flex: 1;
+  }
+}
+
+
+/* =========================================================
+   EDIT CAMPAIGN MODAL
+   ========================================================= */
+
+.brand-campaign-edit-modal {
+  width: min(900px, calc(100vw - 40px));
+  max-width: 900px;
+  max-height: 92vh;
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 32px;
+}
+
+.brand-campaign-edit-modal form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.brand-campaign-edit-modal form > label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.brand-campaign-edit-modal .campaign-description-field,
+.brand-campaign-edit-modal .brand-campaign-actions {
+  grid-column: 1 / -1;
+}
+
+.brand-campaign-edit-modal input,
+.brand-campaign-edit-modal textarea {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.brand-campaign-edit-modal .campaign-description-field textarea {
+  min-height: 260px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.brand-campaign-edit-modal .brand-campaign-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+/* Campaign description formatting toolbar */
+
+.campaign-formatting-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid #e5e0d8;
+  border-bottom: 0;
+  background: #f7f5f1;
+}
+
+.brand-dashboard .campaign-formatting-toolbar button {
+  min-height: 34px;
+  padding: 6px 12px;
+  border: 1px solid #ddd6cc;
+  border-radius: 6px;
+  background: #fff;
+  color: #333;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.brand-dashboard .campaign-formatting-toolbar button:hover {
+  border-color: #bd8b46;
+  color: #8e652f;
+  opacity: 1;
+}
+
+.brand-dashboard .campaign-formatting-toolbar button:focus-visible {
+  outline: 2px solid #8e652f;
+  outline-offset: 2px;
+}
+
+.brand-campaign-edit-modal .campaign-description-field textarea {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.campaign-description-hint {
+  color: #777;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+/* Responsive edit modal */
+
+@media (max-width: 600px) {
+  .brand-campaign-edit-modal {
+    width: calc(100vw - 24px);
+    max-height: 92dvh;
+    padding: 20px;
+  }
+
+  .brand-campaign-edit-modal form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .brand-campaign-edit-modal .campaign-description-field,
+  .brand-campaign-edit-modal .brand-campaign-actions {
+    grid-column: auto;
+  }
+}
+
+.influencer-dashboard .influencer-profile-form label .influencer-label-text {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: baseline;
+  align-self: flex-start;
+  width: fit-content;
+  gap: 4px;
+  line-height: 1.5;
+}
+
+.influencer-dashboard .influencer-profile-form label .influencer-required {
+  display: inline !important;
+  position: static !important;
+  color: #dc2626;
+  flex-shrink: 0;
+}

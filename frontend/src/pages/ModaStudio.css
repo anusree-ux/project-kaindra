@@ -5,7 +5,6 @@
 .modastudio-page {
   width: 100%;
   overflow: hidden;
-
   background: #f4f1eb;
   color: #171717;
 }
@@ -26,7 +25,6 @@
 
 .modastudio-hero {
   position: relative;
-
   min-height: 760px;
 
   display: flex;
@@ -583,89 +581,399 @@
   font-weight: 500;
 }
 
-
 /* =========================================================
-   SERVICES
+   MODASTUDIO - SERVICES
 ========================================================= */
 
 .modastudio-services {
-  padding: 130px 0;
-
+  width: 100%;
+  padding: 120px 0;
   background: #111211;
-
   color: #fff;
 }
 
-.modastudio-section-heading.light h2 {
-  color: #fff;
+.modastudio-services-container {
+  width: min(1200px, calc(100% - 80px));
+  margin: 0 auto;
 }
+
+
+/* HEADING */
+
+.modastudio-services .modastudio-section-heading {
+  display: block;
+  width: 100%;
+  margin-bottom: 65px;
+}
+
+.modastudio-services .modastudio-small-label {
+  display: block;
+  margin-bottom: 18px;
+
+  color: #c9a05d;
+
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+}
+
+.modastudio-services .modastudio-section-heading h2 {
+  max-width: 850px;
+  margin: 0;
+
+  color: #fff;
+
+  font-size: clamp(48px, 6vw, 76px);
+  line-height: 1;
+  font-weight: 500;
+  letter-spacing: -0.05em;
+}
+
+
+/* =========================================================
+   SERVICE LIST
+========================================================= */
 
 .modastudio-services-list {
-  margin-top: 70px;
+  width: 100%;
 
   border-top: 1px solid rgba(255, 255, 255, 0.16);
 }
 
-.modastudio-service-row {
-  min-height: 145px;
 
-  display: grid;
+/* =========================================================
+   SERVICE ROW
+========================================================= */
 
-  grid-template-columns: 70px 70px 1fr 40px;
+.modastudio-services .modastudio-service-row {
+  width: 100%;
+  min-height: 165px;
 
+  display: flex;
   align-items: center;
 
-  gap: 25px;
+  padding: 32px 20px;
 
   border-bottom: 1px solid rgba(255, 255, 255, 0.16);
 
-  transition: 0.25s ease;
+  transition:
+    background 0.25s ease,
+    padding 0.25s ease;
 }
 
-.modastudio-service-row:hover {
-  padding-left: 15px;
+.modastudio-services .modastudio-service-row:hover {
+  padding-left: 30px;
+  padding-right: 30px;
+
+  background: rgba(255, 255, 255, 0.025);
 }
 
-.service-number {
-  color: #bd8b46;
+
+/* =========================================================
+   NUMBER
+========================================================= */
+
+.modastudio-service-number {
+  width: 60px;
+  min-width: 60px;
+
+  color: #c9a05d;
 
   font-size: 11px;
   font-weight: 700;
+  letter-spacing: 0.12em;
 }
 
-.service-icon {
-  width: 48px;
-  height: 48px;
+
+/* =========================================================
+   ICON
+========================================================= */
+
+.modastudio-service-icon {
+  width: 54px;
+  height: 54px;
+
+  min-width: 54px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  margin-right: 42px;
+
+  border: 1px solid rgba(201, 160, 93, 0.4);
 
   color: #c9a05d;
+
+  transition:
+    background 0.25s ease,
+    color 0.25s ease,
+    border-color 0.25s ease;
 }
 
-.service-content h3 {
-  margin: 0;
+.modastudio-service-row:hover .modastudio-service-icon {
+  background: #c9a05d;
+  border-color: #c9a05d;
 
-  font-size: 24px;
+  color: #111;
+}
+
+
+/* =========================================================
+   CONTENT - IMPORTANT FIX
+========================================================= */
+
+.modastudio-services .modastudio-service-content {
+  flex: 1 1 auto;
+
+  width: auto !important;
+  max-width: none !important;
+  min-width: 0 !important;
+
+  display: block !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  text-align: left;
+}
+
+
+/* TITLE */
+
+.modastudio-services .modastudio-service-content h3 {
+  display: block;
+
+  width: 100% !important;
+  max-width: none !important;
+
+  margin: 0 0 12px 0 !important;
+  padding: 0 !important;
+
+  color: #fff;
+
+  font-size: 26px;
+  line-height: 1.2;
   font-weight: 500;
+  letter-spacing: -0.02em;
+
+  white-space: normal !important;
+  word-break: normal !important;
 }
 
-.service-content p {
-  max-width: 600px;
 
-  margin: 8px 0 0;
+/* DESCRIPTION */
 
-  color: rgba(255, 255, 255, 0.55);
+.modastudio-services .modastudio-service-content p {
+  display: block !important;
+
+  width: 100% !important;
+  max-width: 720px !important;
+  min-width: 0 !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  color: rgba(255, 255, 255, 0.58);
 
   font-size: 14px;
-  line-height: 1.7;
+  line-height: 1.75;
+
+  white-space: normal !important;
+
+  word-break: normal !important;
+  overflow-wrap: normal !important;
 }
 
-.service-arrow {
+
+/* =========================================================
+   ARROW
+========================================================= */
+
+.modastudio-service-arrow {
+  width: 24px;
+  min-width: 24px;
+
+  margin-left: 40px;
+
   color: #c9a05d;
+
+  transition: transform 0.25s ease;
+}
+
+.modastudio-service-row:hover .modastudio-service-arrow {
+  transform: translateX(6px);
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 900px) {
+
+  .modastudio-services-container {
+    width: calc(100% - 48px);
+  }
+
+  .modastudio-services .modastudio-service-row {
+    padding: 30px 10px;
+  }
+
+  .modastudio-service-number {
+    width: 45px;
+    min-width: 45px;
+  }
+
+  .modastudio-service-icon {
+    margin-right: 28px;
+  }
+
+  .modastudio-service-arrow {
+    margin-left: 25px;
+  }
+
+  .modastudio-services .modastudio-service-content p {
+    max-width: 100% !important;
+  }
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 700px) {
+
+  .modastudio-services {
+    padding: 85px 0;
+  }
+
+  .modastudio-services-container {
+    width: calc(100% - 32px);
+  }
+
+  .modastudio-services .modastudio-section-heading {
+    margin-bottom: 45px;
+  }
+
+  .modastudio-services .modastudio-section-heading h2 {
+    font-size: 46px;
+  }
+
+  .modastudio-services .modastudio-service-row {
+    position: relative;
+
+    min-height: auto;
+
+    display: grid;
+
+    grid-template-columns: 38px 52px minmax(0, 1fr);
+
+    grid-template-areas:
+      "number icon content";
+
+    align-items: start;
+
+    gap: 16px;
+
+    padding: 30px 0;
+  }
+
+  .modastudio-service-number {
+    grid-area: number;
+
+    width: auto;
+    min-width: 0;
+
+    padding-top: 16px;
+  }
+
+  .modastudio-service-icon {
+    grid-area: icon;
+
+    width: 48px;
+    height: 48px;
+
+    min-width: 48px;
+
+    margin: 0;
+  }
+
+  .modastudio-services .modastudio-service-content {
+    grid-area: content;
+
+    width: 100% !important;
+
+    padding-top: 10px !important;
+  }
+
+  .modastudio-services .modastudio-service-content h3 {
+    font-size: 20px;
+
+    margin-bottom: 10px !important;
+  }
+
+  .modastudio-services .modastudio-service-content p {
+    width: 100% !important;
+    max-width: 100% !important;
+
+    font-size: 13px;
+    line-height: 1.7;
+  }
+
+  .modastudio-service-arrow {
+    display: none;
+  }
+
+  .modastudio-services .modastudio-service-row:hover {
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 450px) {
+
+  .modastudio-services-container {
+    width: calc(100% - 24px);
+  }
+
+  .modastudio-services .modastudio-section-heading h2 {
+    font-size: 40px;
+  }
+
+  .modastudio-services .modastudio-service-row {
+    grid-template-columns: 30px 46px minmax(0, 1fr);
+
+    gap: 12px;
+
+    padding: 26px 0;
+  }
+
+  .modastudio-service-icon {
+    width: 44px;
+    height: 44px;
+
+    min-width: 44px;
+  }
+
+  .modastudio-services .modastudio-service-content {
+    padding-top: 8px !important;
+  }
+
+  .modastudio-services .modastudio-service-content h3 {
+    font-size: 18px;
+  }
+
+  .modastudio-services .modastudio-service-content p {
+    font-size: 12px;
+    line-height: 1.65;
+  }
 }
 
 
@@ -694,6 +1002,7 @@
 
 .modastudio-process-heading h2 em {
   color: #bd8b46;
+
   font-family: Georgia, serif;
   font-weight: 400;
 }
@@ -702,6 +1011,7 @@
   position: relative;
 
   display: grid;
+
   grid-template-columns: repeat(4, 1fr);
 
   gap: 30px;
@@ -729,6 +1039,7 @@
 
 .process-step > span {
   position: absolute;
+
   top: -18px;
 
   color: #bd8b46;
@@ -739,6 +1050,7 @@
 
 .process-dot {
   position: absolute;
+
   top: 0;
   left: 0;
 
@@ -786,11 +1098,13 @@
   overflow: hidden;
 
   background: #111;
+
   color: #fff;
 }
 
 .modastudio-collaboration-image {
   position: absolute;
+
   inset: 0;
 }
 
@@ -805,6 +1119,7 @@
 
 .modastudio-collaboration-overlay {
   position: absolute;
+
   inset: 0;
 
   background:
@@ -817,6 +1132,7 @@
 
 .collaboration-content {
   position: relative;
+
   z-index: 2;
 }
 
@@ -831,6 +1147,7 @@
 
 .collaboration-content h2 em {
   color: #d2b27b;
+
   font-family: Georgia, serif;
   font-weight: 400;
 }
@@ -849,14 +1166,17 @@
 .modastudio-light-button {
   display: inline-flex;
   align-items: center;
+
   gap: 10px;
 
   margin-top: 30px;
+
   padding: 15px 22px;
 
   border: 1px solid #c9a05d;
 
   color: #fff;
+
   text-decoration: none;
 
   font-size: 13px;
@@ -867,6 +1187,7 @@
 
 .modastudio-light-button:hover {
   background: #c9a05d;
+
   color: #111;
 }
 
@@ -914,14 +1235,17 @@
 .modastudio-final-button {
   display: inline-flex;
   align-items: center;
+
   gap: 10px;
 
   margin-top: 40px;
+
   padding: 15px 24px;
 
   background: #c9a05d;
 
   color: #111;
+
   text-decoration: none;
 
   font-size: 13px;
@@ -947,6 +1271,7 @@
 
   .modastudio-process-track {
     grid-template-columns: repeat(2, 1fr);
+
     row-gap: 70px;
   }
 
@@ -954,6 +1279,15 @@
     display: none;
   }
 
+  .modastudio-service-row {
+    grid-template-columns: 45px 65px minmax(0, 1fr) 35px;
+
+    column-gap: 22px;
+  }
+
+  .service-content p {
+    max-width: 580px;
+  }
 }
 
 
@@ -995,6 +1329,7 @@
 
   .modastudio-intro-grid {
     grid-template-columns: 1fr;
+
     gap: 25px;
   }
 
@@ -1008,6 +1343,7 @@
 
   .modastudio-intro-stats div {
     border-right: 0;
+
     border-bottom: 1px solid #d7d0c4;
   }
 
@@ -1037,27 +1373,90 @@
     height: 470px;
   }
 
+
+  /* MOBILE SERVICES */
+
+  .modastudio-services .modastudio-section-heading {
+    margin-bottom: 45px;
+  }
+
+  .modastudio-services-list {
+    margin-top: 40px;
+  }
+
   .modastudio-service-row {
-    grid-template-columns: 35px 50px 1fr 25px;
-    gap: 12px;
+    min-height: auto;
+
+    grid-template-columns: 42px 1fr;
+
+    grid-template-areas:
+      "number icon"
+      "content content";
+
+    gap: 20px;
+
+    padding: 32px 0;
+  }
+
+  .service-number {
+    grid-area: number;
+
+    align-self: center;
+
+    padding-top: 0;
+  }
+
+  .service-icon {
+    grid-area: icon;
+
+    width: 50px;
+    height: 50px;
+  }
+
+  .service-content {
+    grid-area: content;
+
+    width: 100%;
   }
 
   .service-content h3 {
-    font-size: 18px;
+    font-size: 22px;
   }
 
   .service-content p {
-    font-size: 12px;
+    width: 100%;
+    max-width: 100%;
+
+    margin-top: 10px;
+
+    font-size: 13px;
+    line-height: 1.7;
   }
+
+  .service-arrow {
+    display: none;
+  }
+
+  .modastudio-service-row:hover {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+
+  /* PROCESS */
 
   .modastudio-process-track {
     grid-template-columns: 1fr;
+
     gap: 55px;
   }
 
   .process-line {
     display: none;
   }
+
+
+  /* COLLABORATION */
 
   .modastudio-collaboration {
     min-height: 600px;
@@ -1070,7 +1469,6 @@
   .modastudio-final {
     padding: 100px 0;
   }
-
 }
 
 
@@ -1105,13 +1503,38 @@
     height: 420px;
   }
 
+
+  /* SMALL MOBILE SERVICES */
+
   .modastudio-service-row {
-    grid-template-columns: 30px 45px 1fr;
+    grid-template-columns: 36px 1fr;
+
+    gap: 16px;
+
+    padding: 28px 0;
+  }
+
+  .service-icon {
+    width: 46px;
+    height: 46px;
+  }
+
+  .service-content h3 {
+    font-size: 20px;
+  }
+
+  .service-content p {
+    font-size: 13px;
+
+    line-height: 1.65;
   }
 
   .service-arrow {
     display: none;
   }
+
+
+  /* COLLABORATION */
 
   .collaboration-content h2 {
     font-size: 52px;
@@ -1120,5 +1543,4 @@
   .modastudio-final h2 {
     font-size: 48px;
   }
-
 }

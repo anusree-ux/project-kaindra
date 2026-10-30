@@ -66,6 +66,78 @@ const getTomorrowDateStr = () => {
   return `${year}-${month}-${day}`;
 };
 
+const KANNADA_PLACE_MAP = {
+  "ಗಾಂಧಿನಗರ": "Gandhinagar",
+  "ಸಕಲೇಶಪುರ": "Sakleshpur",
+  "ಜಯನಗರ": "Jayanagar",
+  "ರಾಜಾಜಿನಗರ": "Rajajinagar",
+  "ವಿಜಯನಗರ": "Vijayanagar",
+  "ಇಂದಿರಾನಗರ": "Indiranagar",
+  "ಹಾವೇರಿ": "Haveri",
+  "ಬೆಂಗಳೂರು": "Bengaluru",
+  "ಮೈಸೂರು": "Mysuru",
+  "ಹುಬ್ಬಳ್ಳಿ": "Hubballi",
+  "ಧಾರವಾಡ": "Dharwad",
+  "ಮಂಗಳೂರು": "Mangaluru",
+  "ಬೆಳಗಾವಿ": "Belagavi",
+  "ಶಿವಮೊಗ್ಗ": "Shivamogga",
+  "ದಾವಣಗೆರೆ": "Davanagere",
+  "ಬಳ್ಳಾರಿ": "Ballari",
+  "ವಿಜಯಪುರ": "Vijayapura",
+  "ಕಲಬುರಗಿ": "Kalaburagi",
+  "ಉಡುಪಿ": "Udupi",
+  "ಹಾಸನ": "Hassan",
+  "ತುಮಕೂರು": "Tumakuru",
+  "ಚಿಕ್ಕಮಗಳೂರು": "Chikkamagaluru",
+  "ಮಡಿಕೇರಿ": "Madikeri",
+  "ಕೊಡಗು": "Kodagu",
+  "ಚಿತ್ರದುರ್ಗ": "Chitradurga",
+  "ರಾಯಚೂರು": "Raichur",
+  "ಬಾಗಲಕೋಟೆ": "Bagalkote",
+  "ಗದಗ": "Gadag",
+  "ಕೊಪ್ಪಳ": "Koppal",
+  "ಬೀದರ್": "Bidar",
+  "ಯಾದಗಿರಿ": "Yadgir",
+  "ಕೋಲಾರ": "Kolar",
+  "ಚಿಕ್ಕಬಳ್ಳಾಪುರ": "Chikkaballapura",
+  "ರಾಮನಗರ": "Ramanagara",
+  "ಮಂಡ್ಯ": "Mandya",
+  "ಚಾಮರಾಜನಗರ": "Chamarajanagar",
+  "ನಗರ": "Nagar",
+  "ರಸ್ತೆ": "Road",
+  "ಬಡಾವಣೆ": "Layout",
+};
+
+const cleanPlaceQuery = (value) => {
+  if (!value || typeof value !== "string") {
+    return "";
+  }
+
+  const rawParts = value
+    .split(",")
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  if (rawParts.length === 0) {
+    return "";
+  }
+
+  const cleanedParts = rawParts.map((part) => {
+    let cleaned = part;
+    for (const [kn, en] of Object.entries(KANNADA_PLACE_MAP)) {
+      if (cleaned.includes(kn)) {
+        cleaned = cleaned.replace(new RegExp(kn, "g"), en);
+      }
+    }
+    return cleaned
+      .replace(/\b(taluk|taluku|tehsil|mandal)\b/gi, "")
+      .replace(/\s+/g, " ")
+      .trim();
+  }).filter(Boolean);
+
+  return cleanedParts.join(", ");
+};
+
 /*
  * ---------------------------------------------------------
  * COMPONENT
@@ -76,6 +148,7 @@ function RidePlanner() {
   const {
     isAuthenticated,
     openAuthModal,
+    user,
   } = useAuth();
 
   /*
@@ -90,8 +163,14 @@ function RidePlanner() {
   const [start, setStart] =
     useState("");
 
+  const [startCoords, setStartCoords] =
+    useState(null);
+
   const [destination, setDestination] =
     useState("");
+
+  const [destinationCoords, setDestinationCoords] =
+    useState(null);
 
   const [rideDate, setRideDate] =
     useState(getTomorrowDateStr);
@@ -151,6 +230,9 @@ function RidePlanner() {
   ] = useState(
     defaultRouteOptions[0]
   );
+
+  const [routeCoords, setRouteCoords] = useState(null);
+  const [customZoom, setCustomZoom] = useState(null);
 
   const [
     selectedRiders,
@@ -276,9 +358,9 @@ function RidePlanner() {
         }
 
         /*
-         * Local vehicle fallback
+         * Local vehicle fallback (guest / unauthenticated only)
          */
-        if (vehicles.length === 0) {
+        if (!isAuthenticated && vehicles.length === 0) {
           try {
             const localVehicles =
               JSON.parse(
@@ -389,12 +471,17 @@ function RidePlanner() {
                 28
             )
           );
+        } else if (!cancelled && isAuthenticated) {
+          setUserVehicles([]);
+          setSelectedVehicleId(null);
+          setMotorcycle("");
         }
 
         /*
-         * Profile fallback
+         * Profile fallback (guest only)
          */
         if (
+          !isAuthenticated &&
           !cancelled &&
           vehicles.length === 0
         ) {
@@ -462,23 +549,24 @@ function RidePlanner() {
           /*
            * Nearby riders
            */
+          const currentUserId = user?._id || user?.id;
+
           ridersList.forEach(
             (rider) => {
+              const rId = String(rider.userId?._id || rider.userId || "");
               if (
-                rider.userId &&
+                rId &&
                 rider.name &&
                 rider.name
                   .toLowerCase() !==
-                  "rider"
+                  "rider" &&
+                (!currentUserId ||
+                  rId !== String(currentUserId))
               ) {
                 combinedMap.set(
-                  String(
-                    rider.userId
-                  ),
+                  rId,
                   {
-                    id: String(
-                      rider.userId
-                    ),
+                    id: rId,
 
                     name: rider.name.toUpperCase(),
 
@@ -500,54 +588,36 @@ function RidePlanner() {
 
           /*
            * Connected riders
-           *
-           * Simplified to a pure const expression
-           * so there is no unused/intermediate assignment.
            */
           connectionsList.forEach(
             (connection) => {
-              const fromUser =
-                connection?.fromUserId;
-
-              const toUser =
-                connection?.toUserId;
-
               const friend =
-                fromUser?._id &&
-                toUser?._id
-                  ? String(
-                      fromUser._id
-                    ) ===
-                    String(
-                      toUser._id
-                    )
-                    ? toUser
-                    : fromUser
-                  : toUser ||
-                    fromUser ||
-                    {};
+                connection?.user ||
+                connection?.otherUser ||
+                (connection?.fromUserId &&
+                String(connection.fromUserId._id || connection.fromUserId) !== String(currentUserId)
+                  ? connection.fromUserId
+                  : connection?.toUserId);
+
+              const friendId = String(friend?._id || friend?.id || friend || "");
+              const friendName = friend?.name || "";
 
               if (
-                friend._id &&
-                friend.name &&
-                !combinedMap.has(
-                  String(friend._id)
-                )
+                friendId &&
+                friendName &&
+                (!currentUserId || friendId !== String(currentUserId)) &&
+                !combinedMap.has(friendId)
               ) {
                 combinedMap.set(
-                  String(friend._id),
+                  friendId,
                   {
-                    id: String(
-                      friend._id
-                    ),
+                    id: friendId,
 
-                    name:
-                      friend.name.toUpperCase(),
+                    name: friendName.toUpperCase(),
 
-                    bike: "MEMBER BIKE",
+                    bike: (friend?.primaryVehicleName || "MEMBER BIKE").toUpperCase(),
 
-                    experience:
-                      "EXPERIENCED",
+                    experience: "EXPERIENCED",
                   }
                 );
               }
@@ -575,7 +645,25 @@ function RidePlanner() {
     return () => {
       cancelled = true;
     };
-  }, [isAuthenticated]);
+  }, [isAuthenticated, user]);
+
+  /*
+   * ---------------------------------------------------------
+   * ACTIVE ROUTE
+   * ---------------------------------------------------------
+   */
+
+  const hasValidRouteInput = Boolean(
+    start.trim() && destination.trim()
+  );
+
+  const activeRoute = hasValidRouteInput
+    ? selectedRoute
+    : defaultRouteOptions[0];
+
+  const activeRouteOptions = hasValidRouteInput
+    ? routeOptions
+    : defaultRouteOptions;
 
   /*
    * ---------------------------------------------------------
@@ -584,145 +672,91 @@ function RidePlanner() {
    */
 
   const getGoogleMapsUrl = () => {
-    if (
-      !start.trim() ||
-      !destination.trim()
-    ) {
+    if (!start.trim() || !destination.trim()) {
       return "https://www.google.com/maps";
     }
 
+    const originLat = activeRoute?.originCoord?.lat || routeCoords?.origin?.lat;
+    const originLon = activeRoute?.originCoord?.lon || routeCoords?.origin?.lon;
+    const destLat = activeRoute?.destinationCoord?.lat || routeCoords?.destination?.lat;
+    const destLon = activeRoute?.destinationCoord?.lon || routeCoords?.destination?.lon;
+
+    const originParam =
+      originLat && originLon
+        ? `${originLat},${originLon}`
+        : encodeURIComponent(cleanPlaceQuery(start) || start.trim());
+
+    const destParam =
+      destLat && destLon
+        ? `${destLat},${destLon}`
+        : encodeURIComponent(cleanPlaceQuery(destination) || destination.trim());
+
     let url =
       "https://www.google.com/maps/dir/?api=1" +
-      `&origin=${encodeURIComponent(
-        start.trim()
-      )}` +
-      `&destination=${encodeURIComponent(
-        destination.trim()
-      )}`;
+      `&origin=${originParam}` +
+      `&destination=${destParam}`;
 
     if (stops.length > 0) {
-      url +=
-        `&waypoints=${encodeURIComponent(
-          stops.join("|")
-        )}`;
+      const stopParts = stops
+        .filter((s) => s && s.trim())
+        .map((s) => cleanPlaceQuery(s) || s.trim());
+      if (stopParts.length > 0) {
+        url += `&waypoints=${encodeURIComponent(stopParts.join("|"))}`;
+      }
     }
 
-    url +=
-      "&travelmode=driving";
-
+    url += "&travelmode=driving";
     return url;
   };
 
   /*
    * ---------------------------------------------------------
-   * GOOGLE MAPS EMBED
+   * GOOGLE MAPS EMBED & ZOOM
    * ---------------------------------------------------------
    */
 
-  const googleMapsEmbedUrl =
-    useMemo(() => {
-      if (
-        start.trim() &&
-        destination.trim()
-      ) {
-        const originEnc =
-          encodeURIComponent(
-            start.trim()
-          );
+  const defaultZoom = useMemo(() => {
+    const km = activeRoute?.distanceKm || 0;
+    if (km > 600) return 6;
+    if (km > 180) return 7;
+    if (km > 70) return 8;
+    if (km > 25) return 9;
+    return 8;
+  }, [activeRoute?.distanceKm]);
 
-        const destEnc =
-          encodeURIComponent(
-            destination.trim()
-          );
+  const currentZoom = customZoom !== null ? customZoom : defaultZoom;
 
-        let daddrParam =
-          destEnc;
-
-        if (stops.length > 0) {
-          const validStops =
-            stops
-              .filter((stop) =>
-                stop.trim()
-              )
-              .map((stop) =>
-                encodeURIComponent(
-                  stop.trim()
-                )
-              );
-
-          if (
-            validStops.length > 0
-          ) {
-            daddrParam =
-              `${validStops.join(
-                "+to:"
-              )}+to:${destEnc}`;
-          }
-        }
-
-        return (
-          "https://maps.google.com/maps?" +
-          `saddr=${originEnc}` +
-          `&daddr=${daddrParam}` +
-          "&hl=en&t=m&output=embed"
-        );
-      }
-
+  const googleMapsEmbedUrl = useMemo(() => {
+    if (!start.trim() || !destination.trim()) {
       if (start.trim()) {
-        return (
-          "https://maps.google.com/maps?" +
-          `q=${encodeURIComponent(
-            start.trim()
-          )}` +
-          "&hl=en&z=12&output=embed"
-        );
+        const clean = cleanPlaceQuery(start) || start.trim();
+        return `https://www.google.com/maps?q=${encodeURIComponent(clean)}&hl=en&z=${currentZoom || 12}&output=embed`;
       }
-
       if (destination.trim()) {
-        return (
-          "https://maps.google.com/maps?" +
-          `q=${encodeURIComponent(
-            destination.trim()
-          )}` +
-          "&hl=en&z=12&output=embed"
-        );
+        const clean = cleanPlaceQuery(destination) || destination.trim();
+        return `https://www.google.com/maps?q=${encodeURIComponent(clean)}&hl=en&z=${currentZoom || 12}&output=embed`;
       }
+      return `https://www.google.com/maps?q=Bengaluru,+Karnataka&hl=en&z=${currentZoom || 10}&output=embed`;
+    }
 
-      return (
-        "https://maps.google.com/maps?" +
-        "q=Bengaluru,+Karnataka&hl=en&z=10&output=embed"
-      );
-    }, [
-      start,
-      destination,
-      stops,
-    ]);
+    const cleanOrigin = cleanPlaceQuery(start) || start.trim();
+    const cleanDest = cleanPlaceQuery(destination) || destination.trim();
 
-  /*
-   * ---------------------------------------------------------
-   * ACTIVE ROUTE
-   * ---------------------------------------------------------
-   *
-   * When start/destination are empty, don't call setState
-   * from an effect just to reset the route. Instead derive
-   * the displayed route from the current input state.
-   */
+    const stopWaypoints = stops
+      .filter((s) => s && s.trim())
+      .map((s) => encodeURIComponent(cleanPlaceQuery(s) || s.trim()));
 
-  const hasValidRouteInput =
-    Boolean(
-      start.trim() &&
-        destination.trim()
+    let daddrParam = encodeURIComponent(cleanDest);
+    if (stopWaypoints.length > 0) {
+      daddrParam = `${stopWaypoints.join("+to:")}+to:${encodeURIComponent(cleanDest)}`;
+    }
+
+    return (
+      `https://www.google.com/maps?saddr=${encodeURIComponent(cleanOrigin)}` +
+      `&daddr=${daddrParam}` +
+      `&dirflg=d&hl=en&t=m&z=${currentZoom}&output=embed`
     );
-
-  const activeRoute =
-    hasValidRouteInput
-      ? selectedRoute
-      : defaultRouteOptions[0];
-
-  const activeRouteOptions =
-    hasValidRouteInput
-      ? routeOptions
-      : defaultRouteOptions;
+  }, [start, destination, stops, currentZoom]);
 
   /*
    * ---------------------------------------------------------
@@ -817,57 +851,7 @@ function RidePlanner() {
     ]);
 
   /*
-   * ---------------------------------------------------------
-   * PLACE CLEANING
-   * ---------------------------------------------------------
-   */
 
-  const cleanPlaceQuery = (
-    value
-  ) => {
-    if (
-      !value ||
-      typeof value !== "string"
-    ) {
-      return "";
-    }
-
-    const parts = value
-      .split(",")
-      .map((part) =>
-        part.trim()
-      )
-      .filter(Boolean);
-
-    if (parts.length === 0) {
-      return "";
-    }
-
-    const city = parts[0]
-      .replace(
-        /\b(taluk|taluku|north|south|east|west|district|dist|tehsil|mandal)\b/gi,
-        ""
-      )
-      .trim();
-
-    const state =
-      parts.find((part) =>
-        /karnataka|maharashtra|tamil nadu|kerala|goa|delhi|telangana|andhra|gujarat|rajasthan|uttar pradesh|madhya pradesh|haryana|punjab/i.test(
-          part
-        )
-      ) ||
-      (parts.length > 1
-        ? parts[
-            parts.length - 1
-          ]
-        : "");
-
-    return `${city}${
-      state
-        ? `, ${state}`
-        : ""
-    }`;
-  };
 
   /*
    * ---------------------------------------------------------
@@ -1085,11 +1069,19 @@ function RidePlanner() {
                 let googleResponse =
                   null;
 
+                const effectiveOrigin = startCoords
+                  ? new window.google.maps.LatLng(startCoords.lat, startCoords.lon || startCoords.lng)
+                  : origin;
+
+                const effectiveDest = destinationCoords
+                  ? new window.google.maps.LatLng(destinationCoords.lat, destinationCoords.lon || destinationCoords.lng)
+                  : destinationValue;
+
                 try {
                   googleResponse =
                     await tryRoute(
-                      origin,
-                      destinationValue
+                      effectiveOrigin,
+                      effectiveDest
                     );
                 } catch {
                   if (
@@ -1100,8 +1092,8 @@ function RidePlanner() {
                   ) {
                     googleResponse =
                       await tryRoute(
-                        originClean,
-                        destinationClean
+                        startCoords ? effectiveOrigin : originClean,
+                        destinationCoords ? effectiveDest : destinationClean
                       ).catch(
                         () => null
                       );
@@ -1176,6 +1168,13 @@ function RidePlanner() {
                                 1
                               }`;
 
+                        const firstLeg = route.legs?.[0];
+                        const lastLeg = route.legs?.[route.legs.length - 1];
+                        const startLat = firstLeg?.start_location?.lat ? (typeof firstLeg.start_location.lat === "function" ? firstLeg.start_location.lat() : firstLeg.start_location.lat) : null;
+                        const startLng = firstLeg?.start_location?.lng ? (typeof firstLeg.start_location.lng === "function" ? firstLeg.start_location.lng() : firstLeg.start_location.lng) : null;
+                        const endLat = lastLeg?.end_location?.lat ? (typeof lastLeg.end_location.lat === "function" ? lastLeg.end_location.lat() : lastLeg.end_location.lat) : null;
+                        const endLng = lastLeg?.end_location?.lng ? (typeof lastLeg.end_location.lng === "function" ? lastLeg.end_location.lng() : lastLeg.end_location.lng) : null;
+
                         return {
                           id:
                             index +
@@ -1244,6 +1243,16 @@ function RidePlanner() {
                                 ? `${hours} hr ${minutes} min`
                                 : `${minutes} min`
                             }).`,
+
+                          originCoord:
+                            startLat && startLng
+                              ? { lat: startLat, lon: startLng }
+                              : null,
+
+                          destinationCoord:
+                            endLat && endLng
+                              ? { lat: endLat, lon: endLng }
+                              : null,
                         };
                       }
                     );
@@ -1260,6 +1269,14 @@ function RidePlanner() {
                     setSelectedRoute(
                       parsedOptions[0]
                     );
+
+                    if (parsedOptions[0]?.originCoord && parsedOptions[0]?.destinationCoord) {
+                      setRouteCoords({
+                        origin: parsedOptions[0].originCoord,
+                        destination: parsedOptions[0].destinationCoord,
+                        stops: [],
+                      });
+                    }
 
                     setRouteStats({
                       source:
@@ -1459,13 +1476,8 @@ function RidePlanner() {
                 destinationCoord,
               ] =
                 await Promise.all([
-                  geocodeFast(
-                    origin
-                  ),
-
-                  geocodeFast(
-                    destinationValue
-                  ),
+                  startCoords ? Promise.resolve(startCoords) : geocodeFast(origin),
+                  destinationCoords ? Promise.resolve(destinationCoords) : geocodeFast(destinationValue),
                 ]);
 
               if (
@@ -1505,6 +1517,12 @@ function RidePlanner() {
                   );
                 }
 
+                setRouteCoords({
+                  origin: originCoord,
+                  destination: destinationCoord,
+                  stops: stopCoordinates,
+                });
+
                 const allCoordinates =
                   [
                     originCoord,
@@ -1534,9 +1552,12 @@ function RidePlanner() {
                     2500
                   );
 
+                const hasStops = allCoordinates.length > 2;
+                const osrmQuery = hasStops ? "overview=full&geometries=geojson" : "alternatives=true&overview=full&geometries=geojson";
+
                 const osrmResponse =
                   await fetch(
-                    `https://router.project-osrm.org/route/v1/driving/${coordinateString}?alternatives=true&overview=false`,
+                    `https://router.project-osrm.org/route/v1/driving/${coordinateString}?${osrmQuery}`,
                     {
                       signal:
                         controller.signal,
@@ -1703,6 +1724,9 @@ function RidePlanner() {
                                     }`
                                   : ""
                               }.`,
+                            originCoord,
+                            destinationCoord,
+                            stopCoordinates,
                           };
                         }
                       );
@@ -2455,27 +2479,69 @@ function RidePlanner() {
 
   /*
    * ---------------------------------------------------------
-   * RIDERS
+   * RIDERS & INVITATIONS
    * ---------------------------------------------------------
    */
 
-  const toggleRider = (
-    riderId
-  ) => {
-    setSelectedRiders(
-      (previous) =>
-        previous.includes(
-          riderId
-        )
-          ? previous.filter(
-              (id) =>
-                id !== riderId
-            )
-          : [
-              ...previous,
-              riderId,
-            ]
-    );
+  const maxInvitations = useMemo(
+    () => Math.max(0, (Number(riders) || 1) - 1),
+    [riders]
+  );
+
+  const handleRidersChange = (event) => {
+    const val = event.target.value;
+    if (val === "") {
+      setRiders("");
+      return;
+    }
+    const sanitized = val.replace(/[^0-9]/g, "");
+    if (!sanitized) return;
+    const num = parseInt(sanitized, 10);
+    if (num >= 1) {
+      setRiders(num);
+    }
+  };
+
+  const handleRidersBlur = () => {
+    if (!riders || Number(riders) < 1) {
+      setRiders(1);
+    }
+  };
+
+  const handleRidersKeyDown = (event) => {
+    if (["-", "+", "e", "E", "."].includes(event.key)) {
+      event.preventDefault();
+    }
+  };
+
+  const handleRidersStep = (delta) => {
+    const current = Number(riders) || 1;
+    const next = Math.max(1, current + delta);
+    setRiders(next);
+  };
+
+  useEffect(() => {
+    const num = Number(riders) || 1;
+    const limit = Math.max(0, num - 1);
+    setSelectedRiders((previous) => {
+      if (num <= 1) return [];
+      if (previous.length > limit) {
+        return previous.slice(0, limit);
+      }
+      return previous;
+    });
+  }, [riders]);
+
+  const toggleRider = (riderId) => {
+    setSelectedRiders((previous) => {
+      if (previous.includes(riderId)) {
+        return previous.filter((id) => id !== riderId);
+      }
+      if (previous.length >= maxInvitations) {
+        return previous;
+      }
+      return [...previous, riderId];
+    });
   };
 
   /*
@@ -2710,6 +2776,18 @@ function RidePlanner() {
               destination:
                 destination.trim(),
 
+              originLat: startCoords?.lat || undefined,
+              originLng: startCoords?.lng || undefined,
+              destLat: destinationCoords?.lat || undefined,
+              destLng: destinationCoords?.lng || undefined,
+
+              stops: stops.filter(
+                (s) =>
+                  typeof s ===
+                    "string" &&
+                  s.trim()
+              ),
+
               startDate:
                 futureDate,
 
@@ -2723,14 +2801,23 @@ function RidePlanner() {
               maxRiders:
                 Math.max(
                   1,
-                  Number(riders) ||
-                    1
+                  Number(riders) || 1
                 ),
 
               durationDays: 1,
 
               invitedRiderIds:
-                selectedRiders,
+                Number(riders) <= 1
+                  ? []
+                  : selectedRiders
+                      .filter((id) => id && String(id) !== String(user?._id || user?.id))
+                      .slice(
+                        0,
+                        Math.max(
+                          0,
+                          Number(riders) - 1
+                        )
+                      ),
             }
           );
 
@@ -2765,7 +2852,8 @@ function RidePlanner() {
 
         window.dispatchEvent(
           new CustomEvent(
-            "mototribe:ride-created"
+            "mototribe:ride-created",
+            { detail: { rideId: newRideId } }
           )
         );
 
@@ -2803,7 +2891,7 @@ function RidePlanner() {
             ? `Validation error:\n${validationErrors}`
             : error.response?.data
                 ?.message ||
-              "Failed to create ride in database.";
+              "Failed to schedule your ride.";
 
         alert(errorMessage);
       } finally {
@@ -2819,7 +2907,11 @@ function RidePlanner() {
 
   const resetPlanner = () => {
     setStart("");
+    setStartCoords(null);
     setDestination("");
+    setDestinationCoords(null);
+    setRouteCoords(null);
+    setCustomZoom(null);
 
     setRideDate(
       getTomorrowDateStr()
@@ -3040,11 +3132,21 @@ function RidePlanner() {
 
                     <PlacesAutocomplete
                       value={start}
-                      onChange={
-                        setStart
-                      }
+                      onChange={(val) => {
+                        setStart(val);
+                        setStartCoords(null);
+                      }}
+                      onSelect={(val, item) => {
+                        setStart(val);
+                        if (item?.coordinates) {
+                          setStartCoords(item.coordinates);
+                        } else {
+                          setStartCoords(null);
+                        }
+                      }}
                       placeholder="Enter starting point"
                       icon="●"
+                      allowCurrentLocation={true}
                     />
                   </div>
 
@@ -3063,11 +3165,21 @@ function RidePlanner() {
                       value={
                         destination
                       }
-                      onChange={
-                        setDestination
-                      }
+                      onChange={(val) => {
+                        setDestination(val);
+                        setDestinationCoords(null);
+                      }}
+                      onSelect={(val, item) => {
+                        setDestination(val);
+                        if (item?.coordinates) {
+                          setDestinationCoords(item.coordinates);
+                        } else {
+                          setDestinationCoords(null);
+                        }
+                      }}
                       placeholder="Where do you want to ride?"
                       icon="◎"
+                      allowCurrentLocation={false}
                     />
                   </div>
                 </div>
@@ -3096,6 +3208,7 @@ function RidePlanner() {
                       }
                       placeholder="Add a fuel stop, cafe, viewpoint, heritage site..."
                       icon="📍"
+                      allowCurrentLocation={false}
                       onSelect={(
                         stopName
                       ) => {
@@ -3333,43 +3446,46 @@ function RidePlanner() {
                       RIDERS
                     </span>
 
-                    <div className="number-control">
+                    <div className="riders-input-control">
                       <button
                         type="button"
+                        className="riders-step-btn"
                         onClick={() =>
-                          setRiders(
-                            (
-                              previous
-                            ) =>
-                              Math.max(
-                                1,
-                                previous -
-                                  1
-                              )
-                          )
+                          handleRidersStep(-1)
                         }
+                        disabled={
+                          Number(riders) <= 1
+                        }
+                        aria-label="Decrease riders"
                       >
                         −
                       </button>
 
-                      <strong>
-                        {riders}
-                      </strong>
+                      <input
+                        type="number"
+                        min="1"
+                        step="1"
+                        value={riders}
+                        onChange={
+                          handleRidersChange
+                        }
+                        onKeyDown={
+                          handleRidersKeyDown
+                        }
+                        onBlur={
+                          handleRidersBlur
+                        }
+                        placeholder="1"
+                        aria-label="Number of riders"
+                      />
 
                       <button
                         type="button"
+                        className="riders-step-btn"
                         onClick={() =>
-                          setRiders(
-                            (
-                              previous
-                            ) =>
-                              Math.min(
-                                20,
-                                previous +
-                                  1
-                              )
-                          )
+                          handleRidersStep(1)
                         }
+                        aria-label="Increase riders"
                       >
                         +
                       </button>
@@ -3504,120 +3620,94 @@ function RidePlanner() {
                   </label>
                 </div>
 
-                <div className="invite-riders">
-                  <div className="invite-riders-heading">
-                    <div>
-                      <span>
-                        CONNECT BEFORE
-                        YOU RIDE
-                      </span>
+                {Number(riders) > 1 && (
+                  <div className="invite-riders">
+                    <div className="invite-riders-heading">
+                      <div>
+                        <span>
+                          CONNECT BEFORE
+                          YOU RIDE
+                        </span>
 
-                      <strong>
-                        INVITE RIDERS
-                      </strong>
+                        <strong>
+                          INVITE RIDERS
+                        </strong>
+                      </div>
+
+                      <small>
+                        {selectedRiders.length} / {maxInvitations} SELECTED
+                        {maxInvitations === 1
+                          ? " (MAX 1)"
+                          : ` (MAX ${maxInvitations})`}
+                      </small>
                     </div>
 
-                    <small>
-                      {
-                        selectedRiders.length
-                      }{" "}
-                      SELECTED
-                    </small>
-                  </div>
-
-                  <div className="invite-rider-list">
-                    {dbRiders.length >
-                    0 ? (
-                      dbRiders.map(
-                        (
-                          rider
-                        ) => (
-                          <button
-                            type="button"
-                            key={
-                              rider.id
-                            }
-                            className={`invite-rider ${
-                              selectedRiders.includes(
-                                rider.id
-                              )
-                                ? "selected"
-                                : ""
-                            }`}
-                            onClick={() =>
-                              toggleRider(
-                                rider.id
-                              )
-                            }
-                          >
-                            <span className="invite-avatar">
-                              {rider.name
-                                .slice(
-                                  0,
-                                  2
-                                )
-                                .toUpperCase()}
-                            </span>
-
-                            <div>
-                              <strong>
-                                {
-                                  rider.name
-                                }
-                              </strong>
-
-                              <small>
-                                {
-                                  rider.bike
-                                }{" "}
-                                •{" "}
-                                {
-                                  rider.experience
-                                }
-                              </small>
-                            </div>
-
-                            <i>
-                              {selectedRiders.includes(
-                                rider.id
-                              )
-                                ? "✓"
-                                : "+"}
-                            </i>
-                          </button>
-                        )
-                      )
-                    ) : (
-                      <div
-                        style={{
-                          padding:
-                            "16px",
-                          background:
-                            "rgba(255, 255, 255, 0.03)",
-                          border:
-                            "1px dashed rgba(255, 255, 255, 0.15)",
-                          borderRadius:
-                            "6px",
-                          color:
-                            "rgba(255, 255, 255, 0.6)",
-                          fontSize:
-                            "12px",
-                          textAlign:
-                            "center",
-                          letterSpacing:
-                            "0.5px",
-                        }}
-                      >
-                        No discoverable
-                        riders found in
-                        database. Discover
-                        riders in MotoTribe
-                        Connect to build
-                        your network!
+                    {selectedRiders.length >= maxInvitations && (
+                      <div className="invite-limit-note">
+                        Group capacity reached ({selectedRiders.length}/{maxInvitations} invited for a party of {riders}).
                       </div>
                     )}
+
+                    <div className="invite-rider-list">
+                      {dbRiders.length > 0 ? (
+                        dbRiders.map((rider) => {
+                          const isSelected = selectedRiders.includes(rider.id);
+                          const isLimitReached =
+                            !isSelected &&
+                            selectedRiders.length >= maxInvitations;
+
+                          return (
+                            <button
+                              type="button"
+                              key={rider.id}
+                              className={`invite-rider ${
+                                isSelected ? "selected" : ""
+                              } ${
+                                isLimitReached ? "limit-reached" : ""
+                              }`}
+                              onClick={() => toggleRider(rider.id)}
+                              title={
+                                isLimitReached
+                                  ? `Maximum ${maxInvitations} rider${
+                                      maxInvitations > 1 ? "s" : ""
+                                    } already selected`
+                                  : ""
+                              }
+                            >
+                              <span className="invite-avatar">
+                                {rider.name.slice(0, 2).toUpperCase()}
+                              </span>
+
+                              <div>
+                                <strong>{rider.name}</strong>
+                                <small>
+                                  {rider.bike} • {rider.experience}
+                                </small>
+                              </div>
+
+                              <i>{isSelected ? "✓" : "+"}</i>
+                            </button>
+                          );
+                        })
+                      ) : (
+                        <div
+                          style={{
+                            padding: "16px",
+                            background: "rgba(255, 255, 255, 0.03)",
+                            border: "1px dashed rgba(255, 255, 255, 0.15)",
+                            borderRadius: "6px",
+                            color: "rgba(255, 255, 255, 0.6)",
+                            fontSize: "12px",
+                            textAlign: "center",
+                            letterSpacing: "0.5px",
+                          }}
+                        >
+                          No discoverable riders found yet. Discover riders in MotoTribe Connect to build your network!
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
               <aside className="route-analysis">
@@ -3641,6 +3731,7 @@ function RidePlanner() {
 
                 <div className="analysis-route-preview real-google-maps-container">
                   <iframe
+                    key={googleMapsEmbedUrl}
                     title="Google Maps Route Preview"
                     src={
                       googleMapsEmbedUrl
@@ -3652,14 +3743,6 @@ function RidePlanner() {
                   />
 
                   <div className="preview-badges-row">
-                    <span className="route-badge-recommended">
-                      {start.trim() &&
-                      destination.trim()
-                        ? isAnalyzing
-                          ? "SYNCING ROUTE..."
-                          : "LIVE GOOGLE MAPS"
-                        : "GOOGLE MAPS READY"}
-                    </span>
 
                     {start.trim() &&
                       destination.trim() && (
@@ -3818,99 +3901,6 @@ function RidePlanner() {
                           aiInsightContent
                         }
                       </p>
-                    </div>
-
-                    <div className="route-options-title">
-                      <span>
-                        AVAILABLE
-                        CORRIDORS
-                      </span>
-
-                      <small>
-                        {
-                          activeRouteOptions.length
-                        }{" "}
-                        OPTIONS
-                      </small>
-                    </div>
-
-                    <div className="route-options">
-                      {activeRouteOptions.map(
-                        (
-                          option
-                        ) => (
-                          <button
-                            type="button"
-                            key={
-                              option.id
-                            }
-                            className={`route-choice ${
-                              activeRoute.id ===
-                              option.id
-                                ? "active"
-                                : ""
-                            }`}
-                            onClick={() =>
-                              setSelectedRoute(
-                                option
-                              )
-                            }
-                          >
-                            <div>
-                              <span>
-                                {option.id ===
-                                1
-                                  ? "★"
-                                  : "•"}
-                              </span>
-
-                              <div>
-                                <strong>
-                                  {
-                                    option.name
-                                  }
-                                </strong>
-
-                                <small
-                                  style={{
-                                    display:
-                                      "block",
-                                    color:
-                                      "#666",
-                                    fontSize:
-                                      "11px",
-                                    marginTop:
-                                      "2px",
-                                  }}
-                                >
-                                  {
-                                    option.terrain
-                                  }{" "}
-                                  • SCORE{" "}
-                                  {
-                                    option.score
-                                  }
-                                  /100
-                                </small>
-                              </div>
-                            </div>
-
-                            <div className="route-choice-time">
-                              <strong>
-                                {
-                                  option.distance
-                                }
-                              </strong>
-
-                              <small>
-                                {
-                                  option.duration
-                                }
-                              </small>
-                            </div>
-                          </button>
-                        )
-                      )}
                     </div>
 
                     <div className="fuel-summary">

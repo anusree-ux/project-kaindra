@@ -310,3 +310,46 @@
     padding: 28px 20px;
   }
 }
+
+.modatales-card small {
+  display: block;
+}
+
+.modatales-stories {
+  margin-top: 20px;
+}
+
+.modatales-story-card .modatales-card-icon {
+  margin-bottom: 24px;
+}
+
+.modatales-story-card .modatales-story-type {
+  margin-top: 0;
+  margin-bottom: 18px;
+}
+
+/* Story type */
+.modatales-story-type {
+  display: block;
+  margin: 0 0 18px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: #bd8b46;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  line-height: 1.6;
+  text-transform: uppercase;
+}
+
+
+/* Author name */
+.modatales-story-author {
+  display: block;
+  margin-top: 12px;
+  color: #777;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}

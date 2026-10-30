@@ -1,0 +1,182 @@
+.global-incoming-call-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.global-incoming-call-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 8, 8, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.global-incoming-call-card {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 480px;
+  background: #14120e;
+  border: 2px solid #c9a45d;
+  border-radius: 20px;
+  padding: 36px 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.95), 0 0 50px rgba(201, 164, 93, 0.45);
+  animation: globalCallModalPop 0.35s cubic-bezier(0.16, 1, 0.3, 1), globalCallGlow 2.2s infinite;
+}
+
+@keyframes globalCallModalPop {
+  from {
+    opacity: 0;
+    transform: scale(0.88) translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes globalCallGlow {
+  0%, 100% {
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.95), 0 0 24px rgba(201, 164, 93, 0.35);
+  }
+  50% {
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.95), 0 0 56px rgba(201, 164, 93, 0.7);
+  }
+}
+
+.global-incoming-call-icon {
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  background: #252013;
+  border: 2px solid #c9a45d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  color: #c9a45d;
+  margin-bottom: 20px;
+  animation: globalIconBounce 0.9s infinite alternate ease-in-out;
+}
+
+@keyframes globalIconBounce {
+  from { transform: scale(0.94); }
+  to { transform: scale(1.1); }
+}
+
+.global-incoming-call-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 28px;
+}
+
+.global-call-badge {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  color: #c9a45d;
+  text-transform: uppercase;
+}
+
+.global-call-caller {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 800;
+  color: #f7f3ea;
+  letter-spacing: 0.5px;
+}
+
+.global-call-desc {
+  margin: 0;
+  font-size: 14px;
+  color: #a8a092;
+  line-height: 1.5;
+}
+
+.global-call-desc strong {
+  color: #e5c378;
+}
+
+.global-incoming-call-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.global-btn-pickup {
+  width: 100%;
+  padding: 15px 24px;
+  border: none;
+  border-radius: 10px;
+  background: #22c55e;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 18px rgba(34, 197, 94, 0.45);
+}
+
+.global-btn-pickup:hover {
+  background: #16a34a;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(34, 197, 94, 0.65);
+}
+
+.global-btn-voice-only {
+  width: 100%;
+  padding: 12px 20px;
+  border: 1px solid #4a4030;
+  border-radius: 10px;
+  background: #1c1914;
+  color: #e5c378;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.18s ease;
+}
+
+.global-btn-voice-only:hover {
+  background: #2b251a;
+  border-color: #c9a45d;
+  color: #fff;
+}
+
+.global-btn-decline {
+  width: 100%;
+  padding: 11px 18px;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 10px;
+  background: rgba(239, 68, 68, 0.08);
+  color: #ef4444;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.global-btn-decline:hover {
+  background: rgba(239, 68, 68, 0.22);
+}

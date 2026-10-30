@@ -1,12 +1,15 @@
 const mongoose = require("mongoose");
+const User = require("../../models/core/User");
 const RiderProfile = require("../../models/mototribe/RiderProfile");
 const Vehicle = require("../../models/mototribe/Vehicle");
 const Ride = require("../../models/mototribe/Ride");
 const RideParticipant = require("../../models/mototribe/RideParticipant");
 const LiveLocation = require("../../models/mototribe/LiveLocation");
+const Notification = require("../../models/core/Notification");
 const AppError = require("../../utils/AppError");
 const { checkAndAwardBadges } = require("../../services/mototribe/achievementService");
 const { checkAndSendReminders } = require("../../services/mototribe/reminderService");
+const { createNotification } = require("../../services/core/notificationService");
 
 /**
  * Format ride object for API responses, applying registration number masking for non-owners
@@ -28,11 +31,13 @@ const formatRideForUser = (ride, requestingUserId) => {
  */
 const upsertRiderProfile = async (req, res, next) => {
   try {
-    const { emergencyContacts } = req.body;
+    const { emergencyContacts, preferredRideType, name, experience, region } = req.body;
 
     const profileFields = {
       userId: req.user._id,
       ...(emergencyContacts && { emergencyContacts }),
+      ...(preferredRideType && { preferredRideType }),
+      ...(region && { regionsExplored: [region] }),
     };
 
     const profile = await RiderProfile.findOneAndUpdate(
@@ -41,10 +46,25 @@ const upsertRiderProfile = async (req, res, next) => {
       { new: true, upsert: true, runValidators: true }
     );
 
+    const userUpdate = {
+      $addToSet: { brands: "mototribe" },
+    };
+    if (name && typeof name === "string" && name.trim()) {
+      userUpdate.name = name.trim();
+    }
+
+    // Explicitly enroll user into the mototribe brand and update profile details
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user._id,
+      userUpdate,
+      { new: true }
+    ).select("-password -refreshTokens");
+
     res.status(200).json({
       status: "success",
       data: {
         profile,
+        user: updatedUser,
       },
     });
   } catch (error) {
@@ -127,6 +147,10 @@ const createRide = async (req, res, next) => {
       title,
       origin,
       destination,
+      originLat,
+      originLng,
+      destLat,
+      destLng,
       startDate,
       durationDays,
       distanceKm,
@@ -156,19 +180,49 @@ const createRide = async (req, res, next) => {
       });
     }
 
+
     const newRide = await Ride.create({
       organizerId: req.user._id,
       vehicleId: resolvedVehicle._id,
       title,
       origin,
       destination,
+      stops: Array.isArray(req.body.stops) ? req.body.stops.filter((s) => typeof s === "string" && s.trim()) : [],
+      originLat: typeof originLat === "number" ? originLat : undefined,
+      originLng: typeof originLng === "number" ? originLng : undefined,
+      destLat: typeof destLat === "number" ? destLat : undefined,
+      destLng: typeof destLng === "number" ? destLng : undefined,
       startDate,
       durationDays: durationDays || 1,
       distanceKm,
       budget: budget || 0,
-      maxRiders: Math.max(1, Number(req.body.maxRiders) || 1),
+      maxRiders: req.body.maxRiders ? Math.max(1, Number(req.body.maxRiders)) : 20,
       status: "planning",
     });
+
+    // Compute Journey Intelligence in the background (non-blocking)
+    setImmediate(async () => {
+      try {
+        const { computeRideJourneyIntelligence } = require("../../services/mototribe/placesService");
+        const ji = await computeRideJourneyIntelligence({
+          origin,
+          destination,
+          stops: Array.isArray(req.body.stops) ? req.body.stops.filter((s) => typeof s === "string" && s.trim()) : [],
+          originLat,
+          originLng,
+          destLat,
+          destLng,
+          distanceKm,
+          durationDays,
+        });
+        if (ji) {
+          await Ride.findByIdAndUpdate(newRide._id, { $set: { journeyIntelligence: ji } });
+        }
+      } catch (jiErr) {
+        console.warn("[RideController] Background journey intelligence note:", jiErr.message);
+      }
+    });
+
 
     // Automatically add organizer as confirmed participant
     await RideParticipant.create({
@@ -177,7 +231,7 @@ const createRide = async (req, res, next) => {
       status: "confirmed",
     });
 
-    // Automatically add invited riders as confirmed participants if specified
+    // Push in-app notification to invited riders (do NOT immediately add as participants)
     const { invitedRiderIds } = req.body;
     if (Array.isArray(invitedRiderIds) && invitedRiderIds.length > 0) {
       for (const riderId of invitedRiderIds) {
@@ -185,11 +239,24 @@ const createRide = async (req, res, next) => {
           mongoose.Types.ObjectId.isValid(riderId) &&
           riderId.toString() !== req.user._id.toString()
         ) {
-          await RideParticipant.create({
-            rideId: newRide._id,
+          // Push in-app notification to the invited rider
+          await createNotification({
             userId: riderId,
-            status: "confirmed",
-          }).catch(() => null);
+            senderId: req.user._id,
+            type: "RIDE_INVITE",
+            brand: "mototribe",
+            title: "New Ride Invitation 🛵",
+            message: `${req.user.name || "A fellow rider"} invited you to join their ride: "${newRide.title || `${newRide.origin} to ${newRide.destination}`}".`,
+            data: {
+              rideId: newRide._id,
+              title: newRide.title || `${newRide.origin} to ${newRide.destination}`,
+              origin: newRide.origin,
+              destination: newRide.destination,
+              startDate: newRide.startDate,
+            },
+          }).catch((err) => {
+            console.warn("[RideController] Failed to push ride invite notification:", err.message);
+          });
         }
       }
     }
@@ -207,6 +274,17 @@ const createRide = async (req, res, next) => {
         console.warn("[RideController] Automated SendGrid reminder check notice:", err.message || err);
       });
     });
+
+    // Broadcast real-time socket event so all connected clients sync immediately
+    try {
+      const { getIo } = require("../../services/mototribe/locationSocketService");
+      const io = getIo();
+      if (io) {
+        io.emit("mototribe:ride_created", { rideId: newRide._id });
+      }
+    } catch (sockErr) {
+      console.warn("[RideController] Socket broadcast notice on create:", sockErr.message);
+    }
 
     res.status(201).json({
       status: "success",
@@ -315,6 +393,20 @@ const getRideDetails = async (req, res, next) => {
       return next(new AppError("Ride not found.", 404));
     }
 
+    // Auto-populate journey intelligence into DB if missing or not yet generated
+    if (!ride.journeyIntelligence || ride.journeyIntelligence.fuelStops === undefined) {
+      try {
+        const { computeRideJourneyIntelligence } = require("../../services/mototribe/placesService");
+        const ji = await computeRideJourneyIntelligence(ride);
+        if (ji) {
+          ride.journeyIntelligence = ji;
+          await ride.save();
+        }
+      } catch (jiErr) {
+        console.warn("[RideController] Auto-populate journey intelligence note:", jiErr.message);
+      }
+    }
+
     const participantCount = await RideParticipant.countDocuments({
       rideId: ride._id,
       status: { $ne: "left" },
@@ -349,21 +441,66 @@ const getRideDetails = async (req, res, next) => {
 const joinRide = async (req, res, next) => {
   try {
     const rideId = req.params.id;
+    const { notificationId } = req.body || {};
 
+    // 1. Check if the ride exists
     const ride = await Ride.findById(rideId);
     if (!ride) {
-      return next(new AppError("Ride not found.", 404));
+      return next(new AppError("Ride does not exist or has been removed.", 404));
     }
 
+    // 2. Check if the ride has already started, completed, or been cancelled
+    if (ride.status === "active") {
+      return next(new AppError("Cannot join: this ride has already started.", 400));
+    }
+    if (ride.status === "completed" || ride.status === "cancelled") {
+      return next(
+        new AppError(`Cannot join a ride that is ${ride.status}.`, 400)
+      );
+    }
+    if (ride.startDate && new Date(ride.startDate).getTime() < Date.now()) {
+      return next(new AppError("Cannot join: this ride has already started.", 400));
+    }
+
+    // 3. Check if the invitation expired
+    if (notificationId && mongoose.Types.ObjectId.isValid(notificationId)) {
+      const inviteNotif = await Notification.findById(notificationId);
+      if (inviteNotif) {
+        const notifAgeMs = Date.now() - new Date(inviteNotif.createdAt).getTime();
+        if (notifAgeMs > 24 * 60 * 60 * 1000) {
+          return next(new AppError("This ride invitation has expired.", 400));
+        }
+      }
+    } else {
+      const inviteNotif = await Notification.findOne({
+        userId: req.user._id,
+        type: "RIDE_INVITE",
+        "data.rideId": new mongoose.Types.ObjectId(rideId),
+      }).sort({ createdAt: -1 });
+
+      if (inviteNotif) {
+        const notifAgeMs = Date.now() - new Date(inviteNotif.createdAt).getTime();
+        if (notifAgeMs > 24 * 60 * 60 * 1000) {
+          return next(new AppError("This ride invitation has expired.", 400));
+        }
+      }
+    }
+
+    // 4. Organizer cannot join as a participant
     if (ride.organizerId.toString() === req.user._id.toString()) {
       return next(
         new AppError("You are the organizer of this ride and already part of it.", 400)
       );
     }
 
-    if (ride.status === "completed" || ride.status === "cancelled") {
+    // 5. Check if maximum riders capacity has been reached
+    const confirmedCount = await RideParticipant.countDocuments({
+      rideId,
+      status: { $in: ["planning", "confirmed"] },
+    });
+    if (ride.maxRiders && confirmedCount >= ride.maxRiders) {
       return next(
-        new AppError(`Cannot join a ride that is ${ride.status}.`, 400)
+        new AppError("This ride has already reached maximum rider capacity.", 400)
       );
     }
 
@@ -380,7 +517,7 @@ const joinRide = async (req, res, next) => {
         );
       }
       // Re-join if user previously left
-      existingParticipant.status = "planning";
+      existingParticipant.status = notificationId ? "confirmed" : "planning";
       existingParticipant.joinedAt = new Date();
       await existingParticipant.save();
 
@@ -396,8 +533,22 @@ const joinRide = async (req, res, next) => {
     const participant = await RideParticipant.create({
       rideId,
       userId: req.user._id,
-      status: "planning",
+      status: notificationId ? "confirmed" : "planning",
     });
+
+    // Notify the ride organizer that the invited rider accepted
+    await createNotification({
+      userId: ride.organizerId,
+      senderId: req.user._id,
+      type: "SYSTEM",
+      brand: "mototribe",
+      title: "Ride Invitation Accepted! 🎉",
+      message: `${req.user.name || "A rider"} accepted your invitation and joined "${ride.title || `${ride.origin} to ${ride.destination}`}".`,
+      data: {
+        rideId: ride._id,
+        participantId: participant._id,
+      },
+    }).catch(() => null);
 
     res.status(201).json({
       status: "success",
@@ -503,26 +654,26 @@ const executeCompleteRideOps = async (ride, sessionOpts = {}) => {
     sessionOpts
   );
 
-  const userIds = confirmedParticipants.map((p) => p.userId);
+  const participantIds = confirmedParticipants.map((p) => p.userId);
+  const userIds = Array.from(new Set([String(ride.organizerId), ...participantIds.map(String)]));
   let updatedProfilesCount = 0;
 
   if (userIds.length > 0) {
-    const updateResult = await RiderProfile.updateMany(
-      { userId: { $in: userIds } },
-      {
-        $inc: {
-          totalRidesCompleted: 1,
-          totalDistanceKm: ride.distanceKm,
-        },
-        $addToSet: {
-          regionsExplored: ride.destination,
-        },
-      },
-      sessionOpts
-    );
-    updatedProfilesCount = updateResult.modifiedCount || updateResult.nModified || 0;
-
     for (const uId of userIds) {
+      const res = await RiderProfile.updateOne(
+        { userId: uId },
+        {
+          $inc: {
+            totalRidesCompleted: 1,
+            totalDistanceKm: ride.distanceKm,
+          },
+          $addToSet: {
+            regionsExplored: ride.destination,
+          },
+        },
+        { upsert: true, ...sessionOpts }
+      );
+      if (res.modifiedCount || res.upsertedCount) updatedProfilesCount++;
       await checkAndAwardBadges(uId, sessionOpts.session);
     }
   }
@@ -625,12 +776,87 @@ const cancelRide = async (req, res, next) => {
     ride.status = "cancelled";
     await ride.save();
 
+    // Broadcast real-time socket event so all connected clients sync immediately
+    try {
+      const { getIo } = require("../../services/mototribe/locationSocketService");
+      const io = getIo();
+      if (io) {
+        io.emit("mototribe:ride_deleted", { rideId: req.params.id });
+      }
+    } catch (sockErr) {
+      console.warn("[RideController] Socket broadcast notice on cancel:", sockErr.message);
+    }
+
     res.status(200).json({
       status: "success",
       message: "Ride cancelled successfully.",
       data: {
         ride,
       },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Delete a planned ride before it starts - Organizer only
+ * @route   DELETE /api/mototribe/rides/:id
+ * @access  Private (Organizer)
+ */
+const deleteRide = async (req, res, next) => {
+  try {
+    const ride = await Ride.findById(req.params.id);
+
+    if (!ride) {
+      return next(new AppError("Ride not found.", 404));
+    }
+
+    // Check organizer permission
+    if (ride.organizerId.toString() !== req.user._id.toString()) {
+      return next(
+        new AppError("Only the organizer who created this ride can delete it.", 403)
+      );
+    }
+
+    // Check if ride has already started or completed
+    const hasStarted =
+      ride.status === "ongoing" ||
+      ride.status === "active" ||
+      ride.status === "completed" ||
+      (ride.startDate && new Date(ride.startDate).getTime() <= Date.now());
+
+    if (hasStarted) {
+      return next(
+        new AppError(
+          `Cannot delete ride once it has started. Status is '${ride.status}'.`,
+          400
+        )
+      );
+    }
+
+    // Clean up related records: participants, notifications
+    await Promise.all([
+      Ride.findByIdAndDelete(req.params.id),
+      RideParticipant.deleteMany({ rideId: req.params.id }),
+      Notification.deleteMany({ "data.rideId": req.params.id }),
+    ]);
+
+    // Broadcast real-time socket event so all connected clients sync immediately
+    try {
+      const { getIo } = require("../../services/mototribe/locationSocketService");
+      const io = getIo();
+      if (io) {
+        io.emit("mototribe:ride_deleted", { rideId: req.params.id });
+      }
+    } catch (sockErr) {
+      console.warn("[RideController] Socket broadcast notice on delete:", sockErr.message);
+    }
+
+    res.status(200).json({
+      status: "success",
+      message: "Ride deleted successfully from database.",
+      data: null,
     });
   } catch (error) {
     next(error);
@@ -760,6 +986,7 @@ module.exports = {
   startRide,
   completeRide,
   cancelRide,
+  deleteRide,
   confirmParticipant,
   getLiveLocations,
 };

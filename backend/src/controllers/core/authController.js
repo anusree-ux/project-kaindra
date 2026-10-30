@@ -1,7 +1,5 @@
 const User = require("../../models/core/User");
-const OtpVerification = require("../../models/core/OtpVerification");
-const { sendOtpToUser, verifyOtpHash } = require("../../services/core/otpService");
-const { formatIndianPhoneNumber } = require("../../services/mototribe/smsService");
+const Admin = require("../../models/core/Admin");
 const {
   signAccessToken,
   signRefreshToken,
@@ -22,7 +20,7 @@ const getRefreshTokenCookieOptions = () => ({
 /**
  * Helper to build and send auth response with access token & httpOnly refresh cookie
  */
-const sendTokenResponse = async (user, statusCode, res) => {
+const sendTokenResponse = async (user, statusCode, res, extra = {}) => {
   const accessToken = signAccessToken({ id: user._id, role: user.role });
   const refreshToken = signRefreshToken({ id: user._id, role: user.role });
 
@@ -42,222 +40,40 @@ const sendTokenResponse = async (user, statusCode, res) => {
   res.status(statusCode).json({
     status: "success",
     accessToken,
+    isNewUser: Boolean(extra.isNewUser),
     data: {
       user: userObj,
+      isNewUser: Boolean(extra.isNewUser),
+      ...extra,
     },
   });
 };
 
-/**
- * @desc    Register a new user & trigger OTP SMS verification
- * @route   POST /api/v1/auth/signup
- * @access  Public
- */
-const signup = async (req, res, next) => {
-  try {
-    const { name, email, phoneNumber, password, role } = req.body;
-    const formattedPhone = formatIndianPhoneNumber(phoneNumber);
 
-    // 1. Duplicate email check (handles abandoned unverified retries)
-    const existingEmailUser = await User.findOne({ email });
-    if (existingEmailUser) {
-      if (existingEmailUser.isPhoneVerified) {
-        return next(
-          new AppError("An account with this email address already exists.", 400)
-        );
-      }
-      // If unverified account has expired/abandoned OTP, clean up old record to allow retry
-      const otpRecord = await OtpVerification.findOne({ userId: existingEmailUser._id });
-      if (!otpRecord || new Date() > otpRecord.expiresAt) {
-        await OtpVerification.deleteMany({ userId: existingEmailUser._id });
-        await User.findByIdAndDelete(existingEmailUser._id);
-      } else {
-        return next(
-          new AppError("An unverified account with this email exists. Please complete OTP verification.", 400)
-        );
-      }
-    }
-
-    // 2. Duplicate phone number check (handles abandoned unverified retries)
-    const existingPhoneUser = await User.findOne({ phoneNumber: formattedPhone });
-    if (existingPhoneUser) {
-      if (existingPhoneUser.isPhoneVerified) {
-        return next(
-          new AppError("An account with this phone number already exists.", 400)
-        );
-      }
-      // If unverified account has expired/abandoned OTP, clean up old record to allow retry
-      const otpRecord = await OtpVerification.findOne({ userId: existingPhoneUser._id });
-      if (!otpRecord || new Date() > otpRecord.expiresAt) {
-        await OtpVerification.deleteMany({ userId: existingPhoneUser._id });
-        await User.findByIdAndDelete(existingPhoneUser._id);
-      } else {
-        return next(
-          new AppError("An unverified account with this phone number exists. Please complete OTP verification.", 400)
-        );
-      }
-    }
-
-    // Ensure role is valid (user, moderator, admin)
-    const assignedRole =
-      role && ["user", "moderator", "admin"].includes(role) ? role : "user";
-
-    // Create unverified user
-    const newUser = await User.create({
-      name,
-      email,
-      phoneNumber: formattedPhone,
-      password,
-      role: assignedRole,
-      isPhoneVerified: false,
-    });
-
-    // Generate & send OTP SMS
-    await sendOtpToUser(newUser._id, newUser.phoneNumber);
-
-    res.status(201).json({
-      status: "success",
-      message: "User registered successfully. OTP sent to your phone number, please verify.",
-      data: {
-        userId: newUser._id,
-        phoneNumber: newUser.phoneNumber,
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
-};
 
 /**
- * @desc    Verify OTP code and issue full JWT access + refresh tokens
- * @route   POST /api/v1/auth/verify-otp
+ * @desc    Admin login using credentials from the 'admins' table
+ * @route   POST /api/v1/auth/login or POST /api/v1/auth/admin/login
  * @access  Public
  */
-const verifyOtp = async (req, res, next) => {
-  try {
-    const { userId, otpCode } = req.body;
-
-    const user = await User.findById(userId);
-    if (!user) {
-      return next(new AppError("User not found.", 404));
-    }
-
-    if (user.isPhoneVerified) {
-      return next(new AppError("Phone number is already verified.", 400));
-    }
-
-    const otpRecord = await OtpVerification.findOne({ userId });
-    if (!otpRecord) {
-      return next(
-        new AppError("No OTP request found or OTP has expired. Please request a new OTP.", 400)
-      );
-    }
-
-    // 1. Expiry check (5 mins)
-    if (new Date() > otpRecord.expiresAt) {
-      await OtpVerification.deleteOne({ _id: otpRecord._id });
-      return next(
-        new AppError("OTP code has expired. Please request a new OTP.", 400)
-      );
-    }
-
-    // 2. Max 5 attempts check
-    if (otpRecord.attempts >= 5) {
-      return next(
-        new AppError("Maximum OTP verification attempts exceeded (5/5). Please request a new OTP.", 400)
-      );
-    }
-
-    // 3. Verify OTP hash
-    const isMatch = await verifyOtpHash(otpCode, otpRecord.otpCode);
-    if (!isMatch) {
-      otpRecord.attempts += 1;
-      await otpRecord.save();
-      const remainingAttempts = Math.max(0, 5 - otpRecord.attempts);
-      return next(
-        new AppError(`Invalid OTP code. ${remainingAttempts} attempts remaining.`, 400)
-      );
-    }
-
-    // Mark phone verified
-    user.isPhoneVerified = true;
-    await user.save({ validateBeforeSave: false });
-
-    // Delete used OTP record
-    await OtpVerification.deleteOne({ _id: otpRecord._id });
-
-    // Issue JWT access + refresh tokens
-    await sendTokenResponse(user, 200, res);
-  } catch (error) {
-    next(error);
-  }
-};
-
-/**
- * @desc    Resend OTP code (Rate limited to max 3 resends per 15 minutes)
- * @route   POST /api/v1/auth/resend-otp
- * @access  Public
- */
-const resendOtp = async (req, res, next) => {
-  try {
-    const { userId } = req.body;
-
-    const user = await User.findById(userId);
-    if (!user) {
-      return next(new AppError("User not found.", 404));
-    }
-
-    if (user.isPhoneVerified) {
-      return next(new AppError("Phone number is already verified.", 400));
-    }
-
-    const otpRecord = await OtpVerification.findOne({ userId });
-    let currentResendCount = 0;
-
-    if (otpRecord) {
-      const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
-      if (otpRecord.createdAt >= fifteenMinutesAgo) {
-        if (otpRecord.resendCount >= 3) {
-          return next(
-            new AppError("Maximum 3 OTP resend requests allowed per 15 minutes. Please try again later.", 429)
-          );
-        }
-        currentResendCount = otpRecord.resendCount + 1;
-      }
-    }
-
-    await sendOtpToUser(user._id, user.phoneNumber, currentResendCount);
-
-    res.status(200).json({
-      status: "success",
-      message: "A new OTP code has been sent to your registered phone number.",
-      data: {
-        userId: user._id,
-        resendCount: currentResendCount,
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-/**
- * @desc    Authenticate user & get tokens
- * @route   POST /api/v1/auth/login
- * @access  Public
- */
-const login = async (req, res, next) => {
+const adminLogin = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    // Find user by email and select password and refreshTokens fields
-    const user = await User.findOne({ email }).select("+password +refreshTokens");
+    if (!email || !password) {
+      return next(new AppError("Please provide both email and password.", 400));
+    }
 
-    if (!user || !(await user.comparePassword(password))) {
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Look up in the dedicated 'admins' table/collection
+    const admin = await Admin.findOne({ email: normalizedEmail }).select("+password +refreshTokens");
+
+    if (!admin || !(await admin.comparePassword(password))) {
       return next(new AppError("Invalid email or password.", 401));
     }
 
-    await sendTokenResponse(user, 200, res);
+    await sendTokenResponse(admin, 200, res);
   } catch (error) {
     next(error);
   }
@@ -289,8 +105,11 @@ const refresh = async (req, res, next) => {
       );
     }
 
-    // Check if user exists and includes the refresh token in stored tokens
-    const user = await User.findById(decoded.id).select("+refreshTokens");
+    // Check if admin or user exists and includes the refresh token in stored tokens
+    let user = await Admin.findById(decoded.id).select("+refreshTokens");
+    if (!user) {
+      user = await User.findById(decoded.id).select("+refreshTokens");
+    }
 
     if (!user || !user.refreshTokens.includes(refreshToken)) {
       return next(
@@ -311,7 +130,7 @@ const refresh = async (req, res, next) => {
 };
 
 /**
- * @desc    Logout user and invalidate refresh token
+ * @desc    Logout user/admin and invalidate refresh token
  * @route   POST /api/v1/auth/logout
  * @access  Private / Public
  */
@@ -321,10 +140,13 @@ const logout = async (req, res, next) => {
       req.cookies?.refreshToken || req.body?.refreshToken;
 
     if (refreshToken) {
-      // Decode or find user to remove token from DB
+      // Decode or find admin/user to remove token from DB
       try {
         const decoded = verifyRefreshToken(refreshToken);
-        const user = await User.findById(decoded.id).select("+refreshTokens");
+        let user = await Admin.findById(decoded.id).select("+refreshTokens");
+        if (!user) {
+          user = await User.findById(decoded.id).select("+refreshTokens");
+        }
         if (user) {
           user.refreshTokens = user.refreshTokens.filter(
             (token) => token !== refreshToken
@@ -366,12 +188,159 @@ const getMe = async (req, res, next) => {
   }
 };
 
+/**
+ * Helper to decode Google JWT payload without external library
+ */
+const decodeGoogleCredential = (token) => {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+    const payload = Buffer.from(parts[1], "base64").toString("utf-8");
+    return JSON.parse(payload);
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * @desc    Authenticate with Google OAuth without OTP
+ * @route   POST /api/v1/auth/google
+ * @access  Public
+ */
+const googleAuth = async (req, res, next) => {
+  try {
+    const { credential, email: devEmail, name: devName, googleId: devGoogleId, picture: devPicture } = req.body;
+
+    let email = devEmail;
+    let name = devName;
+    let googleId = devGoogleId;
+    let picture = devPicture || "";
+
+    // 1. If Google ID token JWT provided, verify / decode it
+    if (credential) {
+      try {
+        const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`);
+        if (response.ok) {
+          const payload = await response.json();
+          email = payload.email;
+          name = payload.name;
+          googleId = payload.sub;
+          picture = payload.picture || "";
+        } else {
+          const decoded = decodeGoogleCredential(credential);
+          if (decoded && decoded.email) {
+            email = decoded.email;
+            name = decoded.name || decoded.email.split("@")[0];
+            googleId = decoded.sub || `google-${Date.now()}`;
+            picture = decoded.picture || "";
+          }
+        }
+      } catch (verifyErr) {
+        const decoded = decodeGoogleCredential(credential);
+        if (decoded && decoded.email) {
+          email = decoded.email;
+          name = decoded.name || decoded.email.split("@")[0];
+          googleId = decoded.sub || `google-${Date.now()}`;
+          picture = decoded.picture || "";
+        }
+      }
+    }
+
+    if (!email) {
+      return next(new AppError("Valid Google account information or credential is required", 400));
+    }
+
+    email = email.toLowerCase().trim();
+    name = (name || email.split("@")[0]).trim();
+
+    // 2. Find user by googleId or email
+    let user = await User.findOne({
+      $or: [
+        ...(googleId ? [{ googleId }] : []),
+        { email },
+      ],
+    });
+
+    let isNewUser = false;
+    if (user) {
+      let changed = false;
+      if (name && user.name !== name) {
+        user.name = name;
+        changed = true;
+      }
+      if (!user.googleId && googleId) {
+        user.googleId = googleId;
+        changed = true;
+      }
+      if (picture && user.avatar !== picture) {
+        user.avatar = picture;
+        changed = true;
+      }
+      if (changed) {
+        await user.save({ validateBeforeSave: false });
+      }
+    } else {
+      isNewUser = true;
+      user = await User.create({
+        name,
+        email,
+        googleId: googleId || `google-${Date.now()}`,
+        avatar: picture,
+      });
+    }
+
+    // Automatically dispatch Kaindra Welcome Email to accounts that have not received it yet
+    if (!user.welcomeEmailSent) {
+      try {
+        const { sendWelcomeEmail } = require("../../services/mototribe/emailService");
+        sendWelcomeEmail(user.email, user.name)
+          .then(async (res) => {
+            console.log(`[Auth] Welcome email dispatched to ${user.email}:`, res?.messageId || "sent");
+            if (res?.success) {
+              await User.findByIdAndUpdate(user._id, { $set: { welcomeEmailSent: true } }).catch(() => null);
+            }
+          })
+          .catch((mailErr) => {
+            console.warn(`[Auth] Could not send welcome email to ${user.email}:`, mailErr.message);
+          });
+      } catch (svcErr) {
+        console.warn("[Auth] EmailService load warning:", svcErr.message);
+      }
+    }
+
+    // Check if business profile exists in Seller or Manufacturer tables
+    let hasBusinessProfile = false;
+    let businessAccountType = null;
+    try {
+      const Seller = require("../../models/modasphere/Seller");
+      const Manufacturer = require("../../models/modasphere/Manufacturer");
+      const [sellerDoc, manufacturerDoc] = await Promise.all([
+        Seller.findOne({ $or: [{ userId: user._id }, { email }] }),
+        Manufacturer.findOne({ $or: [{ userId: user._id }, { email }, { contactEmail: email }] }),
+      ]);
+      if (sellerDoc && sellerDoc.isProfileComplete) {
+        hasBusinessProfile = true;
+        businessAccountType = "seller";
+      } else if (manufacturerDoc && manufacturerDoc.isProfileComplete) {
+        hasBusinessProfile = true;
+        businessAccountType = "manufacturer";
+      }
+    } catch (_) {}
+
+    await sendTokenResponse(user, 200, res, {
+      isNewUser,
+      hasBusinessProfile,
+      businessAccountType,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
-  signup,
-  login,
+  adminLogin,
+  googleAuth,
   refresh,
   logout,
   getMe,
-  verifyOtp,
-  resendOtp,
 };

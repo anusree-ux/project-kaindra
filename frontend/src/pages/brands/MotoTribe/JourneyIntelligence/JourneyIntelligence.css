@@ -171,6 +171,66 @@
   background: #c9964a;
 }
 
+.map-controls-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.map-mode-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 8px 12px;
+  background: rgba(15, 15, 15, 0.85);
+  color: #a0a0a0;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.map-mode-btn:hover {
+  background: rgba(201, 150, 74, 0.15);
+  border-color: rgba(201, 150, 74, 0.4);
+  color: #f4f1ea;
+}
+
+.map-mode-btn.active {
+  background: rgba(201, 150, 74, 0.25);
+  border-color: #c9964a;
+  color: #c9964a;
+}
+
+.google-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: #c9964a;
+  color: #080808;
+  border: 1px solid #c9964a;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(201, 150, 74, 0.35);
+}
+
+.google-nav-btn:hover {
+  background: #e6b265;
+  border-color: #e6b265;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(201, 150, 74, 0.5);
+}
+
 /* MAP */
 
 .journey-map {
@@ -1149,4 +1209,46 @@
 .map-empty-overlay .overlay-icon {
   font-size: 32px;
   margin-bottom: 10px;
+}
+
+/* REAL INTERACTIVE MAP CONTROLS */
+.map-controls-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.map-mode-btn,
+.recenter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(201, 150, 74, 0.3);
+  border-radius: 4px;
+  color: #c9964a;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.map-mode-btn:hover,
+.recenter-btn:hover {
+  background: rgba(201, 150, 74, 0.2);
+  border-color: #c9964a;
+  color: #ffffff;
+}
+
+.leaflet-popup-content-wrapper {
+  background: #18191c !important;
+  color: #f4f1ea !important;
+  border: 1px solid rgba(201, 150, 74, 0.3) !important;
+  border-radius: 8px !important;
+}
+
+.leaflet-popup-tip {
+  background: #18191c !important;
 }
