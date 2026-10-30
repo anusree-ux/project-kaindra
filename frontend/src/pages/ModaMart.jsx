@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import ModaMartSlideshow from "./brands/ModaSphere/ModaMartSlideshow/ModaMartSlideshow";
 import {
   Heart,
   Search,
@@ -161,6 +162,8 @@ function ModaMart() {
 
   return (
     <main className="modamart-page">
+      {/* MODAMART FASHION SLIDESHOW */}
+    <ModaMartSlideshow />
       {/* HERO */}
       <section className="modamart-hero">
         <div className="modamart-container">

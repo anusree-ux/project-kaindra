@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useParams, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 
 import { AuthProvider } from "./context/AuthContext";
@@ -7,6 +7,7 @@ import { CartProvider } from "./context/CartContext";
 import { NotificationProvider } from "./context/NotificationContext";
 
 import Navbar from "./components/Navbar/Navbar";
+import ModaNavbar from "./pages/brands/ModaSphere/ModaNavbar/ModaNavbar";
 import ScrollToTopComponent from "./components/ScrollToTop";
 
 import Home from "./pages/Home";
@@ -120,9 +121,32 @@ function ScrollToTop() {
 }
 
 function PublicLayout({ children }) {
+  const location = useLocation();
+  const pathname = location.pathname;
+
+  const isModaPublicPage =
+    pathname === "/" ||
+    pathname === "/businesses/modasphere" ||
+    pathname.startsWith("/businesses/modamart") ||
+    pathname.startsWith("/businesses/modadrop") ||
+    pathname.startsWith("/businesses/modastudio") ||
+    pathname.startsWith("/businesses/modamanufacture") ||
+    pathname.startsWith("/businesses/modalogix") ||
+    pathname.startsWith("/businesses/modapay") ||
+    pathname.startsWith("/businesses/modainfluence") ||
+    pathname.startsWith("/businesses/modatales") ||
+    pathname.startsWith("/businesses/modaacademy") ||
+    pathname.startsWith("/businesses/modainsights");
+
+  const isModaDashboard =
+    pathname.startsWith("/businesses/modasphere/dashboard");
+
+  const showModaNavbar = isModaPublicPage && !isModaDashboard;
+
   return (
     <>
       <Navbar />
+      {showModaNavbar && <ModaNavbar />}
       <main>{children}</main>
     </>
   );
@@ -191,13 +215,9 @@ function App() {
           ========================= */}
 
           <Route
-            path="/"
-            element={
-              <PublicLayout>
-                <Home />
-              </PublicLayout>
-            }
-          />
+  path="/"
+  element={<Navigate to="/businesses/modamart/shop" replace />}
+/>
 
           <Route
             path="/about"
@@ -222,9 +242,13 @@ function App() {
           ========================= */}
 
           <Route
-            path="/businesses/modasphere"
-            element={<ModaSphere />}
-          />
+  path="/businesses/modasphere"
+  element={
+    <PublicLayout>
+      <Home />
+    </PublicLayout>
+  }
+/>
 
           <Route
             path="/businesses/mototribe"
@@ -243,6 +267,10 @@ function App() {
               </PublicLayout>
             }
           />
+          <Route
+  path="/businesses/modamart"
+  element={<Navigate to="/businesses/modamart/shop" replace />}
+/>
 
           <Route
             path="/businesses/:businessSlug"
@@ -357,14 +385,13 @@ function App() {
           ========================= */}
 
           <Route
-            path="/businesses/modadrop"
-            element={
-              <PublicLayout>
-                <ModaDrop />
-              </PublicLayout>
-            }
-          />
-
+  path="/businesses/modadrop"
+  element={
+    <PublicLayout>
+      <ModaDrop />
+    </PublicLayout>
+  }
+/>
           <Route
             path="/businesses/modadrop/drop/:dropId"
             element={
@@ -399,9 +426,9 @@ function App() {
           <Route
             path="/businesses/modamanufacture"
             element={
-              <PublicLayout>
+               <PublicLayout>
                 <ModaManufacture />
-              </PublicLayout>
+               </PublicLayout>
             }
           />
 
@@ -475,9 +502,9 @@ function App() {
           <Route
             path="/businesses/modaacademy"
             element={
-              <PublicLayout>
+            <PublicLayout>
                 <ModaAcademy />
-              </PublicLayout>
+             </PublicLayout>
             }
           />
 
@@ -495,16 +522,16 @@ function App() {
             element={
               <PublicLayout>
                 <ModaInsights />
-              </PublicLayout>
+               </PublicLayout>
             }
           />
 
           <Route
             path="/ecosystem"
             element={
-              <PublicLayout>
+               <PublicLayout>
                 <Ecosystem />
-              </PublicLayout>
+               </PublicLayout>
             }
           />
 

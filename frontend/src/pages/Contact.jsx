@@ -1,9 +1,10 @@
 import Footer from "../components/Footer/Footer";
+import "./Contact.css";
 
 function Contact() {
   return (
     <>
-      <main className="page-section">
+      <main className="page-section contact-page">
         <div className="container">
 
           <p className="section-label">CONTACT US</p>

@@ -184,6 +184,7 @@
 
 .modadrop-drops {
   padding-top: 20px;
+  scroll-margin-top: 110px;
 }
 
 .modadrop-grid {
@@ -394,4 +395,13 @@
 .modadrop-view-button {
   text-decoration: none;
   box-sizing: border-box;
+}
+/* Prevent fixed navbar from covering sections when using anchor links */
+
+#drops {
+  scroll-margin-top: 110px;
+}
+
+#how-it-works {
+  scroll-margin-top: 110px;
 }

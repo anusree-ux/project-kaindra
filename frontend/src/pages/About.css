@@ -280,3 +280,42 @@
     font-size: 38px;
   }
 }
+
+/* ==========================================
+   ABOUT & CAREERS - FIRST SECTION HEIGHT FIX
+   ========================================== */
+
+/* Replace these selectors with your actual
+   About and Careers first-section classes */
+
+.about-hero,
+.careers-hero {
+  min-height: calc(100vh - 174px);
+  box-sizing: border-box;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Tablet */
+@media (max-width: 900px) {
+  .about-hero,
+  .careers-hero {
+    min-height: calc(100vh - 174px);
+  }
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .about-hero,
+  .careers-hero {
+    min-height: calc(100vh - 100px);
+  }
+}
+/* ABOUT PAGE - FIRST SECTION FIX */
+
+.about-hero {
+  min-height: calc(100vh - 86px);
+  box-sizing: border-box;
+}

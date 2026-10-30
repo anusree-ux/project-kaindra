@@ -1,15 +1,23 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronDown, ShieldCheck, ShoppingBag } from "lucide-react";
+import {
+  ChevronDown,
+  ShieldCheck,
+  ShoppingBag,
+} from "lucide-react";
+
 import { useAuth } from "../../context/AuthContext";
 import { useInfluenceProfiles } from "../../context/InfluenceProfilesContext";
 import { useCart } from "../../context/CartContext";
+
 import NotificationDropdown from "../NotificationDropdown/NotificationDropdown";
+
 import "./Navbar.css";
 
 function Navbar() {
   const [openDropdown, setOpenDropdown] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
+
   const navbarRef = useRef(null);
   const { user, isAuthenticated, logout, openAuthModal, loading } = useAuth();
   const {
@@ -18,6 +26,10 @@ function Navbar() {
     loading: profilesLoading,
   } = useInfluenceProfiles();
   const { cartCount } = useCart();
+
+  /* ========================================
+     CLOSE DROPDOWN WHEN CLICKING OUTSIDE
+  ======================================== */
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -29,7 +41,10 @@ function Navbar() {
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener(
+      "mousedown",
+      handleClickOutside
+    );
 
     return () => {
       document.removeEventListener(
@@ -39,24 +54,43 @@ function Navbar() {
     };
   }, []);
 
+  /* ========================================
+     DROPDOWN
+  ======================================== */
+
   const toggleDropdown = (dropdown) => {
     setOpenDropdown((current) =>
       current === dropdown ? null : dropdown
     );
   };
 
+  /* ========================================
+     CLOSE MENU
+  ======================================== */
+
   const closeDropdown = () => {
     setOpenDropdown(null);
     setMenuOpen(false);
   };
 
-  const isAdmin = isAuthenticated && user?.role === "admin";
+  /* ========================================
+     ADMIN CHECK
+  ======================================== */
+
+  const isAdmin =
+    isAuthenticated && user?.role === "admin";
 
   return (
-    <nav className="navbar" ref={navbarRef}>
+    <nav
+      className="navbar"
+      ref={navbarRef}
+    >
       <div className="navbar-container">
 
-        {/* LOGO */}
+        {/* =================================
+            KAINDRA LOGO
+        ================================= */}
+
         <Link
           to="/"
           className="navbar-logo"
@@ -65,9 +99,20 @@ function Navbar() {
           KAINDRA
         </Link>
 
-        <div className={`navbar-links ${menuOpen ? "navbar-links-mobile-open" : ""}`}>
+        {/* =================================
+            MAIN NAVIGATION
+        ================================= */}
+
+        <div
+          className={`navbar-links ${
+            menuOpen
+              ? "navbar-links-mobile-open"
+              : ""
+          }`}
+        >
 
           {/* HOME */}
+
           <Link
             to="/"
             className="navbar-link"
@@ -77,160 +122,57 @@ function Navbar() {
           </Link>
 
           {/* ABOUT */}
-          <div className="navbar-dropdown">
-            <button
-              type="button"
-              className="navbar-dropdown-button"
-              onClick={() => toggleDropdown("about")}
-            >
-              About
-              <ChevronDown
-                size={16}
-                className={
-                  openDropdown === "about"
-                    ? "dropdown-arrow open"
-                    : "dropdown-arrow"
-                }
-              />
-            </button>
 
-            {openDropdown === "about" && (
-              <div className="navbar-dropdown-menu">
-                <Link to="/about" onClick={closeDropdown}>
-                  About Kaindra
-                </Link>
-
-                <Link
-                  to="/businesses"
-                  onClick={closeDropdown}
-                >
-                  Businesses
-                </Link>
-
-                <Link
-                  to="/careers"
-                  onClick={closeDropdown}
-                >
-                  Careers
-                </Link>
-
-                <Link to="/news" onClick={closeDropdown}>
-                  News / Blogs
-                </Link>
-
-                <Link
-                  to="/communities"
-                  onClick={closeDropdown}
-                >
-                  Communities
-                </Link>
-              </div>
-            )}
-          </div>
-
-          {/* MODAMART */}
           <Link
-            to="/businesses/modamart"
+            to="/about"
             className="navbar-link"
             onClick={closeDropdown}
           >
-            ModaMart
+            About
           </Link>
 
-          {/* MODADROP */}
+          {/* BUSINESSES */}
+
           <Link
-            to="/businesses/modadrop"
+            to="/businesses"
             className="navbar-link"
             onClick={closeDropdown}
           >
-            ModaDrop
+            Businesses
           </Link>
 
-          {/* MODASPHERE */}
-          <div className="navbar-dropdown modasphere-dropdown">
+          {/* CAREERS */}
 
-            <button
-              type="button"
-              className="navbar-dropdown-button"
-              onClick={() => toggleDropdown("modasphere")}
-            >
-              ModaSphere
+          <Link
+            to="/careers"
+            className="navbar-link"
+            onClick={closeDropdown}
+          >
+            Careers
+          </Link>
 
-              <ChevronDown
-                size={16}
-                className={
-                  openDropdown === "modasphere"
-                    ? "dropdown-arrow open"
-                    : "dropdown-arrow"
-                }
-              />
-            </button>
+          {/* NEWS / BLOGS */}
 
-            {openDropdown === "modasphere" && (
-              <div className="navbar-dropdown-menu modasphere-menu">
+          <Link
+            to="/news"
+            className="navbar-link"
+            onClick={closeDropdown}
+          >
+            News / Blogs
+          </Link>
 
-                <Link
-                  to="/businesses/modastudio"
-                  onClick={closeDropdown}
-                >
-                  ModaStudio
-                </Link>
+          {/* COMMUNITIES */}
 
-                <Link
-                  to="/businesses/modamanufacture"
-                  onClick={closeDropdown}
-                >
-                  ModaManufacture
-                </Link>
-
-                <Link
-                  to="/businesses/modalogix"
-                  onClick={closeDropdown}
-                >
-                  ModaLogix
-                </Link>
-
-                <Link
-                  to="/businesses/modapay"
-                  onClick={closeDropdown}
-                >
-                  ModaPay
-                </Link>
-
-                <Link
-                  to="/businesses/modainfluence"
-                  onClick={closeDropdown}
-                >
-                  ModaInfluence
-                </Link>
-
-                <Link
-                  to="/businesses/modatales"
-                  onClick={closeDropdown}
-                >
-                  ModaTales
-                </Link>
-
-                <Link
-                  to="/businesses/modaacademy"
-                  onClick={closeDropdown}
-                >
-                  ModaAcademy
-                </Link>
-
-                <Link
-                  to="/businesses/modainsights"
-                  onClick={closeDropdown}
-                >
-                  ModaInsights
-                </Link>
-                <div className="modasphere-menu-divider" />
-
-              </div>
-            )}
-          </div>
+          <Link
+            to="/communities"
+            className="navbar-link"
+            onClick={closeDropdown}
+          >
+            Communities
+          </Link>
 
           {/* CONTACT */}
+
           <Link
             to="/contact"
             className="navbar-link"
@@ -238,18 +180,28 @@ function Navbar() {
           >
             Contact
           </Link>
-          <Link
-  to="/businesses/modasphere/dashboard"
-  className="seller-dashboard-nav-btn"
-  onClick={closeDropdown}
->
-  Seller Dashboard
-</Link>
 
-          {/* Mobile auth area */}
+          {/* SELLER DASHBOARD */}
+
+          <Link
+            to="/businesses/modasphere/dashboard"
+            className="seller-dashboard-nav-btn"
+            onClick={closeDropdown}
+          >
+            Seller Dashboard
+          </Link>
+
+          {/* =================================
+              MOBILE AUTH AREA
+          ================================= */}
+
           <div className="navbar-mobile-auth">
+
             {!loading && (
               !isAuthenticated ? (
+
+                /* MOBILE LOGIN */
+
                 <button
                   className="mobile-login"
                   onClick={() => {
@@ -259,7 +211,11 @@ function Navbar() {
                 >
                   Login
                 </button>
+
               ) : isAdmin ? (
+
+                /* MOBILE ADMIN */
+
                 <div className="mobile-user-area">
                   {!profilesLoading && (hasBrandProfile || hasInfluencerProfile) && (
                     <div className="mobile-dashboards">
@@ -283,6 +239,7 @@ function Navbar() {
                   >
                     🛡️ Admin Panel
                   </Link>
+
                   <button
                     className="mobile-logout-btn"
                     onClick={() => {
@@ -292,10 +249,17 @@ function Navbar() {
                   >
                     Logout
                   </button>
+
                 </div>
+
               ) : (
+
+                /* MOBILE NORMAL USER */
+
                 <div className="mobile-user-area">
+
                   <NotificationDropdown brand="modasphere" />
+
                   <Link
                     to="/profile"
                     className="mobile-user-name"
@@ -327,23 +291,41 @@ function Navbar() {
                   >
                     Logout
                   </button>
+
                 </div>
               )
             )}
+
           </div>
+
         </div>
 
-        {/* Desktop auth area */}
+        {/* =================================
+            DESKTOP AUTH AREA
+        ================================= */}
+
         {!loading && (
           !isAuthenticated ? (
+
+            /* LOGIN */
+
             <button
               className="navbar-login"
-              onClick={() => openAuthModal("login")}
+              onClick={() =>
+                openAuthModal("login")
+              }
             >
               Login
             </button>
+
           ) : isAdmin ? (
+
+            /* =================================
+               ADMIN AREA
+            ================================= */
+
             <div className="navbar-user-area">
+
               <NotificationDropdown brand="modasphere" />
               {!profilesLoading && (hasBrandProfile || hasInfluencerProfile) && <div className="navbar-dropdown user-dashboards-dropdown">
                 <button
@@ -368,16 +350,35 @@ function Navbar() {
               <Link
                 to="/admin"
                 className="navbar-user-name"
-                style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                }}
               >
-                <ShieldCheck size={16} /> Admin Panel
+                <ShieldCheck size={16} />
+                Admin Panel
               </Link>
-              <button className="navbar-logout-btn" onClick={logout}>
+
+              <button
+                className="navbar-logout-btn"
+                onClick={logout}
+              >
                 Logout
               </button>
+
             </div>
+
           ) : (
+
+            /* =================================
+               NORMAL USER AREA
+            ================================= */
+
             <div className="navbar-user-area">
+
+              {/* NOTIFICATIONS */}
+
               <NotificationDropdown brand="modasphere" />
               {!profilesLoading && (hasBrandProfile || hasInfluencerProfile) && <div className="navbar-dropdown user-dashboards-dropdown">
                 <button
@@ -405,25 +406,46 @@ function Navbar() {
                 title="View Cart"
               >
                 <ShoppingBag size={18} />
-                {cartCount > 0 && <span className="navbar-cart-badge">{cartCount}</span>}
+
+                {cartCount > 0 && (
+                  <span className="navbar-cart-badge">
+                    {cartCount}
+                  </span>
+                )}
               </Link>
+
+              {/* PROFILE */}
+
               <Link
                 to="/profile"
                 className="navbar-user-name"
               >
                 👤 {user?.name || "User"}
               </Link>
-              <button className="navbar-logout-btn" onClick={logout}>
+
+              {/* LOGOUT */}
+
+              <button
+                className="navbar-logout-btn"
+                onClick={logout}
+              >
                 Logout
               </button>
+
             </div>
           )
         )}
 
+        {/* =================================
+            MOBILE HAMBURGER
+        ================================= */}
+
         <button
           type="button"
           className="navbar-menu"
-          onClick={() => setMenuOpen(!menuOpen)}
+          onClick={() =>
+            setMenuOpen(!menuOpen)
+          }
           aria-label="Toggle navigation menu"
           aria-expanded={menuOpen}
         >

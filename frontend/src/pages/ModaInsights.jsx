@@ -202,12 +202,30 @@ function ModaInsights() {
 
             <div className="modainsights-hero-actions">
               <a
-                href="#dashboard"
-                className="modainsights-primary-button"
-              >
-                Explore Insights
-                <ArrowRight size={18} />
-              </a>
+  href="#dashboard"
+  className="modainsights-primary-button"
+  onClick={(event) => {
+    event.preventDefault();
+
+    const dashboard = document.getElementById("dashboard");
+
+    if (dashboard) {
+      dashboard.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+
+      window.history.replaceState(
+        null,
+        "",
+        `${window.location.pathname}${window.location.search}#dashboard`
+      );
+    }
+  }}
+>
+  Explore Insights
+  <ArrowRight size={18} />
+</a>
 
               <button
                 type="button"
