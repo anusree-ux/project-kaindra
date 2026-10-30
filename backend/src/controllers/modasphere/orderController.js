@@ -627,24 +627,18 @@ const shipOrder = async (req, res, next) => {
     await order.save();
 
     let shipment = await Shipment.findOne({ orderId: order._id });
-    const now = new Date();
     if (!shipment) {
       shipment = await Shipment.create({
         orderId: order._id,
         carrier,
         trackingNumber,
         estimatedDeliveryDate: estimatedDeliveryDate || null,
-        status: "in_transit",
+        status: req.body.status || "pending_pickup",
         timeline: [
           {
-            status: "pending_pickup",
-            note: "Shipment order created by seller.",
-            timestamp: new Date(now.getTime() - 1000),
-          },
-          {
-            status: "in_transit",
-            note: `Dispatched via ${carrier} (Tracking: ${trackingNumber})`,
-            timestamp: now,
+            status: req.body.status || "pending_pickup",
+            note: req.body.note || "Shipment order created by seller.",
+            timestamp: new Date(),
           },
         ],
       });
@@ -654,12 +648,14 @@ const shipOrder = async (req, res, next) => {
       if (estimatedDeliveryDate) {
         shipment.estimatedDeliveryDate = estimatedDeliveryDate;
       }
-      shipment.status = "in_transit";
-      shipment.timeline.push({
-        status: "in_transit",
-        note: `Dispatched via ${carrier} (Tracking: ${trackingNumber})`,
-        timestamp: now,
-      });
+      if (req.body.status) {
+        shipment.status = req.body.status;
+        shipment.timeline.push({
+          status: req.body.status,
+          note: req.body.note || `Status updated to ${req.body.status}`,
+          timestamp: new Date(),
+        });
+      }
       await shipment.save();
     }
 

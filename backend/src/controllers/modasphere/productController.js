@@ -87,6 +87,11 @@ const createProduct = async (req, res, next) => {
     const resolvedShopName = (sellerProfile?.businessName || "").trim();
     const resolvedBrand = (brand || resolvedShopName || req.user.name || "ModaSphere Studio").trim();
 
+    const initialStatus =
+      req.body.status && ["draft", "active", "archived"].includes(req.body.status)
+        ? req.body.status
+        : "draft";
+
     const product = await Product.create({
       sellerId: req.user._id,
       name: name.trim(),
@@ -104,7 +109,7 @@ const createProduct = async (req, res, next) => {
             ? Math.max(0, parseInt(dropStock, 10) || 0)
             : (productIsDrop ? Math.max(0, parseInt(stock, 10) || 0) : null),
       images: uploadedImages,
-      status: "active",
+      status: initialStatus,
     });
 
     if (product.isDrop) {
@@ -124,7 +129,10 @@ const createProduct = async (req, res, next) => {
 
     res.status(201).json({
       status: "success",
-      message: "Product created and published successfully.",
+      message:
+        initialStatus === "draft"
+          ? "Product created as draft successfully."
+          : "Product created and published successfully.",
       data: { product },
     });
   } catch (error) {
