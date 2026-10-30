@@ -27,7 +27,7 @@ const getProductDropForPurchase = async (product) => {
     return { drop: liveDrops[0] };
   }
 
-  const currentStatus = productDrops.length === 0
+  const currentStatus = drops.length === 0
     ? "not assigned to a scheduled ModaDrop event"
     : scheduledDrops.length
       ? getDropStatusAt(scheduledDrops[0], now)

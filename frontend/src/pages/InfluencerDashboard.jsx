@@ -9,11 +9,11 @@ import "./BrandDashboard.css";
 const emptyProfile = {
   displayName: "",
   contactEmail: "",
+  phoneNumber: "",
   category: "",
   bio: "",
   website: "",
   instagram: "",
-  tiktok: "",
   youtube: "",
 };
 
@@ -50,6 +50,11 @@ function InfluencerDashboard() {
 
   const withdrawalInProgress = useRef(false);
   const deletionInProgress = useRef(false);
+
+  const [profileDeletionOpen, setProfileDeletionOpen] = useState(false);
+  const [deletingProfile, setDeletingProfile] = useState(false);
+
+  const profileDeletionInProgress = useRef(false);
 
   useEffect(() => {
     if (!isAuthenticated || !profile) {
@@ -113,11 +118,11 @@ function InfluencerDashboard() {
     setForm({
       displayName: profile.displayName || "",
       contactEmail: profile.contactEmail || "",
+      phoneNumber: profile.phoneNumber || "",
       category: profile.category || "",
       bio: profile.bio || "",
       website: profile.website || "",
       instagram: profile.socialLinks?.instagram || "",
-      tiktok: profile.socialLinks?.tiktok || "",
       youtube: profile.socialLinks?.youtube || "",
     });
   }, [profile]);
@@ -144,12 +149,12 @@ function InfluencerDashboard() {
     const payload = {
       displayName: form.displayName.trim(),
       contactEmail: form.contactEmail.trim(),
+      phoneNumber: form.phoneNumber.trim(),
       category: form.category.trim(),
       bio: form.bio.trim(),
       website: form.website.trim(),
       socialLinks: {
         instagram: form.instagram.trim(),
-        tiktok: form.tiktok.trim(),
         youtube: form.youtube.trim(),
       },
     };
@@ -189,48 +194,68 @@ function InfluencerDashboard() {
     }
   };
 
+  const confirmProfileDeletion = async () => {
+    if (!profile || profileDeletionInProgress.current) return;
+
+    profileDeletionInProgress.current = true;
+    setDeletingProfile(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const response = await apiClient.delete(
+        "/api/modasphere/influence/influencer-profile"
+      );
+
+      await refreshProfiles();
+
+      setProfileDeletionOpen(false);
+      setEditing(true);
+      setApplications([]);
+
+      setSuccess(
+        response.data?.message ||
+          "Your influencer profile has been deleted. Application history has been retained."
+      );
+    } catch (err) {
+      setError(
+        err.response?.data?.message ||
+          "Unable to delete your influencer profile."
+      );
+    } finally {
+      profileDeletionInProgress.current = false;
+      setDeletingProfile(false);
+    }
+  };
+
+
   const confirmWithdrawal = async () => {
     if (!withdrawalApplication || withdrawalInProgress.current) return;
 
+    const applicationId = withdrawalApplication._id;
+
     withdrawalInProgress.current = true;
-    setWithdrawingApplicationId(withdrawalApplication._id);
+    setWithdrawingApplicationId(applicationId);
     setApplicationsError("");
     setApplicationsNotice("");
 
     try {
-      const response = await apiClient.patch(
-        `/api/modasphere/influence/influencer-profile/applications/${withdrawalApplication._id}/withdraw`
+      await apiClient.patch(
+        `/api/modasphere/influence/influencer-profile/applications/${applicationId}/withdraw`
       );
 
+      // Remove the withdrawn application from the list immediately.
       setApplications((current) =>
-        current.map((application) =>
-          application._id === withdrawalApplication._id
-            ? {
-                ...application,
-                status: response.data?.data?.status || "Withdrawn",
-              }
-            : application
-        )
+        current.filter((application) => application._id !== applicationId)
       );
 
-      setApplicationsNotice(
-        response.data?.message || "Application withdrawn successfully."
-      );
+      setApplicationsNotice("Application withdrawn successfully.");
       setWithdrawalApplication(null);
     } catch (err) {
       setApplicationsError(
         err.response?.data?.message ||
           "Unable to withdraw this application."
       );
-
-      try {
-        const { data } = await apiClient.get(
-          "/api/modasphere/influence/influencer-profile/applications"
-        );
-        setApplications(data?.data || []);
-      } catch {
-        // Preserve the current list and display the original error.
-      }
     } finally {
       withdrawalInProgress.current = false;
       setWithdrawingApplicationId(null);
@@ -368,30 +393,50 @@ function InfluencerDashboard() {
           </div>
 
           <form className="brand-profile-form influencer-profile-form" onSubmit={handleSubmit}>
-            <label>
+          <label>
+            <span className="influencer-label-text">
               Name <span className="influencer-required">*</span>
-              <input
-                name="displayName"
-                value={form.displayName}
-                onChange={handleChange}
-                required
-                maxLength={100}
-                placeholder="Your public creator name"
-              />
-            </label>
+            </span>
+            <input
+              name="displayName"
+              value={form.displayName}
+              onChange={handleChange}
+              required
+              maxLength={100}
+              placeholder="Your public creator name"
+            />
+          </label>
 
-            <label>
+          <label>
+            <span className="influencer-label-text">
               Contact email <span className="influencer-required">*</span>
-              <input
-                type="email"
-                name="contactEmail"
-                value={form.contactEmail}
-                onChange={handleChange}
-                required
-                maxLength={254}
-                placeholder="you@example.com"
-              />
-            </label>
+            </span>
+            <input
+              type="email"
+              name="contactEmail"
+              value={form.contactEmail}
+              onChange={handleChange}
+              required
+              maxLength={254}
+              placeholder="you@example.com"
+            />
+          </label>
+
+          <label>
+            <span className="influencer-label-text">
+              Phone number <span className="influencer-required">*</span>
+            </span>
+            <input
+              type="tel"
+              name="phoneNumber"
+              value={form.phoneNumber}
+              onChange={handleChange}
+              required
+              maxLength={20}
+              autoComplete="tel"
+              placeholder="+91 98765 43210"
+            />
+          </label>
 
             <label>
               Category
@@ -437,7 +482,6 @@ function InfluencerDashboard() {
 
             {[
               ["instagram", "Instagram"],
-              ["tiktok", "TikTok"],
               ["youtube", "YouTube"],
             ].map(([name, label]) => (
               <label key={name}>
@@ -492,6 +536,7 @@ function InfluencerDashboard() {
                 </div>
               </div>
 
+            <div className="influencer-profile-actions">
               <button
                 type="button"
                 className="influencer-edit-button"
@@ -504,6 +549,16 @@ function InfluencerDashboard() {
                 <Pencil size={15} aria-hidden="true" />
                 Edit profile
               </button>
+
+              <button
+                type="button"
+                className="influencer-delete-profile-button"
+                onClick={() => setProfileDeletionOpen(true)}
+              >
+                <Trash2 size={15} aria-hidden="true" />
+                Delete profile
+              </button>
+            </div>
             </div>
 
             <div className="influencer-profile-identity">
@@ -520,6 +575,18 @@ function InfluencerDashboard() {
               <div className="influencer-detail-item">
                 <span>Contact email</span>
                 <p>{profile.contactEmail}</p>
+              </div>
+              <div className="influencer-detail-item">
+                <span>Phone number</span>
+                <p>
+                  {profile.phoneNumber ? (
+                    <a href={`tel:${profile.phoneNumber}`}>
+                      {profile.phoneNumber}
+                    </a>
+                  ) : (
+                    "Not provided"
+                  )}
+                </p>
               </div>
 
               <div className="influencer-detail-item">
@@ -548,14 +615,12 @@ function InfluencerDashboard() {
             )}
 
             {(profile.socialLinks?.instagram ||
-              profile.socialLinks?.tiktok ||
               profile.socialLinks?.youtube) && (
               <div className="influencer-social-links">
                 <h3>Social profiles</h3>
                 <div className="influencer-social-list">
                   {[
                     ["instagram", "Instagram"],
-                    ["tiktok", "TikTok"],
                     ["youtube", "YouTube"],
                   ].map(([name, label]) =>
                     profile.socialLinks?.[name] ? (
@@ -725,6 +790,59 @@ function InfluencerDashboard() {
         </>
       ) : null}
 
+      {profileDeletionOpen && (
+        <div
+          className="brand-campaign-modal-backdrop"
+          onMouseDown={(event) => {
+            if (
+              event.target === event.currentTarget &&
+              !profileDeletionInProgress.current
+            ) {
+              setProfileDeletionOpen(false);
+            }
+          }}
+        >
+          <section
+            className="brand-campaign-modal influencer-withdraw-dialog"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="delete-influencer-profile-title"
+            aria-describedby="delete-influencer-profile-description"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <h2 id="delete-influencer-profile-title">
+              Delete influencer profile?
+            </h2>
+
+            <p id="delete-influencer-profile-description">
+              Your influencer profile, bio, contact details, and social links
+              will be removed. Your campaign applications will remain in
+              brand and admin records, with your profile details anonymized.
+              Your ModaSphere account will not be deleted.
+            </p>
+
+            <div className="brand-campaign-actions">
+              <button
+                type="button"
+                className="brand-profile-secondary"
+                onClick={() => setProfileDeletionOpen(false)}
+                disabled={deletingProfile}
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                className="brand-campaign-delete"
+                onClick={confirmProfileDeletion}
+                disabled={deletingProfile}
+              >
+                {deletingProfile ? "Deleting profile..." : "Delete profile"}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
       {withdrawalApplication && (
         <div
           className="brand-campaign-modal-backdrop"

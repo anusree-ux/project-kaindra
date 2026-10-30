@@ -11,6 +11,7 @@ import {
 import apiClient from "../services/apiClient";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
+import ProductReview from "./brands/ModaSphere/ModaMartReviews/ProductReview";
 import { getCategoryLabel } from "../constants/categories";
 import "./ProductDetails.css";
 
@@ -223,6 +224,11 @@ function ProductDetails() {
               {product.description ||
                 `Discover the ${product.name}, designed with contemporary fashion, quality materials, and ModaSphere's modern design philosophy.`}
             </p>
+
+            <ProductReview
+  productId={product._id || product.id}
+  productName={product.name}
+/>
 
             {/* PRODUCT META */}
             <div className="product-meta">

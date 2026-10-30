@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useParams, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 
 import { AuthProvider } from "./context/AuthContext";
@@ -7,6 +7,7 @@ import { CartProvider } from "./context/CartContext";
 import { NotificationProvider } from "./context/NotificationContext";
 
 import Navbar from "./components/Navbar/Navbar";
+import ModaNavbar from "./pages/brands/ModaSphere/ModaNavbar/ModaNavbar";
 import ScrollToTopComponent from "./components/ScrollToTop";
 import PushPromptBanner from "./components/PushPromptBanner/PushPromptBanner";
 
@@ -77,6 +78,7 @@ import ModaInfluence from "./pages/ModaInfluence";
 import BrandDashboard from "./pages/BrandDashboard";
 import InfluencerDashboard from "./pages/InfluencerDashboard";
 import ModaTales from "./pages/ModaTales";
+import ModaTaleDetail from "./pages/ModaTaleDetail";
 import ModaAcademy from "./pages/ModaAcademy";
 import CourseLearning from "./pages/CourseLearning";
 import ModaInsights from "./pages/ModaInsights";
@@ -85,6 +87,7 @@ import AdminLogin from "./pages/admin/AdminLogin";
 import ProtectedAdminRoute from "./pages/admin/ProtectedAdminRoute";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminCareers from "./pages/admin/careers/AdminCareers";
+import AdminDiscountCodes from "./pages/admin/discount-codes/AdminDiscountCodes";
 import AdminApplications from "./pages/admin/applications/AdminApplications";
 import AdminCommunity from "./pages/admin/community/AdminCommunity";
 import AdminManufactureRequests from "./pages/admin/manufacture/AdminManufactureRequests";
@@ -120,9 +123,32 @@ function ScrollToTop() {
 }
 
 function PublicLayout({ children }) {
+  const location = useLocation();
+  const pathname = location.pathname;
+
+  const isModaPublicPage =
+    pathname === "/" ||
+    pathname === "/businesses/modasphere" ||
+    pathname.startsWith("/businesses/modamart") ||
+    pathname.startsWith("/businesses/modadrop") ||
+    pathname.startsWith("/businesses/modastudio") ||
+    pathname.startsWith("/businesses/modamanufacture") ||
+    pathname.startsWith("/businesses/modalogix") ||
+    pathname.startsWith("/businesses/modapay") ||
+    pathname.startsWith("/businesses/modainfluence") ||
+    pathname.startsWith("/businesses/modatales") ||
+    pathname.startsWith("/businesses/modaacademy") ||
+    pathname.startsWith("/businesses/modainsights");
+
+  const isModaDashboard =
+    pathname.startsWith("/businesses/modasphere/dashboard");
+
+  const showModaNavbar = isModaPublicPage && !isModaDashboard;
+
   return (
     <>
       <Navbar />
+      {showModaNavbar && <ModaNavbar />}
       <main>{children}</main>
     </>
   );
@@ -192,13 +218,9 @@ function App() {
           ========================= */}
 
           <Route
-            path="/"
-            element={
-              <PublicLayout>
-                <Home />
-              </PublicLayout>
-            }
-          />
+  path="/"
+  element={<Navigate to="/businesses/modamart/shop" replace />}
+/>
 
           <Route
             path="/about"
@@ -223,9 +245,13 @@ function App() {
           ========================= */}
 
           <Route
-            path="/businesses/modasphere"
-            element={<ModaSphere />}
-          />
+  path="/businesses/modasphere"
+  element={
+    <PublicLayout>
+      <Home />
+    </PublicLayout>
+  }
+/>
 
           <Route
             path="/businesses/mototribe"
@@ -244,6 +270,10 @@ function App() {
               </PublicLayout>
             }
           />
+          <Route
+  path="/businesses/modamart"
+  element={<Navigate to="/businesses/modamart/shop" replace />}
+/>
 
           <Route
             path="/businesses/:businessSlug"
@@ -358,14 +388,13 @@ function App() {
           ========================= */}
 
           <Route
-            path="/businesses/modadrop"
-            element={
-              <PublicLayout>
-                <ModaDrop />
-              </PublicLayout>
-            }
-          />
-
+  path="/businesses/modadrop"
+  element={
+    <PublicLayout>
+      <ModaDrop />
+    </PublicLayout>
+  }
+/>
           <Route
             path="/businesses/modadrop/drop/:dropId"
             element={
@@ -400,9 +429,9 @@ function App() {
           <Route
             path="/businesses/modamanufacture"
             element={
-              <PublicLayout>
+               <PublicLayout>
                 <ModaManufacture />
-              </PublicLayout>
+               </PublicLayout>
             }
           />
 
@@ -468,13 +497,17 @@ function App() {
               </PublicLayout>
             }
           />
+          <Route
+            path="/modatales/:id"
+            element={<ModaTaleDetail />}
+          />
 
           <Route
             path="/businesses/modaacademy"
             element={
-              <PublicLayout>
+            <PublicLayout>
                 <ModaAcademy />
-              </PublicLayout>
+             </PublicLayout>
             }
           />
 
@@ -492,16 +525,16 @@ function App() {
             element={
               <PublicLayout>
                 <ModaInsights />
-              </PublicLayout>
+               </PublicLayout>
             }
           />
 
           <Route
             path="/ecosystem"
             element={
-              <PublicLayout>
+               <PublicLayout>
                 <Ecosystem />
-              </PublicLayout>
+               </PublicLayout>
             }
           />
 
@@ -599,6 +632,15 @@ function App() {
             element={
               <ProtectedAdminRoute>
                 <AdminCareers />
+              </ProtectedAdminRoute>
+            }
+          />
+
+          <Route
+            path="/admin/discount-codes"
+            element={
+              <ProtectedAdminRoute>
+                <AdminDiscountCodes />
               </ProtectedAdminRoute>
             }
           />

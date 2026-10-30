@@ -6,16 +6,15 @@
   position: sticky;
   top: 0;
   left: 0;
-
   width: 100%;
   height: 82px;
 
   background: #ffffff;
-
   border-bottom: 1px solid #eeeeee;
 
   z-index: 1000;
 }
+
 
 /* =========================================
    NAVBAR CONTAINER
@@ -27,7 +26,6 @@
   height: 100%;
 
   margin: 0 auto;
-
   padding: 0 40px;
 
   display: flex;
@@ -36,6 +34,7 @@
   box-sizing: border-box;
 }
 
+
 /* =========================================
    KAINDRA LOGO
 ========================================= */
@@ -43,18 +42,15 @@
 .navbar-logo {
   flex-shrink: 0;
 
-  text-decoration: none;
+  margin-right: 40px;
 
   color: #171717;
+  text-decoration: none;
 
   font-size: 28px;
   font-weight: 800;
-
-  letter-spacing: 2px;
-
+  letter-spacing: 3px;
   line-height: 1;
-
-  margin-right: 40px;
 
   transition: color 0.2s ease;
 }
@@ -63,8 +59,9 @@
   color: #bd8b46;
 }
 
+
 /* =========================================
-   NAVIGATION LINKS CONTAINER
+   NAVIGATION LINKS
 ========================================= */
 
 .navbar-links {
@@ -73,13 +70,14 @@
   display: flex;
   align-items: center;
 
-  gap: 28px;
+  gap: 26px;
 
   min-width: 0;
 }
 
+
 /* =========================================
-   NORMAL NAVBAR LINKS
+   NORMAL LINKS
 ========================================= */
 
 .navbar-link {
@@ -87,18 +85,17 @@
 
   flex-shrink: 0;
 
+  height: 82px;
+
   display: inline-flex;
   align-items: center;
-
-  height: 82px;
 
   padding: 0;
 
   color: #252525;
-
   text-decoration: none;
 
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 500;
 
   white-space: nowrap;
@@ -110,8 +107,238 @@
   color: #bd8b46;
 }
 
+
 /* =========================================
-   DROPDOWN WRAPPER
+   SELLER DASHBOARD
+========================================= */
+
+.seller-dashboard-nav-btn {
+  flex-shrink: 0;
+
+  min-height: 38px;
+
+  padding: 0 16px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #111111;
+  color: #ffffff;
+
+  border: 1px solid #111111;
+  border-radius: 7px;
+
+  text-decoration: none;
+
+  white-space: nowrap;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.seller-dashboard-nav-btn:hover {
+  background: #2b2b2b;
+  border-color: #2b2b2b;
+
+  color: #ffffff;
+
+  transform: translateY(-1px);
+}
+
+
+/* =========================================
+   LOGIN
+========================================= */
+
+.navbar-login {
+  flex-shrink: 0;
+
+  margin-left: 20px;
+
+  padding: 10px 22px;
+
+  background: #111111;
+  color: #ffffff;
+
+  border: none;
+  border-radius: 7px;
+
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.navbar-login:hover {
+  background: #333333;
+
+  transform: translateY(-1px);
+}
+
+
+/* =========================================
+   DESKTOP USER AREA
+========================================= */
+
+.navbar-user-area {
+  flex-shrink: 0;
+
+  margin-left: 18px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+}
+
+
+/* =========================================
+   USER NAME
+========================================= */
+
+.navbar-user-name {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 6px;
+
+  padding: 6px 14px;
+
+  background: #f1f5f9;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+
+  color: #0f172a;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  white-space: nowrap;
+
+  text-decoration: none;
+
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+}
+
+.navbar-user-name:hover {
+  background: #e2e8f0;
+
+  color: #000000;
+
+  transform: translateY(-1px);
+}
+
+
+/* =========================================
+   LOGOUT
+========================================= */
+
+.navbar-logout-btn {
+  padding: 7px 14px;
+
+  background: transparent;
+  color: #dc2626;
+
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+
+  font-family: inherit;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+}
+
+.navbar-logout-btn:hover {
+  background: #fef2f2;
+
+  border-color: #f87171;
+
+  color: #b91c1c;
+}
+
+
+/* =========================================
+   CART
+========================================= */
+
+.navbar-cart-icon {
+  position: relative;
+
+  flex-shrink: 0;
+
+  width: 36px;
+  height: 36px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #f8f6f2;
+  color: #171717;
+
+  border-radius: 50%;
+
+  text-decoration: none;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.navbar-cart-icon:hover {
+  background: #bd8b46;
+
+  color: #ffffff;
+}
+
+.navbar-cart-badge {
+  position: absolute;
+
+  top: -3px;
+  right: -3px;
+
+  min-width: 18px;
+  height: 18px;
+
+  padding: 0 4px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #bd8b46;
+  color: #ffffff;
+
+  border: 2px solid #ffffff;
+  border-radius: 9px;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  box-sizing: border-box;
+}
+
+
+/* =========================================
+   DROPDOWN
 ========================================= */
 
 .navbar-dropdown {
@@ -119,53 +346,34 @@
 
   flex-shrink: 0;
 
-  height: 82px;
-
   display: flex;
   align-items: center;
 }
 
-/* =========================================
-   DROPDOWN BUTTON
-========================================= */
-
 .navbar-dropdown-button {
-  border: none;
-  outline: none;
-
-  background: transparent;
-
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
   gap: 6px;
 
-  height: 82px;
-
   padding: 0;
 
+  background: transparent;
   color: #252525;
+
+  border: none;
+  outline: none;
 
   font-family: inherit;
 
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 500;
 
   white-space: nowrap;
 
   cursor: pointer;
-
-  transition: color 0.2s ease;
 }
-
-.navbar-dropdown-button:hover {
-  color: #bd8b46;
-}
-
-/* =========================================
-   DROPDOWN ARROW
-========================================= */
 
 .dropdown-arrow {
   flex-shrink: 0;
@@ -177,26 +385,19 @@
   transform: rotate(180deg);
 }
 
-/* =========================================
-   DROPDOWN MENU
-========================================= */
-
 .navbar-dropdown-menu {
   position: absolute;
 
-  top: calc(100% + 1px);
-  left: 50%;
+  top: calc(100% + 15px);
+  right: 0;
 
-  transform: translateX(-50%);
-
-  width: 230px;
+  width: 210px;
 
   padding: 10px 0;
 
   background: #ffffff;
 
   border: 1px solid #eeeeee;
-
   border-radius: 10px;
 
   box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
@@ -204,44 +405,13 @@
   z-index: 2000;
 }
 
-/* =========================================
-   DROPDOWN SMALL ARROW
-========================================= */
-
-.navbar-dropdown-menu::before {
-  content: "";
-
-  position: absolute;
-
-  top: -7px;
-  left: 50%;
-
-  width: 13px;
-  height: 13px;
-
-  background: #ffffff;
-
-  border-left: 1px solid #eeeeee;
-  border-top: 1px solid #eeeeee;
-
-  transform: translateX(-50%) rotate(45deg);
-}
-
-/* =========================================
-   DROPDOWN LINKS
-========================================= */
-
 .navbar-dropdown-menu a {
+  min-height: 44px;
+
+  padding: 0 18px;
+
   display: flex;
   align-items: center;
-
-  width: 100%;
-
-  min-height: 46px;
-
-  padding: 0 20px;
-
-  box-sizing: border-box;
 
   color: #252525;
 
@@ -250,24 +420,20 @@
   font-size: 14px;
   font-weight: 500;
 
-  white-space: nowrap;
-
   transition:
     background 0.2s ease,
-    color 0.2s ease,
-    padding-left 0.2s ease;
+    color 0.2s ease;
 }
 
 .navbar-dropdown-menu a:hover {
   background: #f8f6f2;
 
   color: #bd8b46;
-
-  padding-left: 25px;
 }
 
+
 /* =========================================
-   MODASPHERE DROPDOWN
+   DASHBOARDS
 ========================================= */
 
 .modasphere-dropdown {
@@ -443,281 +609,326 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
+.user-dashboards-dropdown {
+  height: auto;
+}
+
+.user-dashboards-dropdown > .navbar-dropdown-button {
+  height: auto;
+}
+
+
+/* =========================================
+   IMPORTANT:
+   MOBILE ELEMENTS HIDDEN ON DESKTOP
+========================================= */
+
 .navbar-menu {
   display: none;
-  background: transparent;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: #111111;
-  padding: 4px;
 }
 
 .navbar-mobile-auth {
   display: none;
 }
 
+
 /* =========================================
    TABLET
 ========================================= */
 
 @media (max-width: 1200px) {
+
   .navbar-container {
     padding: 0 25px;
   }
 
   .navbar-logo {
     margin-right: 25px;
+
     font-size: 25px;
   }
 
   .navbar-links {
-    gap: 18px;
+    gap: 17px;
   }
 
-  .navbar-link,
-  .navbar-dropdown-button {
-    font-size: 14px;
+  .navbar-link {
+    font-size: 13px;
+  }
+
+  .seller-dashboard-nav-btn {
+    padding: 0 12px;
+
+    font-size: 12px;
   }
 
   .navbar-login {
-    padding: 8px 16px;
+    margin-left: 12px;
+
+    padding: 9px 17px;
   }
 }
 
+
 /* =========================================
-   SMALL TABLET & MOBILE
+   MOBILE / SMALL TABLET
 ========================================= */
 
 @media (max-width: 900px) {
+
   .navbar {
     height: 70px;
   }
 
   .navbar-container {
     height: 100%;
+
     padding: 0 20px;
+
     justify-content: space-between;
   }
 
-  .navbar-menu {
-    display: block;
+  .navbar-logo {
+    margin-right: 0;
+
+    font-size: 24px;
   }
+
+
+  /* SHOW HAMBURGER */
+
+  .navbar-menu {
+    flex-shrink: 0;
+
+    width: 40px;
+    height: 40px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
+
+    background: transparent;
+    color: #111111;
+
+    border: 1px solid #e5e5e5;
+    border-radius: 50%;
+
+    font-size: 21px;
+
+    cursor: pointer;
+  }
+
+
+  /* HIDE DESKTOP AUTH */
 
   .navbar-login,
   .navbar-user-area {
     display: none;
   }
 
+
+  /* MOBILE NAVIGATION */
+
   .navbar-links {
-    display: none;
     position: absolute;
+
     top: 70px;
     left: 0;
+
     width: 100%;
-    background: #ffffff;
-    border-bottom: 1px solid #eeeeee;
+
+    display: none;
+
+    padding: 18px 20px 22px;
+
     flex-direction: column;
     align-items: stretch;
-    padding: 20px;
-    gap: 10px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+
+    gap: 4px;
+
+    background: #ffffff;
+
+    border-bottom: 1px solid #eeeeee;
+
+    box-shadow:
+      0 12px 25px rgba(0, 0, 0, 0.1);
+
+    box-sizing: border-box;
+
+    z-index: 1500;
   }
 
   .navbar-links.navbar-links-mobile-open {
     display: flex;
   }
 
-  .navbar-link,
-  .navbar-dropdown {
+
+  /* MOBILE LINKS */
+
+  .navbar-link {
+    width: 100%;
     height: 44px;
-  }
 
-  .navbar-dropdown-menu {
-    position: static;
-    transform: none;
-    width: 100%;
-    box-shadow: none;
-    border: 1px solid #f0f0f0;
-    margin-top: 5px;
-  }
-
-  .navbar-dropdown-menu::before {
-    display: none;
-  }
-
-  .navbar-mobile-auth {
     display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid #eeeeee;
-  }
+    align-items: center;
 
-  .mobile-login {
-    display: block;
-    width: 100%;
-    padding: 12px 10px;
-    background: #111111;
-    color: #ffffff;
-    border: 0;
-    border-radius: 6px;
+    padding: 0 5px;
+
+    border-bottom: 1px solid #f3f3f3;
+
     font-size: 15px;
-    font-weight: 600;
-    text-align: center;
-    cursor: pointer;
+
+    box-sizing: border-box;
   }
 
-  .mobile-user-area {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    width: 100%;
-  }
 
-  .mobile-user-name {
-    display: block;
-    padding: 12px 14px;
-    background: #f8f9fa;
-    color: #111111;
-    border: 1px solid #e5e7eb;
-    border-radius: 6px;
-    font-size: 15px;
-    font-weight: 600;
-    text-align: center;
-    text-decoration: none;
-  }
+  /* SELLER DASHBOARD */
 
-  .mobile-logout-btn {
-    display: block;
-    width: 100%;
-    padding: 10px;
-    background: transparent;
-    color: #dc2626;
-    border: 1px solid #fecaca;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 600;
-    text-align: center;
-    cursor: pointer;
-  }
-}
-/* ========================================
-   SELLER DASHBOARD NAVBAR BUTTON
-======================================== */
-
-.seller-dashboard-nav-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  min-height: 38px;
-  padding: 0 16px;
-
-  border: 1px solid #111111;
-  border-radius: 7px;
-
-  background: #111111;
-  color: #ffffff;
-
-  text-decoration: none;
-  white-space: nowrap;
-
-  font-size: 13px;
-  font-weight: 600;
-
-  transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease,
-    transform 0.2s ease;
-}
-
-.seller-dashboard-nav-btn:hover {
-  background: #2b2b2b;
-  border-color: #2b2b2b;
-  color: #ffffff;
-  transform: translateY(-1px);
-}
-
-.seller-dashboard-nav-btn:active {
-  transform: translateY(0);
-}
-
-
-/* ========================================
-   MODASPHERE DROPDOWN DASHBOARD
-======================================== */
-
-.modasphere-menu-divider {
-  height: 1px;
-  margin: 7px 10px;
-  background: #eeeeee;
-}
-
-.modasphere-menu .seller-dashboard-menu-btn {
-  margin: 6px;
-
-  display: flex;
-  align-items: center;
-  gap: 10px;
-
-  padding: 11px 12px;
-
-  border-radius: 7px;
-
-  background: #111111;
-  color: #ffffff;
-
-  text-decoration: none;
-}
-
-.modasphere-menu .seller-dashboard-menu-btn:hover {
-  background: #292929;
-  color: #ffffff;
-}
-
-.seller-dashboard-menu-icon {
-  width: 30px;
-  height: 30px;
-  flex-shrink: 0;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 6px;
-
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.seller-dashboard-menu-btn > span:last-child {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.seller-dashboard-menu-btn strong {
-  color: #ffffff;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.seller-dashboard-menu-btn small {
-  color: #a9a9a9;
-  font-size: 9px;
-  font-weight: 400;
-}
-
-
-/* ========================================
-   MOBILE
-======================================== */
-
-@media (max-width: 900px) {
   .seller-dashboard-nav-btn {
     width: 100%;
     min-height: 44px;
+
     margin-top: 8px;
+
+    box-sizing: border-box;
+  }
+
+
+  /* MOBILE AUTH */
+
+  .navbar-mobile-auth {
+    width: 100%;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 10px;
+
+    margin-top: 12px;
+    padding-top: 14px;
+
+    border-top: 1px solid #eeeeee;
+  }
+
+
+  .mobile-login {
+    width: 100%;
+
+    padding: 12px 10px;
+
+    display: block;
+
+    background: #111111;
+    color: #ffffff;
+
+    border: none;
+    border-radius: 6px;
+
+    font-family: inherit;
+
+    font-size: 15px;
+    font-weight: 600;
+
+    cursor: pointer;
+  }
+
+
+  .mobile-user-area {
+    width: 100%;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 10px;
+  }
+
+
+  .mobile-user-name {
+    width: 100%;
+
+    padding: 12px 14px;
+
+    display: block;
+
+    background: #f8f9fa;
+    color: #111111;
+
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+
+    font-size: 15px;
+    font-weight: 600;
+
+    text-align: center;
+    text-decoration: none;
+
+    box-sizing: border-box;
+  }
+
+
+  .mobile-logout-btn {
+    width: 100%;
+
+    padding: 11px;
+
+    display: block;
+
+    background: transparent;
+    color: #dc2626;
+
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+
+    font-family: inherit;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+  }
+
+
+  .mobile-dashboards {
+    width: 100%;
+
+    display: grid;
+
+    gap: 8px;
+
+    padding: 8px 0;
+  }
+
+
+  .mobile-dashboards > strong {
+    color: #555555;
+
+    font-size: 12px;
+
+    text-align: center;
+  }
+}
+
+
+/* =========================================
+   SMALL MOBILE
+========================================= */
+
+@media (max-width: 500px) {
+
+  .navbar-container {
+    padding: 0 15px;
+  }
+
+  .navbar-logo {
+    font-size: 21px;
+
+    letter-spacing: 2px;
+  }
+
+  .navbar-menu {
+    width: 38px;
+    height: 38px;
   }
 }

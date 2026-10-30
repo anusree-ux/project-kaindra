@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
+const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
-const connectDB = require("./config/database");
 const authRoutes = require("./routes/core/authRoutes");
 const rideRoutes = require("./routes/mototribe/rideRoutes");
 const placesRoutes = require("./routes/mototribe/placesRoutes");
@@ -45,9 +45,6 @@ const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
 
-// Connect to Database
-connectDB();
-
 // CORS Middleware (allow requests from frontend app)
 app.use(
   cors({
@@ -79,6 +76,32 @@ app.get("/health", (req, res) => {
     status: "ok",
     service: "backend",
   });
+});
+
+app.get("/ready", async (req, res) => {
+  try {
+    if (mongoose.connection.readyState !== 1 || !mongoose.connection.db) {
+      return res.status(503).json({
+        status: "not_ready",
+        service: "backend",
+        database: "disconnected",
+      });
+    }
+
+    await mongoose.connection.db.admin().ping();
+
+    return res.status(200).json({
+      status: "ready",
+      service: "backend",
+      database: "connected",
+    });
+  } catch {
+    return res.status(503).json({
+      status: "not_ready",
+      service: "backend",
+      database: "unavailable",
+    });
+  }
 });
 
 // API Routes

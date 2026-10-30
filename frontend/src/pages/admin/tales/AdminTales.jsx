@@ -226,7 +226,6 @@ function AdminTales() {
                     <th>Story Type</th>
                     <th>Message</th>
                     <th>Submitted</th>
-                    <th>Status</th>
                     <th>Action</th>
                   </tr>
                 </thead>
@@ -254,7 +253,9 @@ function AdminTales() {
 
                       <td>
                         <div className="admin-tales-message">
-                          {story.message || "—"}
+                          {(story.message || "—").length > 120
+                            ? `${story.message.slice(0, 120).trim()}...`
+                            : story.message || "—"}
                         </div>
                       </td>
 
@@ -262,20 +263,6 @@ function AdminTales() {
                         <span className="admin-tales-date">
                           <CalendarDays size={13} />
                           {formatDate(story.submittedAt)}
-                        </span>
-                      </td>
-
-                      <td>
-                        <span
-                          className={`admin-tales-status admin-tales-status-${(
-                            story.status || "New"
-                          ).toLowerCase()}`}
-                        >
-                          {isRemoved(story)
-                            ? "Removed"
-                            : story.status === "Approved"
-                              ? "Published"
-                              : story.status || "New"}
                         </span>
                       </td>
 

@@ -62,7 +62,9 @@ jobs:
 
   docker:
     name: Docker - Production Images
-    runs-on: ubuntu-latest
+    # MongoDB 8.0 exits on Linux kernels 6.19 through 7.0.13.
+    # Ubuntu 22.04's GitHub-hosted runner uses a compatible 6.8 kernel.
+    runs-on: ubuntu-22.04
 
     env:
       ECR_REGISTRY: local
@@ -87,18 +89,35 @@ jobs:
         run: |
           docker build \
             --target production \
+            --build-arg VITE_GOOGLE_CLIENT_ID="${{ vars.VITE_GOOGLE_CLIENT_ID }}" \
             --build-arg VITE_GOOGLE_MAPS_API_KEY="${{ vars.GOOGLE_MAPS_API_KEY }}" \
             --tag local/kaindra-frontend:ci-test \
             ./frontend
 
       - name: Create temporary production environment file
-        run: cp .env.example .env.production
+        run: |
+          cat > .env.production <<'EOF'
+          NODE_ENV=production
+          PORT=5000
+          DATABASE_URL=mongodb://mongodb:27017/kaindra_ci
+          JWT_SECRET=ci-only-access-secret-not-for-deployment
+          JWT_REFRESH_SECRET=ci-only-refresh-secret-distinct-from-access
+          JWT_EXPIRES_IN=15m
+          JWT_REFRESH_EXPIRES_IN=7d
+          RAZORPAY_KEY_ID=ci-only-razorpay-key
+          RAZORPAY_KEY_SECRET=ci-only-razorpay-secret
+          RAZORPAY_WEBHOOK_SECRET=ci-only-webhook-secret
+          CLOUDINARY_CLOUD_NAME=ci-only-cloud
+          CLOUDINARY_API_KEY=ci-only-cloudinary-key
+          CLOUDINARY_API_SECRET=ci-only-cloudinary-secret
+          EOF
 
       - name: Validate production Docker Compose
         run: |
           docker compose \
             --env-file .env.production \
             -f docker/docker-compose.prod.yml \
+            -f docker/docker-compose.ci.yml \
             config
 
       - name: Start production stack
@@ -106,6 +125,7 @@ jobs:
           docker compose \
             --env-file .env.production \
             -f docker/docker-compose.prod.yml \
+            -f docker/docker-compose.ci.yml \
             up -d
 
       - name: Wait for production containers
@@ -125,6 +145,7 @@ jobs:
               docker compose \
                 --env-file .env.production \
                 -f docker/docker-compose.prod.yml \
+                -f docker/docker-compose.ci.yml \
                 logs
               exit 1
             fi
@@ -135,6 +156,7 @@ jobs:
           docker compose \
             --env-file .env.production \
             -f docker/docker-compose.prod.yml \
+            -f docker/docker-compose.ci.yml \
             ps
 
           exit 1
@@ -144,7 +166,7 @@ jobs:
           curl --fail --retry 5 --retry-delay 2 http://localhost/
 
           docker exec kaindra-backend \
-            wget --spider -q http://127.0.0.1:5000/health
+            wget --spider -q http://127.0.0.1:5000/ready
 
       - name: Show production logs on failure
         if: failure()
@@ -152,6 +174,7 @@ jobs:
           docker compose \
             --env-file .env.production \
             -f docker/docker-compose.prod.yml \
+            -f docker/docker-compose.ci.yml \
             logs
 
       - name: Tear down production stack
@@ -160,4 +183,5 @@ jobs:
           docker compose \
             --env-file .env.production \
             -f docker/docker-compose.prod.yml \
+            -f docker/docker-compose.ci.yml \
             down -v

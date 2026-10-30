@@ -220,6 +220,28 @@ const updateEnrollmentProgress = async (req, res) => {
     }
 
     const lessons = getCourseLessons(course);
+    console.log("=== MODAACADEMY PROGRESS DEBUG ===");
+    console.log("Course ID:", String(course._id));
+    console.log("Modules:", course.modules.length);
+
+    console.log(
+      "Lessons detected by backend:",
+      lessons.map((lesson) => ({
+        id: String(lesson._id),
+        title: lesson.title,
+        isRequired: lesson.isRequired,
+      }))
+    );
+
+    console.log(
+      "Completed IDs received:",
+      completedLessonIds
+    );
+
+    console.log(
+      "Required lessons count:",
+      lessons.filter((lesson) => lesson.isRequired !== false).length
+    );
     const validLessonIds = new Set(lessons.map((lesson) => String(lesson._id)));
 
     const unknownLessonId = completedLessonIds.find((id) => !validLessonIds.has(id));

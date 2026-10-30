@@ -79,6 +79,56 @@ function ModaLogix() {
     };
   }, [loadManufactureRequests]);
 
+  // Smoothly move to tracking section
+  const scrollToTracking = (event) => {
+    event.preventDefault();
+
+    const trackingSection = document.getElementById("tracking");
+
+    if (trackingSection) {
+      trackingSection.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+
+      // Keep #tracking in URL
+      window.history.replaceState(
+        null,
+        "",
+        `${window.location.pathname}${window.location.search}#tracking`
+      );
+    }
+  };
+
+  // Smoothly move to services section
+ const scrollToServices = (event) => {
+  event.preventDefault();
+
+  const servicesSection = document.getElementById("services");
+
+  if (servicesSection) {
+    const navbar = document.querySelector("nav");
+    const navbarHeight = navbar ? navbar.offsetHeight : 85;
+
+    const servicesTop =
+      servicesSection.getBoundingClientRect().top +
+      window.scrollY -
+      navbarHeight +
+      12;
+
+    window.scrollTo({
+      top: servicesTop,
+      behavior: "smooth",
+    });
+
+    window.history.replaceState(
+      null,
+      "",
+      `${window.location.pathname}${window.location.search}#services`
+    );
+  }
+};  
+
   // Track actual manufacture request
   const handleTracking = (event) => {
     event.preventDefault();
@@ -126,7 +176,9 @@ function ModaLogix() {
   return (
     <main className="modalogix-page">
 
-      {/* HERO */}
+      {/* =====================================================
+          HERO
+      ===================================================== */}
       <section className="modalogix-hero">
         <div className="modalogix-container">
 
@@ -147,9 +199,11 @@ function ModaLogix() {
           </p>
 
           <div className="modalogix-hero-actions">
+
             <a
               href="#tracking"
               className="modalogix-primary-button"
+              onClick={scrollToTracking}
             >
               Track Shipment
               <ArrowRight size={16} />
@@ -158,15 +212,20 @@ function ModaLogix() {
             <a
               href="#services"
               className="modalogix-secondary-button"
+              onClick={scrollToServices}
             >
               Explore Logistics
             </a>
+
           </div>
 
         </div>
       </section>
 
-      {/* SERVICES */}
+
+      {/* =====================================================
+          SERVICES
+      ===================================================== */}
       <section
         id="services"
         className="modalogix-services"
@@ -174,17 +233,20 @@ function ModaLogix() {
         <div className="modalogix-container">
 
           <div className="modalogix-section-heading">
+
             <span>LOGISTICS SOLUTIONS</span>
 
             <h2>
               Everything your fashion business needs
               to move.
             </h2>
+
           </div>
 
           <div className="modalogix-service-grid">
 
             <div className="modalogix-service-card">
+
               <div className="modalogix-icon">
                 <Truck size={22} />
               </div>
@@ -195,9 +257,12 @@ function ModaLogix() {
                 Reliable delivery solutions for fashion
                 orders across multiple destinations.
               </p>
+
             </div>
 
+
             <div className="modalogix-service-card">
+
               <div className="modalogix-icon">
                 <Package size={22} />
               </div>
@@ -208,9 +273,12 @@ function ModaLogix() {
                 Manage storage, packing and order
                 fulfillment from one connected system.
               </p>
+
             </div>
 
+
             <div className="modalogix-service-card">
+
               <div className="modalogix-icon">
                 <RotateCcw size={22} />
               </div>
@@ -221,9 +289,12 @@ function ModaLogix() {
                 Simplify returns and reverse logistics
                 for customers and brands.
               </p>
+
             </div>
 
+
             <div className="modalogix-service-card">
+
               <div className="modalogix-icon">
                 <MapPin size={22} />
               </div>
@@ -234,6 +305,7 @@ function ModaLogix() {
                 Track orders from dispatch to final
                 delivery with real-time visibility.
               </p>
+
             </div>
 
           </div>
@@ -241,7 +313,10 @@ function ModaLogix() {
         </div>
       </section>
 
-      {/* TRACKING */}
+
+      {/* =====================================================
+          TRACKING
+      ===================================================== */}
       <section
         id="tracking"
         className="modalogix-tracking"
@@ -294,22 +369,29 @@ function ModaLogix() {
 
             </div>
 
+
             <div className="modalogix-tracking-visual">
+
               <Truck
                 size={80}
                 strokeWidth={1}
               />
+
             </div>
 
           </div>
 
+
           {/* NOT FOUND */}
           {trackedOrder === "not-found" && (
             <div className="modalogix-track-error">
+
               Tracking ID not found. Please enter a valid
               ModaManufacture Request ID.
+
             </div>
           )}
+
 
           {/* TRACKED REQUEST */}
           {trackedOrder &&
@@ -320,11 +402,13 @@ function ModaLogix() {
                 <div className="modalogix-order-header">
 
                   <div>
+
                     <span>REQUEST ID</span>
 
                     <h3>
                       {trackedOrder.id}
                     </h3>
+
                   </div>
 
                   <strong>
@@ -332,6 +416,7 @@ function ModaLogix() {
                   </strong>
 
                 </div>
+
 
                 {/* REQUEST INFORMATION */}
                 <div className="modalogix-order-info">
@@ -345,6 +430,7 @@ function ModaLogix() {
                     </strong>
                   </div>
 
+
                   <div>
                     <span>QUANTITY</span>
 
@@ -353,6 +439,7 @@ function ModaLogix() {
                         "Not specified"}
                     </strong>
                   </div>
+
 
                   <div>
                     <span>CATEGORY</span>
@@ -363,6 +450,7 @@ function ModaLogix() {
                     </strong>
                   </div>
 
+
                   <div>
                     <span>MANUFACTURER</span>
 
@@ -372,6 +460,7 @@ function ModaLogix() {
                     </strong>
                   </div>
 
+
                   <div>
                     <span>DEADLINE</span>
 
@@ -380,6 +469,7 @@ function ModaLogix() {
                         "Not specified"}
                     </strong>
                   </div>
+
 
                   <div>
                     <span>SUBMITTED</span>
@@ -391,13 +481,18 @@ function ModaLogix() {
                   </div>
 
                 </div>
-<Link
-  to={`/businesses/modapay?requestId=${trackedOrder.id}`}
-  className="modalogix-payment-button"
->
-  Make Payment
-  <ArrowRight size={16} />
-</Link>
+
+
+                {/* PAYMENT */}
+                <Link
+                  to={`/businesses/modapay?requestId=${trackedOrder.id}`}
+                  className="modalogix-payment-button"
+                >
+                  Make Payment
+                  <ArrowRight size={16} />
+                </Link>
+
+
                 {/* PROGRESS */}
                 <div className="modalogix-progress">
 
@@ -412,34 +507,32 @@ function ModaLogix() {
 
                 </div>
 
+
                 {/* STATUS STEPS */}
                 <div className="modalogix-progress-labels">
 
                   <span>
                     <CheckCircle2 size={14} />
-
                     Request Submitted
                   </span>
 
                   <span>
                     <Package size={14} />
-
                     Processing
                   </span>
 
                   <span>
                     <Truck size={14} />
-
                     Manufacturing
                   </span>
 
                   <span>
                     <MapPin size={14} />
-
                     Completed
                   </span>
 
                 </div>
+
 
                 {/* MESSAGE */}
                 {trackedOrder.message && (
@@ -462,7 +555,10 @@ function ModaLogix() {
         </div>
       </section>
 
-      {/* PROCESS */}
+
+      {/* =====================================================
+          PROCESS
+      ===================================================== */}
       <section className="modalogix-process">
 
         <div className="modalogix-container">
@@ -476,6 +572,7 @@ function ModaLogix() {
             </h2>
 
           </div>
+
 
           <div className="modalogix-process-grid">
 
@@ -494,6 +591,7 @@ function ModaLogix() {
 
             </div>
 
+
             <div className="modalogix-process-item">
 
               <b>02</b>
@@ -509,6 +607,7 @@ function ModaLogix() {
 
             </div>
 
+
             <div className="modalogix-process-item">
 
               <b>03</b>
@@ -523,6 +622,7 @@ function ModaLogix() {
               </p>
 
             </div>
+
 
             <div className="modalogix-process-item">
 
@@ -545,7 +645,10 @@ function ModaLogix() {
 
       </section>
 
-      {/* FEATURES */}
+
+      {/* =====================================================
+          FEATURES
+      ===================================================== */}
       <section className="modalogix-features">
 
         <div className="modalogix-container">
@@ -565,31 +668,39 @@ function ModaLogix() {
               customers through one logistics layer.
             </p>
 
+
             <div className="modalogix-feature-list">
 
               <div>
                 <ShieldCheck size={19} />
+
                 <span>
                   Reliable shipment handling
                 </span>
               </div>
 
+
               <div>
                 <Clock size={19} />
+
                 <span>
                   Faster fulfillment
                 </span>
               </div>
 
+
               <div>
                 <MapPin size={19} />
+
                 <span>
                   Shipment visibility
                 </span>
               </div>
 
+
               <div>
                 <RotateCcw size={19} />
+
                 <span>
                   Simple returns
                 </span>
@@ -603,7 +714,10 @@ function ModaLogix() {
 
       </section>
 
-      {/* CTA */}
+
+      {/* =====================================================
+          CTA
+      ===================================================== */}
       <section className="modalogix-cta">
 
         <div className="modalogix-container">
@@ -619,7 +733,10 @@ function ModaLogix() {
             with ModaSphere.
           </p>
 
-          <a href="#tracking">
+          <a
+            href="#tracking"
+            onClick={scrollToTracking}
+          >
             Track a Shipment
             <ArrowRight size={16} />
           </a>

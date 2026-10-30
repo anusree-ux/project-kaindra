@@ -5,6 +5,7 @@ const app = require("../../src/app");
 const Product = require("../../src/models/modasphere/Product");
 const Cart = require("../../src/models/modasphere/Cart");
 const Order = require("../../src/models/modasphere/Order");
+const Drop = require("../../src/models/modasphere/Drop");
 const { createTestUser } = require("../helpers/testUser");
 
 // Mock the Razorpay SDK library constructor
@@ -65,6 +66,7 @@ describe("ModaSphere Orders & Razorpay Payment Integration (ModaPay)", () => {
     await Order.deleteMany({});
     await Cart.deleteMany({});
     await Product.deleteMany({});
+    await Drop.deleteMany({});
 
     seller = await createTestUser({ name: "Moda Designer Studio", role: "user" });
     buyer = await createTestUser({ name: "Alice Shopper", role: "user" });
@@ -164,6 +166,134 @@ describe("ModaSphere Orders & Razorpay Payment Integration (ModaPay)", () => {
       expect(res.status).toBe(400);
       expect(res.body.message).toMatch(/cart is empty/i);
     });
+    const createDrop = (productId, startTime, endTime) =>
+      Drop.create({
+        title: "Checkout Regression Test Drop",
+        createdBy: seller.userId,
+        productIds: [productId],
+        startTime,
+        endTime,
+        status: "upcoming",
+      });
+
+    const addProductToCart = async (productId) =>
+      request(app)
+        .post("/api/modasphere/cart/items")
+        .set("Authorization", `Bearer ${buyer.token}`)
+        .send({ productId, quantity: 1 });
+
+    const checkout = () =>
+      request(app)
+        .post("/api/modasphere/orders/checkout")
+        .set("Authorization", `Bearer ${buyer.token}`)
+        .send({ shippingAddress: validShippingAddress });
+
+    it("should reject checkout when a drop has not started", async () => {
+      await Product.findByIdAndUpdate(product1._id, {
+        isDrop: true,
+        dropStock: 5,
+      });
+
+      const now = Date.now();
+      await createDrop(
+        product1._id,
+        new Date(now + 60 * 60 * 1000),
+        new Date(now + 2 * 60 * 60 * 1000)
+      );
+
+      // Add directly to the cart to isolate checkout validation.
+      await Cart.create({
+        userId: buyer.userId,
+        items: [{ productId: product1._id, quantity: 1 }],
+      });
+
+      const res = await checkout();
+
+      expect(res.status).toBe(400);
+      expect(res.body.message).toMatch(/upcoming/i);
+    });
+
+    it("should reject checkout after a drop has ended", async () => {
+      await Product.findByIdAndUpdate(product1._id, {
+        isDrop: true,
+        dropStock: 5,
+      });
+
+      const now = Date.now();
+      await createDrop(
+        product1._id,
+        new Date(now - 2 * 60 * 60 * 1000),
+        new Date(now - 60 * 60 * 1000)
+      );
+
+      await Cart.create({
+        userId: buyer.userId,
+        items: [{ productId: product1._id, quantity: 1 }],
+      });
+
+      const res = await checkout();
+
+      expect(res.status).toBe(400);
+      expect(res.body.message).toMatch(/ended/i);
+    });
+
+    it("should reject checkout when a product belongs to multiple live drops", async () => {
+      await Product.findByIdAndUpdate(product1._id, {
+        isDrop: true,
+        dropStock: 5,
+      });
+
+      const now = Date.now();
+      await createDrop(
+        product1._id,
+        new Date(now - 60 * 60 * 1000),
+        new Date(now + 60 * 60 * 1000)
+      );
+      await createDrop(
+        product1._id,
+        new Date(now - 30 * 60 * 1000),
+        new Date(now + 90 * 60 * 1000)
+      );
+
+      await Cart.create({
+        userId: buyer.userId,
+        items: [{ productId: product1._id, quantity: 1 }],
+      });
+
+      const res = await checkout();
+
+      expect(res.status).toBe(400);
+      expect(res.body.message).toMatch(/multiple live ModaDrop events/i);
+    });
+
+    it("should allow checkout for a product assigned to one live drop", async () => {
+      await Product.findByIdAndUpdate(product1._id, {
+        isDrop: true,
+        dropStock: 5,
+      });
+
+      const now = Date.now();
+      await createDrop(
+        product1._id,
+        new Date(now - 60 * 60 * 1000),
+        new Date(now + 60 * 60 * 1000)
+      );
+
+      await Cart.create({
+        userId: buyer.userId,
+        items: [{ productId: product1._id, quantity: 1 }],
+      });
+
+      const res = await checkout();
+
+      expect(res.status).toBe(201);
+      expect(res.body.status).toBe("success");
+
+      const order = await Order.findById(res.body.data.orderId);
+      expect(order).not.toBeNull();
+      expect(order.items[0].isDrop).toBe(true);
+    });
+
   });
 
   describe("2. Payment Verification & Order Finalization", () => {

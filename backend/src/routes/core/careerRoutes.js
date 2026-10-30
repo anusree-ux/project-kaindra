@@ -5,15 +5,16 @@ const {
   updateCareer,
   deleteCareer,
 } = require("../../controllers/core/careerController");
+const { protect, authorize } = require("../../middleware/authMiddleware");
 
 const router = express.Router();
 
-router.route("/")
-  .get(getCareers)
-  .post(createCareer);
+// Public: browse career listings.
+router.get("/", getCareers);
 
-router.route("/:id")
-  .put(updateCareer)
-  .delete(deleteCareer);
+// Admin only: create, update, and delete career listings.
+router.post("/", protect, authorize("admin"), createCareer);
+router.put("/:id", protect, authorize("admin"), updateCareer);
+router.delete("/:id", protect, authorize("admin"), deleteCareer);
 
 module.exports = router;
