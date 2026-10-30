@@ -18,7 +18,11 @@ jest.mock("web-push", () => ({
 
 describe("Web Push Alerts Test Suite", () => {
   let user1, user2;
-  const originalEnv = { ...process.env };
+  const savedVapid = {
+    pub: process.env.VAPID_PUBLIC_KEY,
+    priv: process.env.VAPID_PRIVATE_KEY,
+    sub: process.env.VAPID_SUBJECT,
+  };
 
   const validEndpoint = (token = "test-token-1") =>
     `https://fcm.googleapis.com/fcm/send/${token}`;
@@ -36,7 +40,13 @@ describe("Web Push Alerts Test Suite", () => {
   });
 
   afterAll(() => {
-    process.env = originalEnv;
+    if (savedVapid.pub) process.env.VAPID_PUBLIC_KEY = savedVapid.pub;
+    else delete process.env.VAPID_PUBLIC_KEY;
+    if (savedVapid.priv) process.env.VAPID_PRIVATE_KEY = savedVapid.priv;
+    else delete process.env.VAPID_PRIVATE_KEY;
+    if (savedVapid.sub) process.env.VAPID_SUBJECT = savedVapid.sub;
+    else delete process.env.VAPID_SUBJECT;
+    pushService.initVapid();
   });
 
   beforeEach(async () => {
@@ -79,6 +89,12 @@ describe("Web Push Alerts Test Suite", () => {
         });
       expect(subRes.statusCode).toBe(503);
       expect(subRes.body.status).toBe("error");
+
+      // Restore VAPID immediately
+      process.env.VAPID_PUBLIC_KEY = "test-vapid-public-key";
+      process.env.VAPID_PRIVATE_KEY = "test-vapid-private-key";
+      process.env.VAPID_SUBJECT = "mailto:test@kaindra.com";
+      pushService.initVapid();
     });
 
     test("Returns public key when VAPID is configured", async () => {
