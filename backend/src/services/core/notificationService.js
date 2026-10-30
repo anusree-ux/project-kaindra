@@ -1,7 +1,33 @@
 const Notification = require("../../models/core/Notification");
 const AppError = require("../../utils/AppError");
+const { sendPushToUser } = require("../mototribe/pushService");
 
 const NOTIFICATION_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
+const resolveTargetUrl = (type, brand, data = {}) => {
+  if (type === "CONNECTION_REQUEST" || type === "CONNECTION_ACCEPTED") {
+    return "/businesses/mototribe";
+  }
+  if (type === "RIDE_INVITE") {
+    return data.rideId ? `/businesses/mototribe/ride/${data.rideId}` : "/businesses/mototribe";
+  }
+  if (type === "ORDER_UPDATE") {
+    return data.orderId ? `/businesses/modamart/orders/${data.orderId}` : "/businesses/modamart/orders";
+  }
+  if (type === "DROP_ALERT") {
+    return data.dropId ? `/businesses/modadrop/drop/${data.dropId}` : "/businesses/modadrop";
+  }
+  if (type === "SYSTEM") {
+    if (data.rideId) return `/businesses/mototribe/ride/${data.rideId}`;
+    if (brand === "modasphere") return "/businesses/modamart";
+    return "/";
+  }
+  return brand === "mototribe"
+    ? "/businesses/mototribe"
+    : brand === "modasphere"
+    ? "/businesses/modamart"
+    : "/";
+};
 
 /**
  * Delete all notifications older than 24 hours from the database
@@ -27,7 +53,7 @@ const createNotification = async ({
     return null;
   }
 
-  return await Notification.create({
+  const notification = await Notification.create({
     userId,
     senderId,
     type,
@@ -36,6 +62,19 @@ const createNotification = async ({
     message,
     data,
   });
+
+  // Non-blocking Web Push dispatch
+  sendPushToUser(userId, {
+    type,
+    title,
+    body: message,
+    url: resolveTargetUrl(type, brand, data),
+    tag: data?.rideId ? `ride-${data.rideId}` : undefined,
+  }).catch((err) => {
+    console.warn("[notificationService] WebPush delivery warning:", err.message);
+  });
+
+  return notification;
 };
 
 /**

@@ -6,8 +6,12 @@ const {
   removeNotification,
 } = require("../../controllers/core/notificationController");
 const { protect } = require("../../middleware/authMiddleware");
+const pushRoutes = require("./pushRoutes");
 
 const router = express.Router();
+
+// Web Push sub-router (mounted before general protect and :id routes)
+router.use("/push", pushRoutes);
 
 router.use(protect);
 

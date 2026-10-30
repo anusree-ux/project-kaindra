@@ -8,6 +8,7 @@ import { NotificationProvider } from "./context/NotificationContext";
 
 import Navbar from "./components/Navbar/Navbar";
 import ScrollToTopComponent from "./components/ScrollToTop";
+import PushPromptBanner from "./components/PushPromptBanner/PushPromptBanner";
 
 import Home from "./pages/Home";
 import About from "./pages/About";
@@ -179,6 +180,7 @@ function App() {
             <NotificationProvider>
             <AuthModal />
             <GlobalIncomingCall />
+            <PushPromptBanner />
 
             <ScrollToTop />
 

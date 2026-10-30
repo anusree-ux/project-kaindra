@@ -4,6 +4,7 @@ const Ride = require("../../models/mototribe/Ride");
 const RideParticipant = require("../../models/mototribe/RideParticipant");
 const LiveLocation = require("../../models/mototribe/LiveLocation");
 const ChatMessage = require("../../models/mototribe/ChatMessage");
+const { sendPushToUser } = require("./pushService");
 
 // In-memory rate limiting maps
 const lastUpdateMap = new Map();
@@ -11,6 +12,19 @@ const RATE_LIMIT_MS = 3000; // 3 seconds for location updates
 
 const lastChatMessageMap = new Map();
 const CHAT_RATE_LIMIT_MS = 1000; // 1 second for chat messages
+
+// In-memory chat push cooldown map: key -> timestamp (30s cooldown per recipient per ride)
+const chatPushCooldownMap = new Map();
+const CHAT_PUSH_COOLDOWN_MS = 30 * 1000;
+
+const cleanChatCooldowns = () => {
+  const cutoff = Date.now() - 60000;
+  for (const [key, time] of chatPushCooldownMap.entries()) {
+    if (time < cutoff) {
+      chatPushCooldownMap.delete(key);
+    }
+  }
+};
 
 // In-memory active calls map: rideId -> callInfo
 const activeCallsMap = new Map();
@@ -254,6 +268,53 @@ const initLocationSocketService = (io) => {
 
         // Broadcast to everyone in the room (including sender)
         ioInstance.to(roomName).emit("chat_message_received", payload);
+
+        // Web Push notification to ride participants (non-blocking, actor excluded, 30s cooldown)
+        (async () => {
+          try {
+            cleanChatCooldowns();
+            const ride = await Ride.findById(rideId).populate("organizerId", "name email");
+            const rideTitle = ride?.title || ride?.name || "MotoTribe Ride";
+            const participants = await RideParticipant.find({
+              rideId,
+              status: "confirmed",
+            }).select("userId");
+
+            const recipientIds = new Set();
+            const orgId = ride?.organizerId?._id
+              ? ride.organizerId._id.toString()
+              : ride?.organizerId?.toString();
+            if (orgId && orgId !== socket.user._id.toString()) {
+              recipientIds.add(orgId);
+            }
+            participants.forEach((p) => {
+              const pUserId = p.userId?.toString();
+              if (pUserId && pUserId !== socket.user._id.toString()) {
+                recipientIds.add(pUserId);
+              }
+            });
+
+            const nowTime = Date.now();
+            for (const recipientId of recipientIds) {
+              const cooldownKey = `chat_${rideId}_${recipientId}`;
+              const lastSent = chatPushCooldownMap.get(cooldownKey) || 0;
+              if (nowTime - lastSent >= CHAT_PUSH_COOLDOWN_MS) {
+                chatPushCooldownMap.set(cooldownKey, nowTime);
+                sendPushToUser(recipientId, {
+                  type: "CHAT_MESSAGE",
+                  title: rideTitle,
+                  body: `${socket.user.name || "A rider"}: ${trimmedMessage}`,
+                  url: `/businesses/mototribe/ride/${rideId}`,
+                  tag: `chat-${rideId}`,
+                }).catch((err) => {
+                  console.warn("[WebPush] Chat push error:", err.message);
+                });
+              }
+            }
+          } catch (pushErr) {
+            console.warn("[WebPush] Chat push error:", pushErr.message);
+          }
+        })();
       } catch (error) {
         socket.emit("error", {
           message: "Server error sending chat message",
@@ -291,6 +352,7 @@ const initLocationSocketService = (io) => {
           };
         }
 
+        const isFirstStart = !activeCallsMap.has(rideId.toString());
         activeCallsMap.set(rideId.toString(), callInfo);
 
         const roomName = `ride_${rideId}`;
@@ -298,6 +360,46 @@ const initLocationSocketService = (io) => {
         // 1. Broadcast to everyone in the ride room
         socket.to(roomName).emit("incoming_group_call", callInfo);
         socket.emit("group_call_started", callInfo);
+
+        // Push alert only on inactive -> active transition (actor excluded, tag call-${rideId})
+        if (isFirstStart) {
+          (async () => {
+            try {
+              const participants = await RideParticipant.find({
+                rideId,
+                status: "confirmed",
+              }).select("userId");
+
+              const recipientIds = new Set();
+              const orgId = ride?.organizerId?._id
+                ? ride.organizerId._id.toString()
+                : ride?.organizerId?.toString();
+              if (orgId && orgId !== socket.user._id.toString()) {
+                recipientIds.add(orgId);
+              }
+              participants.forEach((p) => {
+                const pUserId = p.userId?.toString();
+                if (pUserId && pUserId !== socket.user._id.toString()) {
+                  recipientIds.add(pUserId);
+                }
+              });
+
+              for (const recipientId of recipientIds) {
+                sendPushToUser(recipientId, {
+                  type: "GROUP_CALL",
+                  title: rideTitle,
+                  body: `${socket.user.name || "A rider"} started a group call`,
+                  url: `/businesses/mototribe/ride/${rideId}/live`,
+                  tag: `call-${rideId}`,
+                }).catch((err) => {
+                  console.warn("[WebPush] Call push error:", err.message);
+                });
+              }
+            } catch (pushErr) {
+              console.warn("[WebPush] Call push error:", pushErr.message);
+            }
+          })();
+        }
 
         // 2. Broadcast call to ALL MEMBERS in the ride group (Organizer + Participants)
         const participants = await RideParticipant.find({

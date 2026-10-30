@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useNotifications } from "../../context/NotificationContext";
 import { useAuth } from "../../context/AuthContext";
 import apiClient from "../../services/apiClient";
@@ -134,6 +135,24 @@ export default function NotificationDropdown({ brand = "mototribe" }) {
                   Mark all read
                 </button>
               )}
+              <Link
+                to="/profile#push-settings"
+                className="notif-settings-btn"
+                onClick={() => setIsOpen(false)}
+                title="Alert & Push Settings"
+                style={{
+                  textDecoration: "none",
+                  fontSize: "15px",
+                  padding: "4px 8px",
+                  borderRadius: "6px",
+                  background: "rgba(255, 255, 255, 0.08)",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                ⚙️
+              </Link>
             </div>
           </div>
 

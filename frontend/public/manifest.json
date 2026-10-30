@@ -1,0 +1,17 @@
+{
+  "name": "Kaindra",
+  "short_name": "Kaindra",
+  "description": "Unified Platform for MotoTribe, ModaSphere, and Connected Commerce",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0d0f12",
+  "theme_color": "#0d0f12",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

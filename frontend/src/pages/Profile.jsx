@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import apiClient from "../services/apiClient";
+import PushAlertSettings from "../components/PushAlertSettings/PushAlertSettings";
 import "./Profile.css";
 
 function Profile() {
@@ -326,6 +327,11 @@ function Profile() {
               </span>
             </div>
           </div>
+        </div>
+
+        {/* Web Push Alert Settings Section */}
+        <div id="push-settings" className="kp-push-settings-wrapper" style={{ marginBottom: "24px" }}>
+          <PushAlertSettings />
         </div>
 
         {/* Previous Orders Table Section */}

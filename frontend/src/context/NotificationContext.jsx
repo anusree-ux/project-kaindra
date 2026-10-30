@@ -2,6 +2,8 @@ import { createContext, useContext, useEffect, useState, useCallback, useRef } f
 import { useAuth } from "./AuthContext";
 import apiClient from "../services/apiClient";
 
+import { subscribeUserToPush } from "../services/pushNotificationService";
+
 const NotificationContext = createContext(null);
 
 export function NotificationProvider({ children }) {
@@ -13,40 +15,19 @@ export function NotificationProvider({ children }) {
     typeof window !== "undefined" && "Notification" in window ? Notification.permission : "default"
   );
 
-  const seenIdsRef = useRef(new Set());
   const initialLoadRef = useRef(true);
 
-  // Request Native Browser Push Permission
+  // Request Native Browser Push Permission and subscribe
   const requestPushPermission = useCallback(async () => {
-    if (typeof window !== "undefined" && "Notification" in window) {
-      try {
-        const perm = await Notification.requestPermission();
-        setPushPermission(perm);
-        return perm;
-      } catch (err) {
-        console.warn("Could not request notification permission:", err);
+    try {
+      const res = await subscribeUserToPush();
+      if (typeof window !== "undefined" && "Notification" in window) {
+        setPushPermission(Notification.permission);
       }
-    }
-    return "denied";
-  }, []);
-
-  // Trigger Native Device Notification Popup
-  const triggerDeviceNotification = useCallback((item) => {
-    if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
-      try {
-        const n = new Notification(item.title || "Kaindra Alert", {
-          body: item.message,
-          icon: "/favicon.ico",
-          badge: "/favicon.ico",
-          tag: item._id || String(Date.now()),
-        });
-        n.onclick = () => {
-          window.focus();
-          n.close();
-        };
-      } catch (err) {
-        console.warn("Device notification error:", err);
-      }
+      return res;
+    } catch (err) {
+      console.warn("Could not subscribe to push alerts:", err);
+      return { success: false, error: err.message };
     }
   }, []);
 
@@ -72,18 +53,7 @@ export function NotificationProvider({ children }) {
         return Date.now() - new Date(item.createdAt).getTime() <= TWENTY_FOUR_HOURS_MS;
       });
 
-      // Check for brand new unread notifications to trigger OS device push popup
-      if (!initialLoadRef.current && isPolling) {
-        validList.forEach((item) => {
-          if (!item.isRead && !seenIdsRef.current.has(item._id)) {
-            triggerDeviceNotification(item);
-          }
-        });
-      }
-
-      validList.forEach((item) => seenIdsRef.current.add(item._id));
       initialLoadRef.current = false;
-
       setNotifications(validList);
       setUnreadCount(count);
     } catch (err) {
@@ -91,7 +61,23 @@ export function NotificationProvider({ children }) {
     } finally {
       if (!isPolling) setLoading(false);
     }
-  }, [isAuthenticated, triggerDeviceNotification]);
+  }, [isAuthenticated]);
+
+  // Listen for Service Worker postMessage events when page is visible and focused
+  useEffect(() => {
+    if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
+
+    const handleServiceWorkerMessage = (event) => {
+      if (event.data?.type === "PUSH_NOTIFICATION_RECEIVED") {
+        fetchNotifications(false);
+      }
+    };
+
+    navigator.serviceWorker.addEventListener("message", handleServiceWorkerMessage);
+    return () => {
+      navigator.serviceWorker.removeEventListener("message", handleServiceWorkerMessage);
+    };
+  }, [fetchNotifications]);
 
   // Initial fetch and 5-second real-time polling interval
   useEffect(() => {
@@ -104,7 +90,6 @@ export function NotificationProvider({ children }) {
     } else {
       setNotifications([]);
       setUnreadCount(0);
-      seenIdsRef.current.clear();
       initialLoadRef.current = true;
     }
   }, [isAuthenticated, fetchNotifications]);

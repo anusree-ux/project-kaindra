@@ -1,6 +1,7 @@
 const ConnectionRequest = require("../../models/core/ConnectionRequest");
 const User = require("../../models/core/User");
 const Notification = require("../../models/core/Notification");
+const { createNotification } = require("./notificationService");
 const AppError = require("../../utils/AppError");
 
 /**
@@ -38,7 +39,7 @@ const sendConnectionRequest = async (fromUserId, toUserId) => {
 
     // Notify both users of the mutual connection
     await Promise.all([
-      Notification.create({
+      createNotification({
         userId: fromUserId,
         senderId: toUserId,
         type: "CONNECTION_ACCEPTED",
@@ -47,7 +48,7 @@ const sendConnectionRequest = async (fromUserId, toUserId) => {
         message: `You and ${targetUser.name || "a rider"} connected with each other!`,
         data: { requestId: oppositeRequest._id, userId: toUserId, userName: targetUser.name },
       }),
-      Notification.create({
+      createNotification({
         userId: toUserId,
         senderId: fromUserId,
         type: "CONNECTION_ACCEPTED",
@@ -99,7 +100,7 @@ const sendConnectionRequest = async (fromUserId, toUserId) => {
   }
 
   // Create real-time notification for the recipient
-  await Notification.create({
+  await createNotification({
     userId: toUserId,
     senderId: fromUserId,
     type: "CONNECTION_REQUEST",
@@ -156,7 +157,7 @@ const respondToRequest = async (requestId, userId, action) => {
     const acceptorName = acceptingUser?.name || "Rider";
 
     // Notify the original sender that their request was accepted
-    await Notification.create({
+    await createNotification({
       userId: request.fromUserId,
       senderId: userId,
       type: "CONNECTION_ACCEPTED",

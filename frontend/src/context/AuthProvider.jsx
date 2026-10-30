@@ -1,6 +1,10 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { AuthContext } from "./AuthContextObject";
 import apiClient, { setAccessToken } from "../services/apiClient";
+import {
+  syncExistingSubscriptionOnLogin,
+  getCurrentPushSubscription,
+} from "../services/pushNotificationService";
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -45,6 +49,7 @@ export function AuthProvider({ children }) {
         const meData = meRes.data?.data || meRes.data;
         if (meData?.user) {
           setUser(meData.user);
+          syncExistingSubscriptionOnLogin();
         }
       }
     } catch {
@@ -71,6 +76,7 @@ export function AuthProvider({ children }) {
       if (accessToken && user) {
         updateToken(accessToken);
         setUser(user);
+        syncExistingSubscriptionOnLogin();
         closeAuthModal();
 
         try {
@@ -144,6 +150,7 @@ export function AuthProvider({ children }) {
       if (accessToken && user) {
         updateToken(accessToken);
         setUser(user);
+        syncExistingSubscriptionOnLogin();
         setPendingOtpData(null);
         closeAuthModal();
         return { success: true };
@@ -177,6 +184,18 @@ export function AuthProvider({ children }) {
 
   // Logout handler
   const logout = useCallback(async () => {
+    // 1. Delete push subscription from backend BEFORE clearing access token
+    try {
+      const sub = await getCurrentPushSubscription();
+      if (sub && sub.endpoint) {
+        await apiClient.delete("/api/core/notifications/push/subscriptions", {
+          data: { endpoint: sub.endpoint },
+        });
+      }
+    } catch {
+      // Ignore push delete errors on logout
+    }
+
     try {
       await apiClient.post("/api/auth/logout");
     } catch {
