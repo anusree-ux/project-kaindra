@@ -1,4 +1,4 @@
-﻿const mongoose = require("mongoose");
+const mongoose = require("mongoose");
 
 const reviewSchema = new mongoose.Schema(
   {
@@ -17,7 +17,7 @@ const reviewSchema = new mongoose.Schema(
     orderId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "ModaSphereOrder",
-      required: [true, "Order ID is required"],
+      required: false,
       index: true,
     },
     rating: {
@@ -32,6 +32,18 @@ const reviewSchema = new mongoose.Schema(
       maxlength: [1000, "Review comment cannot exceed 1000 characters"],
       default: "",
     },
+    images: [
+      {
+        url: {
+          type: String,
+          required: true,
+        },
+        publicId: {
+          type: String,
+          default: "",
+        },
+      },
+    ],
   },
   {
     timestamps: true,

@@ -3,6 +3,7 @@ const { protect } = require("../../middleware/authMiddleware");
 const {
   sendRequest,
   respond,
+  cancelRequest,
   getConnections,
   getIncoming,
   getOutgoing,
@@ -18,6 +19,8 @@ const router = express.Router();
 router.use(protect);
 
 router.post("/connections/request", sendRequestValidationRules, validate, sendRequest);
+router.post("/connections/cancel", cancelRequest);
+router.delete("/connections/requests/:id", cancelRequest);
 router.patch("/connections/requests/:id/respond", respondValidationRules, validate, respond);
 router.get("/connections", getConnections);
 router.get("/connections/requests/incoming", getIncoming);

@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { Star, Loader2, MessageSquare } from "lucide-react";
 import DataTable from "../components/DataTable";
-import apiClient from "../../../../../services/apiClient";
-import { getSellerProducts } from "../services/dashboardApi";
+import { getSellerReviews } from "../services/dashboardApi";
 
 const ReviewList = () => {
   const [reviews, setReviews] = useState([]);
@@ -12,45 +11,28 @@ const ReviewList = () => {
     let isMounted = true;
     setLoading(true);
 
-    getSellerProducts()
-      .then(async (products) => {
+    getSellerReviews()
+      .then((rawReviews) => {
         if (!isMounted) return;
-        const allReviews = [];
-        const productList = products || [];
-
-        // Fetch reviews for up to first 5 products
-        for (const product of productList.slice(0, 5)) {
-          const id = product._id || product.id;
-          try {
-            const res = await apiClient.get(`/api/modasphere/products/${id}/reviews`);
-            const prodReviews = res.data?.data?.reviews || res.data?.reviews || [];
-            prodReviews.forEach((rev) => {
-              allReviews.push({
-                id: rev._id,
-                customer: rev.userId?.name || "Customer",
-                product: product.name,
-                rating: rev.rating,
-                review: rev.comment || rev.review || "-",
-                date: rev.createdAt
-                  ? new Date(rev.createdAt).toLocaleDateString("en-IN", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })
-                  : "Recent",
-              });
-            });
-          } catch {
-            // Ignore individual product review fetch errors
-          }
-        }
-
-        if (isMounted) {
-          setReviews(allReviews);
-        }
+        const formatted = (rawReviews || []).map((rev) => ({
+          id: rev._id,
+          customer: rev.userId?.name || "Customer",
+          product: rev.productId?.name || "Product",
+          rating: rev.rating,
+          review: rev.comment || rev.review || "-",
+          images: (rev.images || []).map((img) => (typeof img === "object" ? img.url : img)),
+          date: rev.createdAt
+            ? new Date(rev.createdAt).toLocaleDateString("en-IN", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              })
+            : "Recent",
+        }));
+        setReviews(formatted);
       })
       .catch((err) => {
-        console.error("Failed to load reviews:", err);
+        console.error("Failed to load seller reviews:", err);
       })
       .finally(() => {
         if (isMounted) setLoading(false);
@@ -81,6 +63,36 @@ const ReviewList = () => {
       ),
     },
     { key: "review", label: "Review" },
+    {
+      key: "images",
+      label: "Photos",
+      render: (imgs) =>
+        imgs && imgs.length > 0 ? (
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+            {imgs.slice(0, 3).map((img, i) => (
+              <a key={i} href={img} target="_blank" rel="noopener noreferrer">
+                <img
+                  src={img}
+                  alt="Review"
+                  style={{
+                    width: 34,
+                    height: 34,
+                    objectFit: "cover",
+                    borderRadius: 4,
+                    border: "1px solid #e5e5e5",
+                    cursor: "pointer",
+                  }}
+                />
+              </a>
+            ))}
+            {imgs.length > 3 && (
+              <span style={{ fontSize: 11, color: "#888" }}>+{imgs.length - 3}</span>
+            )}
+          </div>
+        ) : (
+          <span style={{ color: "#aaa", fontSize: 13 }}>-</span>
+        ),
+    },
     { key: "date", label: "Date" },
   ];
 

@@ -1,4 +1,4 @@
-﻿const request = require("supertest");
+const request = require("supertest");
 const app = require("../../src/app");
 const Product = require("../../src/models/modasphere/Product");
 const Order = require("../../src/models/modasphere/Order");
@@ -378,6 +378,89 @@ describe("ModaSphere Product Reviews & Ratings API", () => {
       expect(res.body.data.reviews[0].comment).toBe("Excellent service");
       expect(res.body.data.reviews[0].userId.name).toBe("Bob Shopper");
       expect(res.body.data.reviews[1].userId.name).toBe("Alice Reviewer");
+    });
+  });
+
+  describe("4. Seller Reviews Scoping & Dashboard Access", () => {
+    test("GET /api/modasphere/reviews/seller returns ONLY reviews for that seller's products", async () => {
+      // Create another seller with their own product
+      const otherSeller = await createTestUser({ name: "Other Seller", role: "user" });
+      const otherSellerProduct = await Product.create({
+        sellerId: otherSeller.userId,
+        name: "Leather Boots",
+        description: "Handcrafted leather boots",
+        category: "footwear",
+        price: 4999,
+        stock: 5,
+        status: "active",
+      });
+
+      // Buyer1 reviews Seller's product
+      const order1 = await createDeliveredOrder(buyer1, product);
+      await request(app)
+        .post(`/api/modasphere/products/${product._id}/reviews`)
+        .set("Authorization", `Bearer ${buyer1.token}`)
+        .send({ orderId: order1._id, rating: 5, comment: "Love this blazer!" });
+
+      // Buyer2 reviews Other Seller's product
+      const otherOrder = await Order.create({
+        buyerId: buyer2.userId,
+        subtotalAmount: otherSellerProduct.price,
+        discountAmount: 0,
+        totalAmount: otherSellerProduct.price,
+        items: [
+          {
+            productId: otherSellerProduct._id,
+            sellerId: otherSeller.userId,
+            name: otherSellerProduct.name,
+            price: otherSellerProduct.price,
+            quantity: 1,
+          },
+        ],
+        status: "delivered",
+        shippingAddress: {
+          name: "Test Receiver",
+          phone: "9876543210",
+          addressLine1: "123 Fashion Street",
+          city: "Bengaluru",
+          state: "Karnataka",
+          pincode: "560001",
+        },
+      });
+
+      await request(app)
+        .post(`/api/modasphere/products/${otherSellerProduct._id}/reviews`)
+        .set("Authorization", `Bearer ${buyer2.token}`)
+        .send({ orderId: otherOrder._id, rating: 2, comment: "Poor leather quality" });
+
+      // Query seller 1 reviews
+      const resSeller1 = await request(app)
+        .get("/api/modasphere/reviews/seller")
+        .set("Authorization", `Bearer ${seller.token}`);
+
+      expect(resSeller1.statusCode).toBe(200);
+      expect(resSeller1.body.status).toBe("success");
+      expect(resSeller1.body.data.reviews.length).toBe(1);
+      expect(resSeller1.body.data.reviews[0].comment).toBe("Love this blazer!");
+      expect(resSeller1.body.data.reviews[0].productId.name).toBe("Tailored Linen Blazer");
+
+      // Query otherSeller reviews
+      const resSeller2 = await request(app)
+        .get("/api/modasphere/reviews/seller")
+        .set("Authorization", `Bearer ${otherSeller.token}`);
+
+      expect(resSeller2.statusCode).toBe(200);
+      expect(resSeller2.body.data.reviews.length).toBe(1);
+      expect(resSeller2.body.data.reviews[0].comment).toBe("Poor leather quality");
+      expect(resSeller2.body.data.reviews[0].productId.name).toBe("Leather Boots");
+
+      // Query seller with no products
+      const resNonSeller = await request(app)
+        .get("/api/modasphere/reviews/seller")
+        .set("Authorization", `Bearer ${nonBuyer.token}`);
+
+      expect(resNonSeller.statusCode).toBe(200);
+      expect(resNonSeller.body.data.reviews.length).toBe(0);
     });
   });
 });

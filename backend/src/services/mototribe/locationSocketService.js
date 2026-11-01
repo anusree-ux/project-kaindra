@@ -189,7 +189,7 @@ const initLocationSocketService = (io) => {
               updatedAt,
             },
           },
-          { upsert: true, new: true, runValidators: true }
+          { upsert: true, returnDocument: "after", new: true, runValidators: true }
         );
 
         // Broadcast "location_broadcast" to everyone else in the room

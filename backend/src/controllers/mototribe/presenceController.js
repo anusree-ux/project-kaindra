@@ -121,7 +121,7 @@ const postPresence = async (req, res, next) => {
     const presence = await RiderPresence.findOneAndUpdate(
       { userId: req.user._id },
       { $set: updateData },
-      { new: true, upsert: true, runValidators: true }
+      { returnDocument: "after", new: true, upsert: true, runValidators: true }
     );
 
     res.status(200).json({

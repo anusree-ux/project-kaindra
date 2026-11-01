@@ -77,7 +77,7 @@ const subscribe = async (req, res, next) => {
         userAgent: req.headers["user-agent"] || "",
         lastUsedAt: new Date(),
       },
-      { upsert: true, new: true, setDefaultsOnInsert: true }
+      { upsert: true, returnDocument: "after", setDefaultsOnInsert: true }
     );
 
     // Enforce 10 subscription limit per user (evicting oldest by lastUsedAt)

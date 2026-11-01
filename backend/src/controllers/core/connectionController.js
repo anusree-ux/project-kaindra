@@ -116,10 +116,38 @@ const getOutgoing = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc    Cancel an outgoing pending connection request
+ * @route   POST /api/core/connections/cancel
+ * @route   DELETE /api/core/connections/requests/:id
+ * @access  Private
+ */
+const cancelRequest = async (req, res, next) => {
+  try {
+    const fromUserId = req.user._id;
+    const { toUserId, requestId } = req.body || {};
+    const idParam = req.params?.id;
+
+    const result = await connectionService.cancelConnectionRequest(fromUserId, {
+      toUserId: toUserId || idParam,
+      requestId: requestId || idParam,
+    });
+
+    res.status(200).json({
+      status: "success",
+      message: result.message,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   sendRequest,
   respond,
+  cancelRequest,
   getConnections,
   getIncoming,
   getOutgoing,
 };
+

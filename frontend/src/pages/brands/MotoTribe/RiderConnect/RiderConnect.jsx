@@ -214,13 +214,15 @@ function RiderConnect() {
     if (!isAuthenticated) return;
     const req = outgoingRequests.find((r) => String(r.id) === String(riderId));
     setOutgoingRequests((prev) => prev.filter((r) => String(r.id) !== String(riderId)));
-    if (req?.requestId) {
-      try {
-        await apiClient.patch(`/api/core/connections/requests/${req.requestId}/respond`, { action: "reject" }).catch(() => {});
-        window.dispatchEvent(new CustomEvent("kaindra:connection_updated"));
-      } catch (err) {
-        console.error("Failed to cancel request:", err);
-      }
+    try {
+      await apiClient.post("/api/core/connections/cancel", {
+        toUserId: riderId,
+        requestId: req?.requestId,
+      });
+      window.dispatchEvent(new CustomEvent("kaindra:connection_updated"));
+      await fetchRiderNetwork();
+    } catch (err) {
+      console.error("Failed to cancel request:", err);
     }
   };
 

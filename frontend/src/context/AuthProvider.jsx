@@ -184,16 +184,21 @@ export function AuthProvider({ children }) {
 
   // Logout handler
   const logout = useCallback(async () => {
-    // 1. Delete push subscription from backend BEFORE clearing access token
+    // 1. Non-blocking push subscription cleanup so logout is never delayed or frozen
     try {
-      const sub = await getCurrentPushSubscription();
-      if (sub && sub.endpoint) {
-        await apiClient.delete("/api/core/notifications/push/subscriptions", {
-          data: { endpoint: sub.endpoint },
-        });
-      }
+      getCurrentPushSubscription()
+        .then((sub) => {
+          if (sub && sub.endpoint) {
+            apiClient
+              .delete("/api/core/notifications/push/subscriptions", {
+                data: { endpoint: sub.endpoint },
+              })
+              .catch(() => {});
+          }
+        })
+        .catch(() => {});
     } catch {
-      // Ignore push delete errors on logout
+      // Ignore push errors on logout
     }
 
     try {

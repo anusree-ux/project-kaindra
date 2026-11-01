@@ -3,6 +3,10 @@ import { Link } from "react-router-dom";
 import { useNotifications } from "../../context/NotificationContext";
 import { useAuth } from "../../context/AuthContext";
 import apiClient from "../../services/apiClient";
+import {
+  syncExistingSubscriptionOnLogin,
+  subscribeUserToPush,
+} from "../../services/pushNotificationService";
 import "./NotificationDropdown.css";
 
 export default function NotificationDropdown({ brand = "mototribe" }) {

@@ -178,4 +178,50 @@ describe("Rider Connection Request System API", () => {
     expect(senderRes.statusCode).toBe(403);
     expect(senderRes.body.message).toMatch(/only the recipient/i);
   });
+
+  test("8. Sender can cancel their pending connection request and re-request", async () => {
+    // 1. Send request
+    const sendRes = await request(app)
+      .post("/api/core/connections/request")
+      .set("Authorization", `Bearer ${user1.token}`)
+      .send({ toUserId: user2.userId });
+
+    expect(sendRes.statusCode).toBe(201);
+
+    // Verify it is in outgoing requests
+    const outgoing1 = await request(app)
+      .get("/api/core/connections/requests/outgoing")
+      .set("Authorization", `Bearer ${user1.token}`);
+    expect(outgoing1.body.results).toBe(1);
+
+    // 2. Cancel request via POST /api/core/connections/cancel
+    const cancelRes = await request(app)
+      .post("/api/core/connections/cancel")
+      .set("Authorization", `Bearer ${user1.token}`)
+      .send({ toUserId: user2.userId });
+
+    expect(cancelRes.statusCode).toBe(200);
+    expect(cancelRes.body.status).toBe("success");
+
+    // Verify it is gone from outgoing requests
+    const outgoing2 = await request(app)
+      .get("/api/core/connections/requests/outgoing")
+      .set("Authorization", `Bearer ${user1.token}`);
+    expect(outgoing2.body.results).toBe(0);
+
+    // Verify it is gone from recipient's incoming requests
+    const incoming = await request(app)
+      .get("/api/core/connections/requests/incoming")
+      .set("Authorization", `Bearer ${user2.token}`);
+    expect(incoming.body.results).toBe(0);
+
+    // 3. Sender can send request again cleanly
+    const reSendRes = await request(app)
+      .post("/api/core/connections/request")
+      .set("Authorization", `Bearer ${user1.token}`)
+      .send({ toUserId: user2.userId });
+
+    expect(reSendRes.statusCode).toBe(201);
+  });
 });
+

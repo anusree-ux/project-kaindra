@@ -226,10 +226,59 @@ const getOutgoingRequests = async (userId) => {
   }).populate("toUserId", "name email phoneNumber role city primaryVehicleName");
 };
 
+/**
+ * Cancel a pending connection request sent by a user
+ * @param {string|ObjectId} fromUserId
+ * @param {Object} options - { toUserId, requestId }
+ * @returns {Promise<{message: string}>}
+ */
+const cancelConnectionRequest = async (fromUserId, { toUserId, requestId } = {}) => {
+  const mongoose = require("mongoose");
+  let request = null;
+
+  if (requestId && mongoose.isValidObjectId(requestId)) {
+    request = await ConnectionRequest.findOne({
+      _id: requestId,
+      fromUserId,
+      status: "pending",
+    });
+  }
+
+  if (!request && toUserId && mongoose.isValidObjectId(toUserId)) {
+    request = await ConnectionRequest.findOne({
+      fromUserId,
+      toUserId,
+      status: "pending",
+    });
+  }
+
+  if (!request) {
+    throw new AppError("Pending connection request not found or already handled.", 404);
+  }
+
+  const targetUserId = request.toUserId;
+
+  // Delete the pending connection request so sender can re-request cleanly
+  await ConnectionRequest.findByIdAndDelete(request._id);
+
+  // Clean up any unread connection request notification for the recipient
+  await Notification.deleteMany({
+    userId: targetUserId,
+    senderId: fromUserId,
+    type: "CONNECTION_REQUEST",
+  });
+
+  return {
+    message: "Connection request cancelled successfully.",
+  };
+};
+
 module.exports = {
   sendConnectionRequest,
   respondToRequest,
+  cancelConnectionRequest,
   getConnections,
   getIncomingRequests,
   getOutgoingRequests,
 };
+

@@ -21,6 +21,7 @@ function LiveRiders() {
   const [incomingRequests, setIncomingRequests] = useState([]);
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState({});
+  const [hoveredRiderId, setHoveredRiderId] = useState(null);
 
   const fetchLiveRiders = useCallback(async () => {
     if (!isAuthenticated) {
@@ -156,7 +157,7 @@ function LiveRiders() {
     }
 
     const status = getRiderStatus(riderId);
-    if (status === "CONNECTED" || status === "REQUESTED") return;
+    if (status === "CONNECTED") return;
 
     setActionLoading((prev) => ({ ...prev, [riderId]: true }));
     try {
@@ -167,6 +168,11 @@ function LiveRiders() {
           window.dispatchEvent(new CustomEvent("kaindra:connection_updated"));
           await fetchLiveRiders();
         }
+      } else if (status === "REQUESTED") {
+        await apiClient.post("/api/core/connections/cancel", { toUserId: riderId });
+        setOutgoingRequests((prev) => prev.filter((id) => String(id) !== String(riderId)));
+        window.dispatchEvent(new CustomEvent("kaindra:connection_updated"));
+        await fetchLiveRiders();
       } else if (status === "CONNECT") {
         await apiClient.post("/api/core/connections/request", { toUserId: riderId });
         setOutgoingRequests((prev) => [...prev, String(riderId)]);
@@ -372,16 +378,21 @@ function LiveRiders() {
 
                   <button
                     type="button"
-                    disabled={isActing || status === "CONNECTED" || status === "REQUESTED"}
+                    disabled={isActing || status === "CONNECTED"}
                     className={`live-connect-button ${status.toLowerCase()}`}
                     onClick={() => handleRiderAction(rider.id)}
+                    onMouseEnter={() => setHoveredRiderId(rider.id)}
+                    onMouseLeave={() => setHoveredRiderId((prev) => (prev === rider.id ? null : prev))}
+                    title={status === "REQUESTED" ? "Click to cancel connection request" : undefined}
                   >
                     {isActing
                       ? "PROCESSING..."
                       : status === "CONNECTED"
                       ? "CONNECTED ✓"
                       : status === "REQUESTED"
-                      ? "REQUEST SENT ⏳"
+                      ? hoveredRiderId === rider.id
+                        ? "CANCEL REQUEST ✕"
+                        : "REQUEST SENT ⏳"
                       : status === "INCOMING"
                       ? "✓ ACCEPT REQUEST"
                       : "CONNECT WITH RIDER"}

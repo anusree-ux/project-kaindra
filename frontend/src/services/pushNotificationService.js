@@ -53,14 +53,26 @@ export function isStandalone() {
 }
 
 /**
- * Register public/sw.js service worker
+ * Register /sw.js - forces update check on every call.
+ * If the browser has an older SW cached, this triggers install+activate of the new one.
  */
 export async function registerServiceWorker() {
   if (!isPushSupported()) return null;
   try {
-    const registration = await navigator.serviceWorker.register("/sw.js", {
-      scope: "/",
-    });
+    // Try to update existing registration first
+    const existing = await navigator.serviceWorker.getRegistration("/");
+    if (existing) {
+      try {
+        await existing.update();
+        console.log("[WebPush] SW update triggered");
+      } catch (e) {
+        // non-fatal
+      }
+      return existing;
+    }
+    // Fresh register
+    const registration = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+    console.log("[WebPush] SW registered fresh, state:", registration.installing?.state || registration.active?.state);
     return registration;
   } catch (error) {
     console.warn("[WebPush] Service Worker registration failed:", error);
@@ -98,12 +110,9 @@ export async function subscribeUserToPush() {
   }
 
   try {
-    // 2. Ensure Service Worker is active
-    let registration = await navigator.serviceWorker.getRegistration("/");
-    if (!registration) {
-      registration = await registerServiceWorker();
-    }
-    await navigator.serviceWorker.ready;
+    // 2. Ensure Service Worker is registered & active
+    await registerServiceWorker();
+    const registration = await navigator.serviceWorker.ready;
 
     // 3. Fetch VAPID public key from backend
     const keyRes = await apiClient.get("/api/core/notifications/push/public-key");
@@ -113,20 +122,72 @@ export async function subscribeUserToPush() {
       throw new Error("Push server public key not available");
     }
 
-    // 4. Subscribe with PushManager
     const applicationServerKey = urlBase64ToUint8Array(publicKey);
-    const subscription = await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey,
-    });
 
-    // 5. Send subscription JSON to backend (never stored in localStorage)
+    // 4. Subscribe with PushManager (handle existing key mismatches cleanly)
+    let subscription = await registration.pushManager.getSubscription();
+    if (subscription) {
+      const existingKeyBuf = subscription.options?.applicationServerKey;
+      let isSameKey = false;
+      if (existingKeyBuf) {
+        const existingArr = new Uint8Array(existingKeyBuf);
+        if (existingArr.length === applicationServerKey.length) {
+          isSameKey = existingArr.every((val, idx) => val === applicationServerKey[idx]);
+        }
+      }
+
+      if (isSameKey) {
+        try {
+          const subJson = subscription.toJSON();
+          if (subJson && subJson.endpoint && subJson.keys) {
+            // Upsert valid existing subscription to backend
+            await apiClient.post("/api/core/notifications/push/subscriptions", {
+              endpoint: subJson.endpoint,
+              keys: subJson.keys,
+            });
+            return { success: true, permission: "granted", subscription };
+          }
+        } catch {
+          try {
+            await subscription.unsubscribe();
+            subscription = null;
+          } catch {}
+        }
+      } else {
+        console.log("[WebPush] Existing subscription key mismatch detected. Auto-unsubscribing old key...");
+        try {
+          await subscription.unsubscribe();
+        } catch {}
+        subscription = null;
+      }
+    }
+
+    try {
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey,
+      });
+    } catch (subErr) {
+      // If error is key mismatch ("A subscription with a different applicationServerKey already exists")
+      console.warn("[WebPush] Subscribe retry after unsubscribing old subscription:", subErr.message);
+      const existing = await registration.pushManager.getSubscription();
+      if (existing) {
+        await existing.unsubscribe().catch(() => {});
+      }
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey,
+      });
+    }
+
+    // 5. Send subscription JSON to backend
     const subJson = subscription.toJSON();
     await apiClient.post("/api/core/notifications/push/subscriptions", {
       endpoint: subJson.endpoint,
       keys: subJson.keys,
     });
 
+    console.log("[WebPush] Successfully subscribed and registered with backend");
     return { success: true, permission: "granted", subscription };
   } catch (error) {
     console.error("[WebPush] Subscription error:", error);
@@ -175,16 +236,8 @@ export async function syncExistingSubscriptionOnLogin() {
   }
 
   try {
-    const subscription = await getCurrentPushSubscription();
-    if (subscription) {
-      const subJson = subscription.toJSON();
-      await apiClient.post("/api/core/notifications/push/subscriptions", {
-        endpoint: subJson.endpoint,
-        keys: subJson.keys,
-      });
-    }
+    await subscribeUserToPush();
   } catch (err) {
-    // Non-blocking sync failure
     console.warn("[WebPush] Login subscription sync error:", err.message);
   }
 }

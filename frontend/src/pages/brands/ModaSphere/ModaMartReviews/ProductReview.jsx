@@ -7,10 +7,15 @@ import {
   Star,
   Trash2,
   X,
+  Loader2,
 } from "lucide-react";
+import apiClient from "../../../../services/apiClient";
+import { useAuth } from "../../../../context/AuthContext";
 import "./ProductReview.css";
 
 function ProductReview({ productId, productName }) {
+  const { isAuthenticated, openAuthModal } = useAuth();
+  const [submitting, setSubmitting] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
@@ -140,59 +145,72 @@ function ProductReview({ productId, productName }) {
     setIsOpen(false);
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     if (rating === 0) {
-      setMessage(
-        "Please select a star rating."
-      );
+      setMessage("Please select a star rating.");
       return;
     }
 
     if (!reviewText.trim()) {
-      setMessage(
-        "Please write your review before submitting."
-      );
+      setMessage("Please write your review before submitting.");
       return;
     }
 
-    /*
-      FRONTEND ONLY.
-
-      Later your backend teammate can replace this section
-      with the actual review API request.
-
-      Example data that would be sent:
-      {
-        productId,
-        rating,
-        reviewText,
-        images
+    if (!isAuthenticated) {
+      setMessage("Please sign in to submit a review.");
+      if (typeof openAuthModal === "function") {
+        openAuthModal();
       }
-    */
+      return;
+    }
 
-    setSubmittedReview({
-      productId,
-      rating,
-      text: reviewText.trim(),
-      images: images.map(
-        (image) => image.preview
-      ),
-    });
-
+    setSubmitting(true);
     setMessage("");
 
-    /*
-      Don't revoke image URLs here because they are being
-      displayed in the submitted-review preview below.
-    */
+    try {
+      const formData = new FormData();
+      formData.append("rating", rating);
+      formData.append("comment", reviewText.trim());
 
-    setRating(0);
-    setHoverRating(0);
-    setReviewText("");
-    setImages([]);
-    setIsOpen(false);
+      images.forEach((img) => {
+        if (img.file) {
+          formData.append("images", img.file);
+        }
+      });
+
+      const res = await apiClient.post(`/api/modasphere/products/${productId}/reviews`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      const reviewData = res.data?.data?.review || res.data?.review;
+      const reviewImages =
+        reviewData?.images?.map((img) => (typeof img === "object" ? img.url : img)) ||
+        images.map((image) => image.preview);
+
+      setSubmittedReview({
+        productId,
+        rating: reviewData?.rating || rating,
+        text: reviewData?.comment || reviewText.trim(),
+        images: reviewImages,
+      });
+
+      setMessage("");
+      setRating(0);
+      setHoverRating(0);
+      setReviewText("");
+      setImages([]);
+      setIsOpen(false);
+    } catch (err) {
+      const errMsg =
+        err.response?.data?.message ||
+        err.message ||
+        "Failed to submit review. Please try again.";
+      setMessage(errMsg);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const ratingText = {
@@ -500,9 +518,19 @@ function ProductReview({ productId, productName }) {
             <button
               type="submit"
               className="review-submit-button"
+              disabled={submitting}
             >
-              <Send size={16} />
-              Submit Review
+              {submitting ? (
+                <>
+                  <Loader2 size={16} className="spin" style={{ animation: "spin 1s linear infinite" }} />
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  <Send size={16} />
+                  Submit Review
+                </>
+              )}
             </button>
 
           </div>

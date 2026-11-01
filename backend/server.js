@@ -3,10 +3,10 @@ const dns = require("dns");
 // Fix Node.js SRV DNS resolution for MongoDB Atlas
 dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
+const env = require("./src/config/environment");
 const http = require("http");
 const { Server } = require("socket.io");
 const app = require("./src/app");
-const env = require("./src/config/environment");
 const {
   initLocationSocketService,
 } = require("./src/services/mototribe/locationSocketService");

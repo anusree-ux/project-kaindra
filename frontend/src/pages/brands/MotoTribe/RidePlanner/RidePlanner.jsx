@@ -281,26 +281,23 @@ function RidePlanner() {
     const loadInitialData = async () => {
       try {
         /*
-         * Fuel price
+         * Fuel price - use recent community submissions for a petrol average
+         * The state-specific endpoint requires ?state=X&fuelType=Y which we
+         * don't have at this point, so use submissions instead.
          */
-        const fuelRes =
-          await apiClient
-            .get(
-              "/api/mototribe/fuel-prices"
-            )
-            .catch(() => null);
+        const fuelRes = await apiClient
+          .get("/api/mototribe/fuel-prices/submissions")
+          .catch(() => null);
 
-        if (
-          !cancelled &&
-          fuelRes?.data?.data?.fuelPrice
-            ?.pricePerLiter
-        ) {
-          setFuelPrice(
-            Number(
-              fuelRes.data.data.fuelPrice
-                .pricePerLiter
-            )
-          );
+        if (!cancelled && fuelRes?.data?.data?.submissions?.length > 0) {
+          const petrolPrices = fuelRes.data.data.submissions
+            .filter((s) => s.fuelType === "petrol" && s.pricePerLiter > 0)
+            .map((s) => s.pricePerLiter);
+          if (petrolPrices.length > 0) {
+            const avg =
+              petrolPrices.reduce((a, b) => a + b, 0) / petrolPrices.length;
+            setFuelPrice(Math.round(avg));
+          }
         }
 
         /*

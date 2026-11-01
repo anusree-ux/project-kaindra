@@ -1,8 +1,10 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
 import { useAuth } from "./AuthContext";
 import apiClient from "../services/apiClient";
-
-import { subscribeUserToPush } from "../services/pushNotificationService";
+import {
+  subscribeUserToPush,
+  syncExistingSubscriptionOnLogin,
+} from "../services/pushNotificationService";
 
 const NotificationContext = createContext(null);
 
@@ -63,7 +65,7 @@ export function NotificationProvider({ children }) {
     }
   }, [isAuthenticated]);
 
-  // Listen for Service Worker postMessage events when page is visible and focused
+  // Listen for Service Worker postMessage events to refresh notifications list
   useEffect(() => {
     if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
 
@@ -78,6 +80,15 @@ export function NotificationProvider({ children }) {
       navigator.serviceWorker.removeEventListener("message", handleServiceWorkerMessage);
     };
   }, [fetchNotifications]);
+
+  // Auto-sync push subscription if permission was already granted
+  useEffect(() => {
+    if (isAuthenticated && typeof window !== "undefined" && "Notification" in window) {
+      if (Notification.permission === "granted") {
+        syncExistingSubscriptionOnLogin();
+      }
+    }
+  }, [isAuthenticated]);
 
   // Initial fetch and 5-second real-time polling interval
   useEffect(() => {

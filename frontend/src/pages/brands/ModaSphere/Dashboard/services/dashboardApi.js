@@ -205,3 +205,9 @@ export const updateManufacturerProfile = async (data) => {
   return res.data?.data?.manufacturer || res.data?.manufacturer;
 };
 
+// --- Seller Reviews ---
+export const getSellerReviews = async () => {
+  const res = await apiClient.get("/api/modasphere/reviews/seller");
+  return res.data?.data?.reviews || res.data?.reviews || [];
+};
+

@@ -6,6 +6,8 @@ let isConfigured = false;
 let hasLoggedWarning = false;
 
 const initVapid = () => {
+  if (isConfigured) return true;
+
   const publicKey = process.env.VAPID_PUBLIC_KEY;
   const privateKey = process.env.VAPID_PRIVATE_KEY;
   const subject = process.env.VAPID_SUBJECT;
@@ -20,12 +22,14 @@ const initVapid = () => {
     try {
       webpush.setVapidDetails(subject, publicKey, privateKey);
       isConfigured = true;
+      return true;
     } catch (err) {
       if (!hasLoggedWarning) {
         console.warn("[WebPush] Failed to initialize VAPID:", err.message);
         hasLoggedWarning = true;
       }
       isConfigured = false;
+      return false;
     }
   } else {
     if (!hasLoggedWarning) {
@@ -35,15 +39,20 @@ const initVapid = () => {
       hasLoggedWarning = true;
     }
     isConfigured = false;
+    return false;
   }
 };
 
 // Initialize on module load
 initVapid();
 
-const isPushConfigured = () => isConfigured;
+const isPushConfigured = () => {
+  if (!isConfigured) initVapid();
+  return isConfigured;
+};
 
 const getVapidPublicKey = () => {
+  if (!isConfigured) initVapid();
   if (!isConfigured) return null;
   return process.env.VAPID_PUBLIC_KEY || null;
 };
@@ -51,12 +60,19 @@ const getVapidPublicKey = () => {
 // Allowlisted push provider hosts (Chrome, Firefox, Safari, Edge/WNS)
 const ALLOWED_PUSH_HOSTS = [
   "fcm.googleapis.com",
+  "android.googleapis.com",
   "updates.push.services.mozilla.com",
+  "push.services.mozilla.com",
 ];
 
 const ALLOWED_PUSH_DOMAINS = [
   ".push.apple.com",
   ".notify.windows.com",
+  ".wns.windows.com",
+  ".notify.live.net",
+  ".push.services.mozilla.com",
+  ".mozilla-push.org",
+  ".googleapis.com",
 ];
 
 /**
@@ -150,6 +166,9 @@ const sendPushToUser = async (userId, { type, title, body, url, tag } = {}) => {
 
   // 2. Check VAPID configuration
   if (!isConfigured) {
+    initVapid();
+  }
+  if (!isConfigured) {
     return { sent: 0, removed: 0, failed: 0 };
   }
 
@@ -195,7 +214,7 @@ const sendPushToUser = async (userId, { type, title, body, url, tag } = {}) => {
 
     const pushOptions = {
       TTL: 3600, // 1 hour
-      urgency: "normal",
+      urgency: "high",
     };
 
     let sent = 0;
