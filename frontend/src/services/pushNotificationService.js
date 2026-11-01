@@ -148,16 +148,12 @@ export async function subscribeUserToPush() {
             return { success: true, permission: "granted", subscription };
           }
         } catch {
-          try {
-            await subscription.unsubscribe();
-            subscription = null;
-          } catch {}
+          await subscription.unsubscribe().catch(() => {});
+          subscription = null;
         }
       } else {
         console.log("[WebPush] Existing subscription key mismatch detected. Auto-unsubscribing old key...");
-        try {
-          await subscription.unsubscribe();
-        } catch {}
+        await subscription.unsubscribe().catch(() => {});
         subscription = null;
       }
     }
