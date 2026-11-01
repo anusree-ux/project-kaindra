@@ -28,8 +28,8 @@ curl -fsSL \
   -o "$APP_DIR/docker-compose.yml"
 
 curl -fsSL \
-  "$RAW_BASE_URL/docker/nginx/default.conf" \
-  -o "$NGINX_DIR/default.conf"
+  "$RAW_BASE_URL/docker/Caddyfile" \
+  -o "$APP_DIR/Caddyfile"
 
 echo "Deployment files downloaded."
 

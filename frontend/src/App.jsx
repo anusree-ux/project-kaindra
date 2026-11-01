@@ -218,9 +218,13 @@ function App() {
           ========================= */}
 
           <Route
-  path="/"
-  element={<Navigate to="/businesses/modamart/shop" replace />}
-/>
+            path="/"
+            element={
+              <PublicLayout>
+                <Home />
+              </PublicLayout>
+            }
+          />
 
           <Route
             path="/about"
