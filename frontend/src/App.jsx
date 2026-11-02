@@ -19,6 +19,7 @@ import Communities from "./pages/Communities";
 import Contact from "./pages/Contact";
 import Careers from "./pages/Careers";
 import News from "./pages/News";
+import NewsArticle from "./pages/NewsArticle";
 
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -86,6 +87,7 @@ import ModaInsights from "./pages/ModaInsights";
 import AdminLogin from "./pages/admin/AdminLogin";
 import ProtectedAdminRoute from "./pages/admin/ProtectedAdminRoute";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminNews from "./pages/admin/news/AdminNews";
 import AdminCareers from "./pages/admin/careers/AdminCareers";
 import AdminDiscountCodes from "./pages/admin/discount-codes/AdminDiscountCodes";
 import AdminApplications from "./pages/admin/applications/AdminApplications";
@@ -581,6 +583,14 @@ function App() {
               </PublicLayout>
             }
           />
+          <Route
+            path="/news/:id"
+            element={
+              <PublicLayout>
+                <NewsArticle />
+              </PublicLayout>
+            }
+          />
 
           {/* =========================
               AUTH PAGES
@@ -645,6 +655,14 @@ function App() {
             element={
               <ProtectedAdminRoute>
                 <AdminDiscountCodes />
+              </ProtectedAdminRoute>
+            }
+          />
+          <Route
+            path="/admin/news"
+            element={
+              <ProtectedAdminRoute>
+                <AdminNews />
               </ProtectedAdminRoute>
             }
           />

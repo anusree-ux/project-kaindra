@@ -11,6 +11,7 @@ import {
   GraduationCap,
   LogOut,
   Megaphone,
+  Newspaper,
   BarChart3,
   TrendingUp,
   Tag,
@@ -24,6 +25,9 @@ function AdminDashboard() {
 
   const handleLogout = () => {
     sessionStorage.removeItem("kaindraAdminAuthenticated");
+    sessionStorage.removeItem("kaindraAdminAccessToken");
+    sessionStorage.removeItem("kaindraAdminUser");
+    localStorage.removeItem("token");
     navigate("/admin-login", {
       replace: true,
     });
@@ -38,6 +42,7 @@ function AdminDashboard() {
   });
   const [academyEnrollmentCount, setAcademyEnrollmentCount] = useState(0);
   const [activeDiscountCodeCount, setActiveDiscountCodeCount] = useState(0);
+  const [newsPostCount, setNewsPostCount] = useState(null);
 
   useEffect(() => {
     const loadAcademyEnrollmentCount = async () => {
@@ -81,16 +86,53 @@ function AdminDashboard() {
   }, []);
 
   useEffect(() => {
-    fetch(`${API_BASE}/api/admin/stats`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.status === "success" && data.data) {
-          setStatsData(data.data);
+    const token =
+      sessionStorage.getItem("kaindraAdminAccessToken") ||
+      localStorage.getItem("token");
+
+    fetch(`${API_BASE}/api/admin/stats`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok || data.status !== "success") {
+          throw new Error(data.message || "Failed to load dashboard statistics.");
         }
+        if (data.data) setStatsData(data.data);
       })
       .catch((err) => {
         console.error("Error fetching admin stats:", err);
       });
+  }, []);
+
+  useEffect(() => {
+    const loadNewsPostCount = async () => {
+      const token =
+        sessionStorage.getItem("kaindraAdminAccessToken") ||
+        localStorage.getItem("token");
+
+      if (!token) {
+        console.error("Admin authentication is required to load News / Blogs count.");
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE}/api/news/admin/stats`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const result = await response.json();
+
+        if (!response.ok || result.status !== "success") {
+          throw new Error(result.message || "Failed to load news statistics.");
+        }
+
+        setNewsPostCount(result.data?.totalPosts ?? 0);
+      } catch (error) {
+        console.error("Error fetching News / Blogs count:", error);
+      }
+    };
+
+    loadNewsPostCount();
   }, []);
 
   useEffect(() => {
@@ -293,6 +335,12 @@ function AdminDashboard() {
       value: activeDiscountCodeCount,
       icon: Tag,
     },
+    {
+      title: "News / Blogs",
+      value: newsPostCount ?? "—",
+      icon: Newspaper,
+      to: "/admin/news",
+    },
   ];
 
   return (
@@ -336,12 +384,8 @@ function AdminDashboard() {
         <div className="admin-stats">
           {stats.map((stat) => {
             const Icon = stat.icon;
-
-            return (
-              <div
-                className="admin-stat-card"
-                key={stat.title}
-              >
+            const content = (
+              <>
                 <div className="admin-stat-icon">
                   <Icon size={22} />
                 </div>
@@ -350,6 +394,21 @@ function AdminDashboard() {
                   <span>{stat.title}</span>
                   <strong>{stat.value}</strong>
                 </div>
+              </>
+            );
+
+            return stat.to ? (
+              <Link
+                className="admin-stat-card admin-stat-card-link"
+                key={stat.title}
+                to={stat.to}
+                aria-label={`Manage ${stat.title}, ${stat.value} total posts`}
+              >
+                {content}
+              </Link>
+            ) : (
+              <div className="admin-stat-card" key={stat.title}>
+                {content}
               </div>
             );
           })}
