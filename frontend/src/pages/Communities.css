@@ -16,29 +16,50 @@
 /* HERO */
 
 .community-hero {
-  padding: 110px 0 100px;
-  background: #f7f7f7;
+  padding: 100px 0 90px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #ebebeb;
+}
+
+.community-hero-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
 }
 
 .community-label {
   display: inline-block;
-  margin-bottom: 22px;
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 2px;
-  color: #666666;
+  color: #4b5563;
+}
+
+.community-auth-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #e0f2fe;
+  color: #0369a1;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  border: 1px solid #bae6fd;
 }
 
 .community-hero h1 {
   margin: 0 0 28px;
-  font-size: clamp(42px, 7vw, 78px);
+  font-size: clamp(40px, 6.5vw, 72px);
   line-height: 1.05;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: -2px;
 }
 
 .community-hero h1 span {
-  color: #666666;
+  color: #6b7280;
 }
 
 .community-hero p {
@@ -46,65 +67,196 @@
   margin: 0 0 18px;
   font-size: 17px;
   line-height: 1.8;
-  color: #555555;
+  color: #4b5563;
+}
+
+.community-hero-ctas {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 28px;
+  flex-wrap: wrap;
 }
 
 .join-community-btn {
-  margin-top: 20px;
-  padding: 15px 28px;
+  padding: 14px 28px;
   border: none;
   background: #111111;
   color: #ffffff;
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
+  border-radius: 6px;
   transition: 0.25s ease;
 }
 
 .join-community-btn:hover {
-  background: #333333;
+  background: #2b2b2b;
   transform: translateY(-2px);
+}
+
+.member-portal-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 24px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  color: #111827;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: 0.2s ease;
+}
+
+.member-portal-btn:hover {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+  transform: translateY(-2px);
+}
+
+/* PILLARS SECTION */
+
+.community-pillars-section {
+  padding: 90px 0;
+  background: #ffffff;
+}
+
+.community-section-header {
+  text-align: center;
+  max-width: 650px;
+  margin: 0 auto 50px;
+}
+
+.community-section-header span {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #6b7280;
+}
+
+.community-section-header h2 {
+  font-size: 32px;
+  font-weight: 800;
+  color: #111827;
+  margin: 10px 0 12px;
+  letter-spacing: -0.02em;
+}
+
+.community-section-header p {
+  font-size: 16px;
+  color: #6b7280;
+  line-height: 1.6;
+}
+
+.community-pillars-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 28px;
+}
+
+.community-pillar-card {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 32px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.community-pillar-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+}
+
+.pillar-icon {
+  font-size: 30px;
+  margin-bottom: 16px;
+}
+
+.community-pillar-card h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 10px;
+}
+
+.community-pillar-card p {
+  font-size: 14px;
+  color: #6b7280;
+  line-height: 1.6;
+  margin: 0;
 }
 
 /* FORM SECTION */
 
 .community-form-section {
-  padding: 80px 20px;
-  background: #ffffff;
+  padding: 80px 20px 100px;
+  background: #f8f9fa;
   display: flex;
   justify-content: center;
+  border-top: 1px solid #ebebeb;
 }
 
 .community-form-card {
   width: 100%;
   max-width: 560px;
   padding: 45px;
-  border: 1px solid #e5e5e5;
+  border: 1px solid #e5e7eb;
   background: #ffffff;
-  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.06);
 }
 
 .community-form-header {
-  margin-bottom: 30px;
+  margin-bottom: 24px;
 }
 
 .community-form-header span {
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 2px;
-  color: #777777;
+  color: #6b7280;
 }
 
 .community-form-header h2 {
   margin: 10px 0 12px;
-  font-size: 32px;
+  font-size: 28px;
+  font-weight: 800;
+  color: #111827;
   line-height: 1.2;
 }
 
 .community-form-header p {
   margin: 0;
-  color: #666666;
+  color: #6b7280;
   line-height: 1.6;
+  font-size: 14px;
+}
+
+.community-login-hint-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 22px;
+  font-size: 13px;
+}
+
+.community-login-link-btn {
+  background: none;
+  border: none;
+  color: #15803d;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  font-size: 13px;
 }
 
 /* INPUTS */
@@ -116,40 +268,47 @@
 .community-form-group label {
   display: block;
   margin-bottom: 8px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
+  color: #374151;
 }
 
 .community-form-group input {
   width: 100%;
-  padding: 14px 15px;
-  border: 1px solid #d8d8d8;
+  padding: 12px 14px;
+  border: 1px solid #d1d5db;
   outline: none;
   background: #ffffff;
-  font-size: 15px;
+  font-size: 14px;
+  border-radius: 6px;
   transition: border-color 0.2s ease;
 }
 
 .community-form-group input:focus {
   border-color: #111111;
+  box-shadow: 0 0 0 2px rgba(17, 17, 17, 0.1);
 }
 
 .community-form-group input::placeholder {
-  color: #999999;
+  color: #9ca3af;
 }
 
 /* BUTTONS */
 
 .community-submit-btn {
   width: 100%;
-  padding: 15px;
+  padding: 14px;
   border: none;
   background: #111111;
   color: #ffffff;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: 0.25s ease;
+  border-radius: 6px;
+  transition: 0.2s ease;
+  display: inline-block;
+  text-align: center;
+  text-decoration: none;
 }
 
 .community-submit-btn:hover {
@@ -159,69 +318,114 @@
 .community-close-btn {
   width: 100%;
   margin-top: 12px;
-  padding: 14px;
-  border: 1px solid #dddddd;
+  padding: 12px;
+  border: 1px solid #d1d5db;
   background: #ffffff;
-  color: #111111;
-  font-size: 15px;
-  font-weight: 600;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
-  transition: 0.25s ease;
+  border-radius: 6px;
+  transition: 0.2s ease;
 }
 
 .community-close-btn:hover {
-  background: #f5f5f5;
+  background: #f9fafb;
+}
+
+/* ACTIVE MEMBER CARD */
+
+.community-member-status-card {
+  text-align: center;
+  padding: 15px 0;
+}
+
+.member-status-icon-badge {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  background: #ecfdf5;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.member-status-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #059669;
+  background: #d1fae5;
+  padding: 4px 10px;
+  border-radius: 4px;
+  margin-bottom: 12px;
+}
+
+.community-member-status-card h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 10px;
+}
+
+.community-member-status-card p {
+  font-size: 14px;
+  color: #6b7280;
+  line-height: 1.6;
+  margin: 0 0 24px;
 }
 
 /* SUCCESS */
 
 .community-success {
   text-align: center;
-  padding: 25px 10px;
+  padding: 20px 0;
 }
 
 .success-icon {
-  width: 60px;
-  height: 60px;
-  margin: 0 auto 20px;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 18px;
   border-radius: 50%;
   background: #111111;
   color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28px;
+  font-size: 26px;
 }
 
 .community-success h2 {
-  margin: 0 0 12px;
-  font-size: 30px;
+  margin: 0 0 10px;
+  font-size: 26px;
+  font-weight: 700;
 }
 
 .community-success p {
-  margin: 0 0 25px;
-  color: #666666;
+  margin: 0 0 24px;
+  color: #6b7280;
   line-height: 1.6;
+  font-size: 14px;
 }
 
 /* RESPONSIVE */
 
 @media (max-width: 700px) {
   .community-hero {
-    padding: 75px 0 70px;
+    padding: 70px 0 60px;
   }
 
-  .community-container {
-    width: min(100% - 30px, 1100px);
+  .community-hero-ctas {
+    flex-direction: column;
+    align-items: stretch;
   }
 
-  .community-hero h1 {
-    font-size: 46px;
-    letter-spacing: -1px;
-  }
-
-  .community-hero p {
-    font-size: 16px;
+  .community-hero-ctas button,
+  .community-hero-ctas a {
+    width: 100%;
+    justify-content: center;
   }
 
   .community-form-section {
@@ -229,20 +433,6 @@
   }
 
   .community-form-card {
-    padding: 30px 22px;
-  }
-
-  .community-form-header h2 {
-    font-size: 27px;
-  }
-}
-
-@media (max-width: 450px) {
-  .community-hero h1 {
-    font-size: 38px;
-  }
-
-  .join-community-btn {
-    width: 100%;
+    padding: 30px 20px;
   }
 }

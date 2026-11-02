@@ -23,6 +23,7 @@ const notificationRoutes = require("./routes/core/notificationRoutes");
 const careerRoutes = require("./routes/core/careerRoutes");
 const applicationRoutes = require("./routes/core/applicationRoutes");
 const communityRoutes = require("./routes/core/communityRoutes");
+const communityAuthRoutes = require("./routes/core/communityAuthRoutes");
 const adminRoutes = require("./routes/core/adminRoutes");
 const newsPostRoutes = require("./routes/core/newsPostRoutes");
 const talesRoutes = require("./routes/modasphere/talesRoutes");
@@ -121,6 +122,9 @@ app.use("/api/careers", careerRoutes);
 
 app.use("/api/v1/applications", applicationRoutes);
 app.use("/api/applications", applicationRoutes);
+
+app.use("/api/v1/community/auth", communityAuthRoutes);
+app.use("/api/community/auth", communityAuthRoutes);
 
 app.use("/api/v1/community", communityRoutes);
 app.use("/api/community", communityRoutes);

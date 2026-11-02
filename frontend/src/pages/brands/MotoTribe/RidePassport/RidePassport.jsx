@@ -1,5 +1,8 @@
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Download } from "lucide-react";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 import { useAuth } from "../../../../context/AuthContext";
 import apiClient from "../../../../services/apiClient";
 import "./RidePassport.css";
@@ -10,6 +13,76 @@ function RidePassport() {
   const [passportData, setPassportData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [selectedKey, setSelectedKey] = useState(null);
+  const [downloadingPDF, setDownloadingPDF] = useState(false);
+
+  const passportGridRef = useRef(null);
+
+  const handleDownloadPDF = async () => {
+    if (!passportGridRef.current) return;
+    setDownloadingPDF(true);
+
+    try {
+      const element = passportGridRef.current;
+
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#08090a",
+        logging: false,
+        onclone: (clonedDoc) => {
+          // Hide interactive download buttons inside the captured PDF
+          const buttons = clonedDoc.querySelectorAll(".passport-pdf-btn, .passport-header-pdf-btn");
+          buttons.forEach((btn) => {
+            btn.style.display = "none";
+          });
+        },
+      });
+
+      const imgData = canvas.toDataURL("image/jpeg", 0.95);
+      const pdf = new jsPDF({
+        orientation: "landscape",
+        unit: "mm",
+        format: "a4",
+      });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+
+      const margin = 12;
+      const maxW = pdfWidth - margin * 2;
+      const maxH = pdfHeight - margin * 2;
+
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      const ratio = Math.min(maxW / imgWidth, maxH / imgHeight);
+
+      const printWidth = imgWidth * ratio;
+      const printHeight = imgHeight * ratio;
+
+      const posX = (pdfWidth - printWidth) / 2;
+      const posY = (pdfHeight - printHeight) / 2;
+
+      // Fill elegant dark luxury background
+      pdf.setFillColor(8, 9, 10);
+      pdf.rect(0, 0, pdfWidth, pdfHeight, "F");
+
+      // Draw subtle gold decorative border
+      pdf.setDrawColor(214, 168, 79);
+      pdf.setLineWidth(0.4);
+      pdf.rect(margin / 2, margin / 2, pdfWidth - margin, pdfHeight - margin);
+
+      pdf.addImage(imgData, "JPEG", posX, posY, printWidth, printHeight);
+
+      const riderName = (user?.name || "Rider").trim().replace(/[^a-zA-Z0-9_-]/g, "_");
+      pdf.save(`MotoTribe-Credential-${riderName}.pdf`);
+    } catch (err) {
+      console.error("[RidePassport] Failed to generate PDF:", err);
+      // Fallback
+      window.print();
+    } finally {
+      setDownloadingPDF(false);
+    }
+  };
 
   const fetchPassport = useCallback(async () => {
     if (!isAuthenticated) {
@@ -161,11 +234,21 @@ function RidePassport() {
               Your verified motorcycle ride passport and earned milestone
               achievement seals, synced directly with your rider profile.
             </p>
+            <button
+              type="button"
+              className="passport-header-pdf-btn"
+              onClick={handleDownloadPDF}
+              disabled={downloadingPDF}
+              title="Download your official verified credential as a PDF"
+            >
+              <Download size={14} />
+              <span>{downloadingPDF ? "Generating PDF..." : "Download Credential (PDF)"}</span>
+            </button>
           </div>
         </header>
 
         {/* TOP CREDENTIALS GRID */}
-        <div className="passport-grid">
+        <div className="passport-grid" ref={passportGridRef}>
           {/* PASSPORT CARD */}
           <div className="passport-card">
             <div className="passport-card-header">
@@ -176,9 +259,21 @@ function RidePassport() {
                 </span>
               </div>
 
-              <span className="passport-id">
-                MT-2026-{(user?._id || "F3A40C").slice(-6).toUpperCase()}
-              </span>
+              <div className="passport-card-actions">
+                <span className="passport-id">
+                  MT-2026-{(user?._id || "F3A40C").slice(-6).toUpperCase()}
+                </span>
+                <button
+                  type="button"
+                  className="passport-pdf-btn"
+                  onClick={handleDownloadPDF}
+                  disabled={downloadingPDF}
+                  title="Download Verified Credential PDF"
+                >
+                  <Download size={12} />
+                  <span>{downloadingPDF ? "Exporting..." : "PDF"}</span>
+                </button>
+              </div>
             </div>
 
             {/* RIDER HERO */}

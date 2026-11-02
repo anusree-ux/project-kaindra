@@ -5,6 +5,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { InfluenceProfilesProvider } from "./context/InfluenceProfilesContext";
 import { CartProvider } from "./context/CartContext";
 import { NotificationProvider } from "./context/NotificationContext";
+import { CommunityAuthProvider } from "./context/CommunityAuthContext";
 
 import Navbar from "./components/Navbar/Navbar";
 import ModaNavbar from "./pages/brands/ModaSphere/ModaNavbar/ModaNavbar";
@@ -16,6 +17,9 @@ import About from "./pages/About";
 import Businesses from "./pages/Businesses";
 import BusinessDetail from "./pages/BusinessDetail";
 import Communities from "./pages/Communities";
+import CommunityLogin from "./pages/communities/CommunityLogin";
+import CommunitySignup from "./pages/communities/CommunitySignup";
+import CommunityProfileSetup from "./pages/communities/CommunityProfileSetup";
 import Contact from "./pages/Contact";
 import Careers from "./pages/Careers";
 import News from "./pages/News";
@@ -31,7 +35,9 @@ import Ecosystem from "./pages/brands/ModaSphere/Ecosystem/Ecosystem";
 // =========================
 // MODASPHERE DASHBOARD
 // =========================
-import RequireAuth from "./pages/brands/ModaSphere/Dashboard/guards/RequireAuth";
+import ModaRequireAuth from "./pages/brands/ModaSphere/Dashboard/guards/RequireAuth";
+import RequireAuth from "./components/RequireAuth/RequireAuth";
+import CommunityMemberHub from "./pages/CommunityMemberHub";
 import DashboardLayout from "./pages/brands/ModaSphere/Dashboard/DashboardLayout";
 
 import DashboardLogin from "./pages/brands/ModaSphere/Dashboard/auth/DashboardLogin";
@@ -203,9 +209,10 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <InfluenceProfilesProvider>
-          <CartProvider>
-            <NotificationProvider>
+        <CommunityAuthProvider>
+          <InfluenceProfilesProvider>
+            <CartProvider>
+              <NotificationProvider>
             <AuthModal />
             <GlobalIncomingCall />
             <PushPromptBanner />
@@ -558,6 +565,47 @@ function App() {
           />
 
           <Route
+            path="/communities/login"
+            element={<CommunityLogin />}
+          />
+
+          <Route
+            path="/businesses/mototribe/community/login"
+            element={<CommunityLogin />}
+          />
+
+          <Route
+            path="/communities/signup"
+            element={<CommunitySignup />}
+          />
+
+          <Route
+            path="/businesses/mototribe/community/signup"
+            element={<CommunitySignup />}
+          />
+
+          <Route
+            path="/communities/profile-setup"
+            element={<CommunityProfileSetup />}
+          />
+
+          <Route
+            path="/businesses/mototribe/community/profile-setup"
+            element={<CommunityProfileSetup />}
+          />
+
+          <Route
+            path="/communities/member-hub"
+            element={
+              <PublicLayout>
+                <RequireAuth message="Please sign in to access member-only community discussions and drops.">
+                  <CommunityMemberHub />
+                </RequireAuth>
+              </PublicLayout>
+            }
+          />
+
+          <Route
             path="/contact"
             element={
               <PublicLayout>
@@ -758,9 +806,9 @@ function App() {
 <Route
   path="/businesses/modasphere/dashboard/profile-setup"
   element={
-    <RequireAuth>
+    <ModaRequireAuth>
       <ModaProfileSetup />
-    </RequireAuth>
+    </ModaRequireAuth>
   }
 />
 
@@ -769,9 +817,9 @@ function App() {
 <Route
   path="/businesses/modasphere/dashboard"
   element={
-    <RequireAuth>
+    <ModaRequireAuth>
       <DashboardLayout />
-    </RequireAuth>
+    </ModaRequireAuth>
   }
 >
   {/* Overview */}
@@ -939,9 +987,10 @@ function App() {
             }
           />
         </Routes>
-            </NotificationProvider>
-          </CartProvider>
-        </InfluenceProfilesProvider>
+              </NotificationProvider>
+            </CartProvider>
+          </InfluenceProfilesProvider>
+        </CommunityAuthProvider>
       </AuthProvider>
     </BrowserRouter>
   );
