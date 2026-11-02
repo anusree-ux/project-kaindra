@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import GoogleAuthButton from "../components/GoogleAuthButton/GoogleAuthButton";
+import { getAndClearReturnToPath } from "../utils/authReturnTo";
 
 function Signup() {
   const navigate = useNavigate();
@@ -51,7 +52,10 @@ function Signup() {
         <GoogleAuthButton
           theme="light"
           buttonText="Sign up with Google"
-          onSuccess={() => navigate("/")}
+          onSuccess={() => {
+            const returnPath = getAndClearReturnToPath();
+            navigate(returnPath || "/");
+          }}
           onError={(err) => setError(err)}
         />
 

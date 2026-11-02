@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../../context/AuthContext";
 import GoogleAuthButton from "../../../../components/GoogleAuthButton/GoogleAuthButton";
+import { getAndClearReturnToPath } from "../../../../utils/authReturnTo";
 import "./AuthModal.css";
 
 export default function AuthModal() {
@@ -70,6 +71,11 @@ export default function AuthModal() {
             buttonText={authModalTab === "login" ? "Continue with Google" : "Continue with Google"}
             onSuccess={(user, meta) => {
               closeAuthModal();
+              const returnPath = getAndClearReturnToPath();
+              if (returnPath) {
+                navigate(returnPath);
+                return;
+              }
               const isMotoTribe = window.location.pathname.includes("/businesses/mototribe");
               if (meta?.isNewUser || authModalTab === "signup" || (isMotoTribe && !user?.brands?.includes("mototribe"))) {
                 navigate("/businesses/mototribe/profile-setup");
@@ -80,6 +86,27 @@ export default function AuthModal() {
 
           <div style={{ marginTop: "24px", color: "#6b7280", fontSize: "12px" }}>
             Fast, secure access to your account
+          </div>
+
+          <div style={{ marginTop: "14px", paddingTop: "14px", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+            <button
+              type="button"
+              onClick={() => {
+                closeAuthModal();
+                navigate("/communities/login");
+              }}
+              style={{
+                background: "none",
+                border: "none",
+                color: "#d6a84f",
+                fontSize: "13px",
+                fontWeight: "600",
+                cursor: "pointer",
+                textDecoration: "underline",
+              }}
+            >
+              Looking for Community Login? Click here &rarr;
+            </button>
           </div>
         </div>
       </div>

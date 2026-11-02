@@ -1089,3 +1089,95 @@
     padding: 28px 20px;
   }
 }
+
+/* =========================================================
+   PDF DOWNLOAD ACTIONS
+   ========================================================= */
+
+.passport-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.passport-pdf-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(214, 168, 79, 0.12);
+  color: #d6a84f;
+  border: 1px solid rgba(214, 168, 79, 0.35);
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.passport-pdf-btn:hover {
+  background: #d6a84f;
+  color: #08090a;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(214, 168, 79, 0.3);
+}
+
+.passport-pdf-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.passport-header-pdf-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  background: linear-gradient(135deg, #d6a84f 0%, #b88628 100%);
+  color: #08090a;
+  border: none;
+  border-radius: 6px;
+  padding: 9px 18px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(214, 168, 79, 0.2);
+  font-family: inherit;
+}
+
+.passport-header-pdf-btn:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(214, 168, 79, 0.35);
+}
+
+.passport-header-pdf-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .passport-grid,
+  .passport-grid * {
+    visibility: visible;
+  }
+  .passport-grid {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background: #08090a !important;
+  }
+  .passport-pdf-btn,
+  .passport-header-pdf-btn {
+    display: none !important;
+  }
+}

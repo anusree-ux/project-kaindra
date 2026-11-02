@@ -16,6 +16,8 @@
     "agora-rtc-sdk-ng": "^4.24.9",
     "axios": "^1.7.9",
     "dompurify": "^3.4.17",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.2.1",
     "lucide-react": "^0.475.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
