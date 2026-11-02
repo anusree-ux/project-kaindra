@@ -437,6 +437,31 @@ function AdminDashboard() {
           <div className="admin-management-grid">
 
             {/* ================================
+                NEWS / BLOGS
+            ================================= */}
+            <div className="admin-management-card">
+              <div className="admin-card-icon">
+                <Newspaper size={24} />
+              </div>
+
+              <div className="admin-card-content">
+                <h3>News &amp; Blogs</h3>
+
+                <p>
+                  Create, edit, publish, and manage KAINDRA news and blog posts.
+                </p>
+
+                <Link
+                  to="/admin/news"
+                  className="admin-card-link"
+                >
+                  Manage News &amp; Blogs
+                  <ArrowRight size={18} />
+                </Link>
+              </div>
+            </div>
+
+            {/* ================================
                 CAREERS
             ================================= */}
             <div className="admin-management-card">
