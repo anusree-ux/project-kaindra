@@ -3,6 +3,7 @@
 import Gallery from "../sections/Gallery/Gallery";
 
 import Timeline from "../sections/Timeline/Timeline";
+import News from "../sections/News/News";
 import VisionMission from "./brands/ModaSphere/VisionMission/VisionMission";
 // ModaSphere sections
 
@@ -57,6 +58,7 @@ function Home() {
 
 
       <Timeline />
+      <News limit={3} />
       <Footer/>
     </>
   );
