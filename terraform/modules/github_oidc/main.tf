@@ -1,6 +1,6 @@
 locals {
   name           = "${var.project_name}-${var.environment}"
-  github_subject = var.github_environment != "" ? "repo:${var.github_repository}:environment:${var.github_environment}" : "repo:${var.github_repository}:ref:refs/heads/${var.github_branch}"
+  github_subject = var.github_environment != "" ? "repo:anusree-ux@186033794/project-kaindra@1355674241:environment:${var.github_environment}" : "repo:anusree-ux@186033794/project-kaindra@1355674241:ref:refs/heads/${var.github_branch}"
 
   tags = merge(var.tags, {
     Project     = var.project_name
