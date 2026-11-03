@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import {
   Play,
@@ -6,6 +7,7 @@ import {
   ArrowRight,
   CheckCircle2,
 } from "lucide-react";
+
 import "./ModaTales.css";
 import apiClient from "../services/apiClient";
 
@@ -33,6 +35,7 @@ function ModaTales() {
   const [approvedTales, setApprovedTales] = useState([]);
   const [loadingTales, setLoadingTales] = useState(true);
 
+  // Fetch approved stories
   useEffect(() => {
     const fetchApprovedTales = async () => {
       try {
@@ -41,7 +44,9 @@ function ModaTales() {
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(data.message || "Failed to fetch approved stories");
+          throw new Error(
+            data.message || "Failed to fetch approved stories"
+          );
         }
 
         setApprovedTales(data.tales || []);
@@ -55,8 +60,10 @@ function ModaTales() {
     fetchApprovedTales();
   }, []);
 
+  // Submit story
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
+
     const form = e.target;
     const formData = new FormData(form);
 
@@ -73,10 +80,11 @@ function ModaTales() {
       form.reset();
     } catch (error) {
       console.error("ModaTales submission error:", error);
+
       alert(
-          error.response?.data?.message ||
-            error.message ||
-            "Failed to submit story. Please try again."
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to submit story. Please try again."
       );
     }
   };
@@ -84,6 +92,7 @@ function ModaTales() {
   return (
     <div className="modatales-page">
 
+      {/* HERO SECTION */}
       <section className="modatales-hero">
         <div className="modatales-container">
           <span>CONTENT & MEDIA NETWORK</span>
@@ -102,7 +111,10 @@ function ModaTales() {
 
           <button
             className="modatales-primary-btn"
-            onClick={() => setShowForm(true)}
+            onClick={() => {
+              setSubmitted(false);
+              setShowForm(true);
+            }}
           >
             Share Your Story
             <ArrowRight size={17} />
@@ -110,12 +122,15 @@ function ModaTales() {
         </div>
       </section>
 
+      {/* EXPLORE SECTION */}
       <section className="modatales-section">
         <div className="modatales-container">
 
           <div className="modatales-heading">
             <span>EXPLORE MODATALES</span>
+
             <h2>Stories beyond the runway.</h2>
+
             <p>
               Discover the people, cultures and creative
               journeys shaping the future of fashion.
@@ -123,6 +138,7 @@ function ModaTales() {
           </div>
 
           <div className="modatales-grid">
+
             {stories.map((story) => {
               const Icon = story.icon;
 
@@ -141,7 +157,10 @@ function ModaTales() {
 
                   <button
                     type="button"
-                    onClick={() => setShowForm(true)}
+                    onClick={() => {
+                      setSubmitted(false);
+                      setShowForm(true);
+                    }}
                   >
                     Explore
                     <ArrowRight size={15} />
@@ -149,7 +168,8 @@ function ModaTales() {
                 </article>
               );
             })}
-            
+
+            {/* APPROVED STORIES */}
             {!loadingTales &&
               approvedTales.map((tale) => (
                 <article
@@ -161,22 +181,23 @@ function ModaTales() {
                   </div>
 
                   <h3>{tale.title}</h3>
-                  
+
                   <p>{tale.message}</p>
 
                   <small>{tale.storyType}</small>
 
                   <small>By {tale.name}</small>
-
                 </article>
               ))}
-          </div>
 
+          </div>
         </div>
       </section>
 
+      {/* FEATURE SECTION */}
       <section className="modatales-feature">
         <div className="modatales-container">
+
           <div>
             <span>THE MODATALES JOURNEY</span>
 
@@ -192,11 +213,14 @@ function ModaTales() {
             designers, artisans, communities, technology
             and new creative movements.
           </p>
+
         </div>
       </section>
 
+      {/* CTA SECTION */}
       <section className="modatales-cta">
         <div className="modatales-container">
+
           <span>CREATE WITH US</span>
 
           <h2>
@@ -207,14 +231,19 @@ function ModaTales() {
 
           <button
             className="modatales-primary-btn"
-            onClick={() => setShowForm(true)}
+            onClick={() => {
+              setSubmitted(false);
+              setShowForm(true);
+            }}
           >
             Submit Your Story
             <ArrowRight size={17} />
           </button>
+
         </div>
       </section>
 
+      {/* STORY SUBMISSION MODAL */}
       {showForm && (
         <div
           className="modatales-modal"
@@ -224,9 +253,11 @@ function ModaTales() {
             className="modatales-form"
             onClick={(e) => e.stopPropagation()}
           >
+
             {!submitted ? (
               <>
                 <button
+                  type="button"
                   className="modatales-close"
                   onClick={() => setShowForm(false)}
                 >
@@ -277,6 +308,7 @@ function ModaTales() {
                 </p>
 
                 <button
+                  type="button"
                   onClick={() => {
                     setSubmitted(false);
                     setShowForm(false);
@@ -286,6 +318,7 @@ function ModaTales() {
                 </button>
               </div>
             )}
+
           </div>
         </div>
       )}

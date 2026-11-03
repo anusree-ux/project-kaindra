@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Footer from "../components/Footer/Footer";
 import "./Communities.css";
 
 const API_BASE = "";
@@ -51,41 +52,56 @@ function Communities() {
   };
 
   return (
+    <>
     <main className="communities-page">
       {/* HERO SECTION */}
-      <section className="community-hero">
-        <div className="community-container">
-          <span className="community-label">KAINDRA COMMUNITY</span>
+<section className="community-hero">
 
-          <h1>
-            Be Part of the
-            <br />
-            <span>Fashion Future</span>
-          </h1>
+  {/* BACKGROUND IMAGE */}
+  <img
+    src="/images/modamart-slides/community-hero.jpg"
+    alt=""
+    className="community-hero-bg"
+    aria-hidden="true"
+  />
 
-          <p>
-            Kaindra is building a connected fashion ecosystem that brings
-            together designers, brands, creators, communities, and fashion
-            enthusiasts from around the world.
-          </p>
+  {/* DARK OVERLAY */}
+  <div className="community-hero-overlay" />
 
-          <p>
-            Our community is a space to discover new ideas, connect with
-            creative minds, explore fashion innovation, and be part of the
-            evolving ModaSphere.
-          </p>
+  <div className="community-container">
 
-          {/* SCROLL TO FORM BUTTON */}
-          <button
-            type="button"
-            className="join-community-btn"
-            onClick={scrollToForm}
-          >
-            Join Community
-          </button>
-        </div>
-      </section>
+    <span className="community-label">
+      KAINDRA COMMUNITY
+    </span>
 
+    <h1>
+      Be Part of the
+      <br />
+      <span>Fashion Future</span>
+    </h1>
+
+    <p>
+      Kaindra is building a connected fashion ecosystem that brings
+      together designers, brands, creators, communities, and fashion
+      enthusiasts from around the world.
+    </p>
+
+    <p>
+      Our community is a space to discover new ideas, connect with
+      creative minds, explore fashion innovation, and be part of the
+      evolving ModaSphere.
+    </p>
+
+    <button
+      type="button"
+      className="join-community-btn"
+      onClick={scrollToForm}
+    >
+      Join Community
+    </button>
+
+  </div>
+</section>
       {/* COMMUNITY FORM */}
       <section
         id="community-form"
@@ -189,6 +205,8 @@ function Communities() {
         </div>
       </section>
     </main>
+    <Footer />
+  </>
   );
 }
 

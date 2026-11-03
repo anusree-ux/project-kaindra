@@ -13,57 +13,196 @@
   margin: 0 auto;
 }
 
-/* HERO */
+
+/* =========================================
+   COMMUNITY HERO - BLACK & GOLD
+========================================= */
 
 .community-hero {
-  padding: 110px 0 100px;
-  background: #f7f7f7;
+  position: relative;
+  isolation: isolate;
+
+  width: 100%;
+  min-height: calc(100svh - 82px);
+
+  display: flex;
+  align-items: center;
+
+  padding: 90px 0;
+
+  overflow: hidden;
+
+  color: #fff;
+
+  background:
+    radial-gradient(
+      circle at 78% 45%,
+      rgba(205, 157, 77, 0.13),
+      transparent 40%
+    ),
+    linear-gradient(
+      90deg,
+      rgba(5, 5, 5, 0.96) 0%,
+      rgba(5, 5, 5, 0.88) 38%,
+      rgba(5, 5, 5, 0.62) 68%,
+      rgba(5, 5, 5, 0.35) 100%
+    ),
+    url("/images/community-hero.jpg");
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
+/* Keep content above background */
+.community-hero .community-container {
+  position: relative;
+  z-index: 2;
+}
+
+/* Golden label */
 .community-label {
   display: inline-block;
   margin-bottom: 22px;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  color: #666666;
+
+  color: #d6aa67;
+
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 3px;
 }
 
+/* Hero heading */
 .community-hero h1 {
+  max-width: 750px;
+
   margin: 0 0 28px;
-  font-size: clamp(42px, 7vw, 78px);
+
+  color: #fff;
+
+  font-size: clamp(44px, 6.5vw, 78px);
   line-height: 1.05;
   font-weight: 700;
-  letter-spacing: -2px;
+  letter-spacing: -2.5px;
 }
 
 .community-hero h1 span {
-  color: #666666;
+  color: #d6aa67;
 }
 
+/* Hero descriptions */
 .community-hero p {
-  max-width: 760px;
+  max-width: 720px;
+
   margin: 0 0 18px;
-  font-size: 17px;
-  line-height: 1.8;
-  color: #555555;
+
+  color: rgba(255, 255, 255, 0.78);
+
+  font-size: 16px;
+  line-height: 1.85;
 }
 
+/* Join button */
 .join-community-btn {
-  margin-top: 20px;
-  padding: 15px 28px;
-  border: none;
-  background: #111111;
-  color: #ffffff;
-  font-size: 15px;
-  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-top: 22px;
+  padding: 15px 30px;
+
+  border: 1px solid #d6aa67;
+
+  background: #d6aa67;
+  color: #080808;
+
+  font-size: 14px;
+  font-weight: 700;
+
   cursor: pointer;
-  transition: 0.25s ease;
+
+  transition: all 0.3s ease;
 }
 
 .join-community-btn:hover {
-  background: #333333;
-  transform: translateY(-2px);
+  background: transparent;
+  color: #e7c48d;
+
+  box-shadow: 0 0 20px rgba(214, 170, 103, 0.25);
+
+  transform: translateY(-3px);
+}
+
+/* =========================================
+   COMMUNITY FORM - GOLD ACCENTS
+========================================= */
+
+.community-form-header span {
+  color: #bd8b46;
+}
+
+.community-form-group input:focus {
+  border-color: #bd8b46;
+  box-shadow: 0 0 0 2px rgba(189, 139, 70, 0.1);
+}
+
+.community-submit-btn {
+  background: #111;
+  border: 1px solid #bd8b46;
+}
+
+.community-submit-btn:hover {
+  background: #bd8b46;
+  color: #111;
+}
+
+.success-icon {
+  background: #bd8b46;
+  color: #111;
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 700px) {
+  .community-hero {
+    min-height: auto;
+    padding: 85px 0 75px;
+
+    background-position: 65% center;
+
+    background-image:
+      linear-gradient(
+        rgba(5, 5, 5, 0.84),
+        rgba(5, 5, 5, 0.88)
+      ),
+      url("/images/community-hero.jpg");
+  }
+
+  .community-hero h1 {
+    font-size: clamp(40px, 9vw, 52px);
+    letter-spacing: -1.5px;
+  }
+
+  .community-hero p {
+    font-size: 14px;
+    line-height: 1.8;
+  }
+}
+
+@media (max-width: 450px) {
+  .community-hero {
+    padding: 70px 0;
+  }
+
+  .community-hero h1 {
+    font-size: 38px;
+  }
+
+  .join-community-btn {
+    width: 100%;
+  }
 }
 
 /* FORM SECTION */
@@ -244,5 +383,139 @@
 
   .join-community-btn {
     width: 100%;
+  }
+}
+/* COMMUNITY HERO BACKGROUND IMAGE */
+
+.community-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+
+  display: flex;
+  align-items: center;
+
+  min-height: calc(100vh - 82px);
+  padding: 90px 0;
+
+  background: #080808;
+}
+
+.community-hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+  object-position: center;
+}
+
+/* Black overlay */
+.community-hero-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.95),
+    rgba(0, 0, 0, 0.78),
+    rgba(0, 0, 0, 0.38)
+  );
+}
+
+/* Keep text above image */
+.community-hero .community-container {
+  position: relative;
+  z-index: 2;
+}
+
+/* Gold text */
+.community-hero h1 span,
+.community-label {
+  color: #d6aa67;
+}
+
+/* Mobile */
+@media (max-width: 700px) {
+  .community-hero {
+    min-height: auto;
+    padding: 75px 0;
+  }
+
+  .community-hero-bg {
+    object-position: 65% center;
+  }
+
+  .community-hero-overlay {
+    background: rgba(0, 0, 0, 0.78);
+  }
+}
+
+/* =========================================
+   COMMUNITY - MOBILE BUTTON VISIBILITY
+========================================= */
+
+@media (max-width: 700px) {
+  .community-hero {
+    min-height: auto;
+    height: auto;
+    padding: 55px 0 45px;
+    overflow: visible;
+  }
+
+  .community-container {
+    width: calc(100% - 34px);
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .community-label {
+    margin-bottom: 17px;
+  }
+
+  .community-hero h1 {
+    margin-bottom: 20px;
+    line-height: 1.05;
+  }
+
+  .community-hero p {
+    margin-bottom: 12px;
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  .join-community-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+    max-width: 100%;
+    min-height: 50px;
+
+    margin: 14px 0 0;
+    padding: 14px 20px;
+
+    box-sizing: border-box;
+    line-height: 1.4;
+  }
+}
+
+@media (max-width: 450px) {
+  .community-hero {
+    padding: 50px 0 40px;
+  }
+
+  .community-container {
+    width: calc(100% - 34px);
+  }
+
+  .join-community-btn {
+    width: 100%;
+    max-width: 100%;
   }
 }

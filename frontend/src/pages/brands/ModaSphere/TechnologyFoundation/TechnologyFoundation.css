@@ -4,6 +4,13 @@
   background: #ffffff;
   color: #151515;
   scroll-margin-top: 90px;
+  box-sizing: border-box;
+}
+
+.technology-section *,
+.technology-section *::before,
+.technology-section *::after {
+  box-sizing: border-box;
 }
 
 .technology-container {
@@ -51,14 +58,11 @@
   width: 58px;
   height: 58px;
   margin: 0 auto 32px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   border: 1px solid #bd8b46;
   border-radius: 50%;
-
   color: #bd8b46;
   background: #ffffff;
 }
@@ -67,30 +71,23 @@
 
 .technology-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   border-top: 1px solid #dedbd5;
   border-left: 1px solid #dedbd5;
-
   background: #ffffff;
 }
 
 .technology-card {
   min-height: 190px;
   padding: 28px;
-
   display: flex;
   flex-direction: column;
   justify-content: center;
-
   background: #ffffff;
-
   border-right: 1px solid #dedbd5;
   border-bottom: 1px solid #dedbd5;
-
-  transition:
-    background 0.25s ease,
-    transform 0.25s ease;
+  transition: background 0.25s ease;
+  min-width: 0;
 }
 
 .technology-card:hover {
@@ -103,20 +100,15 @@
   width: 48px;
   height: 48px;
   margin-bottom: 18px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
+  flex-shrink: 0;
   border: 1px solid #bd8b46;
   border-radius: 50%;
-
   color: #bd8b46;
   background: #ffffff;
-
-  transition:
-    background 0.25s ease,
-    color 0.25s ease;
+  transition: background 0.25s ease, color 0.25s ease;
 }
 
 .technology-card:hover .technology-card-icon {
@@ -126,21 +118,22 @@
 
 /* Card text */
 
+.technology-card-content {
+  min-width: 0;
+}
+
 .technology-card h3 {
   margin: 0 0 7px;
-
   color: #151515;
-
   font-size: 17px;
   line-height: 1.35;
   font-weight: 600;
+  overflow-wrap: break-word;
 }
 
 .technology-card p {
   margin: 0;
-
   color: #666666;
-
   font-size: 13px;
   line-height: 1.5;
 }
@@ -157,7 +150,7 @@
   }
 
   .technology-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .technology-card {
@@ -170,7 +163,7 @@
 
 @media (max-width: 600px) {
   .technology-section {
-    padding: 60px 0;
+    padding: 55px 0;
     scroll-margin-top: 75px;
   }
 
@@ -179,27 +172,30 @@
   }
 
   .technology-heading {
-    margin-bottom: 30px;
+    margin-bottom: 28px;
   }
 
   .technology-label {
-    font-size: 12px;
+    font-size: 10px;
     letter-spacing: 2px;
   }
 
   .technology-heading h2 {
-    font-size: 38px;
-    letter-spacing: -1.3px;
+    font-size: clamp(30px, 8vw, 36px);
+    line-height: 1.15;
+    letter-spacing: -1px;
   }
 
   .technology-heading p {
-    font-size: 14px;
+    margin-top: 14px;
+    font-size: 13px;
+    line-height: 1.65;
   }
 
   .technology-icon {
-    width: 52px;
-    height: 52px;
-    margin-bottom: 28px;
+    width: 50px;
+    height: 50px;
+    margin-bottom: 24px;
   }
 
   .technology-grid {
@@ -207,51 +203,64 @@
   }
 
   .technology-card {
-    min-height: 105px;
-    padding: 22px;
-
+    min-height: 88px;
+    padding: 16px 18px;
     flex-direction: row;
     align-items: center;
-    gap: 16px;
+    justify-content: flex-start;
+    gap: 15px;
   }
 
   .technology-card-icon {
     width: 42px;
     height: 42px;
-    margin-bottom: 0;
-    flex-shrink: 0;
+    margin: 0;
+  }
+
+  .technology-card-icon svg {
+    width: 21px;
+    height: 21px;
+  }
+
+  .technology-card-content {
+    flex: 1;
   }
 
   .technology-card h3 {
-    margin-bottom: 4px;
-    font-size: 15px;
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.4;
   }
 
   .technology-card p {
+    margin-top: 3px;
     font-size: 12px;
+    line-height: 1.4;
   }
 }
 
 /* Small mobile */
 
-@media (max-width: 400px) {
-  .technology-section {
-    padding: 50px 0;
-  }
-
-  .technology-heading h2 {
-    font-size: 34px;
-  }
-
-  .technology-heading p {
-    font-size: 13px;
+@media (max-width: 360px) {
+  .technology-container {
+    width: calc(100% - 24px);
   }
 
   .technology-card {
-    padding: 18px;
+    padding: 14px 12px;
+    gap: 12px;
+  }
+
+  .technology-card-icon {
+    width: 38px;
+    height: 38px;
   }
 
   .technology-card h3 {
-    font-size: 14px;
+    font-size: 13px;
+  }
+
+  .technology-card p {
+    font-size: 11px;
   }
 }

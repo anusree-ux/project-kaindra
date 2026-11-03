@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import {
-  BarChart3,
   TrendingUp,
   Users,
   ShoppingBag,
@@ -235,32 +234,11 @@ function ModaInsights() {
                 Request Analysis
               </button>
             </div>
-
-          </div>
-
-          <div className="modainsights-hero-visual">
-
-            <div className="insights-orbit insights-orbit-one">
-              <span>DATA</span>
-            </div>
-
-            <div className="insights-orbit insights-orbit-two">
-              <span>AI</span>
-            </div>
-
-            <div className="insights-orbit insights-orbit-three">
-              <span>TRENDS</span>
-            </div>
-
-            <div className="insights-center">
-              <BarChart3 size={46} />
-
-              <span>MODA</span>
-              <strong>INSIGHTS</strong>
-            </div>
-
-          </div>
         </div>
+
+          </div>
+
+          
       </section>
 
       {/* DASHBOARD */}

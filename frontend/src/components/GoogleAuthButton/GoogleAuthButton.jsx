@@ -33,11 +33,8 @@ export default function GoogleAuthButton({
     async (response) => {
       if (!response?.credential) {
         if (onError) {
-          onError(
-            "No credential returned from Google."
-          );
+          onError("No credential returned from Google.");
         }
-
         return;
       }
 
@@ -73,11 +70,7 @@ export default function GoogleAuthButton({
         setLoading(false);
       }
     },
-    [
-      loginWithGoogle,
-      onSuccess,
-      onError,
-    ]
+    [loginWithGoogle, onSuccess, onError]
   );
 
   // ==========================================
@@ -101,30 +94,46 @@ export default function GoogleAuthButton({
           return;
         }
 
+        const container =
+          googleBtnContainerRef.current;
+
+        if (!container) {
+          return;
+        }
+
         window.google.accounts.id.initialize({
           client_id: clientId,
           callback: handleCredentialResponse,
         });
 
-        if (googleBtnContainerRef.current) {
-          // Prevent duplicate Google buttons
-          googleBtnContainerRef.current.innerHTML = "";
+        // Calculate available responsive width
+        const availableWidth = Math.floor(
+          container.getBoundingClientRect().width
+        );
 
-          window.google.accounts.id.renderButton(
-            googleBtnContainerRef.current,
-            {
-              theme:
-                theme === "dark"
-                  ? "filled_black"
-                  : "outline",
+        const buttonWidth = Math.max(
+          180,
+          availableWidth
+        );
 
-              size: "large",
-              width: "400",
-              text: "continue_with",
-              shape: "rectangular",
-            }
-          );
-        }
+        // Remove previously rendered button
+        container.innerHTML = "";
+
+        // Render Google button using container width
+        window.google.accounts.id.renderButton(
+          container,
+          {
+            theme:
+              theme === "dark"
+                ? "filled_black"
+                : "outline",
+
+            size: "large",
+            width: String(buttonWidth),
+            text: "continue_with",
+            shape: "rectangular",
+          }
+        );
       } catch (err) {
         console.warn(
           "[GoogleAuthButton] GSI init notice:",
@@ -157,6 +166,7 @@ export default function GoogleAuthButton({
         document.createElement("script");
 
       script.id = "google-gsi-client";
+
       script.src =
         "https://accounts.google.com/gsi/client";
 
@@ -258,11 +268,14 @@ export default function GoogleAuthButton({
     }
   };
 
+  // ==========================================
+  // COMPONENT UI
+  // ==========================================
+
   return (
     <div className="google-auth-wrapper">
-      {/* ======================================
-          REAL GOOGLE BUTTON
-      ====================================== */}
+
+      {/* REAL GOOGLE BUTTON */}
 
       {clientId ? (
         <div
@@ -270,9 +283,8 @@ export default function GoogleAuthButton({
           className="google-gsi-render-target"
         />
       ) : (
-        /* ====================================
-           DEVELOPMENT GOOGLE BUTTON
-        ==================================== */
+
+        /* DEVELOPMENT GOOGLE BUTTON */
 
         <button
           type="button"
@@ -319,9 +331,7 @@ export default function GoogleAuthButton({
         </button>
       )}
 
-      {/* ======================================
-          DEVELOPMENT ACCOUNT MODAL
-      ====================================== */}
+      {/* DEVELOPMENT ACCOUNT SELECTOR MODAL */}
 
       {showSimulatedModal && (
         <div
@@ -372,6 +382,7 @@ export default function GoogleAuthButton({
             </div>
 
             <div className="google-sim-accounts">
+
               <button
                 type="button"
                 className="google-sim-account-item"
@@ -453,6 +464,7 @@ export default function GoogleAuthButton({
                   </span>
                 </div>
               </button>
+
             </div>
 
             <div
@@ -472,9 +484,11 @@ export default function GoogleAuthButton({
                 Cancel
               </button>
             </div>
+
           </div>
         </div>
       )}
+
     </div>
   );
 }

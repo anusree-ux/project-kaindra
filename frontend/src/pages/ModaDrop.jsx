@@ -76,9 +76,9 @@ function ModaDrop() {
         <div className="modadrop-hero-content">
           <p className="modadrop-eyebrow">MODASPHERE / MODADROP</p>
           <h1>
-            Fashion Drops.
+             <em><span className="gold-text">Fashion Drops </span></em>
             <br />
-            Before They’re Gone.
+            <em><span className="gold-text">Before They're Gone </span></em>
           </h1>
           <p className="modadrop-hero-text">
             Discover limited fashion releases, exclusive

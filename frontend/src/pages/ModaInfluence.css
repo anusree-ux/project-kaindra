@@ -1,37 +1,87 @@
+
+/* ========================================
+   MODAINFLUENCE — MAIN STYLES
+======================================== */
+
 .modainfluence-page {
+  width: 100%;
   background: #fff;
   color: #171717;
+  overflow-x: clip;
+  box-sizing: border-box;
+}
+
+.modainfluence-page *,
+.modainfluence-page *::before,
+.modainfluence-page *::after {
+  box-sizing: border-box;
 }
 
 .modainfluence-container {
-  width: min(1180px, calc(100% - 40px));
-  margin: auto;
+  width: min(1180px, calc(100% - 48px));
+  margin: 0 auto;
 }
 
-/* HERO */
+/* ========================================
+   HERO SECTION — DESKTOP
+======================================== */
 
 .modainfluence-hero {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
   min-height: 650px;
+
   display: flex;
   align-items: center;
-  background: #f5f2ed;
+  justify-content: center;
+
+  padding: 80px 0;
+
+  background-color: #171717;
+  background-image:
+    linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.75) 0%,
+      rgba(0, 0, 0, 0.48) 55%,
+      rgba(0, 0, 0, 0.18) 100%
+    ),
+    url("/images/modamart-slides/modainfluence-bg.jpg");
+
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+
+  color: #fff;
 }
 
-.modainfluence-eyebrow,
-.modainfluence-heading span,
-.modainfluence-cta span {
+.modainfluence-hero .modainfluence-container {
+  position: relative;
+  z-index: 1;
+
+  width: min(1180px, calc(100% - 48px));
+  margin: 0 auto;
+}
+
+.modainfluence-eyebrow {
+  display: inline-block;
+
   color: #bd8b46;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.18em;
+  text-transform: uppercase;
 }
 
 .modainfluence-hero h1 {
   max-width: 850px;
   margin: 18px 0;
-  font-size: clamp(50px, 7vw, 92px);
-  line-height: 0.95;
+
+  font-size: clamp(42px, 6.5vw, 92px);
+  line-height: 1.04;
   letter-spacing: -0.05em;
+
+  overflow-wrap: anywhere;
 }
 
 .modainfluence-hero h1 span {
@@ -41,29 +91,87 @@
 .modainfluence-hero p {
   max-width: 620px;
   margin: 25px 0 32px;
-  color: #666;
+
+  color: #fff;
   font-size: 16px;
   line-height: 1.8;
+
+  overflow-wrap: anywhere;
+}
+
+/* ========================================
+   HERO BUTTONS
+======================================== */
+
+.modainfluence-actions {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+
+  width: 100%;
+  gap: 12px;
+}
+
+.modainfluence-primary-btn,
+.modainfluence-secondary-btn {
+  display: inline-flex;
+  flex: 0 1 auto;
+
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  min-width: 0;
+  min-height: 48px;
+
+  padding: 13px 20px;
+
+  border-radius: 4px;
+  cursor: pointer;
+
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: center;
+
+  white-space: normal;
+  overflow-wrap: anywhere;
+
+  transition:
+    background 0.25s ease,
+    color 0.25s ease,
+    border-color 0.25s ease;
 }
 
 .modainfluence-primary-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 21px;
-  border: 0;
-  background: #171717;
-  color: #fff;
-  cursor: pointer;
-  font-weight: 600;
-  transition: 0.25s ease;
+  border: 1px solid #bd8b46;
+  background: #bd8b46;
+  color: #171717;
 }
 
 .modainfluence-primary-btn:hover {
-  background: #bd8b46;
+  background: #fff;
+  border-color: #fff;
 }
 
-/* SECTIONS */
+.modainfluence-secondary-btn {
+  border: 1px solid #fff;
+  background: transparent;
+  color: #fff;
+}
+
+.modainfluence-secondary-btn:hover {
+  border-color: #bd8b46;
+  background: #bd8b46;
+  color: #171717;
+}
+
+/* ========================================
+   GENERAL SECTIONS
+======================================== */
 
 .modainfluence-section {
   padding: 110px 0;
@@ -76,30 +184,42 @@
 
 .modainfluence-heading h2 {
   margin: 12px 0 15px;
+
   font-size: clamp(34px, 5vw, 56px);
-  line-height: 1;
+  line-height: 1.08;
   letter-spacing: -0.04em;
+
+  overflow-wrap: anywhere;
 }
 
 .modainfluence-heading p {
   color: #777;
   line-height: 1.7;
+  overflow-wrap: anywhere;
 }
 
-/* CARDS */
+/* ========================================
+   FEATURE CARDS
+======================================== */
 
 .modainfluence-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 20px;
 }
 
 .modainfluence-card {
-  min-height: 300px;
-  padding: 30px;
-  border: 1px solid #e5e0d8;
   position: relative;
-  transition: 0.25s ease;
+  min-width: 0;
+  min-height: 300px;
+
+  padding: 30px;
+
+  border: 1px solid #e5e0d8;
+
+  transition:
+    transform 0.25s ease,
+    border-color 0.25s ease;
 }
 
 .modainfluence-card:hover {
@@ -108,19 +228,23 @@
 }
 
 .modainfluence-card-icon {
-  width: 48px;
-  height: 48px;
   display: grid;
   place-items: center;
+
+  width: 48px;
+  height: 48px;
   margin-bottom: 45px;
+
   border: 1px solid #ddd5c9;
   border-radius: 50%;
+
   color: #bd8b46;
 }
 
 .modainfluence-card strong {
   display: block;
   margin-bottom: 8px;
+
   color: #bd8b46;
   font-size: 25px;
 }
@@ -128,23 +252,29 @@
 .modainfluence-card h3 {
   margin: 0 0 12px;
   font-size: 22px;
+  overflow-wrap: anywhere;
 }
 
 .modainfluence-card p {
   color: #777;
   line-height: 1.7;
+  overflow-wrap: anywhere;
 }
 
 .modainfluence-card-line {
   position: absolute;
   left: 30px;
   bottom: 28px;
+
   width: 35px;
   height: 2px;
+
   background: #bd8b46;
 }
 
-/* PROCESS */
+/* ========================================
+   PROCESS SECTION
+======================================== */
 
 .modainfluence-process {
   padding: 100px 0;
@@ -153,12 +283,16 @@
 
 .modainfluence-steps {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+
   border-top: 1px solid #ddd6cc;
 }
 
 .modainfluence-steps > div {
+  min-width: 0;
+
   padding: 30px 25px 20px 0;
+
   border-right: 1px solid #ddd6cc;
 }
 
@@ -184,9 +318,12 @@
 .modainfluence-steps p {
   color: #777;
   line-height: 1.6;
+  overflow-wrap: anywhere;
 }
 
-/* CTA */
+/* ========================================
+   CTA SECTION
+======================================== */
 
 .modainfluence-cta {
   padding: 120px 0;
@@ -196,28 +333,42 @@
 
 .modainfluence-cta h2 {
   margin: 18px 0 35px;
+
   font-size: clamp(45px, 7vw, 85px);
-  line-height: 0.95;
+  line-height: 1.02;
   letter-spacing: -0.05em;
+
+  overflow-wrap: anywhere;
 }
 
-/* MODAL */
+/* ========================================
+   MAIN MODAL
+======================================== */
 
 .modainfluence-modal {
   position: fixed;
   inset: 0;
   z-index: 2000;
+
   display: grid;
   place-items: center;
+
   padding: 20px;
+
   background: rgba(0, 0, 0, 0.55);
 }
 
 .modainfluence-form {
+  position: relative;
+
   width: min(500px, 100%);
+  max-height: 90dvh;
+
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
   padding: 35px;
   background: #fff;
-  position: relative;
 }
 
 .modainfluence-form > span {
@@ -230,14 +381,17 @@
 .modainfluence-form h2 {
   margin: 10px 0 25px;
   font-size: 30px;
+  overflow-wrap: anywhere;
 }
 
 .modainfluence-close {
   position: absolute;
   top: 15px;
   right: 18px;
+
   border: 0;
   background: none;
+
   font-size: 28px;
   cursor: pointer;
 }
@@ -247,12 +401,25 @@
   gap: 12px;
 }
 
+.modainfluence-campaign-title-label {
+  display: grid;
+  gap: 7px;
+
+  color: #625e59;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
 .modainfluence-form input,
 .modainfluence-form textarea {
   width: 100%;
+  min-width: 0;
+
   padding: 13px;
+
   border: 1px solid #ddd7ce;
   outline: none;
+
   font-family: inherit;
   resize: vertical;
 }
@@ -265,20 +432,24 @@
 .modainfluence-form form button,
 .modainfluence-success button {
   display: inline-flex;
+
   justify-content: center;
   align-items: center;
   gap: 8px;
+
   padding: 13px;
   border: 0;
+
   background: #171717;
   color: #fff;
+
   cursor: pointer;
   font-weight: 600;
 }
 
 .modainfluence-success {
-  text-align: center;
   padding: 30px 10px;
+  text-align: center;
 }
 
 .modainfluence-success svg {
@@ -290,20 +461,329 @@
 }
 
 .modainfluence-success p {
+  margin-bottom: 25px;
+
   color: #777;
   line-height: 1.6;
-  margin-bottom: 25px;
 }
 
-/* RESPONSIVE */
+/* ========================================
+   PUBLIC CAMPAIGNS
+======================================== */
+
+.modainfluence-public-campaigns {
+  padding: 90px 0;
+  background: #f8f6f2;
+}
+
+.modainfluence-public-campaign-grid {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(min(260px, 100%), 1fr)
+  );
+  gap: 22px;
+}
+
+.modainfluence-public-campaign-card {
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+  padding: 0 22px 18px;
+
+  background: #fff;
+  border: 1px solid #e5dfd5;
+  border-radius: 12px;
+}
+
+.modainfluence-public-campaign-open {
+  display: block;
+
+  width: 100%;
+  min-width: 0;
+  padding: 20px 0 0;
+
+  border: 0;
+  background: transparent;
+  color: inherit;
+
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.modainfluence-public-campaign-open:focus-visible,
+.modainfluence-public-campaign-details:focus-visible,
+.modainfluence-public-campaign-apply:focus-visible,
+.modainfluence-campaign-details-close:focus-visible {
+  outline: 3px solid #bd8b46;
+  outline-offset: 3px;
+}
+
+.modainfluence-public-campaign-card h3 {
+  margin: 12px 0 6px;
+  overflow-wrap: anywhere;
+}
+
+.modainfluence-public-campaign-type {
+  margin: 0 0 8px;
+  font-size: 0.88rem;
+  color: #777;
+}
+
+.modainfluence-public-campaign-card p {
+  color: #625e59;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.modainfluence-public-campaign-brand {
+  font-weight: 600;
+}
+
+.modainfluence-public-campaign-date {
+  font-size: 0.85rem;
+  color: #777;
+}
+
+.modainfluence-public-campaign-preview {
+  display: -webkit-box;
+
+  margin: 0 0 14px;
+
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+
+.modainfluence-public-campaign-actions {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+
+  gap: 12px;
+  margin-top: auto;
+}
+
+.modainfluence-public-campaign-details {
+  padding: 8px 0;
+
+  border: 0;
+  background: none;
+  color: #5a392e;
+
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.modainfluence-public-campaign-apply {
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  margin-left: 0;
+  padding: 9px 16px;
+
+  border: 0;
+  border-radius: 6px;
+
+  background: #171717;
+  color: #fff;
+
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.modainfluence-public-campaign-apply:hover {
+  background: #bd8b46;
+}
+
+.modainfluence-public-campaign-apply:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.modainfluence-public-campaign-applied,
+.modainfluence-application-notice {
+  margin: 10px 0 0;
+  font-size: 0.9rem;
+}
+
+.modainfluence-application-notice.error {
+  color: #9e3434;
+}
+
+.modainfluence-application-notice.success,
+.modainfluence-public-campaign-applied {
+  color: #356b48;
+}
+
+.modainfluence-campaign-error,
+.modainfluence-application-alert {
+  color: #9e3434;
+}
+
+.modainfluence-empty-campaigns {
+  text-align: center;
+  color: #777;
+}
+
+/* ========================================
+   CAMPAIGN DETAILS MODAL
+======================================== */
+
+.modainfluence-campaign-details-backdrop {
+  padding: 18px;
+}
+
+.modainfluence-campaign-details-dialog {
+  display: flex;
+  flex-direction: column;
+
+  width: min(760px, 100%);
+  max-height: min(90dvh, 850px);
+
+  overflow: hidden;
+
+  background: #fff;
+  box-shadow: 0 24px 70px rgb(0 0 0 / 24%);
+}
+
+.modainfluence-campaign-details-header,
+.modainfluence-campaign-details-footer {
+  display: flex;
+  flex: 0 0 auto;
+
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 20px;
+  padding: 24px 28px;
+
+  background: #fff;
+}
+
+.modainfluence-campaign-details-header {
+  border-bottom: 1px solid #e5dfd5;
+}
+
+.modainfluence-campaign-details-header span {
+  color: #bd8b46;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+}
+
+.modainfluence-campaign-details-header h2 {
+  margin: 9px 0 5px;
+
+  font-size: clamp(24px, 4vw, 34px);
+  overflow-wrap: anywhere;
+}
+
+.modainfluence-campaign-details-header p {
+  margin: 0;
+  color: #625e59;
+  font-weight: 600;
+}
+
+.modainfluence-campaign-details-close {
+  display: grid;
+  flex: 0 0 auto;
+
+  place-items: center;
+
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+
+  border: 1px solid #ddd7ce;
+  border-radius: 50%;
+
+  background: #fff;
+  color: #171717;
+
+  cursor: pointer;
+}
+
+.modainfluence-campaign-details-content {
+  flex: 1 1 auto;
+  min-height: 0;
+
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  padding: 24px 28px;
+}
+
+.modainfluence-campaign-details-content p,
+.modainfluence-campaign-details-content ul,
+.modainfluence-campaign-details-content ol {
+  margin: 0 0 15px;
+
+  color: #625e59;
+  line-height: 1.75;
+
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.modainfluence-campaign-details-content h3 {
+  margin: 22px 0 10px;
+
+  color: #171717;
+  font-size: 1.1rem;
+}
+
+.modainfluence-campaign-details-content h3:first-child {
+  margin-top: 0;
+}
+
+.modainfluence-campaign-details-content ul,
+.modainfluence-campaign-details-content ol {
+  padding-left: 24px;
+}
+
+.modainfluence-campaign-details-content li + li {
+  margin-top: 5px;
+}
+
+.modainfluence-campaign-details-date {
+  padding-top: 12px;
+  border-top: 1px solid #e5dfd5;
+}
+
+.modainfluence-campaign-details-footer {
+  align-items: center;
+  border-top: 1px solid #e5dfd5;
+}
+
+.modainfluence-campaign-details-footer span {
+  color: #356b48;
+  font-size: 0.9rem;
+}
+
+/* ========================================
+   TABLET RESPONSIVE
+======================================== */
 
 @media (max-width: 900px) {
   .modainfluence-grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .modainfluence-steps {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .modainfluence-steps > div:nth-child(2) {
@@ -314,31 +794,208 @@
   .modainfluence-steps > div:nth-child(4) {
     border-top: 1px solid #ddd6cc;
   }
-}
-
-@media (max-width: 600px) {
-  .modainfluence-container {
-    width: min(100% - 28px, 1180px);
-  }
 
   .modainfluence-hero {
-    min-height: 570px;
+    min-height: 600px;
+    background-position: center;
   }
+
+  .modainfluence-hero h1 {
+    font-size: clamp(46px, 7vw, 68px);
+  }
+
+  .modainfluence-hero p {
+    max-width: 540px;
+    font-size: 15px;
+  }
+
+  .modainfluence-actions {
+    gap: 10px;
+  }
+
+  .modainfluence-primary-btn,
+  .modainfluence-secondary-btn {
+    padding: 12px 16px;
+    font-size: 13px;
+  }
+}
+
+/* ========================================
+   MOBILE RESPONSIVE
+======================================== */
+
+@media (max-width: 600px) {
+
+  .modainfluence-container {
+    width: calc(100% - 32px);
+  }
+
+  /* HERO BACKGROUND */
+
+  .modainfluence-hero {
+    position: relative;
+    isolation: isolate;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    width: 100%;
+    height: auto;
+    min-height: calc(100svh - 70px);
+
+    padding: 20px 0;
+
+    background-color: #171717;
+
+    /* Image remains a background, not a separate image */
+    background-image:
+      linear-gradient(
+        90deg,
+        rgba(0, 0, 0, 0.75) 0%,
+        rgba(0, 0, 0, 0.58) 55%,
+        rgba(0, 0, 0, 0.38) 100%
+      ),
+      url("/images/modamart-slides/modainfluence-bg.jpg");
+
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: cover;
+
+    overflow: visible;
+  }
+
+  /* HERO CONTENT */
+
+  .modainfluence-hero .modainfluence-container {
+    position: relative;
+    z-index: 1;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+
+    width: calc(100% - 32px);
+    height: auto;
+    min-height: 0;
+
+    margin: 0 auto;
+    padding: 0;
+  }
+
+  .modainfluence-eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.14em;
+  }
+
+  .modainfluence-hero h1 {
+    max-width: 100%;
+    margin: 12px 0;
+
+    font-size: clamp(30px, 8vw, 43px);
+    line-height: 1.06;
+    letter-spacing: -0.04em;
+  }
+
+  .modainfluence-hero p {
+    max-width: 100%;
+    margin: 12px 0 18px;
+
+    font-size: 13px;
+    line-height: 1.55;
+  }
+
+  /* ALL THREE HERO BUTTONS */
+
+  .modainfluence-actions {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+
+    align-items: stretch;
+    justify-content: center;
+
+    width: 100%;
+    gap: 9px;
+    margin: 10px 0 0;
+  }
+
+  .modainfluence-actions > button,
+  .modainfluence-actions > a,
+  .modainfluence-actions .modainfluence-primary-btn,
+  .modainfluence-actions .modainfluence-secondary-btn {
+    display: flex;
+    flex: 0 0 auto;
+
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    min-height: 42px;
+
+    margin: 0;
+    padding: 10px 12px;
+
+    font-size: 12px;
+    line-height: 1.3;
+    text-align: center;
+
+    white-space: normal;
+    overflow-wrap: anywhere;
+
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+  }
+
+  /* GENERAL SECTIONS */
 
   .modainfluence-section,
   .modainfluence-process,
-  .modainfluence-cta {
-    padding: 75px 0;
+  .modainfluence-cta,
+  .modainfluence-public-campaigns {
+    padding: 70px 0;
   }
 
-  .modainfluence-grid,
+  .modainfluence-heading {
+    margin-bottom: 35px;
+  }
+
+  .modainfluence-heading h2 {
+    font-size: clamp(32px, 8vw, 42px);
+    line-height: 1.08;
+  }
+
+  /* FEATURE CARDS */
+
+  .modainfluence-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 15px;
+  }
+
+  .modainfluence-card {
+    min-height: 250px;
+    padding: 24px;
+  }
+
+  .modainfluence-card-icon {
+    margin-bottom: 30px;
+  }
+
+  /* PROCESS SECTION */
+
   .modainfluence-steps {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .modainfluence-steps > div,
   .modainfluence-steps > div:not(:first-child) {
     padding: 25px 0;
+
     border-right: 0;
     border-top: 1px solid #ddd6cc;
   }
@@ -347,11 +1004,165 @@
     border-top: 0;
   }
 
-  .modainfluence-card {
-    min-height: 270px;
+  .modainfluence-steps h3 {
+    margin: 18px 0 10px;
+    font-size: 20px;
+  }
+
+  /* CTA */
+
+  .modainfluence-cta h2 {
+    font-size: clamp(38px, 10vw, 56px);
+    line-height: 1.02;
+  }
+
+  /* MAIN MODAL */
+
+  .modainfluence-modal {
+    padding: 12px;
   }
 
   .modainfluence-form {
+    width: 100%;
+    max-height: calc(100dvh - 24px);
+
     padding: 28px 20px;
+    overflow-y: auto;
+  }
+
+  .modainfluence-form h2 {
+    font-size: 26px;
+    overflow-wrap: anywhere;
+  }
+
+  /* PUBLIC CAMPAIGNS */
+
+  .modainfluence-public-campaign-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .modainfluence-public-campaign-card {
+    padding: 0 18px 18px;
+  }
+
+  .modainfluence-public-campaign-actions {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .modainfluence-public-campaign-apply {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  /* CAMPAIGN DETAILS MODAL */
+
+  .modainfluence-campaign-details-backdrop {
+    align-items: end;
+    padding: 8px;
+  }
+
+  .modainfluence-campaign-details-dialog {
+    width: 100%;
+    max-width: 100%;
+    max-height: calc(100dvh - 16px);
+  }
+
+  .modainfluence-campaign-details-header,
+  .modainfluence-campaign-details-content,
+  .modainfluence-campaign-details-footer {
+    padding: 18px;
+  }
+
+  .modainfluence-campaign-details-header {
+    gap: 12px;
+  }
+
+  .modainfluence-campaign-details-header h2 {
+    font-size: 24px;
+  }
+
+  .modainfluence-campaign-details-footer {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
+/* ========================================
+   VERY SMALL MOBILE SCREENS
+======================================== */
+
+@media (max-width: 380px) {
+
+  .modainfluence-container {
+    width: calc(100% - 24px);
+  }
+
+  .modainfluence-hero {
+    min-height: calc(100svh - 70px);
+    padding: 14px 0;
+  }
+
+  .modainfluence-hero .modainfluence-container {
+    width: calc(100% - 24px);
+    padding: 0;
+  }
+
+  .modainfluence-hero h1 {
+    font-size: clamp(27px, 8vw, 34px);
+    line-height: 1.06;
+  }
+
+  .modainfluence-hero p {
+    font-size: 12px;
+    line-height: 1.45;
+    margin: 8px 0 12px;
+  }
+
+  .modainfluence-actions {
+    gap: 7px;
+  }
+
+  .modainfluence-actions > button,
+  .modainfluence-actions > a {
+    min-height: 40px;
+    padding: 9px;
+    font-size: 11px;
+  }
+
+  .modainfluence-form {
+    padding: 25px 16px;
+  }
+
+  .modainfluence-campaign-details-header h2 {
+    font-size: 21px;
+  }
+}
+
+/* ========================================
+   ACCESSIBILITY & SMALL DEVICE FIXES
+======================================== */
+
+@media (max-width: 600px) {
+
+  .modainfluence-page img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .modainfluence-page input,
+  .modainfluence-page textarea,
+  .modainfluence-page select {
+    max-width: 100%;
+    font-size: 16px;
+  }
+
+  .modainfluence-page h1,
+  .modainfluence-page h2,
+  .modainfluence-page h3,
+  .modainfluence-page p {
+    overflow-wrap: anywhere;
   }
 }

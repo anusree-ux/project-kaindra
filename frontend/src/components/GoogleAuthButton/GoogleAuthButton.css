@@ -1,22 +1,47 @@
+/* =========================================
+   GOOGLE AUTH WRAPPER
+========================================= */
+
 .google-auth-wrapper {
+  display: block;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   margin-bottom: 14px;
+  box-sizing: border-box;
 }
+
+/* =========================================
+   DEVELOPMENT GOOGLE BUTTON
+========================================= */
 
 .google-auth-btn {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
+
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 48px;
+
   padding: 12px 18px;
+
+  box-sizing: border-box;
   border-radius: 8px;
+
   font-size: 15px;
   font-weight: 600;
+
   cursor: pointer;
+
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+
   border: 1px solid rgba(0, 0, 0, 0.15);
+
   background: #ffffff;
   color: #374151;
 }
@@ -36,10 +61,14 @@
   cursor: not-allowed;
 }
 
+/* Dark Theme */
+
 .google-auth-btn.theme-dark {
   background: #18191c;
   color: #f3f4f6;
+
   border: 1px solid rgba(255, 255, 255, 0.15);
+
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
 }
 
@@ -48,47 +77,119 @@
   border-color: rgba(255, 255, 255, 0.25);
 }
 
+/* Google Icon */
+
 .google-icon {
+  width: 20px;
+  height: 20px;
   flex-shrink: 0;
 }
 
+/* Button Text */
+
 .google-auth-btn-text {
+  min-width: 0;
+  max-width: 100%;
+
   letter-spacing: 0.2px;
+  text-align: center;
+
+  overflow-wrap: anywhere;
 }
 
-/* Simulated Google Account Selector Overlay */
+/* =========================================
+   REAL GOOGLE IDENTITY SERVICES BUTTON
+========================================= */
+
+.google-gsi-render-target {
+  display: block;
+
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* Google generated button container */
+
+.google-gsi-render-target > div {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Google iframe */
+
+.google-gsi-render-target iframe {
+  display: block;
+
+  max-width: 100% !important;
+
+  box-sizing: border-box !important;
+
+  border: 0;
+}
+
+/* =========================================
+   SIMULATED GOOGLE ACCOUNT MODAL
+========================================= */
+
 .google-sim-overlay {
   position: fixed;
   inset: 0;
+
   z-index: 99999;
+
   background: rgba(0, 0, 0, 0.65);
+
   backdrop-filter: blur(4px);
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   padding: 20px;
+
+  box-sizing: border-box;
+
   animation: googleFadeIn 0.2s ease-out;
 }
+
+/* Modal Animation */
 
 @keyframes googleFadeIn {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
 }
 
+/* Modal Card */
+
 .google-sim-card {
   width: 100%;
   max-width: 440px;
+
+  box-sizing: border-box;
+
   background: #ffffff;
+
   border-radius: 14px;
+
   padding: 28px;
+
   box-shadow: 0 20px 45px rgba(0, 0, 0, 0.25);
+
   color: #1f2937;
+
   text-align: left;
 }
+
+/* Modal Header */
 
 .google-sim-header {
   text-align: center;
@@ -98,113 +199,209 @@
 .google-sim-header h3 {
   font-size: 20px;
   font-weight: 700;
+
   margin: 10px 0 4px;
+
   color: #111827;
 }
 
 .google-sim-header p {
   font-size: 13px;
+
   color: #6b7280;
+
   margin: 0;
 }
+
+/* =========================================
+   ACCOUNT LIST
+========================================= */
 
 .google-sim-accounts {
   display: flex;
   flex-direction: column;
+
   gap: 10px;
+
   margin-bottom: 20px;
+
+  width: 100%;
 }
+
+/* Account Item */
 
 .google-sim-account-item {
   display: flex;
   align-items: center;
+
   gap: 14px;
+
+  width: 100%;
+  min-width: 0;
+
   padding: 10px 14px;
+
+  box-sizing: border-box;
+
   border: 1px solid #e5e7eb;
+
   border-radius: 8px;
+
   background: #f9fafb;
+
   cursor: pointer;
+
   transition: all 0.15s ease;
+
   text-align: left;
 }
 
 .google-sim-account-item:hover {
   background: #f3f4f6;
+
   border-color: #4285f4;
 }
+
+.google-sim-account-item:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Avatar */
 
 .google-sim-avatar {
   width: 38px;
   height: 38px;
+
+  min-width: 38px;
+
   border-radius: 50%;
+
   background: #1a73e8;
+
   color: #ffffff;
+
   font-weight: 700;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   font-size: 14px;
+
+  flex-shrink: 0;
+}
+
+/* Account Information */
+
+.google-sim-acc-info {
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+
+  overflow-wrap: anywhere;
 }
 
 .google-sim-acc-info strong {
   display: block;
+
   font-size: 14px;
+
   color: #111827;
 }
 
 .google-sim-acc-info span {
   font-size: 12px;
+
   color: #6b7280;
+
+  overflow-wrap: anywhere;
 }
+
+/* =========================================
+   SIMULATED GOOGLE FORM
+========================================= */
 
 .google-sim-form {
   display: flex;
   flex-direction: column;
+
   gap: 14px;
 }
 
 .google-sim-field {
   display: flex;
   flex-direction: column;
+
   gap: 6px;
 }
 
 .google-sim-field label {
   font-size: 12px;
+
   font-weight: 600;
+
   color: #4b5563;
+
   text-transform: uppercase;
+
   letter-spacing: 0.5px;
 }
 
 .google-sim-field input {
+  width: 100%;
+
+  box-sizing: border-box;
+
   padding: 10px 14px;
+
   border: 1px solid #d1d5db;
+
   border-radius: 6px;
+
   font-size: 14px;
+
   outline: none;
+
   transition: border-color 0.2s;
 }
 
 .google-sim-field input:focus {
   border-color: #4285f4;
+
   box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
 }
 
+/* =========================================
+   MODAL ACTIONS
+========================================= */
+
 .google-sim-actions {
   display: flex;
+
   justify-content: flex-end;
+
   gap: 10px;
+
   margin-top: 10px;
 }
 
+/* Cancel Button */
+
 .google-sim-btn-cancel {
   padding: 10px 18px;
+
   border-radius: 6px;
+
   border: 1px solid #d1d5db;
+
   background: transparent;
+
   color: #4b5563;
+
   font-weight: 600;
+
   cursor: pointer;
 }
 
@@ -212,14 +409,23 @@
   background: #f3f4f6;
 }
 
+/* Confirm Button */
+
 .google-sim-btn-confirm {
   padding: 10px 20px;
+
   border-radius: 6px;
+
   border: none;
+
   background: #1a73e8;
+
   color: #ffffff;
+
   font-weight: 600;
+
   cursor: pointer;
+
   transition: background 0.15s ease;
 }
 
@@ -231,3 +437,135 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* =========================================
+   TABLET RESPONSIVENESS
+========================================= */
+
+@media (max-width: 768px) {
+  .google-auth-wrapper {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .google-gsi-render-target {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .google-auth-btn {
+    width: 100%;
+    min-height: 48px;
+
+    padding: 11px 12px;
+
+    font-size: 14px;
+  }
+}
+
+/* =========================================
+   MOBILE RESPONSIVENESS
+========================================= */
+
+@media (max-width: 480px) {
+  .google-auth-wrapper,
+  .google-gsi-render-target {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .google-auth-btn {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+
+    min-height: 46px;
+
+    padding: 10px 8px;
+
+    gap: 8px;
+
+    font-size: 13px;
+  }
+
+  .google-auth-btn-text {
+    font-size: 13px;
+    text-align: center;
+  }
+
+  .google-icon {
+    width: 19px;
+    height: 19px;
+  }
+
+  .google-sim-card {
+    padding: 22px 18px;
+  }
+}
+
+/* =========================================
+   SMALL MOBILE RESPONSIVENESS
+========================================= */
+
+@media (max-width: 360px) {
+  .google-auth-btn {
+    min-height: 44px;
+
+    padding: 9px 6px;
+
+    gap: 6px;
+
+    font-size: 12px;
+  }
+
+  .google-auth-btn-text {
+    font-size: 12px;
+  }
+
+  .google-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .google-sim-overlay {
+    padding: 12px;
+  }
+
+  .google-sim-card {
+    padding: 20px 14px;
+  }
+
+  .google-sim-account-item {
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .google-sim-acc-info strong {
+    font-size: 13px;
+  }
+
+  .google-sim-acc-info span {
+    font-size: 11px;
+  }
+}
+
+/* =========================================
+   VERY SMALL SCREENS
+========================================= */
+
+@media (max-width: 320px) {
+  .google-auth-btn {
+    gap: 5px;
+    padding: 8px 5px;
+  }
+
+  .google-auth-btn-text {
+    font-size: 11px;
+  }
+
+  .google-sim-card {
+    padding: 18px 12px;
+  }
+}
+

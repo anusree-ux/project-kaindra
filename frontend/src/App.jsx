@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
 import { NotificationProvider } from "./context/NotificationContext";
+import { InfluenceProfilesProvider } from "./context/InfluenceProfilesContext";
 
 import Navbar from "./components/Navbar/Navbar";
 import ModaNavbar from "./pages/brands/ModaSphere/ModaNavbar/ModaNavbar";
@@ -153,17 +154,8 @@ function NotFound() {
         padding: "40px 20px",
       }}
     >
-      <h1
-        style={{
-          fontSize: "64px",
-          margin: 0,
-        }}
-      >
-        404
-      </h1>
-
+      <h1 style={{ fontSize: "64px", margin: 0 }}>404</h1>
       <h2>Page Not Found</h2>
-
       <p>The page you are looking for doesn't exist.</p>
 
       <a
@@ -187,667 +179,390 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <CartProvider>
-          <NotificationProvider>
-            <AuthModal />
-
-            <ScrollToTop />
-
-            <ScrollToTopComponent />
-
-            <Routes>
-          {/* =========================
-              KAINDRA PUBLIC WEBSITE
-          ========================= */}
-
-          <Route
-  path="/"
-  element={<Navigate to="/businesses/modamart/shop" replace />}
-/>
-
-          <Route
-            path="/about"
-            element={
-              <PublicLayout>
-                <About />
-              </PublicLayout>
-            }
-          />
-
-          <Route
-            path="/businesses"
-            element={
-              <PublicLayout>
-                <Businesses />
-              </PublicLayout>
-            }
-          />
-
-          {/* =========================
-              BRAND PAGES
-          ========================= */}
-
-          <Route
-  path="/businesses/modasphere"
-  element={
-    <PublicLayout>
-      <Home />
-    </PublicLayout>
-  }
-/>
-
-          <Route
-            path="/businesses/mototribe"
-            element={<MotoTribe />}
-          />
-
-          {/* =========================
-              MODAMART
-          ========================= */}
-
-          <Route
-            path="/businesses/modamart/shop"
-            element={
-              <PublicLayout>
-                <ModaMart />
-              </PublicLayout>
-            }
-          />
-          <Route
-  path="/businesses/modamart"
-  element={<Navigate to="/businesses/modamart/shop" replace />}
-/>
-
-          <Route
-            path="/businesses/:businessSlug"
-            element={
-              <PublicLayout>
-                <BusinessDetail />
-              </PublicLayout>
-            }
-          />
-
-          <Route
-            path="/businesses/modamart/product/:productId"
-            element={
-              <PublicLayout>
-                <ProductDetails />
-              </PublicLayout>
-            }
-          />
-
-          <Route
-            path="/businesses/modamart/cart"
-            element={
-              <PublicLayout>
-                <Cart />
-              </PublicLayout>
-            }
-          />
-
-          <Route
-            path="/businesses/modamart/wishlist"
-            element={
-              <PublicLayout>
-                <Wishlist />
-              </PublicLayout>
-            }
-          />
-
-          <Route
-            path="/businesses/modamart/checkout"
-            element={
-              <PublicLayout>
-                <Checkout />
-              </PublicLayout>
-            }
-          />
-
-          <Route
-            path="/checkout"
-            element={
-              <PublicLayout>
-                <Checkout />
-              </PublicLayout>
-            }
-          />
-
-          <Route
-            path="/order-confirmation/:orderId"
-            element={
-              <PublicLayout>
-                <OrderConfirmation />
-              </PublicLayout>
-            }
-          />
-
-          <Route
-            path="/businesses/modamart/order-confirmation/:orderId"
-            element={
-              <PublicLayout>
-                <OrderConfirmation />
-              </PublicLayout>
-            }
-          />
-
-          <Route
-            path="/businesses/modamart/orders"
-            element={
-              <PublicLayout>
-                <Orders />
-              </PublicLayout>
-            }
-          />
-
-          <Route
-            path="/businesses/modamart/orders/:orderId"
-            element={
-              <PublicLayout>
-                <OrderDetail />
-              </PublicLayout>
-            }
-          />
-
-          <Route
-            path="/orders"
-            element={
-              <PublicLayout>
-                <Orders />
-              </PublicLayout>
-            }
-          />
-
-          <Route
-            path="/orders/:orderId"
-            element={
-              <PublicLayout>
-                <OrderDetail />
-              </PublicLayout>
-            }
-          />
-
-          {/* =========================
-              MODADROP
-          ========================= */}
-
-          <Route
-  path="/businesses/modadrop"
-  element={
-    <PublicLayout>
-      <ModaDrop />
-    </PublicLayout>
-  }
-/>
-          <Route
-            path="/businesses/modadrop/drop/:dropId"
-            element={
-              <PublicLayout>
-                <DropDetails />
-              </PublicLayout>
-            }
-          />
-
-          <Route
-            path="/businesses/modadrop/orders"
-            element={
-              <PublicLayout>
-                <ModaDropOrders />
-              </PublicLayout>
-            }
-          />
-
-          {/* =========================
-              MODA SERVICES
-          ========================= */}
-
-          <Route
-            path="/businesses/modastudio"
-            element={
-              <PublicLayout>
-                <ModaStudio />
-              </PublicLayout>
-            }
-          />
-
-          <Route
-            path="/businesses/modamanufacture"
-            element={
-               <PublicLayout>
-                <ModaManufacture />
-               </PublicLayout>
-            }
-          />
-
-          <Route
-            path="/businesses/modamanufacture/track/:id"
-            element={
-              <PublicLayout>
-                <ManufactureTracking />
-              </PublicLayout>
-            }
-          />
-
-          <Route
-            path="/businesses/modalogix"
-            element={
-              <PublicLayout>
-                <ModaLogix />
-              </PublicLayout>
-            }
-          />
-
-          <Route
-            path="/businesses/modapay"
-            element={
-              <PublicLayout>
-                <ModaPay />
-              </PublicLayout>
-            }
-          />
-
-          <Route
-            path="/businesses/modainfluence"
-            element={
-              <PublicLayout>
-                <ModaInfluence />
-              </PublicLayout>
-            }
-          />
-
-          <Route
-            path="/businesses/modatales"
-            element={
-              <PublicLayout>
-                <ModaTales />
-              </PublicLayout>
-            }
-          />
-
-          <Route
-            path="/businesses/modaacademy"
-            element={
-            <PublicLayout>
-                <ModaAcademy />
-             </PublicLayout>
-            }
-          />
-
-          <Route
-            path="/businesses/modainsights"
-            element={
-              <PublicLayout>
-                <ModaInsights />
-               </PublicLayout>
-            }
-          />
-
-          <Route
-            path="/ecosystem"
-            element={
-               <PublicLayout>
-                <Ecosystem />
-               </PublicLayout>
-            }
-          />
-
-          {/* =========================
-              OTHER PUBLIC PAGES
-          ========================= */}
-
-          <Route
-            path="/communities"
-            element={
-              <PublicLayout>
-                <Communities />
-              </PublicLayout>
-            }
-          />
-
-          <Route
-            path="/contact"
-            element={
-              <PublicLayout>
-                <Contact />
-              </PublicLayout>
-            }
-          />
-
-          <Route
-            path="/careers"
-            element={
-              <PublicLayout>
-                <Careers />
-              </PublicLayout>
-            }
-          />
-
-          <Route
-            path="/news"
-            element={
-              <PublicLayout>
-                <News />
-              </PublicLayout>
-            }
-          />
-
-          {/* =========================
-              AUTH PAGES
-          ========================= */}
-
-          <Route
-            path="/login"
-            element={
-              <PublicLayout>
-                <Login />
-              </PublicLayout>
-            }
-          />
-
-          <Route
-            path="/signup"
-            element={
-              <PublicLayout>
-                <Signup />
-              </PublicLayout>
-            }
-          />
-
-          <Route
-            path="/profile"
-            element={
-              <PublicLayout>
-                <Profile />
-              </PublicLayout>
-            }
-          />
-
-          {/* =========================
-              ADMIN
-          ========================= */}
-
-          <Route
-            path="/admin-login"
-            element={<AdminLogin />}
-          />
-
-          <Route
-            path="/admin"
-            element={
-              <ProtectedAdminRoute>
-                <AdminDashboard />
-              </ProtectedAdminRoute>
-            }
-          />
-
-          <Route
-            path="/admin/careers"
-            element={
-              <ProtectedAdminRoute>
-                <AdminCareers />
-              </ProtectedAdminRoute>
-            }
-          />
-
-          <Route
-            path="/admin/applications"
-            element={
-              <ProtectedAdminRoute>
-                <AdminApplications />
-              </ProtectedAdminRoute>
-            }
-          />
-
-          <Route
-            path="/admin/community"
-            element={
-              <ProtectedAdminRoute>
-                <AdminCommunity />
-              </ProtectedAdminRoute>
-            }
-          />
-
-          <Route
-            path="/admin/manufacture-requests"
-            element={
-              <ProtectedAdminRoute>
-                <AdminManufactureRequests />
-              </ProtectedAdminRoute>
-            }
-          />
-
-          <Route
-            path="/admin/payments"
-            element={
-              <ProtectedAdminRoute>
-                <AdminPayments />
-              </ProtectedAdminRoute>
-            }
-          />
-
-          <Route
-            path="/admin/influence"
-            element={
-              <ProtectedAdminRoute>
-                <AdminInfluence />
-              </ProtectedAdminRoute>
-            }
-          />
-
-          <Route
-            path="/admin/tales"
-            element={
-              <ProtectedAdminRoute>
-                <AdminTales />
-              </ProtectedAdminRoute>
-            }
-          />
-
-          <Route
-            path="/admin/academy"
-            element={
-              <ProtectedAdminRoute>
-                <AdminAcademy />
-              </ProtectedAdminRoute>
-            }
-          />
-
-          <Route
-            path="/admin/insights"
-            element={
-              <ProtectedAdminRoute>
-                <AdminInsights />
-              </ProtectedAdminRoute>
-            }
-          />
-          
-          {/* =========================
-    MODASPHERE DASHBOARD
-========================= */}
-
-{/* Dashboard Authentication */}
-
-<Route
-  path="/businesses/modasphere/dashboard/login"
-  element={<DashboardLogin />}
-/>
-
-<Route
-  path="/businesses/modasphere/dashboard/signup"
-  element={<DashboardSignup />}
-/>
-
-{/* Protected Dashboard */}
-
-<Route
-  path="/businesses/modasphere/dashboard"
-  element={
-    <RequireAuth>
-      <DashboardLayout />
-    </RequireAuth>
-  }
->
-  {/* Overview */}
-  <Route
-    index
-    element={<Overview />}
-  />
-
-  {/* Products */}
-  <Route
-    path="products"
-    element={<ProductList />}
-  />
-
-  <Route
-    path="products/new"
-    element={<ProductForm />}
-  />
-
-  <Route
-    path="products/:productId/edit"
-    element={<ProductForm />}
-  />
-
-  {/* Orders */}
-  <Route
-    path="orders"
-    element={<OrderListDashboard />}
-  />
-
-  <Route
-    path="orders/:orderId"
-    element={<OrderDetailDashboard />}
-  />
-
-  {/* Product Drops */}
-  <Route
-    path="drops"
-    element={<DropList />}
-  />
-
-  <Route
-    path="drops/new"
-    element={<DropForm />}
-  />
-
-  <Route
-    path="drops/:dropId/edit"
-    element={<DropForm />}
-  />
-
-  {/* Reviews */}
-  <Route
-    path="reviews"
-    element={<ReviewList />}
-  />
-
-  {/* Discounts */}
-  <Route
-    path="discounts"
-    element={<DiscountList />}
-  />
-
-  <Route
-    path="discounts/new"
-    element={<DiscountForm />}
-  />
-
-  <Route
-    path="discounts/:discountId/edit"
-    element={<DiscountForm />}
-  />
-
-  {/* Production Requests */}
-  <Route
-    path="production-requests"
-    element={<RequestList />}
-  />
-
-  <Route
-    path="production-requests/:requestId"
-    element={<RequestDetail />}
-  />
-
-  {/* Settings */}
-  <Route
-    path="settings"
-    element={<DashboardSettings />}
-  />
-</Route>
-          {/* =========================
-              MOTOTRIBE
-          ========================= */}
-
-          <Route
-            path="/businesses/mototribe"
-            element={<MotoTribe />}
-          />
-
-          <Route
-            path="/businesses/mototribe/signup"
-            element={<MotoSignup />}
-          />
-
-          <Route
-            path="/businesses/mototribe/verify-otp"
-            element={<Navigate to="/businesses/mototribe/login" replace />}
-          />
-
-          <Route
-            path="/businesses/mototribe/profile-setup"
-            element={<ProfileSetup />}
-          />
-
-          <Route
-            path="/businesses/mototribe/vehicles"
-            element={<Vehicles />}
-          />
-
-          <Route
-            path="/businesses/mototribe/login"
-            element={<MotoLogin />}
-          />
-
-          <Route
-            path="/businesses/mototribe/ride"
-            element={<Navigate to="/businesses/mototribe" replace />}
-          />
-
-          <Route
-            path="/businesses/mototribe/ride/:rideId"
-            element={<RideDetails />}
-          />
-
-          <Route
-            path="/businesses/mototribe/ride/:rideId/live"
-            element={<LiveRide />}
-          />
-
-          <Route
-            path="/businesses/mototribe/ride/:rideId/expenses"
-            element={<Expenses />}
-          />
-
-          <Route
-            path="/businesses/mototribe/ride/:rideId/complete"
-            element={<PostRideSummaryPage />}
-          />
-
-          {/* =========================
-              404
-          ========================= */}
-
-          <Route
-            path="*"
-            element={
-              <PublicLayout>
-                <NotFound />
-              </PublicLayout>
-            }
-          />
-        </Routes>
-          </NotificationProvider>
-        </CartProvider>
+        <InfluenceProfilesProvider>
+          <CartProvider>
+            <NotificationProvider>
+              <AuthModal />
+
+              <ScrollToTop />
+              <ScrollToTopComponent />
+
+              <Routes>
+                {/* KAINDRA PUBLIC WEBSITE */}
+
+                <Route
+                  path="/"
+                  element={<Navigate to="/businesses/modamart/shop" replace />}
+                />
+
+                <Route
+                  path="/about"
+                  element={<PublicLayout><About /></PublicLayout>}
+                />
+
+                <Route
+                  path="/businesses"
+                  element={<PublicLayout><Businesses /></PublicLayout>}
+                />
+
+                {/* BRAND PAGES */}
+
+                <Route
+                  path="/businesses/modasphere"
+                  element={<PublicLayout><Home /></PublicLayout>}
+                />
+
+                <Route
+                  path="/businesses/mototribe"
+                  element={<MotoTribe />}
+                />
+
+                {/* MODAMART */}
+
+                <Route
+                  path="/businesses/modamart/shop"
+                  element={<PublicLayout><ModaMart /></PublicLayout>}
+                />
+
+                <Route
+                  path="/businesses/modamart"
+                  element={<Navigate to="/businesses/modamart/shop" replace />}
+                />
+
+                <Route
+                  path="/businesses/:businessSlug"
+                  element={<PublicLayout><BusinessDetail /></PublicLayout>}
+                />
+
+                <Route
+                  path="/businesses/modamart/product/:productId"
+                  element={<PublicLayout><ProductDetails /></PublicLayout>}
+                />
+
+                <Route
+                  path="/businesses/modamart/cart"
+                  element={<PublicLayout><Cart /></PublicLayout>}
+                />
+
+                <Route
+                  path="/businesses/modamart/wishlist"
+                  element={<PublicLayout><Wishlist /></PublicLayout>}
+                />
+
+                <Route
+                  path="/businesses/modamart/checkout"
+                  element={<PublicLayout><Checkout /></PublicLayout>}
+                />
+
+                <Route
+                  path="/checkout"
+                  element={<PublicLayout><Checkout /></PublicLayout>}
+                />
+
+                <Route
+                  path="/order-confirmation/:orderId"
+                  element={<PublicLayout><OrderConfirmation /></PublicLayout>}
+                />
+
+                <Route
+                  path="/businesses/modamart/order-confirmation/:orderId"
+                  element={<PublicLayout><OrderConfirmation /></PublicLayout>}
+                />
+
+                <Route
+                  path="/businesses/modamart/orders"
+                  element={<PublicLayout><Orders /></PublicLayout>}
+                />
+
+                <Route
+                  path="/businesses/modamart/orders/:orderId"
+                  element={<PublicLayout><OrderDetail /></PublicLayout>}
+                />
+
+                <Route
+                  path="/orders"
+                  element={<PublicLayout><Orders /></PublicLayout>}
+                />
+
+                <Route
+                  path="/orders/:orderId"
+                  element={<PublicLayout><OrderDetail /></PublicLayout>}
+                />
+
+                {/* MODADROP */}
+
+                <Route
+                  path="/businesses/modadrop"
+                  element={<PublicLayout><ModaDrop /></PublicLayout>}
+                />
+
+                <Route
+                  path="/businesses/modadrop/drop/:dropId"
+                  element={<PublicLayout><DropDetails /></PublicLayout>}
+                />
+
+                <Route
+                  path="/businesses/modadrop/orders"
+                  element={<PublicLayout><ModaDropOrders /></PublicLayout>}
+                />
+
+                {/* MODA SERVICES */}
+
+                <Route
+                  path="/businesses/modastudio"
+                  element={<PublicLayout><ModaStudio /></PublicLayout>}
+                />
+
+                <Route
+                  path="/businesses/modamanufacture"
+                  element={<PublicLayout><ModaManufacture /></PublicLayout>}
+                />
+
+                <Route
+                  path="/businesses/modamanufacture/track/:id"
+                  element={<PublicLayout><ManufactureTracking /></PublicLayout>}
+                />
+
+                <Route
+                  path="/businesses/modalogix"
+                  element={<PublicLayout><ModaLogix /></PublicLayout>}
+                />
+
+                <Route
+                  path="/businesses/modapay"
+                  element={<PublicLayout><ModaPay /></PublicLayout>}
+                />
+
+                <Route
+                  path="/businesses/modainfluence"
+                  element={<PublicLayout><ModaInfluence /></PublicLayout>}
+                />
+
+                <Route
+                  path="/businesses/modatales"
+                  element={<PublicLayout><ModaTales /></PublicLayout>}
+                />
+
+                <Route
+                  path="/businesses/modaacademy"
+                  element={<PublicLayout><ModaAcademy /></PublicLayout>}
+                />
+
+                <Route
+                  path="/businesses/modainsights"
+                  element={<PublicLayout><ModaInsights /></PublicLayout>}
+                />
+
+                <Route
+                  path="/ecosystem"
+                  element={<PublicLayout><Ecosystem /></PublicLayout>}
+                />
+
+                {/* OTHER PUBLIC PAGES */}
+
+                <Route
+                  path="/communities"
+                  element={<PublicLayout><Communities /></PublicLayout>}
+                />
+
+                <Route
+                  path="/contact"
+                  element={<PublicLayout><Contact /></PublicLayout>}
+                />
+
+                <Route
+                  path="/careers"
+                  element={<PublicLayout><Careers /></PublicLayout>}
+                />
+
+                <Route
+                  path="/news"
+                  element={<PublicLayout><News /></PublicLayout>}
+                />
+
+                {/* AUTH PAGES */}
+
+                <Route
+                  path="/login"
+                  element={<PublicLayout><Login /></PublicLayout>}
+                />
+
+                <Route
+                  path="/signup"
+                  element={<PublicLayout><Signup /></PublicLayout>}
+                />
+
+                <Route
+                  path="/profile"
+                  element={<PublicLayout><Profile /></PublicLayout>}
+                />
+
+                {/* ADMIN */}
+
+                <Route path="/admin-login" element={<AdminLogin />} />
+
+                <Route
+                  path="/admin"
+                  element={<ProtectedAdminRoute><AdminDashboard /></ProtectedAdminRoute>}
+                />
+
+                <Route
+                  path="/admin/careers"
+                  element={<ProtectedAdminRoute><AdminCareers /></ProtectedAdminRoute>}
+                />
+
+                <Route
+                  path="/admin/applications"
+                  element={<ProtectedAdminRoute><AdminApplications /></ProtectedAdminRoute>}
+                />
+
+                <Route
+                  path="/admin/community"
+                  element={<ProtectedAdminRoute><AdminCommunity /></ProtectedAdminRoute>}
+                />
+
+                <Route
+                  path="/admin/manufacture-requests"
+                  element={<ProtectedAdminRoute><AdminManufactureRequests /></ProtectedAdminRoute>}
+                />
+
+                <Route
+                  path="/admin/payments"
+                  element={<ProtectedAdminRoute><AdminPayments /></ProtectedAdminRoute>}
+                />
+
+                <Route
+                  path="/admin/influence"
+                  element={<ProtectedAdminRoute><AdminInfluence /></ProtectedAdminRoute>}
+                />
+
+                <Route
+                  path="/admin/tales"
+                  element={<ProtectedAdminRoute><AdminTales /></ProtectedAdminRoute>}
+                />
+
+                <Route
+                  path="/admin/academy"
+                  element={<ProtectedAdminRoute><AdminAcademy /></ProtectedAdminRoute>}
+                />
+
+                <Route
+                  path="/admin/insights"
+                  element={<ProtectedAdminRoute><AdminInsights /></ProtectedAdminRoute>}
+                />
+
+                {/* MODASPHERE DASHBOARD */}
+
+                <Route
+                  path="/businesses/modasphere/dashboard/login"
+                  element={<DashboardLogin />}
+                />
+
+                <Route
+                  path="/businesses/modasphere/dashboard/signup"
+                  element={<DashboardSignup />}
+                />
+
+                <Route
+                  path="/businesses/modasphere/dashboard"
+                  element={
+                    <RequireAuth>
+                      <DashboardLayout />
+                    </RequireAuth>
+                  }
+                >
+                  <Route index element={<Overview />} />
+
+                  <Route path="products" element={<ProductList />} />
+                  <Route path="products/new" element={<ProductForm />} />
+                  <Route path="products/:productId/edit" element={<ProductForm />} />
+
+                  <Route path="orders" element={<OrderListDashboard />} />
+                  <Route path="orders/:orderId" element={<OrderDetailDashboard />} />
+
+                  <Route path="drops" element={<DropList />} />
+                  <Route path="drops/new" element={<DropForm />} />
+                  <Route path="drops/:dropId/edit" element={<DropForm />} />
+
+                  <Route path="reviews" element={<ReviewList />} />
+
+                  <Route path="discounts" element={<DiscountList />} />
+                  <Route path="discounts/new" element={<DiscountForm />} />
+                  <Route path="discounts/:discountId/edit" element={<DiscountForm />} />
+
+                  <Route path="production-requests" element={<RequestList />} />
+                  <Route path="production-requests/:requestId" element={<RequestDetail />} />
+
+                  <Route path="settings" element={<DashboardSettings />} />
+                </Route>
+
+                {/* MOTOTRIBE */}
+
+                <Route
+                  path="/businesses/mototribe"
+                  element={<MotoTribe />}
+                />
+
+                <Route
+                  path="/businesses/mototribe/signup"
+                  element={<MotoSignup />}
+                />
+
+                <Route
+                  path="/businesses/mototribe/verify-otp"
+                  element={<Navigate to="/businesses/mototribe/login" replace />}
+                />
+
+                <Route
+                  path="/businesses/mototribe/profile-setup"
+                  element={<ProfileSetup />}
+                />
+
+                <Route
+                  path="/businesses/mototribe/vehicles"
+                  element={<Vehicles />}
+                />
+
+                <Route
+                  path="/businesses/mototribe/login"
+                  element={<MotoLogin />}
+                />
+
+                <Route
+                  path="/businesses/mototribe/ride"
+                  element={<Navigate to="/businesses/mototribe" replace />}
+                />
+
+                <Route
+                  path="/businesses/mototribe/ride/:rideId"
+                  element={<RideDetails />}
+                />
+
+                <Route
+                  path="/businesses/mototribe/ride/:rideId/live"
+                  element={<LiveRide />}
+                />
+
+                <Route
+                  path="/businesses/mototribe/ride/:rideId/expenses"
+                  element={<Expenses />}
+                />
+
+                <Route
+                  path="/businesses/mototribe/ride/:rideId/complete"
+                  element={<PostRideSummaryPage />}
+                />
+
+                {/* 404 */}
+
+                <Route
+                  path="*"
+                  element={<PublicLayout><NotFound /></PublicLayout>}
+                />
+              </Routes>
+            </NotificationProvider>
+          </CartProvider>
+        </InfluenceProfilesProvider>
       </AuthProvider>
     </BrowserRouter>
   );

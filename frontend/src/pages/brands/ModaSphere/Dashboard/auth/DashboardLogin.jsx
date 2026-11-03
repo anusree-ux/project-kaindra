@@ -162,9 +162,19 @@ const DashboardLogin = () => {
       {/* RIGHT SIDE */}
       <section className="moda-auth-form-section">
         <div className="moda-auth-form-wrapper">
-          <div className="moda-auth-mobile-logo">
-            KAINDRA
-          </div>
+
+  {/* MOBILE BACK TO MODASPHERE */}
+  <Link
+    to="/"
+    className="moda-auth-mobile-back"
+  >
+    <ArrowLeft size={19} />
+    <span>Back to ModaSphere</span>
+  </Link>
+
+  <div className="moda-auth-mobile-logo">
+    KAINDRA
+  </div>
 
           <div className="moda-auth-heading">
             <span>MODASPHERE DASHBOARD</span>

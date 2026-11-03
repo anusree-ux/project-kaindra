@@ -340,3 +340,9 @@
   background: #f8e5e3;
   color: #a52a22;
 }
+
+.admin-tales-message {
+  max-width: 280px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}

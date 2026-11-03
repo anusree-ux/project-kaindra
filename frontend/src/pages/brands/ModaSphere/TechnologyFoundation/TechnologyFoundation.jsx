@@ -48,10 +48,7 @@ const technologies = [
 
 export default function TechnologyFoundation() {
   return (
-    <section
-      className="technology-section"
-      id="technology"
-    >
+    <section className="technology-section" id="technology">
       <div className="technology-container">
 
         <div className="technology-heading">
@@ -86,17 +83,16 @@ export default function TechnologyFoundation() {
                 key={technology.title}
               >
                 <div className="technology-card-icon">
-                  <Icon
-                    size={24}
-                    strokeWidth={1.5}
-                  />
+                  <Icon size={24} strokeWidth={1.5} />
                 </div>
 
-                <h3>{technology.title}</h3>
+                <div className="technology-card-content">
+                  <h3>{technology.title}</h3>
 
-                {technology.description && (
-                  <p>{technology.description}</p>
-                )}
+                  {technology.description && (
+                    <p>{technology.description}</p>
+                  )}
+                </div>
               </article>
             );
           })}

@@ -1,321 +1,2388 @@
-/* =========================
-   ABOUT PAGE
-========================= */
+
+/* =========================================
+   ABOUT KAINDRA - PREMIUM RESPONSIVE DESIGN
+========================================= */
 
 .about-page {
   width: 100%;
-  background: #f7f5f2;
-  color: #111111;
   overflow: hidden;
+  background: #faf9f6;
+  color: #171717;
+  --about-gold: #b4864b;
+  --about-dark: #202c35;
+  --about-cream: #f5f1eb;
+  --about-muted: #69645e;
 }
 
 .about-container {
-  width: min(1150px, calc(100% - 40px));
+  width: min(1240px, calc(100% - 64px));
   margin: 0 auto;
 }
 
-.about-label {
-  display: block;
-  margin-bottom: 18px;
-
-  color: #b4864b;
-
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 3px;
+.about-page * {
+  box-sizing: border-box;
 }
 
-/* =========================
+.about-page img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.about-page h1,
+.about-page h2,
+.about-page h3,
+.about-page p {
+  overflow-wrap: break-word;
+}
+
+.about-page a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.about-label,
+.about-number {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 22px;
+  color: var(--about-gold);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2.8px;
+}
+
+.label-line {
+  width: 30px;
+  height: 1px;
+  background: var(--about-gold);
+}
+
+
+/* =========================================
    HERO
-========================= */
+========================================= */
 
 .about-hero {
-  padding: 95px 0 90px;
-  text-align: center;
+  position: relative;
+  padding: 85px 0 100px;
+  background:
+    radial-gradient(ellipse at 95% 10%, rgba(180, 134, 75, 0.10), transparent 35%),
+    #f5f1eb;
 }
 
-.about-hero h1 {
-  max-width: 900px;
-  margin: 0 auto;
+.about-hero-grid {
+  display: grid;
+  grid-template-columns: 0.92fr 1.08fr;
+  align-items: center;
+  gap: 65px;
+}
 
-  font-size: clamp(45px, 6vw, 72px);
-  line-height: 1.05;
-  letter-spacing: -2px;
+.about-hero-content {
+  position: relative;
+  z-index: 2;
+  animation: aboutFadeUp 0.8s ease both;
+}
+
+.about-hero-content h1 {
+  margin: 0;
+  font-size: clamp(43px, 5.2vw, 72px);
+  line-height: 1.06;
+  letter-spacing: -3.2px;
+  font-weight: 750;
+}
+
+.about-hero-content h1 span {
+  display: inline;
+  color: var(--about-gold);
+}
+
+.about-hero-content > p {
+  max-width: 480px;
+  margin: 27px 0;
+  color: var(--about-muted);
+  font-size: 16px;
+  line-height: 1.9;
+}
+
+.hero-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 22px;
+}
+
+.about-explore {
+  display: inline-flex;
+  align-items: center;
+  gap: 25px;
+  padding: 16px 23px;
+  background: #171717;
+  color: white;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 650;
+  transition: 0.3s ease;
+}
+
+.about-explore:hover {
+  background: var(--about-gold);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 25px rgba(180, 134, 75, 0.2);
+}
+
+.about-explore span {
+  font-size: 20px;
+  transition: transform 0.3s ease;
+}
+
+.about-explore:hover span {
+  transform: translate(3px, -3px);
+}
+
+.hero-side-note {
+  color: #8c8379;
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 1.5px;
+}
+
+.hero-bottom-note {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin-top: 65px;
+  color: #8c8379;
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 1.5px;
+}
+
+.hero-bottom-note > span:first-child {
+  color: var(--about-gold);
+  font-size: 12px;
+}
+
+.hero-note-line {
+  width: 42px;
+  height: 1px;
+  background: #c8bcae;
+}
+
+.about-hero-visual {
+  position: relative;
+  padding: 0 0 25px 15px;
+  animation: aboutFadeUp 0.9s ease 0.15s both;
+}
+
+.hero-image-frame {
+  position: relative;
+  height: 510px;
+  overflow: hidden;
+  border-radius: 5px 45px 5px 5px;
+  background: #ddd5ca;
+  box-shadow: 0 25px 65px rgba(43, 34, 23, 0.15);
+}
+
+.hero-image-frame img,
+.about-intro-image img,
+.about-approach-image img {
+  transition: transform 0.9s cubic-bezier(.2, .7, .2, 1);
+}
+
+.hero-image-frame:hover img,
+.about-intro-image:hover img,
+.about-approach-image:hover img {
+  transform: scale(1.045);
+}
+
+.hero-image-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 40%,
+    rgba(20, 17, 14, 0.72) 100%
+  );
+}
+
+.hero-image-caption {
+  position: absolute;
+  z-index: 2;
+  left: 32px;
+  right: 25px;
+  bottom: 31px;
+  color: white;
+}
+
+.hero-image-caption span {
+  color: #e9c38c;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 2px;
+}
+
+.hero-image-caption h3 {
+  margin: 10px 0 0;
+  font-size: clamp(21px, 2.4vw, 30px);
+  font-weight: 600;
+}
+
+.hero-floating-card {
+  position: absolute;
+  z-index: 3;
+  left: -25px;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 17px 23px;
+  background: #fff;
+  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.12);
+  animation: floatCard 5s ease-in-out infinite;
+}
+
+.floating-star {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #f4eadb;
+  color: var(--about-gold);
+  font-size: 24px;
+}
+
+.hero-floating-card strong {
+  display: block;
+  font-size: 14px;
+}
+
+.hero-floating-card p {
+  margin: 4px 0 0;
+  color: #777;
+  font-size: 11px;
+}
+
+.hero-vertical-text {
+  position: absolute;
+  right: -28px;
+  top: 25px;
+  color: #9d8e7d;
+  font-size: 9px;
   font-weight: 700;
+  letter-spacing: 2px;
+  writing-mode: vertical-rl;
 }
 
-.about-hero p {
-  max-width: 720px;
-  margin: 28px auto 0;
-
-  color: #626262;
-
-  font-size: 17px;
-  line-height: 1.7;
+.hero-decoration {
+  position: absolute;
+  pointer-events: none;
+  border: 1px solid rgba(180, 134, 75, 0.12);
+  border-radius: 50%;
 }
 
-/* =========================
+.hero-decoration-one {
+  width: 180px;
+  height: 180px;
+  left: -110px;
+  top: 15%;
+}
+
+.hero-decoration-two {
+  width: 90px;
+  height: 90px;
+  right: 3%;
+  bottom: 5%;
+}
+
+
+/* =========================================
    INTRODUCTION
-========================= */
+========================================= */
 
 .about-introduction {
-  padding: 80px 0;
-  background: #ffffff;
+  padding: 115px 0 125px;
+  background: #fff;
+}
+
+.intro-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 40px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #eee9e2;
+}
+
+.intro-topline .about-number {
+  margin: 0;
+}
+
+.intro-topline-text {
+  color: #a49a8d;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.7px;
 }
 
 .about-intro-grid {
   display: grid;
-  grid-template-columns: 180px 1fr;
-  gap: 70px;
-  align-items: start;
+  grid-template-columns: 1fr 0.92fr;
+  align-items: center;
+  gap: 85px;
 }
 
-.about-number {
-  color: #b4864b;
-  font-size: 12px;
-  font-weight: 600;
+.about-intro-visual {
+  position: relative;
+  padding: 0 25px 35px 0;
+}
+
+.about-intro-image {
+  position: relative;
+  height: 525px;
+  overflow: hidden;
+  border-radius: 4px 4px 65px 4px;
+  background: #e5e0d8;
+}
+
+.about-intro-image::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.7),
+    transparent 65%
+  );
+  pointer-events: none;
+}
+
+.intro-image-overlay {
+  position: absolute;
+  z-index: 1;
+  left: 28px;
+  right: 25px;
+  bottom: 28px;
+  color: white;
+}
+
+.intro-image-overlay span {
+  color: #eac58e;
+  font-size: 10px;
+  font-weight: 750;
   letter-spacing: 2px;
 }
 
+.intro-image-overlay h3 {
+  max-width: 370px;
+  margin: 12px 0 0;
+  font-size: clamp(21px, 2.5vw, 30px);
+  line-height: 1.25;
+}
+
+.intro-image-index {
+  position: absolute;
+  right: 0;
+  top: 35px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 15px 12px;
+  background: #f5f1eb;
+}
+
+.intro-image-index span {
+  color: #a99a86;
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.intro-image-index span:first-child {
+  color: var(--about-gold);
+}
+
+.intro-image-description {
+  position: absolute;
+  left: 20px;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  background: #fff;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.08);
+}
+
+.intro-image-description > span {
+  color: var(--about-gold);
+  font-size: 23px;
+}
+
+.intro-image-description p {
+  margin: 0;
+  color: #555;
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .about-intro-content {
-  max-width: 760px;
+  padding: 15px 0;
+}
+
+.section-eyebrow {
+  display: block;
+  margin-bottom: 20px;
+  color: var(--about-gold);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 2px;
 }
 
 .about-intro-content h2 {
-  margin: 0 0 25px;
-
-  font-size: clamp(32px, 4vw, 48px);
-  line-height: 1.15;
-  letter-spacing: -1px;
+  margin: 0 0 27px;
+  font-size: clamp(36px, 4vw, 53px);
+  line-height: 1.13;
+  letter-spacing: -2px;
 }
 
-.about-intro-content p {
+.about-intro-content h2 span {
+  color: var(--about-gold);
+}
+
+.about-intro-content > p {
   margin: 0 0 18px;
-
-  color: #666666;
-
-  font-size: 16px;
-  line-height: 1.75;
+  color: #706c66;
+  font-size: 14px;
+  line-height: 1.95;
 }
 
-/* =========================
-   VISION & MISSION
-========================= */
+.about-intro-highlight {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-top: 28px;
+  padding: 18px 0;
+  border-top: 1px solid #e8e3db;
+  border-bottom: 1px solid #e8e3db;
+}
+
+.highlight-symbol {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 43px;
+  height: 43px;
+  border-radius: 50%;
+  background: #f5eee4;
+  color: var(--about-gold);
+  font-size: 23px;
+}
+
+.about-intro-highlight strong {
+  font-size: 13px;
+}
+
+.about-intro-highlight p {
+  margin: 4px 0 0;
+  color: #858078;
+  font-size: 11px;
+}
+
+.intro-discover-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 20px;
+  margin-top: 25px;
+  color: #292929;
+  font-size: 13px;
+  font-weight: 750;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.intro-discover-link:hover {
+  color: var(--about-gold);
+}
+
+.intro-discover-link span {
+  font-size: 18px;
+}
+
+
+/* =========================================
+   ECOSYSTEM AREAS
+========================================= */
+
+.ecosystem-areas {
+  padding: 110px 0 120px;
+  background: #f5f1eb;
+  position: relative;
+}
+
+.ecosystem-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 50px;
+  margin-bottom: 55px;
+}
+
+.ecosystem-heading h2 {
+  margin: 0;
+  font-size: clamp(37px, 4.5vw, 57px);
+  line-height: 1.12;
+  letter-spacing: -2px;
+}
+
+.ecosystem-heading h2 span {
+  color: var(--about-gold);
+}
+
+.ecosystem-heading > p {
+  max-width: 350px;
+  margin: 0 0 5px;
+  color: #77716a;
+  font-size: 14px;
+  line-height: 1.9;
+}
+
+.ecosystem-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.ecosystem-card {
+  position: relative;
+  min-height: 235px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 26px;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid #eee8df;
+  transition:
+    transform 0.35s ease,
+    box-shadow 0.35s ease,
+    border-color 0.35s ease;
+}
+
+.ecosystem-card::before {
+  content: "";
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  right: -70px;
+  top: -70px;
+  border-radius: 50%;
+  background: rgba(180, 134, 75, 0.08);
+  transition: transform 0.5s ease;
+}
+
+.ecosystem-card:hover {
+  transform: translateY(-8px);
+  border-color: rgba(180, 134, 75, 0.4);
+  box-shadow: 0 20px 45px rgba(49, 39, 27, 0.08);
+}
+
+.ecosystem-card:hover::before {
+  transform: scale(2);
+}
+
+.ecosystem-card-top,
+.ecosystem-card-bottom {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ecosystem-card-number {
+  color: #a79c8f;
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 1px;
+}
+
+.ecosystem-card-icon {
+  display: grid;
+  place-items: center;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background: #f5eee4;
+  color: var(--about-gold);
+  font-size: 24px;
+  transition: transform 0.4s ease;
+}
+
+.ecosystem-card:hover .ecosystem-card-icon {
+  transform: rotate(45deg);
+}
+
+.ecosystem-card-content {
+  position: relative;
+  z-index: 1;
+  margin: 28px 0 25px;
+}
+
+.ecosystem-card-content h3 {
+  margin: 0 0 10px;
+  font-size: 19px;
+  letter-spacing: -0.4px;
+}
+
+.ecosystem-card-content p {
+  max-width: 290px;
+  margin: 0;
+  color: #77716a;
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.ecosystem-card-bottom {
+  padding-top: 15px;
+  border-top: 1px solid #eee9e2;
+}
+
+.ecosystem-card-bottom > span:first-child {
+  color: #a69b8d;
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 1.5px;
+}
+
+.ecosystem-arrow {
+  color: var(--about-gold);
+  font-size: 19px;
+  transition: transform 0.3s ease;
+}
+
+.ecosystem-card:hover .ecosystem-arrow {
+  transform: translate(4px, -4px);
+}
+
+
+/* =========================================
+   VISION AND MISSION
+========================================= */
 
 .about-vision-mission {
-  padding: 85px 0;
-
-  background: #f7f5f2;
+  padding: 115px 0 125px;
+  background: #fff;
 }
 
 .about-vm-heading {
+  max-width: 750px;
+  margin: 0 auto 55px;
   text-align: center;
-  margin-bottom: 45px;
+}
+
+.about-vm-heading .about-label {
+  justify-content: center;
 }
 
 .about-vm-heading h2 {
   margin: 0;
-
-  font-size: clamp(35px, 5vw, 55px);
+  font-size: clamp(39px, 5vw, 59px);
   line-height: 1.1;
-  letter-spacing: -1.5px;
+  letter-spacing: -2.3px;
+}
+
+.about-vm-heading h2 span {
+  color: var(--about-gold);
+}
+
+.about-vm-heading > p {
+  max-width: 480px;
+  margin: 19px auto 0;
+  color: #77716a;
+  font-size: 14px;
+  line-height: 1.8;
 }
 
 .about-vm-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px;
 }
 
 .about-vm-card {
-  min-height: 280px;
-  padding: 42px;
-
-  border: 1px solid #dedbd7;
+  overflow: hidden;
+  background: #faf9f6;
+  border: 1px solid #eee9e2;
+  transition:
+    transform 0.4s ease,
+    box-shadow 0.4s ease;
 }
 
-.about-vm-card > span {
-  display: block;
-  margin-bottom: 30px;
-
-  color: #b4864b;
-
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 3px;
+.about-vm-card:hover {
+  transform: translateY(-9px);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.09);
 }
 
-.about-vm-card h3 {
-  margin: 0 0 18px;
+.vm-image {
+  position: relative;
+  height: 315px;
+  overflow: hidden;
+  background: #dedbd5;
+}
 
+.vm-image img {
+  transition: transform 0.8s ease;
+}
+
+.about-vm-card:hover .vm-image img {
+  transform: scale(1.06);
+}
+
+.vm-image::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.55),
+    transparent 65%
+  );
+}
+
+.vm-image-label {
+  position: absolute;
+  z-index: 1;
+  left: 28px;
+  bottom: 25px;
+  color: white;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 2px;
+}
+
+.vm-image-number {
+  position: absolute;
+  z-index: 1;
+  top: 20px;
+  right: 23px;
+  color: rgba(255, 255, 255, 0.9);
   font-size: 30px;
+  font-weight: 300;
+}
+
+.vm-content {
+  padding: 32px 34px 35px;
+}
+
+.vm-number {
+  color: var(--about-gold);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.vm-content h3 {
+  margin: 15px 0 13px;
+  font-size: 28px;
   line-height: 1.2;
 }
 
-.about-vm-card p {
-  max-width: 500px;
+.vm-content p {
+  max-width: 490px;
   margin: 0;
-
-  font-size: 15px;
-  line-height: 1.75;
+  color: #6b6b6b;
+  font-size: 14px;
+  line-height: 1.9;
 }
 
-/* Vision */
-
-.vision-card {
-  background: #ffffff;
-  color: #111111;
+.vm-bottom-line {
+  display: block;
+  width: 45px;
+  height: 2px;
+  margin-top: 25px;
+  background: var(--about-gold);
+  transition: width 0.4s ease;
 }
 
-.vision-card p {
-  color: #666666;
+.about-vm-card:hover .vm-bottom-line {
+  width: 90px;
 }
 
-/* Mission */
 
-.mission-card {
-  background: #171717;
-  color: #ffffff;
-  border-color: #171717;
-}
-
-.mission-card p {
-  color: #bdbdbd;
-}
-
-/* =========================
-   APPROACH
-========================= */
+/* =========================================
+   OUR APPROACH
+========================================= */
 
 .about-approach {
-  padding: 90px 0;
-
-  background: #171717;
-  color: #ffffff;
+  padding: 120px 0;
+  background: #202c35;
+  color: white;
 }
 
-.about-approach h2 {
-  max-width: 750px;
-  margin: 0 0 25px;
-
-  font-size: clamp(38px, 5vw, 58px);
-  line-height: 1.08;
-  letter-spacing: -1.5px;
+.about-approach-grid {
+  display: grid;
+  grid-template-columns: 0.92fr 1.08fr;
+  gap: 75px;
+  align-items: center;
 }
 
-.about-approach p {
-  max-width: 700px;
+.about-approach-content h2 {
+  margin: 0 0 27px;
+  font-size: clamp(38px, 4.5vw, 58px);
+  line-height: 1.12;
+  letter-spacing: -2px;
+}
+
+.about-approach-content h2 span {
+  color: #e4b16b;
+}
+
+.about-approach-content > p {
   margin: 0;
+  color: #c4cbd0;
+  font-size: 14px;
+  line-height: 1.95;
+}
 
-  color: #bdbdbd;
+.approach-points {
+  margin-top: 35px;
+}
 
-  font-size: 16px;
+.approach-points > div {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 17px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  transition: padding 0.3s ease;
+}
+
+.approach-points > div:hover {
+  padding-left: 8px;
+}
+
+.approach-points > div > span:first-child {
+  color: #e4b16b;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.approach-points p {
+  flex: 1;
+  margin: 0;
+  color: #fff;
+  font-size: 13px;
+}
+
+.approach-point-arrow {
+  color: #e4b16b;
+  font-size: 18px;
+  transition: transform 0.3s ease;
+}
+
+.approach-points > div:hover .approach-point-arrow {
+  transform: translate(4px, -4px);
+}
+
+.about-approach-visual {
+  position: relative;
+  padding: 0 0 28px 20px;
+}
+
+.about-approach-image {
+  position: relative;
+  height: 490px;
+  overflow: hidden;
+  border-radius: 5px 5px 50px 5px;
+  background: #37434a;
+  box-shadow: 0 25px 65px rgba(0, 0, 0, 0.25);
+}
+
+.about-approach-image::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.7),
+    transparent 65%
+  );
+}
+
+.approach-image-caption {
+  position: absolute;
+  z-index: 1;
+  left: 30px;
+  bottom: 30px;
+}
+
+.approach-image-caption span {
+  color: #e6b86f;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 2px;
+}
+
+.approach-image-caption h3 {
+  margin: 10px 0 0;
+  font-size: 27px;
+}
+
+.approach-side-note {
+  position: absolute;
+  z-index: 2;
+  right: -20px;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 260px;
+  padding: 16px 20px;
+  background: #fff;
+  color: #252525;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.16);
+}
+
+.approach-side-note span {
+  color: var(--about-gold);
+  font-size: 24px;
+}
+
+.approach-side-note p {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1.5;
+}
+
+
+/* =========================================
+   CLOSING SECTION
+========================================= */
+
+.about-closing {
+  position: relative;
+  padding: 100px 0;
+  overflow: hidden;
+  background: #f5f1eb;
+}
+
+.about-closing-inner {
+  position: relative;
+  text-align: center;
+}
+
+.about-closing .about-number {
+  justify-content: center;
+}
+
+.about-closing h2 {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  font-size: clamp(40px, 5.5vw, 68px);
+  line-height: 1.1;
+  letter-spacing: -2.8px;
+}
+
+.about-closing h2 span {
+  color: var(--about-gold);
+}
+
+.about-closing-inner > p {
+  margin: 22px auto;
+  color: #77716a;
+  font-size: 14px;
   line-height: 1.8;
 }
 
-/* =========================
-   TABLET
-========================= */
+.closing-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 22px;
+  margin-top: 12px;
+  padding: 15px 23px;
+  background: #171717;
+  color: white;
+  font-size: 13px;
+  font-weight: 650;
+  text-decoration: none;
+  transition: 0.3s ease;
+}
 
-@media (max-width: 800px) {
+.closing-link:hover {
+  background: var(--about-gold);
+  transform: translateY(-3px);
+}
+
+.closing-link span {
+  font-size: 18px;
+}
+
+.closing-decoration {
+  position: absolute;
+  z-index: 0;
+  top: -75px;
+  right: 3%;
+  color: rgba(180, 134, 75, 0.12);
+  font-size: 180px;
+  animation: slowRotate 25s linear infinite;
+  pointer-events: none;
+}
+
+
+/* =========================================
+   ANIMATIONS
+========================================= */
+
+@keyframes aboutFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(25px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes floatCard {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-9px);
+  }
+}
+
+@keyframes slowRotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+/* =========================================
+   TABLET
+========================================= */
+
+@media (max-width: 1000px) {
+  .about-container {
+    width: calc(100% - 48px);
+  }
+
+  .about-hero-grid {
+    gap: 35px;
+  }
+
+  .hero-image-frame {
+    height: 420px;
+  }
+
+  .about-intro-grid {
+    gap: 45px;
+  }
+
+  .about-intro-image {
+    height: 440px;
+  }
+
+  .about-approach-grid {
+    gap: 40px;
+  }
+
+  .about-approach-image {
+    height: 410px;
+  }
+
+  .ecosystem-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .hero-vertical-text {
+    right: -15px;
+  }
+
+  .about-intro-content h2 {
+    font-size: 40px;
+  }
+}
+
+
+/* =========================================
+   SMALL TABLET
+========================================= */
+
+@media (max-width: 768px) {
+  .about-hero {
+    padding: 65px 0 85px;
+  }
+
+  .about-hero-grid {
+    grid-template-columns: 1fr;
+    gap: 45px;
+  }
+
+  .about-hero-content {
+    max-width: 650px;
+  }
+
+  .about-hero-content h1 {
+    font-size: clamp(45px, 8vw, 65px);
+  }
+
+  .hero-image-frame {
+    height: 430px;
+  }
+
   .about-intro-grid {
     grid-template-columns: 1fr;
-    gap: 25px;
+    gap: 55px;
+  }
+
+  .about-intro-visual {
+    max-width: 600px;
+  }
+
+  .about-intro-image {
+    height: 440px;
+  }
+
+  .about-intro-content {
+    max-width: 650px;
+  }
+
+  .ecosystem-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .ecosystem-heading > p {
+    max-width: 540px;
+  }
+
+  .about-approach-grid {
+    grid-template-columns: 1fr;
+    gap: 50px;
+  }
+
+  .about-approach-content {
+    max-width: 650px;
+  }
+
+  .about-approach-visual {
+    width: calc(100% - 15px);
+  }
+
+  .about-approach-image {
+    height: 430px;
+  }
+}
+
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 600px) {
+  .about-container {
+    width: calc(100% - 36px);
+  }
+
+  .about-label,
+  .about-number {
+    font-size: 10px;
+    letter-spacing: 2px;
+  }
+
+  .about-hero {
+    padding: 55px 0 75px;
+  }
+
+  .about-hero-grid {
+    gap: 38px;
+  }
+
+  .about-hero-content h1 {
+    font-size: clamp(39px, 10vw, 53px);
+    letter-spacing: -1.8px;
+  }
+
+  .about-hero-content > p {
+    margin: 21px 0;
+    font-size: 14px;
+    line-height: 1.8;
+  }
+
+  .hero-actions {
+    gap: 14px;
+  }
+
+  .hero-side-note {
+    font-size: 8px;
+  }
+
+  .hero-bottom-note {
+    margin-top: 40px;
+    font-size: 8px;
+  }
+
+  .about-hero-visual {
+    padding-left: 0;
+  }
+
+  .hero-image-frame {
+    height: 340px;
+    border-radius: 4px 30px 4px 4px;
+  }
+
+  .hero-floating-card {
+    left: -5px;
+    padding: 12px 15px;
+  }
+
+  .hero-vertical-text {
+    right: -12px;
+    font-size: 7px;
+  }
+
+  .hero-image-caption {
+    left: 20px;
+    bottom: 22px;
+  }
+
+  .hero-image-caption h3 {
+    font-size: 21px;
+  }
+
+  .about-introduction {
+    padding: 75px 0 85px;
+  }
+
+  .intro-topline {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 30px;
+  }
+
+  .intro-topline-text {
+    font-size: 8px;
+  }
+
+  .about-intro-grid {
+    gap: 45px;
+  }
+
+  .about-intro-visual {
+    padding-right: 12px;
+  }
+
+  .about-intro-image {
+    height: 340px;
+    border-radius: 4px 4px 35px 4px;
+  }
+
+  .intro-image-overlay {
+    left: 20px;
+    bottom: 20px;
+  }
+
+  .intro-image-overlay h3 {
+    font-size: 22px;
+  }
+
+  .intro-image-description {
+    left: 8px;
+    padding: 12px;
+  }
+
+  .intro-image-description p {
+    font-size: 10px;
+  }
+
+  .about-intro-content h2 {
+    font-size: clamp(33px, 8vw, 42px);
+    letter-spacing: -1.3px;
+  }
+
+  .about-intro-content > p {
+    font-size: 13px;
+    line-height: 1.85;
+  }
+
+  .ecosystem-areas {
+    padding: 75px 0 85px;
+  }
+
+  .ecosystem-heading {
+    margin-bottom: 35px;
+  }
+
+  .ecosystem-heading h2 {
+    font-size: 39px;
+    letter-spacing: -1.3px;
+  }
+
+  .ecosystem-heading > p {
+    font-size: 13px;
+  }
+
+  .ecosystem-grid {
+    grid-template-columns: 1fr;
+    gap: 13px;
+  }
+
+  .ecosystem-card {
+    min-height: 205px;
+    padding: 22px;
+  }
+
+  .ecosystem-card-content {
+    margin: 20px 0;
+  }
+
+  .about-vision-mission {
+    padding: 80px 0 85px;
+  }
+
+  .about-vm-heading {
+    margin-bottom: 35px;
+  }
+
+  .about-vm-heading h2 {
+    font-size: 39px;
+    letter-spacing: -1.3px;
+  }
+
+  .about-vm-heading > p {
+    font-size: 13px;
   }
 
   .about-vm-grid {
     grid-template-columns: 1fr;
+    gap: 23px;
   }
 
-  .about-vm-card {
-    min-height: auto;
+  .vm-image {
+    height: 250px;
+  }
+
+  .vm-content {
+    padding: 25px;
+  }
+
+  .vm-content h3 {
+    font-size: 25px;
+  }
+
+  .vm-content p {
+    font-size: 13px;
+  }
+
+  .about-approach {
+    padding: 80px 0;
+  }
+
+  .about-approach-grid {
+    gap: 40px;
+  }
+
+  .about-approach-content h2 {
+    font-size: 39px;
+    letter-spacing: -1.3px;
+  }
+
+  .about-approach-content > p {
+    font-size: 13px;
+  }
+
+  .approach-points > div {
+    gap: 13px;
+  }
+
+  .about-approach-visual {
+    padding-left: 0;
+    width: calc(100% - 8px);
+  }
+
+  .about-approach-image {
+    height: 340px;
+    border-radius: 4px 4px 35px 4px;
+  }
+
+  .approach-image-caption {
+    left: 20px;
+    bottom: 22px;
+  }
+
+  .approach-image-caption h3 {
+    font-size: 22px;
+  }
+
+  .approach-side-note {
+    right: -8px;
+    max-width: 225px;
+    padding: 12px 15px;
+  }
+
+  .about-closing {
+    padding: 75px 0;
+  }
+
+  .about-closing h2 {
+    font-size: 43px;
+    letter-spacing: -1.5px;
+  }
+
+  .about-closing-inner > p {
+    font-size: 13px;
+  }
+
+  .closing-decoration {
+    right: -25px;
+    top: -60px;
+    font-size: 120px;
   }
 }
 
-/* =========================
-   MOBILE
-========================= */
 
-@media (max-width: 600px) {
+/* =========================================
+   SMALL MOBILE
+========================================= */
+
+@media (max-width: 380px) {
   .about-container {
-    width: calc(100% - 30px);
+    width: calc(100% - 28px);
   }
 
-  .about-hero {
-    padding: 70px 0;
+  .about-hero-content h1 {
+    font-size: 37px;
   }
 
-  .about-hero h1 {
-    font-size: 42px;
-    letter-spacing: -1px;
+  .hero-image-frame {
+    height: 285px;
   }
 
-  .about-hero p {
-    font-size: 15px;
+  .hero-floating-card {
+    padding: 10px;
   }
 
-  .about-introduction,
-  .about-vision-mission,
-  .about-approach {
-    padding: 65px 0;
+  .floating-star {
+    width: 35px;
+    height: 35px;
+  }
+
+  .hero-floating-card strong {
+    font-size: 12px;
+  }
+
+  .hero-floating-card p {
+    font-size: 9px;
+  }
+
+  .about-intro-image {
+    height: 280px;
   }
 
   .about-intro-content h2 {
+    font-size: 31px;
+  }
+
+  .ecosystem-heading h2 {
     font-size: 34px;
   }
 
-  .about-vm-heading {
-    margin-bottom: 30px;
+  .vm-image {
+    height: 215px;
   }
 
-  .about-vm-card {
-    padding: 30px;
+  .vm-content {
+    padding: 21px;
   }
 
-  .about-vm-card h3 {
-    font-size: 26px;
+  .about-approach-content h2 {
+    font-size: 34px;
   }
 
-  .about-approach h2 {
-    font-size: 38px;
+  .about-approach-image {
+    height: 280px;
   }
-}
 
-/* ==========================================
-   ABOUT & CAREERS - FIRST SECTION HEIGHT FIX
-   ========================================== */
-
-/* Replace these selectors with your actual
-   About and Careers first-section classes */
-
-.about-hero,
-.careers-hero {
-  min-height: calc(100vh - 174px);
-  box-sizing: border-box;
-
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-/* Tablet */
-@media (max-width: 900px) {
-  .about-hero,
-  .careers-hero {
-    min-height: calc(100vh - 174px);
+  .about-closing h2 {
+    font-size: 36px;
   }
 }
 
-/* Mobile */
+
+/* =========================================
+   ACCESSIBILITY
+========================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .about-page *,
+  .about-page *::before,
+  .about-page *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* =========================================
+   KAINDRA HERO - GOLDEN ENERGY EFFECTS
+========================================= */
+
+.hero-image-frame {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+/* Keep image behind all energy effects */
+.hero-image-frame > img {
+  position: relative;
+  z-index: 0;
+}
+
+/* Keep existing dark image overlay */
+.hero-image-shade {
+  z-index: 1;
+}
+
+/* Main effects layer */
+.hero-energy-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Golden orbital rings around the globe */
+.hero-energy-orbit {
+  position: absolute;
+  left: 50%;
+  top: 51%;
+  display: block;
+  border: 1px solid rgba(255, 203, 119, 0.45);
+  border-radius: 50%;
+  box-shadow:
+    0 0 8px rgba(255, 191, 91, 0.35),
+    inset 0 0 8px rgba(255, 191, 91, 0.12);
+  transform: translate(-50%, -50%);
+  animation: goldenOrbitGlow 3.5s ease-in-out infinite;
+}
+
+.energy-orbit-one {
+  width: 65%;
+  height: 38%;
+  transform: translate(-50%, -50%) rotate(-24deg);
+}
+
+.energy-orbit-two {
+  width: 54%;
+  height: 47%;
+  border-style: dashed;
+  border-color: rgba(255, 218, 157, 0.3);
+  transform: translate(-50%, -50%) rotate(36deg);
+  animation-delay: 1.2s;
+}
+
+/* Lightning SVG */
+.hero-electric-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.hero-lightning-path {
+  fill: none;
+  stroke: #ffe0a0;
+  stroke-width: 0.38;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 12 88;
+  opacity: 0;
+  filter:
+    drop-shadow(0 0 3px #ffc15c)
+    drop-shadow(0 0 8px rgba(255, 174, 54, 0.9));
+  animation: goldenLightning 2.8s ease-in-out infinite;
+}
+
+.lightning-two {
+  animation-delay: 0.7s;
+}
+
+.lightning-three {
+  animation-delay: 1.3s;
+}
+
+.lightning-four {
+  animation-delay: 1.8s;
+}
+
+/* Sparkling golden stars */
+.hero-energy-spark {
+  position: absolute;
+  display: block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #fff3d1;
+  opacity: 0;
+  box-shadow:
+    0 0 5px #fff1c5,
+    0 0 12px #ffca72,
+    0 0 22px rgba(255, 176, 54, 0.9);
+  animation: goldenSparkle 2.8s ease-in-out infinite;
+}
+
+.hero-energy-spark::before,
+.hero-energy-spark::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: block;
+  background: linear-gradient(
+    transparent,
+    #fff3d1,
+    #ffcb74,
+    transparent
+  );
+  transform: translate(-50%, -50%);
+}
+
+.hero-energy-spark::before {
+  width: 1px;
+  height: 23px;
+}
+
+.hero-energy-spark::after {
+  width: 23px;
+  height: 1px;
+}
+
+/* Individual positions */
+.sparkle-one {
+  top: 30%;
+  left: 34%;
+  animation-delay: 0s;
+}
+
+.sparkle-two {
+  top: 34%;
+  left: 68%;
+  animation-delay: 0.5s;
+}
+
+.sparkle-three {
+  top: 49%;
+  left: 27%;
+  animation-delay: 1s;
+}
+
+.sparkle-four {
+  top: 52%;
+  left: 73%;
+  animation-delay: 1.6s;
+}
+
+.sparkle-five {
+  top: 70%;
+  left: 40%;
+  animation-delay: 0.8s;
+}
+
+.sparkle-six {
+  top: 68%;
+  left: 64%;
+  animation-delay: 1.9s;
+}
+
+.sparkle-seven {
+  top: 22%;
+  left: 51%;
+  animation-delay: 1.3s;
+}
+
+.sparkle-eight {
+  top: 43%;
+  left: 55%;
+  animation-delay: 2.2s;
+}
+
+/* Tiny glowing particles */
+.hero-energy-particle {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #ffda91;
+  box-shadow:
+    0 0 7px #ffc65f,
+    0 0 14px #ffb640;
+  animation: goldenParticle 3.5s ease-in-out infinite;
+}
+
+.particle-one {
+  top: 36%;
+  left: 45%;
+}
+
+.particle-two {
+  top: 60%;
+  left: 34%;
+  animation-delay: 0.8s;
+}
+
+.particle-three {
+  top: 38%;
+  left: 75%;
+  animation-delay: 1.5s;
+}
+
+.particle-four {
+  top: 72%;
+  left: 55%;
+  animation-delay: 2s;
+}
+
+/* Keep caption above effects */
+.hero-image-caption {
+  z-index: 4;
+}
+
+/* =========================================
+   GOLDEN ANIMATIONS
+========================================= */
+
+@keyframes goldenSparkle {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(0.3) rotate(0deg);
+  }
+
+  35% {
+    opacity: 1;
+    transform: scale(1.1) rotate(45deg);
+  }
+
+  55% {
+    opacity: 0.8;
+    transform: scale(0.75) rotate(90deg);
+  }
+
+  75% {
+    opacity: 0;
+    transform: scale(0.3) rotate(135deg);
+  }
+}
+
+@keyframes goldenLightning {
+  0%, 100% {
+    opacity: 0;
+    stroke-dashoffset: 30;
+  }
+
+  35% {
+    opacity: 0.95;
+  }
+
+  50% {
+    opacity: 0.35;
+    stroke-dashoffset: 0;
+  }
+
+  70% {
+    opacity: 0.8;
+  }
+}
+
+@keyframes goldenOrbitGlow {
+  0%, 100% {
+    opacity: 0.35;
+    filter: brightness(0.9);
+  }
+
+  50% {
+    opacity: 0.9;
+    filter: brightness(1.5);
+  }
+}
+
+@keyframes goldenParticle {
+  0%, 100% {
+    opacity: 0.15;
+    transform: scale(0.5);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.5);
+  }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .hero-energy-orbit,
+  .hero-lightning-path,
+  .hero-energy-spark,
+  .hero-energy-particle {
+    animation: none !important;
+    opacity: 0.35;
+  }
+}
+/* GOLDEN GLOW AROUND THE IMAGE BORDER */
+
+.hero-image-frame {
+  position: relative;
+  border: 2px solid #d6a34d;
+  border-radius: 5px 45px 5px 5px;
+
+  box-shadow:
+    0 0 8px rgba(255, 193, 76, 0.8),
+    0 0 18px rgba(255, 174, 45, 0.65),
+    0 0 35px rgba(255, 174, 45, 0.35);
+
+  animation: imageBorderGlow 2.5s ease-in-out infinite;
+}
+
+/* Bright golden line along the image edge */
+.hero-image-frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  border: 2px solid #ffdc91;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 0 8px rgba(255, 210, 120, 0.5),
+    0 0 12px rgba(255, 190, 66, 0.8);
+  pointer-events: none;
+  animation: imageEdgePulse 2s ease-in-out infinite;
+}
+
+@keyframes imageBorderGlow {
+  0%, 100% {
+    box-shadow:
+      0 0 6px rgba(255, 193, 76, 0.45),
+      0 0 14px rgba(255, 174, 45, 0.3);
+  }
+
+  50% {
+    box-shadow:
+      0 0 12px rgba(255, 220, 145, 1),
+      0 0 25px rgba(255, 174, 45, 0.85),
+      0 0 42px rgba(255, 174, 45, 0.45);
+  }
+}
+
+@keyframes imageEdgePulse {
+  0%, 100% {
+    opacity: 0.55;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+/* =========================================
+   INTRODUCTION IMAGE - GOLDEN GLOW BORDER
+========================================= */
+
+.about-intro-image {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 2px solid #d6a34d;
+
+  box-shadow:
+    0 0 8px rgba(255, 193, 76, 0.65),
+    0 0 18px rgba(255, 174, 45, 0.45),
+    0 0 35px rgba(255, 174, 45, 0.25);
+
+  animation: introImageGlow 3s ease-in-out infinite;
+}
+
+/* Gold border overlay */
+.about-intro-image::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  border: 2px solid #ffdc91;
+  border-radius: inherit;
+
+  box-shadow:
+    inset 0 0 8px rgba(255, 210, 120, 0.5),
+    inset 0 0 18px rgba(255, 174, 45, 0.2),
+    0 0 12px rgba(255, 190, 66, 0.8);
+
+  pointer-events: none;
+  animation: introBorderPulse 2.5s ease-in-out infinite;
+}
+
+/* Existing image shade */
+.about-intro-image::after {
+  z-index: 1;
+}
+
+/* Keep golden effects between the shade and caption */
+.about-intro-image .intro-energy-overlay {
+  z-index: 2 !important;
+}
+
+/* Keep caption visible above the effects */
+.about-intro-image .intro-image-overlay {
+  z-index: 3;
+}
+
+/* Golden outer frame animation */
+@keyframes introImageGlow {
+  0%, 100% {
+    box-shadow:
+      0 0 7px rgba(255, 193, 76, 0.4),
+      0 0 16px rgba(255, 174, 45, 0.3);
+  }
+
+  50% {
+    box-shadow:
+      0 0 14px rgba(255, 220, 145, 0.9),
+      0 0 28px rgba(255, 174, 45, 0.75),
+      0 0 42px rgba(255, 174, 45, 0.4);
+  }
+}
+
+@keyframes introBorderPulse {
+  0%, 100% {
+    opacity: 0.55;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .about-intro-image,
+  .about-intro-image::before {
+    animation: none;
+  }
+}
+
+/* =========================================
+   VISION IMAGE - GOLDEN SPARKLE EFFECT
+========================================= */
+
+.vm-image {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+/* Image layer */
+.vm-image > img {
+  position: relative;
+  z-index: 0;
+}
+
+/* Dark image gradient */
+.vm-image::after {
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Golden energy layer */
+.vm-image .vision-energy-overlay {
+  z-index: 2 !important;
+}
+
+/* Border above the effects */
+.vision-image-border {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  border: 2px solid rgba(255, 210, 130, 0.85);
+  box-shadow:
+    inset 0 0 10px rgba(255, 200, 100, 0.4),
+    0 0 12px rgba(255, 190, 66, 0.7);
+  pointer-events: none;
+  animation: visionBorderGlow 2.5s ease-in-out infinite;
+}
+
+/* Keep heading and number visible */
+.vm-image-label,
+.vm-image-number {
+  z-index: 6;
+}
+
+/* Glowing frame */
+.vision-card .vm-image {
+  border: 1px solid #d6a34d;
+  box-shadow:
+    0 0 10px rgba(255, 190, 66, 0.4),
+    0 0 22px rgba(255, 174, 45, 0.25);
+  animation: visionFrameGlow 3s ease-in-out infinite;
+}
+
+@keyframes visionBorderGlow {
+  0%, 100% {
+    opacity: 0.55;
+    filter: brightness(0.9);
+  }
+
+  50% {
+    opacity: 1;
+    filter: brightness(1.6);
+  }
+}
+
+@keyframes visionFrameGlow {
+  0%, 100% {
+    box-shadow:
+      0 0 7px rgba(255, 190, 66, 0.35),
+      0 0 15px rgba(255, 174, 45, 0.2);
+  }
+
+  50% {
+    box-shadow:
+      0 0 14px rgba(255, 220, 145, 0.8),
+      0 0 28px rgba(255, 174, 45, 0.6);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vision-card .vm-image,
+  .vision-image-border {
+    animation: none;
+  }
+}
+
+/* MISSION IMAGE - FULL IMAGE AND GOLDEN EFFECTS */
+
+.mission-card .mission-image {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  height: 315px;
+  background: #080808;
+  border: 1px solid #d6a34d;
+  box-shadow:
+    0 0 10px rgba(255, 190, 66, 0.45),
+    0 0 22px rgba(255, 174, 45, 0.3);
+  animation: missionFrameGlow 3s ease-in-out infinite;
+}
+
+/* Show entire image without cropping */
+.mission-card .mission-image > img {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain !important;
+  object-position: center;
+  background: #080808;
+  transform: none !important;
+}
+
+/* Golden sparkle layer */
+.mission-card .mission-energy-overlay {
+  z-index: 2 !important;
+}
+
+/* Glowing border */
+.mission-image-border {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  border: 2px solid #ffdc91;
+  box-shadow:
+    inset 0 0 10px rgba(255, 210, 120, 0.45),
+    0 0 12px rgba(255, 190, 66, 0.8);
+  pointer-events: none;
+  animation: missionBorderPulse 2.5s ease-in-out infinite;
+}
+
+/* Keep caption visible */
+.mission-card .vm-image-label,
+.mission-card .vm-image-number {
+  z-index: 6;
+}
+
+@keyframes missionFrameGlow {
+  0%, 100% {
+    box-shadow:
+      0 0 7px rgba(255, 190, 66, 0.35),
+      0 0 15px rgba(255, 174, 45, 0.2);
+  }
+
+  50% {
+    box-shadow:
+      0 0 14px rgba(255, 220, 145, 0.85),
+      0 0 28px rgba(255, 174, 45, 0.65),
+      0 0 42px rgba(255, 174, 45, 0.3);
+  }
+}
+
+@keyframes missionBorderPulse {
+  0%, 100% {
+    opacity: 0.55;
+    filter: brightness(0.9);
+  }
+
+  50% {
+    opacity: 1;
+    filter: brightness(1.6);
+  }
+}
+
 @media (max-width: 600px) {
-  .about-hero,
-  .careers-hero {
-    min-height: calc(100vh - 100px);
+  .mission-card .mission-image {
+    height: 250px;
   }
 }
-/* ABOUT PAGE - FIRST SECTION FIX */
 
-.about-hero {
-  min-height: calc(100vh - 86px);
-  box-sizing: border-box;
+@media (max-width: 380px) {
+  .mission-card .mission-image {
+    height: 215px;
+  }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .mission-card .mission-image,
+  .mission-image-border {
+    animation: none;
+  }
+}
+
+/* =========================================
+   APPROACH IMAGE - FULL IMAGE + GOLDEN GLOW
+========================================= */
+
+.about-approach-image {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: #080808;
+
+  border: 1px solid #d6a34d;
+
+  box-shadow:
+    0 0 10px rgba(255, 190, 66, 0.45),
+    0 0 22px rgba(255, 174, 45, 0.3);
+
+  animation: approachFrameGlow 3s ease-in-out infinite;
+}
+
+/* SHOW THE COMPLETE IMAGE */
+.about-approach-image > img {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: contain !important;
+  object-position: center;
+
+  background: #080808;
+
+  transform: none !important;
+}
+
+/* EXISTING IMAGE SHADE */
+.about-approach-image::after {
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* GOLDEN SPARKLE LAYER */
+.about-approach-image .approach-energy-overlay {
+  z-index: 2 !important;
+}
+
+/* CAPTION ABOVE SPARKLES */
+.about-approach-image .approach-image-caption {
+  z-index: 4;
+}
+
+/* ANIMATED GOLDEN BORDER */
+.approach-image-border {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+
+  border: 2px solid #ffdc91;
+  border-radius: inherit;
+
+  box-shadow:
+    inset 0 0 10px rgba(255, 210, 120, 0.45),
+    inset 0 0 20px rgba(255, 174, 45, 0.2),
+    0 0 12px rgba(255, 190, 66, 0.8);
+
+  pointer-events: none;
+
+  animation: approachBorderPulse 2.5s ease-in-out infinite;
+}
+
+/* OUTER GOLDEN GLOW */
+@keyframes approachFrameGlow {
+  0%, 100% {
+    box-shadow:
+      0 0 7px rgba(255, 190, 66, 0.35),
+      0 0 15px rgba(255, 174, 45, 0.2);
+  }
+
+  50% {
+    box-shadow:
+      0 0 14px rgba(255, 220, 145, 0.85),
+      0 0 28px rgba(255, 174, 45, 0.65),
+      0 0 42px rgba(255, 174, 45, 0.3);
+  }
+}
+
+/* BORDER PULSE */
+@keyframes approachBorderPulse {
+  0%, 100% {
+    opacity: 0.55;
+    filter: brightness(0.9);
+  }
+
+  50% {
+    opacity: 1;
+    filter: brightness(1.6);
+  }
+}
+
+/* REDUCED MOTION */
+@media (prefers-reduced-motion: reduce) {
+  .about-approach-image,
+  .approach-image-border {
+    animation: none;
+  }
+}
+/* =========================================
+   HERO IMAGE - DISPLAY THE COMPLETE IMAGE
+========================================= */
+
+.hero-image-frame {
+  overflow: hidden;
+  background: #080808;
+}
+
+/* Display the full original image */
+.hero-image-frame > img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain !important;
+  object-position: center center;
+  background: #080808;
+  transform: none !important;
+}
+
+/* Keep golden effects visible */
+.hero-image-frame .hero-energy-overlay {
+  pointer-events: none;
+}
+
+/* Maintain image caption above effects */
+.hero-image-frame .hero-image-caption {
+  z-index: 4;
+}
+
+/* =========================================
+   ECOSYSTEM INTRO IMAGE - FULL IMAGE DISPLAY
+========================================= */
+
+.about-intro-image {
+  position: relative;
+  overflow: hidden;
+  background: #080808;
+}
+
+/* Display the complete original image */
+.about-intro-image > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain !important;
+  object-position: center center;
+  background: #080808;
+  transform: none !important;
+}
+
+/* Prevent zooming from cropping the image on hover */
+.about-intro-image:hover > img {
+  transform: none !important;
+}
+
+/* Preserve golden effects */
+.about-intro-image .intro-energy-overlay {
+  z-index: 2 !important;
+  pointer-events: none;
+}
+
+/* Keep image caption visible */
+.about-intro-image .intro-image-overlay {
+  z-index: 4;
+}
+
+/* =========================================
+   VISION IMAGE - SHOW FULL ORIGINAL IMAGE
+========================================= */
+
+.vision-card .vm-image {
+  position: relative;
+  overflow: hidden;
+  background: #080808;
+}
+
+/* Display the complete image without cropping */
+.vision-card .vm-image > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain !important;
+  object-position: center center;
+  background: #080808;
+  transform: none !important;
+}
+
+/* Stop the existing hover zoom from cropping */
+.vision-card:hover .vm-image > img {
+  transform: none !important;
+}
+
+/* Keep golden sparkles and lightning visible */
+.vision-card .vision-energy-overlay {
+  z-index: 2 !important;
+  pointer-events: none;
+}
+
+/* Keep golden border above effects */
+.vision-card .vision-image-border {
+  z-index: 5;
+}
+
+/* Keep image labels visible */
+.vision-card .vm-image-label,
+.vision-card .vm-image-number {
+  z-index: 6;
+}
+

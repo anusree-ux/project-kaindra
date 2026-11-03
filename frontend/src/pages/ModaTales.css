@@ -1,316 +1,708 @@
+/* =========================================
+   MODATALES PAGE
+========================================= */
+
 .modatales-page {
-  background: #fff;
-  color: #171717;
+  width: 100%;
+  background: #f5f2ed;
+  color: #1c1c1c;
+  overflow-x: hidden;
 }
 
 .modatales-container {
-  width: min(1180px, calc(100% - 40px));
-  margin: auto;
+  width: 90%;
+  max-width: 1250px;
+  margin: 0 auto;
+  box-sizing: border-box;
 }
+
+/* =========================================
+   HERO SECTION
+========================================= */
 
 .modatales-hero {
+  position: relative;
+  width: 100%;
   min-height: 650px;
+
   display: flex;
   align-items: center;
-  background: #f5f2ed;
+
+  background-color: #25221e;
+  background-image:
+    linear-gradient(
+      rgba(20, 20, 20, 0.35),
+      rgba(20, 20, 20, 0.35)
+    ),
+    url("/images/modamart-slides/modatales-bg.jpg");
+
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
 }
 
-.modatales-hero > div > span,
-.modatales-heading > span,
-.modatales-feature span,
-.modatales-cta span {
-  color: #bd8b46;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
+.modatales-hero span {
+  display: inline-block;
+  color: #c5a46d;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  margin-bottom: 22px;
 }
 
 .modatales-hero h1 {
-  margin: 18px 0;
-  max-width: 850px;
-  font-size: clamp(50px, 7vw, 92px);
-  line-height: 0.95;
-  letter-spacing: -0.05em;
+  color: #ffffff;
+  font-size: 64px;
+  font-weight: 400;
+  line-height: 1.12;
+  letter-spacing: -1.5px;
+  margin: 0 0 25px;
 }
 
 .modatales-hero h1 strong {
-  color: #bd8b46;
   font-weight: 600;
 }
 
 .modatales-hero p {
-  max-width: 620px;
-  color: #6f6f6f;
+  max-width: 580px;
+  color: #eeeeee;
   font-size: 16px;
   line-height: 1.8;
-  margin-bottom: 32px;
+  margin: 0 0 35px;
 }
+
+/* =========================================
+   PRIMARY BUTTON
+========================================= */
 
 .modatales-primary-btn {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
-  padding: 14px 21px;
-  border: 0;
-  background: #171717;
-  color: #fff;
-  cursor: pointer;
+  justify-content: center;
+  gap: 12px;
+
+  padding: 15px 28px;
+
+  background: #c5a46d;
+  color: #ffffff;
+
+  border: none;
+  border-radius: 0;
+
   font-family: inherit;
+  font-size: 13px;
   font-weight: 600;
-  transition: 0.25s ease;
+  letter-spacing: 0.5px;
+
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
 .modatales-primary-btn:hover {
-  background: #bd8b46;
+  background: #a88a55;
+  transform: translateY(-2px);
 }
 
+/* =========================================
+   EXPLORE SECTION
+========================================= */
+
 .modatales-section {
-  padding: 110px 0;
+  padding: 100px 0;
 }
 
 .modatales-heading {
-  max-width: 650px;
-  margin-bottom: 55px;
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.modatales-heading span {
+  display: inline-block;
+  color: #b08d52;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2.5px;
+  margin-bottom: 18px;
 }
 
 .modatales-heading h2 {
-  margin: 12px 0;
-  font-size: clamp(35px, 5vw, 58px);
-  line-height: 1;
-  letter-spacing: -0.04em;
+  font-size: 42px;
+  font-weight: 400;
+  line-height: 1.2;
+  margin: 0 0 18px;
 }
 
 .modatales-heading p {
-  color: #777;
-  line-height: 1.7;
+  max-width: 600px;
+  margin: 0 auto;
+  color: #777777;
+  font-size: 15px;
+  line-height: 1.8;
 }
+
+/* =========================================
+   STORIES GRID
+========================================= */
 
 .modatales-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 28px;
 }
 
 .modatales-card {
-  min-height: 300px;
-  padding: 30px;
-  border: 1px solid #e4dfd7;
-  transition: 0.25s ease;
+  min-width: 0;
+  padding: 35px 30px;
+
+  background: #ffffff;
+  border: 1px solid rgba(28, 28, 28, 0.06);
+
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .modatales-card:hover {
-  transform: translateY(-6px);
-  border-color: #bd8b46;
+  transform: translateY(-5px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
 }
 
 .modatales-card-icon {
-  width: 50px;
-  height: 50px;
-  display: grid;
-  place-items: center;
-  margin-bottom: 55px;
-  border: 1px solid #ddd6cb;
-  border-radius: 50%;
-  color: #bd8b46;
+  width: 48px;
+  height: 48px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #f5f2ed;
+  color: #b08d52;
+
+  margin-bottom: 25px;
 }
 
 .modatales-card h3 {
-  margin: 0 0 12px;
-  font-size: 22px;
+  font-size: 21px;
+  font-weight: 500;
+  line-height: 1.4;
+  margin: 0 0 15px;
 }
 
 .modatales-card p {
-  min-height: 70px;
-  color: #777;
-  line-height: 1.7;
+  color: #777777;
+  font-size: 14px;
+  line-height: 1.8;
+  margin: 0 0 25px;
+}
+
+.modatales-card small {
+  display: block;
+  color: #999999;
+  font-size: 12px;
+  line-height: 1.6;
+  margin-top: 10px;
 }
 
 .modatales-card button {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  margin-top: 15px;
+  gap: 8px;
+
   padding: 0;
-  border: 0;
   background: transparent;
-  color: #bd8b46;
-  cursor: pointer;
+  border: none;
+
+  color: #b08d52;
   font-family: inherit;
+  font-size: 13px;
   font-weight: 600;
+
+  cursor: pointer;
+  transition: gap 0.3s ease;
 }
 
+.modatales-card button:hover {
+  gap: 12px;
+}
+
+/* =========================================
+   FEATURE SECTION
+========================================= */
+
 .modatales-feature {
-  padding: 110px 0;
-  background: #f7f5f1;
+  background: #e9e4dc;
+  padding: 85px 0;
 }
 
 .modatales-feature .modatales-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 80px;
   align-items: center;
+  gap: 80px;
+}
+
+.modatales-feature span {
+  display: inline-block;
+  color: #b08d52;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2.5px;
+  margin-bottom: 20px;
 }
 
 .modatales-feature h2 {
-  margin: 15px 0 0;
-  font-size: clamp(42px, 6vw, 75px);
-  line-height: 0.95;
-  letter-spacing: -0.05em;
+  font-size: 46px;
+  font-weight: 400;
+  line-height: 1.2;
+  margin: 0;
 }
 
 .modatales-feature p {
-  max-width: 500px;
-  color: #666;
+  color: #666666;
+  font-size: 15px;
   line-height: 1.9;
+  margin: 0;
 }
 
+/* =========================================
+   CTA SECTION
+========================================= */
+
 .modatales-cta {
-  padding: 120px 0;
-  background: #171717;
-  color: #fff;
+  background: #1c1c1c;
+  color: #ffffff;
+  padding: 100px 0;
+  text-align: center;
+}
+
+.modatales-cta span {
+  display: inline-block;
+  color: #c5a46d;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2.5px;
+  margin-bottom: 20px;
 }
 
 .modatales-cta h2 {
-  margin: 18px 0 35px;
-  font-size: clamp(45px, 7vw, 85px);
-  line-height: 0.95;
-  letter-spacing: -0.05em;
+  font-size: 46px;
+  font-weight: 400;
+  line-height: 1.2;
+  margin: 0 0 35px;
 }
 
-/* MODAL */
+/* =========================================
+   MODAL
+========================================= */
 
 .modatales-modal {
   position: fixed;
   inset: 0;
-  z-index: 3000;
-  display: grid;
-  place-items: center;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(0, 0, 0, 0.65);
+  z-index: 9999;
+
   padding: 20px;
-  background: rgba(0, 0, 0, 0.55);
+  box-sizing: border-box;
 }
 
 .modatales-form {
-  width: min(500px, 100%);
-  padding: 35px;
-  background: #fff;
   position: relative;
+
+  width: 100%;
+  max-width: 550px;
+
+  padding: 40px;
+
+  background: #ffffff;
+  color: #1c1c1c;
+
+  max-height: 90vh;
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
 .modatales-form > span {
-  color: #bd8b46;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.15em;
+  display: block;
+  color: #b08d52;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  margin-bottom: 15px;
 }
 
 .modatales-form h2 {
-  margin: 10px 0 25px;
   font-size: 30px;
+  font-weight: 400;
+  margin: 0 0 25px;
 }
 
 .modatales-close {
   position: absolute;
-  top: 12px;
-  right: 17px;
-  border: 0;
+  top: 15px;
+  right: 20px;
+
+  padding: 0;
   background: transparent;
-  font-size: 28px;
+  border: none;
+
+  color: #555555;
+  font-size: 30px;
+  line-height: 1;
+
   cursor: pointer;
 }
 
 .modatales-form form {
-  display: grid;
-  gap: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
 .modatales-form input,
-.modatales-form textarea {
+.modatales-form textarea,
+.modatales-form select {
   width: 100%;
-  padding: 13px;
-  border: 1px solid #ddd7ce;
-  outline: none;
+  max-width: 100%;
+  box-sizing: border-box;
+
+  padding: 14px 15px;
+
+  border: 1px solid #dddddd;
+  border-radius: 0;
+
+  background: #ffffff;
+  color: #1c1c1c;
+
   font-family: inherit;
-  resize: vertical;
+  font-size: 14px;
+
+  outline: none;
+  margin: 0;
 }
 
 .modatales-form input:focus,
-.modatales-form textarea:focus {
-  border-color: #bd8b46;
+.modatales-form textarea:focus,
+.modatales-form select:focus {
+  border-color: #c5a46d;
+}
+
+.modatales-form textarea {
+  min-height: 120px;
+  resize: vertical;
 }
 
 .modatales-form form button,
 .modatales-success button {
   display: inline-flex;
-  justify-content: center;
   align-items: center;
-  gap: 8px;
-  padding: 13px;
-  border: 0;
-  background: #171717;
-  color: #fff;
-  cursor: pointer;
+  justify-content: center;
+  gap: 10px;
+
+  padding: 15px 22px;
+
+  background: #c5a46d;
+  color: #ffffff;
+
+  border: none;
+
   font-family: inherit;
+  font-size: 13px;
   font-weight: 600;
+
+  cursor: pointer;
+  transition: background 0.3s ease;
 }
 
+.modatales-form form button:hover,
+.modatales-success button:hover {
+  background: #a88a55;
+}
+
+/* =========================================
+   SUCCESS MESSAGE
+========================================= */
+
 .modatales-success {
-  padding: 30px 10px;
   text-align: center;
+  padding: 30px 15px;
 }
 
 .modatales-success svg {
-  color: #bd8b46;
+  color: #c5a46d;
+  margin-bottom: 20px;
 }
 
 .modatales-success h2 {
-  margin-top: 20px;
+  font-size: 30px;
+  margin: 0 0 15px;
 }
 
 .modatales-success p {
-  color: #777;
-  line-height: 1.7;
-  margin-bottom: 25px;
+  color: #777777;
+  font-size: 14px;
+  line-height: 1.8;
+  margin: 0 0 25px;
 }
 
-@media (max-width: 900px) {
-  .modatales-grid {
-    grid-template-columns: 1fr 1fr;
-  }
+/* =========================================
+   TABLET RESPONSIVE
+========================================= */
 
-  .modatales-feature .modatales-container {
-    grid-template-columns: 1fr;
-    gap: 35px;
-  }
-}
+@media (max-width: 1024px) {
 
-@media (max-width: 600px) {
   .modatales-container {
-    width: min(100% - 28px, 1180px);
+    width: 88%;
   }
 
   .modatales-hero {
-    min-height: 570px;
+    min-height: 600px;
+    background-size: cover;
+    background-position: center;
   }
 
-  .modatales-section,
-  .modatales-feature,
-  .modatales-cta {
-    padding: 75px 0;
+  .modatales-hero h1 {
+    font-size: 56px;
   }
 
   .modatales-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px;
   }
 
-  .modatales-card {
-    min-height: 270px;
+  .modatales-feature .modatales-container {
+    gap: 45px;
   }
 
-  .modatales-form {
-    padding: 28px 20px;
+  .modatales-feature h2 {
+    font-size: 40px;
   }
 }
 
-.modatales-card small {
-  display: block;
+/* =========================================
+   MOBILE RESPONSIVE
+========================================= */
+
+@media (max-width: 600px) {
+
+  .modatales-container {
+    width: 90%;
+    max-width: 560px;
+  }
+.modatales-hero {
+  min-height: 100vh;
+  height: auto;
+  padding: 90px 20px 65px;
+  box-sizing: border-box;
+
+  background-color: #25221e;
+
+  background-image:
+    linear-gradient(
+      rgba(20, 20, 20, 0.40),
+      rgba(20, 20, 20, 0.40)
+    ),
+    url("/images/modamart-slides/modatales-bg.jpg");
+
+  background-size: 100% auto;
+  background-position: center top;
+  background-repeat: no-repeat;
+}
+ 
+  /* HERO TEXT */
+
+  .modatales-hero span {
+    font-size: 10px;
+    letter-spacing: 2px;
+    margin-bottom: 18px;
+  }
+
+  .modatales-hero h1 {
+    font-size: clamp(36px, 9vw, 44px);
+    line-height: 1.15;
+    letter-spacing: -0.5px;
+    margin-bottom: 22px;
+  }
+
+  .modatales-hero p {
+    font-size: 14px;
+    line-height: 1.8;
+    max-width: 100%;
+    margin-bottom: 28px;
+  }
+
+  .modatales-primary-btn {
+    padding: 14px 22px;
+    font-size: 12px;
+  }
+
+  /* EXPLORE SECTION */
+
+  .modatales-section {
+    padding: 70px 0;
+  }
+
+  .modatales-heading {
+    margin-bottom: 35px;
+  }
+
+  .modatales-heading span {
+    font-size: 10px;
+    letter-spacing: 2px;
+    margin-bottom: 15px;
+  }
+
+  .modatales-heading h2 {
+    font-size: 30px;
+    line-height: 1.3;
+  }
+
+  .modatales-heading p {
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  /* STORY CARDS */
+
+  .modatales-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+
+  .modatales-card {
+    padding: 28px 24px;
+  }
+
+  .modatales-card h3 {
+    font-size: 20px;
+  }
+
+  .modatales-card p {
+    font-size: 13px;
+  }
+
+  /* FEATURE SECTION */
+
+  .modatales-feature {
+    padding: 65px 0;
+  }
+
+  .modatales-feature .modatales-container {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 25px;
+  }
+
+  .modatales-feature span {
+    font-size: 10px;
+    letter-spacing: 2px;
+    margin-bottom: 15px;
+  }
+
+  .modatales-feature h2 {
+    font-size: 34px;
+  }
+
+  .modatales-feature p {
+    font-size: 14px;
+    line-height: 1.8;
+  }
+
+  /* CTA SECTION */
+
+  .modatales-cta {
+    padding: 70px 0;
+  }
+
+  .modatales-cta span {
+    font-size: 10px;
+    letter-spacing: 2px;
+  }
+
+  .modatales-cta h2 {
+    font-size: 34px;
+    line-height: 1.25;
+  }
+
+  /* MODAL */
+
+  .modatales-modal {
+    padding: 15px;
+  }
+
+  .modatales-form {
+    padding: 30px 22px;
+    max-height: 85vh;
+  }
+
+  .modatales-form h2 {
+    font-size: 26px;
+  }
+
+  .modatales-form input,
+  .modatales-form textarea {
+    font-size: 14px;
+  }
+
+  /* SUCCESS MESSAGE */
+
+  .modatales-success {
+    padding: 20px 5px;
+  }
+
+  .modatales-success h2 {
+    font-size: 26px;
+  }
+}
+
+/* =========================================
+   SMALL MOBILE DEVICES
+========================================= */
+
+@media (max-width: 380px) {
+
+  .modatales-hero {
+    min-height: 100vh;
+    padding: 80px 0 55px;
+
+    background-size: cover;
+    background-position: center center;
+  }
+
+  .modatales-hero h1 {
+    font-size: 34px;
+  }
+
+  .modatales-hero p {
+    font-size: 13px;
+  }
+
+  .modatales-card {
+    padding: 24px 20px;
+  }
+
+  .modatales-feature h2,
+  .modatales-cta h2 {
+    font-size: 30px;
+  }
+}
+
+/* =========================================
+   GLOBAL RESPONSIVE FIX
+========================================= */
+
+.modatales-page *,
+.modatales-page *::before,
+.modatales-page *::after {
+  box-sizing: border-box;
+}
+
+@media (hover: none) {
+  .modatales-card:hover {
+    transform: none;
+    box-shadow: none;
+  }
 }

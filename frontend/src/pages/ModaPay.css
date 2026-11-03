@@ -15,24 +15,63 @@
 
 
 /* =========================================
-   HERO
+   MODAPAY RESPONSIVE HERO IMAGE
 ========================================= */
 
 .modapay-hero {
+  width: 100%;
   min-height: 650px;
 
   display: flex;
   align-items: center;
 
-  background:
-    radial-gradient(
-      circle at 80% 30%,
-      rgba(189, 139, 70, 0.16),
-      transparent 35%
-    ),
-    #171717;
+  background-color: #171717;
 
-  color: #ffffff;
+  background-image:
+    linear-gradient(
+      90deg,
+      rgba(15, 15, 15, 0.65),
+      rgba(15, 15, 15, 0.15)
+    ),
+    url("/images/modamart-slides/modapay-bg.jpg");
+
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+
+  color: #fff;
+  box-sizing: border-box;
+}
+
+/* TABLET */
+
+@media (max-width: 900px) {
+  .modapay-hero {
+    min-height: 600px;
+    background-size: contain;
+    background-position: center;
+  }
+}
+
+/* MOBILE */
+
+@media (max-width: 600px) {
+  .modapay-hero {
+    min-height: 590px;
+
+    background-size: 100% auto;
+    background-position: center center;
+    background-repeat: no-repeat;
+  }
+}
+
+/* SMALL MOBILE */
+
+@media (max-width: 400px) {
+  .modapay-hero {
+    min-height: 560px;
+    background-size: 100% auto;
+  }
 }
 
 .modapay-eyebrow,

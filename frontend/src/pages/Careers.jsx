@@ -400,26 +400,104 @@ function Careers() {
             HERO
         ================================================== */}
 
-        <section className="careers-hero">
-          <div className="careers-container">
-            <span className="careers-label">
-              CAREERS
-            </span>
+       
+{/* CAREERS HERO */}
+<section className="careers-hero">
 
-            <h1>
-              Build relationships.
-              <br />
-              Drive growth.
-            </h1>
+  <div className="careers-hero-image" aria-hidden="true">
+    <img
+      src="/images/modamart-slides/careers-hero-visual.jpg"
+      alt=""
+    />
+  </div>
 
-            <p>
-              Join Kaindra and help us build meaningful
-              relationships, create new opportunities, and
-              drive the next generation of fashion and
-              mobility businesses.
-            </p>
-          </div>
-        </section>
+  <div className="careers-hero-shade" />
+
+  <div className="careers-container careers-hero-container">
+
+    <div className="careers-hero-content">
+
+      <span className="careers-label">
+        CAREERS AT KAINDRA
+      </span>
+
+      <h1>
+        Build relationships.
+        <br />
+        Drive <span>growth.</span>
+      </h1>
+
+      <p className="careers-hero-description">
+        Join Kaindra and become part of a connected ecosystem
+        shaping the future of fashion, commerce, technology
+        and mobility. Discover opportunities to learn,
+        contribute and grow.
+      </p>
+
+      <div className="careers-hero-values">
+        <span>COLLABORATION</span>
+        <span>INNOVATION</span>
+        <span>CONTINUOUS LEARNING</span>
+      </div>
+
+      <a
+        href="#open-positions"
+        className="careers-hero-button"
+      >
+        Explore Opportunities
+        <span>↗</span>
+      </a>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+{/* MORE ABOUT CAREERS AT KAINDRA */}
+<section className="careers-intro">
+
+  <div className="careers-container careers-intro-grid">
+
+    <div>
+      <span className="careers-label">
+        GROW WITH KAINDRA
+      </span>
+
+      <h2>
+        More than a workplace.
+        <br />
+        <span>A place to create possibilities.</span>
+      </h2>
+    </div>
+
+    <div className="careers-intro-content">
+
+      <p>
+        Kaindra connects different industries, businesses,
+        creators and communities through a growing ecosystem.
+        Our work spans fashion, commerce, manufacturing,
+        technology, education and mobility, creating
+        opportunities to explore different ideas and
+        perspectives.
+      </p>
+
+      <p>
+        We believe meaningful careers are built through
+        curiosity, teamwork, responsibility and continuous
+        learning. At Kaindra, you can develop your skills,
+        contribute new ideas, build professional relationships
+        and take part in initiatives that aim to create
+        long-term value.
+      </p>
+
+    </div>
+
+  </div>
+
+</section>
+
 
 
         {/* ==================================================

@@ -48,10 +48,7 @@ const streams = [
 
 export default function RevenueStreams() {
   return (
-    <section
-      className="revenue-section"
-      id="revenue"
-    >
+    <section className="revenue-section" id="revenue">
       <div className="revenue-container">
 
         <div className="revenue-heading">
@@ -85,13 +82,12 @@ export default function RevenueStreams() {
                 key={stream.title}
               >
                 <div className="revenue-card-icon">
-                  <Icon
-                    size={24}
-                    strokeWidth={1.5}
-                  />
+                  <Icon size={24} strokeWidth={1.5} />
                 </div>
 
-                <h3>{stream.title}</h3>
+                <div className="revenue-card-content">
+                  <h3>{stream.title}</h3>
+                </div>
               </article>
             );
           })}

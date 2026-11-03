@@ -340,9 +340,9 @@ function ModaManufacture() {
               </span>
 
               <h1>
-                Find the right
+                <em><span className="gold-text">Find the right</span></em>
                 <br />
-                <em>manufacturer.</em>
+                <em><span className="gold-text">manufacturer</span></em>
               </h1>
             </div>
 

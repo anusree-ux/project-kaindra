@@ -1,3 +1,4 @@
+
 /* =========================================
    MODAINSIGHTS PAGE
 ========================================= */
@@ -16,49 +17,56 @@
 }
 
 /* =========================================
-   HERO
+   HERO SECTION
 ========================================= */
 
 .modainsights-hero {
   width: 100%;
-
-  background: #171717;
-  color: #ffffff;
-
-  /*
-    IMPORTANT:
-    Do not use 680px here.
-    This allows the complete hero to fit below
-    the existing KAINDRA + ModaSphere navbars.
-  */
-  min-height: 0;
-
-  padding: 58px 0 48px;
+  min-height: 650px;
+  padding: 65px 0;
 
   display: flex;
   align-items: center;
 
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   box-sizing: border-box;
 
-  overflow-x: clip;
-  overflow-y: visible;
+  background-color: #171717;
+  background-image:
+    linear-gradient(
+      90deg,
+      rgba(10, 10, 10, 0.68),
+      rgba(10, 10, 10, 0.35)
+    ),
+    url("/images/modamart-slides/modainsights-bg.jpg");
+
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+
+  color: #ffffff;
 }
 
 .modainsights-hero .modainsights-container {
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
-
-  gap: 60px;
-
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
+  position: relative;
+  z-index: 2;
 }
 
 /* =========================================
-   HERO LEFT CONTENT
+   HERO CONTENT
 ========================================= */
 
 .modainsights-hero-content {
+  width: 100%;
   min-width: 0;
+  max-width: 850px;
+  position: relative;
+  z-index: 2;
 }
 
 .modainsights-label,
@@ -68,7 +76,6 @@
 .modainsights-cta > .modainsights-container > span,
 .global-content > span {
   color: #bd8b46;
-
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 2px;
@@ -79,28 +86,22 @@
 }
 
 .modainsights-hero h1 {
-  max-width: 700px;
-
+  max-width: 850px;
   margin: 18px 0 0;
 
   color: #ffffff;
-
-  font-size: clamp(48px, 5.5vw, 76px);
-  line-height: 0.98;
-
+  font-size: clamp(48px, 6vw, 82px);
+  line-height: 1.02;
   font-weight: 500;
-
   letter-spacing: -3px;
 }
 
 .modainsights-hero-content p {
   max-width: 650px;
-
   margin: 26px 0 0;
 
-  color: #bdbdbd;
-
-  font-size: 16px;
+  color: #ffffff;
+  font-size: 18px;
   line-height: 1.7;
 }
 
@@ -112,7 +113,6 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-
   gap: 14px;
 
   margin-top: 28px;
@@ -127,7 +127,6 @@
 .modainsights-cta-button,
 .modainsights-ai-button {
   min-height: 48px;
-
   padding: 0 21px;
 
   box-sizing: border-box;
@@ -135,13 +134,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
   gap: 9px;
 
   font-family: inherit;
   font-size: 14px;
   font-weight: 600;
-
   text-decoration: none;
 
   cursor: pointer;
@@ -155,7 +152,6 @@
 
 .modainsights-primary-button {
   border: 1px solid #bd8b46;
-
   background: #bd8b46;
   color: #ffffff;
 }
@@ -163,119 +159,18 @@
 .modainsights-primary-button:hover {
   background: #ca984f;
   border-color: #ca984f;
-
   transform: translateY(-2px);
 }
 
 .modainsights-secondary-button {
-  border: 1px solid #555555;
-
-  background: transparent;
+  border: 1px solid #ffffff;
+  background: rgba(0, 0, 0, 0.15);
   color: #ffffff;
 }
 
 .modainsights-secondary-button:hover {
   border-color: #bd8b46;
-
   color: #bd8b46;
-}
-
-/* =========================================
-   HERO VISUAL
-========================================= */
-
-.modainsights-hero-visual {
-  position: relative;
-
-  width: 390px;
-  height: 390px;
-
-  max-width: 100%;
-
-  margin: 0 auto;
-
-  flex-shrink: 0;
-}
-
-.insights-orbit {
-  position: absolute;
-
-  border: 1px solid #4a4a4a;
-  border-radius: 50%;
-
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-
-  box-sizing: border-box;
-}
-
-.insights-orbit span {
-  padding: 5px 10px;
-
-  background: #171717;
-  color: #bd8b46;
-
-  font-size: 10px;
-  letter-spacing: 1.5px;
-}
-
-.insights-orbit-one {
-  width: 380px;
-  height: 380px;
-
-  top: 5px;
-  left: 5px;
-}
-
-.insights-orbit-two {
-  width: 285px;
-  height: 285px;
-
-  top: 52px;
-  left: 52px;
-}
-
-.insights-orbit-three {
-  width: 195px;
-  height: 195px;
-
-  top: 97px;
-  left: 97px;
-}
-
-.insights-center {
-  position: absolute;
-
-  width: 140px;
-  height: 140px;
-
-  top: 125px;
-  left: 125px;
-
-  border-radius: 50%;
-
-  background: #bd8b46;
-  color: #ffffff;
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-
-  box-sizing: border-box;
-}
-
-.insights-center span {
-  margin-top: 8px;
-
-  font-size: 10px;
-  letter-spacing: 2px;
-}
-
-.insights-center strong {
-  font-size: 17px;
-  letter-spacing: 2px;
 }
 
 /* =========================================
@@ -300,41 +195,30 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-
   gap: 50px;
-
   margin-bottom: 50px;
 }
 
 .modainsights-section-heading.centered {
   display: block;
-
   max-width: 760px;
-
   margin-left: auto;
   margin-right: auto;
-
   text-align: center;
 }
 
 .modainsights-section-heading h2 {
   margin: 15px 0 0;
-
   font-size: clamp(38px, 5vw, 60px);
   line-height: 1;
-
   font-weight: 500;
-
   letter-spacing: -2px;
 }
 
 .modainsights-section-heading p {
   max-width: 470px;
-
   margin-top: 15px;
-
   color: #666666;
-
   line-height: 1.7;
 }
 
@@ -346,9 +230,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-
   gap: 15px;
-
   margin-bottom: 25px;
 }
 
@@ -358,15 +240,11 @@
 
   display: flex;
   align-items: center;
-
   gap: 10px;
 
   padding: 0 14px;
-
   border: 1px solid #dddddd;
-
   background: #ffffff;
-
   box-sizing: border-box;
 }
 
@@ -374,11 +252,8 @@
 .modainsights-search input {
   border: 0;
   outline: 0;
-
   background: transparent;
-
   color: #171717;
-
   font-family: inherit;
   font-size: 14px;
 }
@@ -401,53 +276,40 @@
 
 .modainsights-metrics {
   display: grid;
-
   grid-template-columns: repeat(4, minmax(0, 1fr));
-
   gap: 14px;
 }
 
 .modainsights-metric-card {
   min-width: 0;
-
   padding: 28px;
-
   background: #ffffff;
-
   border: 1px solid #e3e0da;
-
   box-sizing: border-box;
 }
 
 .metric-icon {
   width: 42px;
   height: 42px;
-
   margin-bottom: 28px;
 
   display: grid;
   place-items: center;
 
   background: #f3eee7;
-
   color: #bd8b46;
 }
 
 .modainsights-metric-card > span {
   display: block;
-
   color: #777777;
-
   font-size: 11px;
-
   letter-spacing: 1.4px;
 }
 
 .modainsights-metric-card strong {
   display: block;
-
   margin: 8px 0;
-
   font-size: 35px;
   font-weight: 500;
 }
@@ -466,23 +328,18 @@
 
 .modainsights-trend-grid {
   display: grid;
-
   grid-template-columns: repeat(4, minmax(0, 1fr));
-
   gap: 15px;
 }
 
 .modainsights-trend-card {
   min-width: 0;
   min-height: 300px;
-
   padding: 28px;
-
   border: 1px solid #dddddd;
 
   display: flex;
   flex-direction: column;
-
   box-sizing: border-box;
 }
 
@@ -490,65 +347,50 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-
   gap: 15px;
-
   color: #bd8b46;
 }
 
 .trend-card-top span {
   font-size: 10px;
   font-weight: 700;
-
   letter-spacing: 1.5px;
 }
 
 .modainsights-trend-card h3 {
   margin: 45px 0 15px;
-
   font-size: 24px;
   font-weight: 500;
 }
 
 .modainsights-trend-card p {
   margin-top: 0;
-
   color: #666666;
-
   line-height: 1.7;
 }
 
 .trend-growth {
   margin-top: auto;
-
   padding-top: 18px;
-
   border-top: 1px solid #dddddd;
 }
 
 .trend-growth strong {
   color: #bd8b46;
-
   font-size: 25px;
 }
 
 .trend-growth span {
   display: block;
-
   margin-top: 4px;
-
   color: #888888;
-
   font-size: 12px;
 }
 
 .modainsights-no-results {
   grid-column: 1 / -1;
-
   padding: 70px;
-
   border: 1px solid #dddddd;
-
   text-align: center;
 }
 
@@ -558,21 +400,15 @@
 
 .modainsights-customer-grid {
   display: grid;
-
   grid-template-columns: repeat(2, minmax(0, 1fr));
-
   gap: 15px;
 }
 
 .modainsights-customer-card {
   min-width: 0;
-
   padding: 28px;
-
   background: #ffffff;
-
   border: 1px solid #e1ddd7;
-
   box-sizing: border-box;
 }
 
@@ -580,45 +416,36 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-
   gap: 20px;
 }
 
 .customer-card-header span {
   color: #bd8b46;
-
   font-size: 10px;
-
   letter-spacing: 1.5px;
 }
 
 .customer-card-header h3 {
   margin: 8px 0 0;
-
   font-size: 23px;
   font-weight: 500;
 }
 
 .customer-card-header svg {
   flex-shrink: 0;
-
   color: #bd8b46;
 }
 
 .modainsights-customer-card p {
   color: #666666;
-
   line-height: 1.6;
 }
 
 .customer-progress-top {
   display: flex;
   justify-content: space-between;
-
   gap: 15px;
-
   margin-top: 25px;
-
   font-size: 13px;
 }
 
@@ -628,92 +455,70 @@
 
 .customer-progress {
   height: 6px;
-
   margin-top: 10px;
-
   background: #e8e5df;
-
   overflow: hidden;
 }
 
 .customer-progress span {
   display: block;
-
   height: 100%;
-
   background: #bd8b46;
 }
 
 /* =========================================
-   AI
+   AI SECTION
 ========================================= */
 
 .modainsights-ai {
   padding: 100px 0;
-
   background: #171717;
-
   color: #ffffff;
 }
 
 .modainsights-ai-box {
   max-width: 850px;
-
   margin: 0 auto;
-
   text-align: center;
 }
 
 .ai-icon {
   width: 55px;
   height: 55px;
-
   margin: 0 auto 25px;
 
   display: grid;
   place-items: center;
 
   background: #bd8b46;
-
   color: #ffffff;
 }
 
 .modainsights-ai-box h2 {
   margin: 18px 0;
-
   color: #ffffff;
-
   font-size: clamp(40px, 5vw, 64px);
   line-height: 1;
-
   font-weight: 500;
 }
 
 .modainsights-ai-box p {
   max-width: 680px;
-
   margin: 0 auto;
-
   color: #aaaaaa;
-
   line-height: 1.8;
 }
 
 .modainsights-ai-button {
   margin-top: 30px;
-
   border: 1px solid #ffffff;
-
   background: #ffffff;
-
   color: #171717;
 }
 
 .modainsights-ai-button:hover {
   background: #bd8b46;
-
   border-color: #bd8b46;
-
   color: #ffffff;
 }
 
@@ -729,7 +534,6 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-
   gap: 50px;
 }
 
@@ -739,24 +543,19 @@
 
 .global-content h2 {
   margin: 20px 0;
-
   font-size: clamp(40px, 5vw, 65px);
   line-height: 1;
-
   font-weight: 500;
 }
 
 .global-content p {
   max-width: 600px;
-
   color: #666666;
-
   line-height: 1.7;
 }
 
 .global-icon {
   flex-shrink: 0;
-
   color: #bd8b46;
 }
 
@@ -766,22 +565,16 @@
 
 .modainsights-cta {
   padding: 110px 0;
-
   background: #bd8b46;
-
   color: #ffffff;
-
   text-align: center;
 }
 
 .modainsights-cta h2 {
   margin: 20px 0;
-
   color: #ffffff;
-
   font-size: clamp(40px, 5vw, 65px);
   line-height: 1;
-
   font-weight: 500;
 }
 
@@ -791,19 +584,14 @@
 
 .modainsights-cta-button {
   border: 1px solid #171717;
-
   background: #171717;
-
   color: #ffffff;
 }
 
 .modainsights-cta-button:hover {
   background: #ffffff;
-
   border-color: #ffffff;
-
   color: #171717;
-
   transform: translateY(-2px);
 }
 
@@ -813,9 +601,7 @@
 
 .modainsights-modal-overlay {
   position: fixed;
-
   inset: 0;
-
   z-index: 9999;
 
   padding: 20px;
@@ -825,23 +611,16 @@
   justify-content: center;
 
   background: rgba(0, 0, 0, 0.7);
-
   box-sizing: border-box;
-
   overflow-y: auto;
 }
 
 .modainsights-modal {
   width: min(650px, 100%);
-
   max-height: 90vh;
-
   padding: 30px;
-
   background: #ffffff;
-
   box-sizing: border-box;
-
   overflow-y: auto;
 }
 
@@ -849,23 +628,18 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-
   gap: 20px;
-
   margin-bottom: 30px;
 }
 
 .modainsights-modal-header span {
   color: #bd8b46;
-
   font-size: 10px;
-
   letter-spacing: 1.5px;
 }
 
 .modainsights-modal-header h2 {
   margin: 8px 0 0;
-
   font-size: 30px;
   font-weight: 500;
 }
@@ -873,11 +647,8 @@
 .modainsights-modal-header button {
   width: 38px;
   height: 38px;
-
   flex-shrink: 0;
-
   border: 0;
-
   background: #f1efeb;
 
   display: flex;
@@ -890,30 +661,24 @@
 .modainsights-form {
   display: flex;
   flex-direction: column;
-
   gap: 18px;
 }
 
 .modainsights-form-row {
   display: grid;
-
   grid-template-columns: repeat(2, minmax(0, 1fr));
-
   gap: 15px;
 }
 
 .modainsights-form-group {
   min-width: 0;
-
   display: flex;
   flex-direction: column;
-
   gap: 7px;
 }
 
 .modainsights-form-group label {
   font-size: 12px;
-
   font-weight: 600;
 }
 
@@ -921,17 +686,11 @@
 .modainsights-form-group select,
 .modainsights-form-group textarea {
   width: 100%;
-
   padding: 13px;
-
   box-sizing: border-box;
-
   border: 1px solid #dddddd;
-
   outline: none;
-
   background: #ffffff;
-
   font-family: inherit;
 }
 
@@ -947,24 +706,18 @@
 
 .modainsights-submit-button {
   min-height: 50px;
-
   padding: 0 18px;
-
   border: 0;
-
   background: #171717;
-
   color: #ffffff;
 
   display: flex;
   align-items: center;
   justify-content: center;
-
   gap: 9px;
 
   font-family: inherit;
   font-weight: 600;
-
   cursor: pointer;
 
   transition: background 0.25s ease;
@@ -975,65 +728,23 @@
 }
 
 /* =========================================
-   TABLET
+   TABLET RESPONSIVE
 ========================================= */
 
 @media (max-width: 1000px) {
-  .modainsights-hero {
-    min-height: 0;
 
+  .modainsights-hero {
+    min-height: 600px;
     padding: 70px 0;
   }
 
   .modainsights-hero .modainsights-container {
     grid-template-columns: 1fr;
-
-    gap: 55px;
+    gap: 0;
   }
 
   .modainsights-hero-content {
     max-width: 750px;
-  }
-
-  .modainsights-hero-visual {
-    width: 360px;
-    height: 360px;
-  }
-
-  .insights-orbit-one {
-    width: 350px;
-    height: 350px;
-
-    top: 5px;
-    left: 5px;
-  }
-
-  .insights-orbit-two {
-    width: 260px;
-    height: 260px;
-
-    top: 50px;
-    left: 50px;
-  }
-
-  .insights-orbit-three {
-    width: 175px;
-    height: 175px;
-
-    top: 92px;
-    left: 92px;
-  }
-
-  .insights-center {
-    width: 125px;
-    height: 125px;
-
-    top: 117px;
-    left: 117px;
-  }
-
-  .insights-center strong {
-    font-size: 15px;
   }
 
   .modainsights-metrics,
@@ -1043,107 +754,71 @@
 }
 
 /* =========================================
-   MOBILE
+   MOBILE RESPONSIVE
 ========================================= */
 
 @media (max-width: 700px) {
+
   .modainsights-container {
-    width: calc(100% - 30px);
+    width: calc(100% - 32px);
   }
 
   .modainsights-hero {
-    min-height: 0;
+    min-height: calc(100svh - 68px);
+    padding: 45px 0;
 
-    padding: 60px 0 70px;
+    display: flex;
+    align-items: center;
+
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
   }
 
   .modainsights-hero .modainsights-container {
-    gap: 45px;
+    width: calc(100% - 32px);
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .modainsights-hero-content {
+    width: 100%;
+    max-width: 100%;
+    position: relative;
+    z-index: 2;
+    margin-top: 0;
   }
 
   .modainsights-hero h1 {
-    font-size: clamp(44px, 13vw, 56px);
-
-    line-height: 1;
-
-    letter-spacing: -2px;
+    max-width: 100%;
+    font-size: clamp(40px, 10.5vw, 50px);
+    line-height: 1.08;
+    letter-spacing: -1.8px;
+    margin-top: 18px;
   }
 
   .modainsights-hero-content p {
-    margin-top: 24px;
-
-    font-size: 15px;
-
-    line-height: 1.7;
+    max-width: 100%;
+    margin-top: 22px;
+    font-size: 16px;
+    line-height: 1.65;
   }
 
   .modainsights-hero-actions {
     flex-direction: column;
-
     align-items: stretch;
-
     gap: 12px;
-
     margin-top: 28px;
   }
 
   .modainsights-secondary-button,
   .modainsights-primary-button {
     width: 100%;
-  }
-
-  .modainsights-hero-visual {
-    width: 300px;
-    height: 300px;
-
-    max-width: 100%;
-
-    margin: 0 auto;
-  }
-
-  .insights-orbit-one {
-    width: 290px;
-    height: 290px;
-
-    top: 5px;
-    left: 5px;
-  }
-
-  .insights-orbit-two {
-    width: 220px;
-    height: 220px;
-
-    top: 40px;
-    left: 40px;
-  }
-
-  .insights-orbit-three {
-    width: 155px;
-    height: 155px;
-
-    top: 72px;
-    left: 72px;
-  }
-
-  .insights-center {
-    width: 110px;
-    height: 110px;
-
-    top: 95px;
-    left: 95px;
-  }
-
-  .insights-center span {
-    font-size: 8px;
-  }
-
-  .insights-center strong {
-    font-size: 13px;
+    min-height: 55px;
   }
 
   .modainsights-toolbar {
     flex-direction: column;
-
     align-items: stretch;
   }
 
@@ -1154,13 +829,11 @@
 
   .modainsights-section-heading {
     display: block;
-
     margin-bottom: 40px;
   }
 
   .modainsights-section-heading p {
     max-width: 100%;
-
     margin-top: 20px;
   }
 
@@ -1219,53 +892,27 @@
 ========================================= */
 
 @media (max-width: 400px) {
+
   .modainsights-container {
     width: calc(100% - 24px);
   }
 
   .modainsights-hero {
-    padding: 50px 0 60px;
+    min-height: calc(100svh - 68px);
+    padding: 40px 0;
+
+    background-size: cover;
+    background-position: center center;
+  }
+
+  .modainsights-hero .modainsights-container {
+    width: calc(100% - 24px);
   }
 
   .modainsights-hero h1 {
-    font-size: 42px;
-  }
-
-  .modainsights-hero-visual {
-    width: 270px;
-    height: 270px;
-  }
-
-  .insights-orbit-one {
-    width: 260px;
-    height: 260px;
-
-    top: 5px;
-    left: 5px;
-  }
-
-  .insights-orbit-two {
-    width: 195px;
-    height: 195px;
-
-    top: 37px;
-    left: 37px;
-  }
-
-  .insights-orbit-three {
-    width: 140px;
-    height: 140px;
-
-    top: 65px;
-    left: 65px;
-  }
-
-  .insights-center {
-    width: 100px;
-    height: 100px;
-
-    top: 85px;
-    left: 85px;
+    font-size: 40px;
+    line-height: 1.08;
+    letter-spacing: -1.5px;
   }
 
   .modainsights-section-heading h2,
