@@ -15,12 +15,12 @@ are placeholders only.
 | `root_volume_size` | `number` | `30` | Encrypted root volume size in GiB; must be at least 20. |
 | `http_ingress_cidrs` | `list(string)` | `[]` | IPv4 sources allowed to reach port 80. Empty disables HTTP ingress. |
 | `https_ingress_cidrs` | `list(string)` | `[]` | IPv4 sources allowed to reach port 443. Empty disables HTTPS ingress. |
+| `create_github_oidc_provider` | `bool` | Required | Set true only for the one root designated to create the account's GitHub OIDC provider; other roots in that account must set false. |
 | `tags` | `map(string)` | `{}` | Additional AWS resource tags. |
 
-`dev/terraform.tfvars.example` is an example, not an approved policy: it
-sets both HTTP and HTTPS ingress to `0.0.0.0/0`. Replace these with approved
-CIDRs before any plan intended for use. Never apply the public-open example
-blindly.
+`dev/terraform.tfvars.example` leaves HTTP and HTTPS ingress empty. Add only
+owner-approved CIDRs to a private, ignored `terraform.tfvars` file if the
+development server needs web access.
 
 ## Production root: `terraform/prod`
 
@@ -34,7 +34,7 @@ blindly.
 | `public_subnet_cidr` | `string` | Required | Public subnet CIDR inside `vpc_cidr`. |
 | `http_ingress_cidrs` | `list(string)` | Required | Approved IPv4 sources for port 80. |
 | `https_ingress_cidrs` | `list(string)` | Required | Approved IPv4 sources for port 443. |
-| `create_github_oidc_provider` | `bool` | `false` | Set true only when this AWS account lacks the provider and this root is approved to own it. |
+| `create_github_oidc_provider` | `bool` | Required | Set true only for the one root designated to create the account's GitHub OIDC provider; other roots in that account must set false. |
 | `tags` | `map(string)` | `{}` | Additional tags. |
 
 No production values are committed. Create an ignored local input file only
@@ -79,8 +79,10 @@ vpc_cidr          = "OWNER_APPROVED_VPC_CIDR"
 public_subnet_cidr = "OWNER_APPROVED_SUBNET_CIDR"
 http_ingress_cidrs  = ["OWNER_APPROVED_IPV4_CIDR"]
 https_ingress_cidrs = ["OWNER_APPROVED_IPV4_CIDR"]
+create_github_oidc_provider = false
 ```
 
-Do not use the literal placeholders as production values. Keep all
-`.tfvars` files private and free of secret material. The root variables do
-not require application secret values.
+Set `create_github_oidc_provider` according to the ownership decision for
+the target AWS account (see above). Do not use the literal placeholders as
+production values. Keep all `.tfvars` files private and free of secret
+material. The root variables do not require application secret values.

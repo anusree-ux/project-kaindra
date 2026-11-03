@@ -128,28 +128,35 @@ ECR push/describe actions scoped to repository ARNs where supported and
 `AWS-RunShellScript` document. `ssm:GetCommandInvocation` uses `Resource:
 "*"` because that action does not support resource-level authorization.
 
-**Known permission gap:** The current deployment workflow calls
-`ec2:DescribeTags`, but this action is not currently present in the
-`github_oidc` policy. A reviewed IAM change is required before the fail-closed
-environment identity check can pass. Scope it using the resource/condition
-model AWS supports for this action; use `Resource: "*"` only if required by
-AWS authorization semantics. Do not solve this by broadening unrelated
-permissions.
+The policy includes `ec2:DescribeTags` for the environment identity check.
+AWS does not support resource-level authorization for this listing action,
+so its statement uses `Resource: "*"` and limits the request to the configured
+AWS region with `aws:RequestedRegion`. This remains broader than a
+single-instance resource policy for tag visibility within that region; keep
+the role trust restricted to the repository and GitHub Environment, and do
+not add unrelated EC2 permissions.
 
 ### Resource and environment controls
 
 - The security group restricts inbound HTTP/HTTPS to configured CIDR lists.
-  The Terraform development example uses public CIDRs and must be replaced
-  before use.
+  The Terraform development example defaults to no ingress; add only
+  owner-approved CIDRs in a private variable file.
 - EC2 requires IMDSv2 and uses an encrypted gp3 root volume.
 - ECR repositories are encrypted, scan on push and enforce immutable tags.
+  Terraform configures no lifecycle expiration policy, preventing
+  Terraform-managed automatic expiry of rollback images at the cost of
+  accumulating storage. Existing repositories may retain an already-applied
+  policy until an approved Terraform apply changes it.
 - GitHub Actions has `id-token: write` and `contents: read`; production
   approval/branch restrictions must be configured on the GitHub Environment.
-- Terraform environment tags are currently `dev`/`prod`, while the workflow
-  demands `development`/`production`. Align these through an approved change
-  before deployment.
+- The EC2 `Environment` tags use `development`/`production`, matching the
+  workflow identity check. Other resource naming/tagging may still use the
+  short `dev`/`prod` names.
 - GitHub environment-level variables must not be shared across dev and prod
   if they refer to different targets.
+- Both Terraform roots require an explicit OIDC provider ownership choice.
+  Designate exactly one provider-creating root per AWS account; set other
+  roots in that account to look up the existing provider.
 
 ## Operational monitoring and data safety
 
@@ -164,3 +171,11 @@ The AWS Compose deployment uses externally hosted/configured MongoDB via
 The deployment rollback restores application images/configuration only and
 does not undo database migrations. Backward-compatible migrations and a
 separate database recovery plan are required.
+
+Before production operation, the owner must decide who provides and monitors
+database backups, retention, restore testing and recovery objectives; how
+database network access and credentials are operated; and what host/service
+availability, monitoring, alerting and incident-response objectives apply.
+The current single-EC2 design has no configured high-availability or
+automated backup resources. These are explicit readiness blockers, not
+features supplied by this Terraform.

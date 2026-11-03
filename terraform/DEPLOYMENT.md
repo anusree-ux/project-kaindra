@@ -44,16 +44,17 @@ cd terraform/dev
 cp backend.hcl.example backend.hcl
 # Edit backend.hcl with the approved state bucket and region.
 cp terraform.tfvars.example terraform.tfvars
-# Review and replace the example ingress CIDRs before planning.
+# Add only owner-approved ingress CIDRs if web access is required.
 terraform init -backend-config=backend.hcl
 terraform validate
 terraform plan -out=review.tfplan
 terraform show review.tfplan
 ```
 
-The development variable example currently opens ports 80 and 443 to
-`0.0.0.0/0`; replace those values with approved CIDRs. Do not apply that
-example without review.
+The development variable example defaults to no HTTP/HTTPS ingress. Add only
+owner-approved CIDRs in the private `terraform.tfvars` file if the server
+needs web access. It also sets `create_github_oidc_provider`; change that
+value if this root is not the designated provider owner for the AWS account.
 
 Production:
 
@@ -70,10 +71,11 @@ terraform show review.tfplan
 
 Production requires values for `aws_region`, `instance_type`,
 `root_volume_size`, `vpc_cidr`, `public_subnet_cidr`, `http_ingress_cidrs`,
-and `https_ingress_cidrs`. Do not guess or copy the development CIDRs or
-sizing. `create_github_oidc_provider` defaults to false in production; only
-set it true if this account does not already have a provider and ownership
-has been approved.
+`https_ingress_cidrs`, and `create_github_oidc_provider`. Do not guess or
+copy the development CIDRs or sizing. Set the provider variable to true only
+in the one root designated to create the account's GitHub OIDC provider;
+other roots in the same account must set it false. If dev and prod use
+different AWS accounts, each account requires its own designated owner.
 
 `backend.hcl`, `terraform.tfvars`, plans and state are local sensitive or
 environment-specific artifacts. Keep them out of source control and follow
@@ -145,25 +147,31 @@ branch as well. The workflow dispatch is restricted to `main`; automatic
 deployment occurs only after successful CI on `main` and selects development.
 Production is an explicit manual selection.
 
-### Required readiness corrections
+### Readiness and production blockers
 
-The following inconsistencies are present in the checked-in configuration.
-They must be corrected and reviewed before a deployment can succeed; this
-documentation does not modify infrastructure or IAM:
+The EC2 module now tags the target with `development` or `production`, and
+the GitHub OIDC role grants `ec2:DescribeTags` restricted to the configured
+region. The IAM action does not support resource-level scoping, so AWS
+requires `Resource: "*"` for this action. The workflow still fails closed:
+set the environment-scoped `EC2_ENVIRONMENT_TAG` to exactly the selected
+environment and ensure the actual instance tag agrees.
 
-1. `EC2_ENVIRONMENT_TAG` must equal `DEPLOYMENT_ENVIRONMENT` (`development`
-   or `production`) and the actual EC2 `Environment` tag. The Terraform roots
-   currently pass `dev`/`prod` into the EC2 module, so the resulting tag is
-   `dev`/`prod`. The strict workflow check therefore rejects these values.
-   Align the Terraform tag convention and GitHub variables in a reviewed
-   infrastructure change; do not bypass the identity check.
-2. The workflow calls `aws ec2 describe-tags`, but the current
-   `github_oidc` role policy does not grant `ec2:DescribeTags`. Grant only
-   the necessary permission through a reviewed IAM change. Without it, the
-   identity step fails closed.
-3. Confirm the existing deployment host is provisioned with the required
-   Docker, Compose, AWS CLI and SSM connectivity. Terraform user data installs
-   these packages but does not deploy the application or verify readiness.
+Confirm the deployment host has Docker, Compose, AWS CLI and SSM connectivity.
+Terraform user data installs the software but does not deploy the application
+or verify readiness.
+
+Production is not operationally complete until the owner assigns and
+documents decisions for:
+
+- Database provider/ownership, backup frequency and retention, restore
+  testing, and recovery-point/recovery-time objectives.
+- Database network access, credential rotation and incident recovery.
+- Host/application availability expectations, monitoring, alerting and
+  incident-response ownership.
+
+Terraform currently provisions one EC2 instance and no automated database
+backup, database restore or high-availability resources. Do not treat
+provisioning this configuration alone as satisfying those requirements.
 
 ## 5. Populate the application secret
 
@@ -287,10 +295,14 @@ Compose recovery fails, or health checks fail, it stops potentially unhealthy
 containers and retains the private recovery backup for manual investigation.
 Do not delete a retained backup until recovery is confirmed.
 
-ECR lifecycle policy retains only the ten most recent images. Older digests
-can become unavailable for rollback when expired; archive/retention policy
-must be considered by the release owner. The workflow and script do not
-perform destructive database rollback or Docker volume deletion.
+Terraform configuration no longer sets ECR lifecycle expiration, avoiding
+Terraform-managed count-based expiry of previous release digests but
+allowing storage to grow over time. An already-provisioned repository may
+retain its existing policy until an approved Terraform apply removes it;
+images previously expired cannot be recovered through Terraform. Any future
+retention policy must preserve images required by the rollback and recovery
+window. The workflow and script do not perform destructive database rollback
+or Docker volume deletion.
 
 ## 8. Pre- and post-deployment checklist
 

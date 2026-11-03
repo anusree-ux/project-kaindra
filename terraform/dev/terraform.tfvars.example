@@ -1,0 +1,12 @@
+# No web ingress by default. Add only owner-approved CIDRs in a private,
+# ignored terraform.tfvars file.
+http_ingress_cidrs  = []
+https_ingress_cidrs = []
+
+# Set true in exactly one Terraform root per AWS account.
+create_github_oidc_provider = true
+
+# Optional overrides:
+# aws_region       = "ap-south-1"
+# instance_type    = "t3.small"
+# root_volume_size = 30

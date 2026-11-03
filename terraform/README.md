@@ -27,9 +27,14 @@ terraform/
 
 `dev/` and `prod/` are separate Terraform root modules and use distinct S3
 state keys in their backend examples. Both roots require Terraform 1.10 or
-later, AWS provider 5.x, and the AWS CLI credential chain for the selected
-account and role. The production root deliberately has required networking
-and sizing inputs; use only approved values, not copied guesses from dev.
+later, AWS provider 5.x, TLS provider 4.x, and the AWS CLI credential chain
+for the selected account and role. The production root deliberately has
+required networking and sizing inputs; use only approved values, not copied
+guesses from dev.
+
+The EC2 `Environment` tags are `development` and `production`, matching the
+GitHub deployment workflow. Resource naming and other module tags continue
+to use the short `dev` and `prod` identifiers.
 
 ## What this Terraform currently describes
 
@@ -42,7 +47,17 @@ role. EC2 user data installs Docker Compose v2 and the AWS CLI. See
 Terraform does **not** create a MongoDB service/database, DNS records,
 monitoring or alerting stack, backup schedule, or S3 backend bucket. It does
 not populate the application secret value. The AWS application deployment
-Compose file contains backend, frontend and Caddy only.
+Compose file contains backend, frontend and Caddy only. Terraform no longer
+configures automatic ECR lifecycle expiration, protecting rollback images
+from a Terraform-managed count-based expiry. An already-provisioned repository
+may retain its existing lifecycle policy until this configuration is
+deliberately applied. Owners must monitor storage growth and approve any
+future retention policy that could expire releases.
+
+Each root requires an explicit `create_github_oidc_provider` value. Exactly
+one root per AWS account should own provider creation; other roots in that
+account look up the existing provider. In separate accounts, each account
+needs one designated owner.
 
 ## Prerequisites and safe workflow
 

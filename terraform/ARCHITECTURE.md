@@ -9,9 +9,9 @@ separate AWS accounts; the AWS credentials selected by the operator determine
 the target account.
 
 The roots require Terraform 1.10 or later and explicitly constrain
-`hashicorp/aws` to `~> 5.0`. The GitHub OIDC module uses `hashicorp/tls` to
-read the OIDC endpoint certificate; provider selections are recorded in the
-root lock files.
+`hashicorp/aws` to `~> 5.0` and `hashicorp/tls` to `~> 4.0`. The GitHub OIDC
+module uses TLS to read the OIDC endpoint certificate; provider selections
+are recorded in the root lock files.
 
 ```mermaid
 flowchart LR
@@ -42,7 +42,7 @@ managed database.
 | `security_group` | Allows inbound HTTP 80 and HTTPS 443 only from configured IPv4 CIDRs; allows all outbound IPv4 |
 | `ec2` | One EC2 instance, encrypted gp3 root disk, IMDSv2 required, Elastic IP and association |
 | `iam` | EC2 role and instance profile, Systems Manager managed-instance policy, ECR pull access and environment secret read access |
-| `ecr` | Backend/frontend repositories, AES-256 ECR encryption, scan on push, immutable tags, lifecycle retention of the 10 most recent images |
+| `ecr` | Backend/frontend repositories, AES-256 ECR encryption, scan on push and immutable tags; Terraform configures no lifecycle expiration |
 | `secrets_manager` | Creates the backend secret metadata/name with a 7-day recovery window; does not create a secret value/version |
 | `github_oidc` | GitHub OIDC provider (owned by one root/account), environment-subject trust role, ECR push and SSM deployment policies |
 
@@ -55,20 +55,24 @@ baseline or application provisioning system.
 
 - The roots have separate S3 backend keys (`kaindra/dev/terraform.tfstate`
   and `kaindra/prod/terraform.tfstate`).
-- Root module arguments use `dev` and `prod`; resources are named/tagged with
-  those environment identifiers and the project name.
+- Resource naming and most module tags use `dev` and `prod`; the EC2
+  `Environment` tags specifically use `development` and `production` to
+  match the workflow's selected GitHub Environments.
 - The GitHub OIDC trust names the repository
   `anusree-ux/project-kaindra` and GitHub Environment `development` or
   `production`.
+- Both roots require an explicit `create_github_oidc_provider` choice. In a
+  shared AWS account exactly one root creates the provider and all other
+  roots look it up. In separate accounts, designate one creator in each.
 - Production uses required values for region, instance type, volume size,
   VPC/subnet CIDRs and web ingress CIDRs.
 - Dev and prod can still point at the same AWS account if operators use the
   same account credentials. State separation is not account separation.
 
-The deployment workflow expects actual EC2 `Environment` tags to be
-`development` or `production`, while the roots currently pass `dev` or `prod`
-to the EC2 module. This mismatch must be resolved through an approved
-infrastructure change before the workflow identity check can pass.
+The deployment workflow verifies that the configured environment,
+`EC2_ENVIRONMENT_TAG`, and the target EC2 `Environment` tag all agree. The
+roots set the EC2 tag to the full GitHub Environment name; configure the
+GitHub variable to that same exact value.
 
 ## Network and traffic
 
@@ -93,6 +97,9 @@ Caddy certificate issuance/renewal.
   volume. This is local development data, not a production backup strategy.
 - No backup schedule, database restore automation, or tested disaster
   recovery procedure is implemented in Terraform or the deployment workflow.
+  Production provisioning remains blocked on owner decisions for database
+  backup/restore ownership, retention, recovery objectives, and host/service
+  availability and monitoring.
 
 ## Image and deployment relationships
 
@@ -101,3 +108,8 @@ the tested commit SHA as the immutable tag. It resolves each tag to an ECR
 digest and sends digest-pinned references to the EC2 deployment. The EC2
 instance pulls the digests and Compose starts the services. See
 [Deployment](./DEPLOYMENT.md) for the full execution and rollback flow.
+Terraform configures no ECR lifecycle policy expiring old images; this
+protects rollback references from Terraform-managed count-based expiry but
+allows repository storage costs to grow. An already-provisioned repository
+may keep its existing lifecycle policy until this configuration is applied.
+An owner must approve any future retention approach.
