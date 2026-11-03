@@ -1,6 +1,7 @@
 services:
   backend:
-    image: ${ECR_REGISTRY}/kaindra-dev-backend:${IMAGE_TAG}
+    image: ${BACKEND_IMAGE:?BACKEND_IMAGE is required}
+    pull_policy: never
     container_name: kaindra-backend
     expose:
       - "5000"
@@ -8,14 +9,15 @@ services:
       - ./.env
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:5000/health"]
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:5000/ready"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 10s
 
   frontend:
-    image: ${ECR_REGISTRY}/kaindra-dev-frontend:${IMAGE_TAG}
+    image: ${FRONTEND_IMAGE:?FRONTEND_IMAGE is required}
+    pull_policy: never
     container_name: kaindra-frontend
     expose:
       - "8080"
@@ -33,6 +35,8 @@ services:
   nginx:
     image: caddy:2-alpine
     container_name: kaindra-nginx
+    environment:
+      CADDY_DOMAIN: ${CADDY_DOMAIN:?CADDY_DOMAIN is required}
     ports:
       - "80:80"
       - "443:443"

@@ -32,10 +32,18 @@ dist-ssr
 postman/
 
 # Terraform local state and generated files
-terraform/
 **/.terraform/
 *.tfstate
 *.tfstate.*
 *.tfplan
 *.tfvars
+*.tfvars.json
 !*.tfvars.example
+backend.hcl
+.terraform.tfstate.lock.info
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+crash.log
+crash.*.log
