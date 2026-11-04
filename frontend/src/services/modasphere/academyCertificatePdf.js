@@ -38,7 +38,10 @@ const formatDate = (value) => {
 const getSafeFileName = (studentName, certificateNumber) => {
   const safeName = studentName
     .normalize("NFKD")
-    .replace(/[<>:"/\\|?*\u0000-\u001f]/g, "")
+    .replace(/[<>:"/\\|?*]/g, "")
+    .split("")
+    .filter((char) => char.charCodeAt(0) >= 32)
+    .join("")
     .trim()
     .replace(/\s+/g, "-")
     .slice(0, 60);
