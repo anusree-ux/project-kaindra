@@ -14,6 +14,10 @@ jobs:
     name: Backend - Test
     runs-on: ubuntu-latest
 
+    env:
+      NODE_ENV: test
+      SHIPROCKET_MOCK: "true"
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
