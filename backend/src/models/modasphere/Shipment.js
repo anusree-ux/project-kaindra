@@ -36,6 +36,31 @@ const shipmentSchema = new mongoose.Schema(
       unique: true,
       index: true,
     },
+    provider: {
+      type: String,
+      enum: ["manual", "shiprocket"],
+      default: "manual",
+    },
+    providerShipmentId: {
+      type: String,
+      default: null,
+    },
+    awbCode: {
+      type: String,
+      default: null,
+    },
+    trackingUrl: {
+      type: String,
+      default: null,
+    },
+    labelUrl: {
+      type: String,
+      default: null,
+    },
+    isMock: {
+      type: Boolean,
+      default: false,
+    },
     carrier: {
       type: String,
       required: [true, "Carrier is required (e.g. Delhivery, Bluedart, India Post)."],

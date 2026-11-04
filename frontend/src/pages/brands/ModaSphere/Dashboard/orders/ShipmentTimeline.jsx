@@ -76,7 +76,17 @@ const ShipmentTimeline = ({ order, shipment }) => {
       icon: Check,
     });
 
-    // 3. Processing
+    // 3. Determine courier pickup status
+    const isPickedUp = [
+      "picked_up",
+      "in_transit",
+      "out_for_delivery",
+      "delivered",
+    ].includes(shipment?.status);
+
+    const shipDate = shipment?.createdAt || null;
+
+    // 4. Processing
     events.push({
       key: "processing",
       title: "Processing & Packaging",
@@ -86,31 +96,37 @@ const ShipmentTimeline = ({ order, shipment }) => {
         : isPaid
         ? "Order is being packed and scheduled for courier pickup"
         : "Awaiting payment verification",
-      status: isShipped ? "completed" : isPaid ? "current" : "pending",
+      status: isPickedUp ? "completed" : isPaid ? "current" : "pending",
       icon: Clock,
     });
 
-    // 4. Shipped / Dispatched
-    const shipDate =
-      shipment?.createdAt || (isShipped ? order.updatedAt : null);
+    // 5. Shipment booking / Courier pickup
     events.push({
       key: "shipped",
-      title: isShipped
+      title: isPickedUp
         ? `Shipped${shipment?.carrier ? ` via ${shipment.carrier}` : ""}`
-        : "Courier dispatch",
-      date: isShipped ? formatTimelineDate(shipDate) : "Awaiting shipment",
-      description: isShipped
-        ? shipment?.trackingNumber
-          ? `Dispatched via ${shipment.carrier || "Courier"} · Tracking #${shipment.trackingNumber}`
+        : "Shipment booked",
+      date: shipDate ? formatTimelineDate(shipDate) : "Awaiting shipment",
+      description: isPickedUp
+        ? shipment?.awbCode || shipment?.trackingNumber
+          ? `Courier: ${shipment.carrier || "Courier"} · AWB: ${shipment.awbCode || shipment.trackingNumber}`
           : "Package handed over to logistics partner"
-        : "Order not yet shipped. Use the Ship Order button above to dispatch.",
-      status: isDelivered ? "completed" : isShipped ? "current" : "pending",
+        : shipment
+        ? "Shipment booking created. Waiting for courier pickup."
+        : "Order not yet shipped. Use the Ship Order button to create a shipment.",
+      status: isDelivered
+        ? "completed"
+        : isPickedUp
+        ? "current"
+        : shipment
+        ? "current"
+        : "pending",
       icon: Truck,
-      trackingNumber: isShipped ? shipment?.trackingNumber : null,
-      carrier: isShipped ? shipment?.carrier : null,
+      trackingNumber: shipment?.awbCode || shipment?.trackingNumber || null,
+      carrier: shipment?.carrier || null,
     });
 
-    // 5. Additional granular updates from shipment.timeline
+    // 6. Additional granular updates from shipment.timeline
     if (shipment?.timeline && Array.isArray(shipment.timeline)) {
       shipment.timeline.forEach((item, idx) => {
         if (
@@ -132,7 +148,7 @@ const ShipmentTimeline = ({ order, shipment }) => {
       });
     }
 
-    // 6. Delivery or Cancellation
+    // 7. Delivery or Cancellation
     if (isCancelled) {
       events.push({
         key: "cancelled",
@@ -177,7 +193,7 @@ const ShipmentTimeline = ({ order, shipment }) => {
       >
         <h2>Shipment timeline</h2>
 
-        {shipment?.trackingNumber && (
+        {(shipment?.awbCode || shipment?.trackingNumber) && (
           <span
             style={{
               display: "inline-flex",
@@ -193,7 +209,21 @@ const ShipmentTimeline = ({ order, shipment }) => {
             }}
           >
             <Truck size={14} color="#b89552" />
-            {shipment.carrier || "Courier"}: #{shipment.trackingNumber}
+            {shipment.carrier || "Courier"}: #{shipment.awbCode || shipment.trackingNumber}
+          </span>
+        )}
+
+        {shipment?.isMock && (
+          <span
+            style={{
+              fontSize: 11,
+              color: "#92400e",
+              background: "#fef3c7",
+              padding: "4px 8px",
+              borderRadius: 6,
+            }}
+          >
+            Test shipment — not booked with Shiprocket
           </span>
         )}
       </div>

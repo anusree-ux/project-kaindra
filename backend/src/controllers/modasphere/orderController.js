@@ -4,6 +4,7 @@ const Cart = require("../../models/modasphere/Cart");
 const Product = require("../../models/modasphere/Product");
 const Drop = require("../../models/modasphere/Drop");
 const DiscountCode = require("../../models/modasphere/DiscountCode");
+const { createShipment } = require("../../services/shiprocketService");
 const {
   getDropStatusAt,
   getUserPurchaseCountInDrop,
@@ -581,7 +582,6 @@ const getSellerOrders = async (req, res, next) => {
 const shipOrder = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { carrier, trackingNumber, estimatedDeliveryDate } = req.body || {};
 
     const order = await Order.findById(id);
 
@@ -589,6 +589,7 @@ const shipOrder = async (req, res, next) => {
       return next(new AppError("Order not found.", 404));
     }
 
+    // Verify seller ownership or admin access.
     const isSeller =
       order.items &&
       order.items.some(
@@ -596,73 +597,74 @@ const shipOrder = async (req, res, next) => {
           item.sellerId &&
           item.sellerId.toString() === req.user._id.toString()
       );
+
     const isAdmin = req.user.role === "admin";
 
     if (!isSeller && !isAdmin) {
       return next(
-        new AppError("Not authorized to update shipment status for this order.", 403)
+        new AppError(
+          "Not authorized to create a shipment for this order.",
+          403
+        )
       );
     }
 
     if (order.status !== "paid") {
       return next(
         new AppError(
-          `Cannot mark order as shipped. Current status is "${order.status}", but status must be "paid".`,
+          `Cannot create shipment. Current order status is "${order.status}", but it must be "paid".`,
           400
         )
       );
     }
 
-    if (!carrier) {
-      return next(new AppError("Carrier is required to ship an order.", 400));
+    // Prevent duplicate shipment bookings.
+    const existingShipment = await Shipment.findOne({
+      orderId: order._id,
+    });
+
+    if (existingShipment) {
+      return next(
+        new AppError("A shipment already exists for this order.", 409)
+      );
     }
 
-    if (!trackingNumber) {
-      return next(new AppError("Tracking number is required to ship an order.", 400));
-    }
+    // Create shipment through Shiprocket service.
+    const shipmentResult = await createShipment(order);
 
-    // Known simplification: updates the whole order's status to "shipped", rather
-    // than per-item / per-seller shipment tracking. Out of scope for now as single-seller orders are the common case.
-    order.status = "shipped";
-    await order.save();
+    // Save shipment details.
+    const shipment = await Shipment.create({
+      orderId: order._id,
+      provider: shipmentResult.provider,
+      providerShipmentId: shipmentResult.shipmentId,
+      awbCode: shipmentResult.awbCode,
+      trackingUrl: shipmentResult.trackingUrl,
+      labelUrl: shipmentResult.labelUrl,
+      isMock: shipmentResult.isMock,
+      carrier: shipmentResult.courierName,
+      trackingNumber: shipmentResult.awbCode,
+      status: shipmentResult.status,
+      timeline: [
+        {
+          status: shipmentResult.status,
+          note: shipmentResult.isMock
+            ? "Mock shipment booking created. Awaiting pickup."
+            : "Shipment booking created. Awaiting pickup.",
+          timestamp: shipmentResult.createdAt || new Date(),
+        },
+      ],
+    });
 
-    let shipment = await Shipment.findOne({ orderId: order._id });
-    if (!shipment) {
-      shipment = await Shipment.create({
-        orderId: order._id,
-        carrier,
-        trackingNumber,
-        estimatedDeliveryDate: estimatedDeliveryDate || null,
-        status: req.body.status || "pending_pickup",
-        timeline: [
-          {
-            status: req.body.status || "pending_pickup",
-            note: req.body.note || "Shipment order created by seller.",
-            timestamp: new Date(),
-          },
-        ],
-      });
-    } else {
-      shipment.carrier = carrier;
-      shipment.trackingNumber = trackingNumber;
-      if (estimatedDeliveryDate) {
-        shipment.estimatedDeliveryDate = estimatedDeliveryDate;
-      }
-      if (req.body.status) {
-        shipment.status = req.body.status;
-        shipment.timeline.push({
-          status: req.body.status,
-          note: req.body.note || `Status updated to ${req.body.status}`,
-          timestamp: new Date(),
-        });
-      }
-      await shipment.save();
-    }
+    // IMPORTANT:
+    // Do not mark the order as shipped until actual pickup is confirmed.
 
-    res.status(200).json({
+    res.status(201).json({
       status: "success",
-      message: "Order marked as shipped.",
-      data: { order, shipment },
+      message: "Shipment booking created successfully. Awaiting pickup.",
+      data: {
+        order,
+        shipment,
+      },
     });
   } catch (error) {
     next(error);

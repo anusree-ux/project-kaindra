@@ -96,14 +96,13 @@ export const getOrderById = async (id) => {
   return order;
 };
 
-export const shipOrder = async (id, data = {}) => {
-  const res = await apiClient.patch(`/api/modasphere/orders/${id}/ship`, data);
-  const order = res.data?.data?.order || res.data?.order || res.data;
-  const shipment = res.data?.data?.shipment || res.data?.shipment;
-  if (order && shipment && !order.shipment) {
-    order.shipment = shipment;
-  }
-  return order;
+export const shipOrder = async (id) => {
+  const res = await apiClient.patch(`/api/modasphere/orders/${id}/ship`);
+
+  return {
+    order: res.data?.data?.order || res.data?.order || null,
+    shipment: res.data?.data?.shipment || res.data?.shipment || null,
+  };
 };
 
 export const deliverOrder = async (id) => {
@@ -130,6 +129,16 @@ export const getDropById = async (id) => {
 export const createDrop = async (dropData) => {
   const res = await apiClient.post("/api/modasphere/drops", dropData);
   return res.data?.data?.drop || res.data?.drop || res.data;
+};
+
+export const updateDrop = async (id, dropData) => {
+  const res = await apiClient.patch(`/api/modasphere/drops/${id}`, dropData);
+  return res.data?.data?.drop || res.data?.drop || res.data;
+};
+
+export const deleteDrop = async (id) => {
+  const res = await apiClient.delete(`/api/modasphere/drops/${id}`);
+  return res.data;
 };
 
 // --- Discounts ---

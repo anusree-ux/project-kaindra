@@ -3,6 +3,7 @@ const Drop = require("../../models/modasphere/Drop");
 const DropWaitlist = require("../../models/modasphere/DropWaitlist");
 const ProductDropWaitlist = require("../../models/modasphere/ProductDropWaitlist");
 const Product = require("../../models/modasphere/Product");
+const Order = require("../../models/modasphere/Order");
 const {
   getDropStatusAt,
   getUserPurchaseCountInDrop,
@@ -129,6 +130,226 @@ const createDrop = async (req, res, next) => {
       status: "success",
       message: "ModaDrop created successfully.",
       data: { drop },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getSellerManagedDrop = async (dropId, userId, next) => {
+  if (!mongoose.isValidObjectId(dropId)) {
+    next(new AppError("Invalid ModaDrop ID.", 400));
+    return null;
+  }
+
+  await updateDropStatuses();
+  const drop = await Drop.findById(dropId);
+  if (!drop) {
+    next(new AppError("ModaDrop not found.", 404));
+    return null;
+  }
+  if (drop.createdBy.toString() !== userId.toString()) {
+    next(new AppError("You can only manage drops that you created.", 403));
+    return null;
+  }
+  if (getDropStatusAt(drop) !== "upcoming") {
+    next(new AppError("Only scheduled drops can be edited or deleted.", 400));
+    return null;
+  }
+
+  const [hasOrders, hasWaitlistEntries] = await Promise.all([
+    Order.exists({ "items.dropId": drop._id }),
+    DropWaitlist.exists({ dropId: drop._id }),
+  ]);
+  if (hasOrders || hasWaitlistEntries) {
+    next(
+      new AppError(
+        "This drop cannot be changed after orders or waitlist activity has started.",
+        409,
+      ),
+    );
+    return null;
+  }
+
+  return drop;
+};
+
+const updateDrop = async (req, res, next) => {
+  try {
+    const drop = await getSellerManagedDrop(
+      req.params.id,
+      req.user._id,
+      next,
+    );
+    if (!drop) return;
+
+    const {
+      title,
+      description,
+      coverImage,
+      productIds,
+      startTime,
+      endTime,
+      maxPerUser,
+      dropStock,
+    } = req.body;
+
+    if (
+      typeof title !== "string" ||
+      !title.trim() ||
+      !Array.isArray(productIds) ||
+      productIds.length === 0 ||
+      !productIds.every((id) => mongoose.isValidObjectId(id))
+    ) {
+      return next(
+        new AppError(
+          "Title, startTime, and at least one valid productId are required.",
+          400,
+        ),
+      );
+    }
+
+    const normalizedProductIds = productIds.map((id) => id.toString());
+    if (new Set(normalizedProductIds).size !== normalizedProductIds.length) {
+      return next(new AppError("A product can only be included once in a drop.", 400));
+    }
+
+    const parsedStartTime = new Date(startTime);
+    if (!startTime || Number.isNaN(parsedStartTime.getTime())) {
+      return next(new AppError("Invalid startTime date format.", 400));
+    }
+    if (parsedStartTime <= new Date()) {
+      return next(new AppError("A scheduled drop must start in the future.", 400));
+    }
+
+    let parsedEndTime = null;
+    if (endTime) {
+      parsedEndTime = new Date(endTime);
+      if (
+        Number.isNaN(parsedEndTime.getTime()) ||
+        parsedEndTime <= parsedStartTime
+      ) {
+        return next(
+          new AppError(
+            "endTime must be a valid date occurring after startTime.",
+            400,
+          ),
+        );
+      }
+    }
+
+    const parsedMaxPerUser =
+      maxPerUser === undefined ? drop.maxPerUser : Number(maxPerUser);
+    if (!Number.isInteger(parsedMaxPerUser) || parsedMaxPerUser < 1) {
+      return next(new AppError("maxPerUser must be a positive integer.", 400));
+    }
+
+    const products = await Product.find({ _id: { $in: normalizedProductIds } });
+    if (products.length !== normalizedProductIds.length) {
+      return next(new AppError("One or more specified products do not exist.", 404));
+    }
+
+    const invalidProduct = products.some(
+      (product) =>
+        product.sellerId.toString() !== req.user._id.toString() ||
+        product.status !== "active" ||
+        !product.isDrop ||
+        !Number.isFinite(product.dropStock) ||
+        product.dropStock < 0,
+    );
+    if (invalidProduct) {
+      return next(
+        new AppError(
+          "Every product must be an active ModaDrop product owned by you with valid drop inventory.",
+          400,
+        ),
+      );
+    }
+
+    const eventEndForOverlap =
+      parsedEndTime || new Date(8640000000000000);
+    const overlappingDrop = await Drop.findOne({
+      _id: { $ne: drop._id },
+      productIds: { $in: normalizedProductIds },
+      startTime: { $lt: eventEndForOverlap },
+      $or: [{ endTime: null }, { endTime: { $gt: parsedStartTime } }],
+    });
+    if (overlappingDrop) {
+      return next(
+        new AppError(
+          "A product cannot be assigned to overlapping ModaDrop events.",
+          400,
+        ),
+      );
+    }
+
+    let parsedDropStock;
+    if (dropStock !== undefined) {
+      parsedDropStock = Number(dropStock);
+      if (
+        normalizedProductIds.length !== 1 ||
+        !Number.isInteger(parsedDropStock) ||
+        parsedDropStock < 0
+      ) {
+        return next(
+          new AppError(
+            "Drop stock must be a non-negative integer for a single-product drop.",
+            400,
+          ),
+        );
+      }
+    }
+
+    const now = new Date();
+    drop.title = title.trim();
+    drop.description =
+      typeof description === "string" ? description.trim() : drop.description;
+    if (coverImage !== undefined) drop.coverImage = coverImage;
+    drop.productIds = normalizedProductIds;
+    drop.startTime = parsedStartTime;
+    drop.endTime = parsedEndTime;
+    drop.maxPerUser = parsedMaxPerUser;
+    drop.status =
+      parsedEndTime && parsedEndTime <= now
+        ? "ended"
+        : parsedStartTime <= now
+          ? "live"
+          : "upcoming";
+
+    await drop.save();
+    if (parsedDropStock !== undefined) {
+      await Product.updateOne(
+        { _id: normalizedProductIds[0], sellerId: req.user._id },
+        { $set: { dropStock: parsedDropStock } },
+      );
+    }
+
+    const updatedDrop = await Drop.findById(drop._id)
+      .populate("productIds")
+      .populate("createdBy", "name");
+    return res.status(200).json({
+      status: "success",
+      message: "ModaDrop updated successfully.",
+      data: { drop: updatedDrop },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const deleteDrop = async (req, res, next) => {
+  try {
+    const drop = await getSellerManagedDrop(
+      req.params.id,
+      req.user._id,
+      next,
+    );
+    if (!drop) return;
+
+    await drop.deleteOne();
+    return res.status(200).json({
+      status: "success",
+      message: "ModaDrop deleted successfully.",
     });
   } catch (error) {
     next(error);
@@ -509,6 +730,8 @@ const getProductDropWaitlistPosition = async (req, res, next) => {
 
 module.exports = {
   createDrop,
+  updateDrop,
+  deleteDrop,
   getDrops,
   getSellerDrops,
   getDropById,

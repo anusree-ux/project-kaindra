@@ -623,19 +623,23 @@ describe("ModaSphere Orders & Razorpay Payment Integration (ModaPay)", () => {
       pendingOrderId = pendingCheckout.body.data.orderId;
     });
 
-    it("should allow relevant seller to ship a paid order", async () => {
+
+    it("should allow relevant seller to create a Shiprocket shipment for a paid order", async () => {
       const res = await request(app)
         .patch(`/api/modasphere/orders/${paidOrderId}/ship`)
         .set("Authorization", `Bearer ${seller.token}`)
-        .send({ carrier: "Delhivery", trackingNumber: "DEL12345" });
+        .send({});
 
-      expect(res.status).toBe(200);
+      expect(res.status).toBe(201);
       expect(res.body.status).toBe("success");
-      expect(res.body.data.order.status).toBe("shipped");
+      expect(res.body.data.order.status).toBe("paid");
+      expect(res.body.data.shipment.provider).toBe("shiprocket");
+      expect(res.body.data.shipment.isMock).toBe(true);
+      expect(res.body.data.shipment.status).toBe("pending_pickup");
 
-      // Verify in DB
+      // Booking a shipment does not mean the courier has picked it up.
       const order = await Order.findById(paidOrderId);
-      expect(order.status).toBe("shipped");
+      expect(order.status).toBe("paid");
     });
 
     it("should reject shipping with 403 if the seller has no items in the order", async () => {
@@ -656,23 +660,32 @@ describe("ModaSphere Orders & Razorpay Payment Integration (ModaPay)", () => {
       expect(res.body.message).toMatch(/must be "paid"/i);
     });
 
-    it("should allow buyer to confirm delivery on a shipped order", async () => {
-      // First ship the paid order
-      await request(app)
+
+    it("should allow buyer to confirm delivery after courier pickup", async () => {
+      // Create a mock Shiprocket shipment.
+      const shipmentRes = await request(app)
         .patch(`/api/modasphere/orders/${paidOrderId}/ship`)
         .set("Authorization", `Bearer ${seller.token}`)
-        .send({ carrier: "Delhivery", trackingNumber: "DEL12345" });
+        .send({});
 
-      // Buyer marks delivered
+      expect(shipmentRes.status).toBe(201);
+
+      // Simulate Shiprocket confirming courier pickup.
+      const order = await Order.findById(paidOrderId);
+      order.status = "shipped";
+      await order.save();
+
+      // Buyer confirms receipt.
       const res = await request(app)
         .patch(`/api/modasphere/orders/${paidOrderId}/deliver`)
         .set("Authorization", `Bearer ${buyer.token}`);
 
       expect(res.status).toBe(200);
       expect(res.body.data.order.status).toBe("delivered");
+      expect(res.body.data.shipment.status).toBe("delivered");
 
-      const order = await Order.findById(paidOrderId);
-      expect(order.status).toBe("delivered");
+      const updatedOrder = await Order.findById(paidOrderId);
+      expect(updatedOrder.status).toBe("delivered");
     });
 
     it("should reject delivery confirmation if order has not been shipped yet", async () => {
@@ -744,12 +757,20 @@ describe("ModaSphere Orders & Razorpay Payment Integration (ModaPay)", () => {
       expect(res.body.data.order.status).toBe("cancelled");
     });
 
-    it("should reject cancellation if order is already shipped or delivered", async () => {
-      // Ship the order
-      await request(app)
+
+    it("should reject cancellation if order has been picked up by the courier", async () => {
+      // Create a mock Shiprocket shipment.
+      const shipmentRes = await request(app)
         .patch(`/api/modasphere/orders/${paidOrderId}/ship`)
         .set("Authorization", `Bearer ${seller.token}`)
-        .send({ carrier: "Delhivery", trackingNumber: "DEL12345" });
+        .send({});
+
+      expect(shipmentRes.status).toBe(201);
+
+      // Simulate actual courier pickup.
+      const order = await Order.findById(paidOrderId);
+      order.status = "shipped";
+      await order.save();
 
       const res = await request(app)
         .patch(`/api/modasphere/orders/${paidOrderId}/cancel`)

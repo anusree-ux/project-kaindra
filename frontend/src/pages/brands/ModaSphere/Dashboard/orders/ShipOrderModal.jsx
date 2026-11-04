@@ -1,19 +1,13 @@
-import { useState } from "react";
+
 import { Loader2 } from "lucide-react";
 
 const ShipOrderModal = ({ open, onClose, onShip, loading, error }) => {
-  const [carrier, setCarrier] = useState("");
-  const [tracking, setTracking] = useState("");
-
   if (!open) return null;
 
   const submit = (event) => {
     event.preventDefault();
     if (onShip) {
-      onShip({
-        carrier,
-        trackingNumber: tracking,
-      });
+      onShip();
     }
   };
 
@@ -40,6 +34,11 @@ const ShipOrderModal = ({ open, onClose, onShip, loading, error }) => {
       >
         <h2>Ship order</h2>
 
+        <p style={{ fontSize: 14, color: "#64748b", lineHeight: 1.6 }}>
+          Create a shipment through Shiprocket. The courier and tracking
+          details will be generated automatically.
+        </p>
+
         {error && (
           <div
             style={{
@@ -56,60 +55,37 @@ const ShipOrderModal = ({ open, onClose, onShip, loading, error }) => {
           </div>
         )}
 
-        <div className="dashboard-form">
-          <div className="dashboard-field">
-            <label>Shipping carrier</label>
-
-            <input
-              value={carrier}
-              placeholder="e.g. BlueDart, Delhivery, FedEx"
-              onChange={(e) =>
-                setCarrier(e.target.value)
-              }
-              required
-            />
-          </div>
-
-          <div className="dashboard-field">
-            <label>Tracking number</label>
-
-            <input
-              value={tracking}
-              placeholder="e.g. BLD123456789IN"
-              onChange={(e) =>
-                setTracking(e.target.value)
-              }
-              required
-            />
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "flex-end",
-              gap: 10,
-              marginTop: 10,
-            }}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "flex-end",
+            gap: 10,
+            marginTop: 20,
+          }}
+        >
+          <button
+            type="button"
+            className="dashboard-btn dashboard-btn-secondary"
+            onClick={onClose}
+            disabled={loading}
           >
-            <button
-              type="button"
-              className="dashboard-btn dashboard-btn-secondary"
-              onClick={onClose}
-              disabled={loading}
-            >
-              Cancel
-            </button>
+            Cancel
+          </button>
 
-            <button
-              type="submit"
-              className="dashboard-btn dashboard-btn-primary"
-              disabled={loading}
-              style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
-            >
-              {loading && <Loader2 size={15} style={{ animation: "spin 1s linear infinite" }} />}
-              Confirm shipment
-            </button>
-          </div>
+          <button
+            type="submit"
+            className="dashboard-btn dashboard-btn-primary"
+            disabled={loading}
+            style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+          >
+            {loading && (
+              <Loader2
+                size={15}
+                style={{ animation: "spin 1s linear infinite" }}
+              />
+            )}
+            {loading ? "Creating shipment..." : "Confirm shipment"}
+          </button>
         </div>
       </form>
     </div>

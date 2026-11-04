@@ -78,7 +78,13 @@ const updateShipmentStatus = async (req, res, next) => {
     });
     await shipment.save();
 
-    // If marked "delivered" via shipment update, also confirm parent order delivery
+    // Mark the order as shipped only after actual pickup confirmation.
+    if (status === "picked_up" && order.status === "paid") {
+      order.status = "shipped";
+      await order.save();
+    }
+
+    // If marked delivered, also update the parent order.
     if (status === "delivered" && order.status !== "delivered") {
       order.status = "delivered";
       await order.save();

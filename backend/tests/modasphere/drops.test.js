@@ -513,4 +513,174 @@ describe("ModaSphere ModaDrop (Time-Limited Product Drops) API", () => {
       expect(unrelatedCheckoutRes.statusCode).toBe(201);
     });
   });
+
+  describe("6. Seller drop management", () => {
+    const makeUpcomingDrop = () =>
+      Drop.create({
+        title: "Scheduled Seller Drop",
+        description: "Original description",
+        createdBy: seller.userId,
+        productIds: [dropProduct._id],
+        startTime: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        endTime: new Date(Date.now() + 48 * 60 * 60 * 1000),
+        maxPerUser: 2,
+        status: "upcoming",
+      });
+
+    const dropPayload = (drop, productId = dropProduct._id) => ({
+      title: "Updated Seller Drop",
+      description: "Updated description",
+      productIds: [productId],
+      startTime: new Date(Date.now() + 36 * 60 * 60 * 1000),
+      endTime: new Date(Date.now() + 60 * 60 * 60 * 1000),
+      maxPerUser: 3,
+      dropStock: 25,
+    });
+
+    test("seller can edit a scheduled drop and update its linked product stock", async () => {
+      const drop = await makeUpcomingDrop();
+      const response = await request(app)
+        .patch(`/api/modasphere/drops/${drop._id}`)
+        .set("Authorization", `Bearer ${seller.token}`)
+        .send(dropPayload(drop));
+
+      expect(response.statusCode).toBe(200);
+      expect(response.body.data.drop.title).toBe("Updated Seller Drop");
+      expect(response.body.data.drop.productIds[0].dropStock).toBe(25);
+      expect(response.body.data.drop.maxPerUser).toBe(3);
+      expect((await Product.findById(dropProduct._id)).dropStock).toBe(25);
+    });
+
+    test("another seller cannot edit or delete the drop", async () => {
+      const drop = await makeUpcomingDrop();
+      const payload = dropPayload(drop);
+      const updateResponse = await request(app)
+        .patch(`/api/modasphere/drops/${drop._id}`)
+        .set("Authorization", `Bearer ${otherSeller.token}`)
+        .send(payload);
+      const deleteResponse = await request(app)
+        .delete(`/api/modasphere/drops/${drop._id}`)
+        .set("Authorization", `Bearer ${otherSeller.token}`);
+
+      expect(updateResponse.statusCode).toBe(403);
+      expect(deleteResponse.statusCode).toBe(403);
+      expect(await Drop.exists({ _id: drop._id })).toBeTruthy();
+    });
+
+    test.each(["live", "ended"])(
+      "seller cannot edit or delete a %s drop",
+      async (status) => {
+        const drop = await Drop.create({
+          title: `${status} Drop`,
+          createdBy: seller.userId,
+          productIds: [dropProduct._id],
+          startTime:
+            status === "live"
+              ? new Date(Date.now() - 60 * 60 * 1000)
+              : new Date(Date.now() - 48 * 60 * 60 * 1000),
+          endTime:
+            status === "ended"
+              ? new Date(Date.now() - 24 * 60 * 60 * 1000)
+              : null,
+          status,
+        });
+
+        const updateResponse = await request(app)
+          .patch(`/api/modasphere/drops/${drop._id}`)
+          .set("Authorization", `Bearer ${seller.token}`)
+          .send(dropPayload(drop));
+        const deleteResponse = await request(app)
+          .delete(`/api/modasphere/drops/${drop._id}`)
+          .set("Authorization", `Bearer ${seller.token}`);
+
+        expect(updateResponse.statusCode).toBe(400);
+        expect(deleteResponse.statusCode).toBe(400);
+        expect(await Drop.exists({ _id: drop._id })).toBeTruthy();
+      },
+    );
+
+    test.each(["upcoming", "live", "ended"])(
+      "drop details remain viewable when the drop is %s",
+      async (status) => {
+        const drop = await Drop.create({
+          title: `${status} Details Drop`,
+          createdBy: seller.userId,
+          productIds: [dropProduct._id],
+          startTime:
+            status === "upcoming"
+              ? new Date(Date.now() + 24 * 60 * 60 * 1000)
+              : new Date(Date.now() - 48 * 60 * 60 * 1000),
+          endTime:
+            status === "ended"
+              ? new Date(Date.now() - 24 * 60 * 60 * 1000)
+              : null,
+          status,
+        });
+
+        const response = await request(app).get(
+          `/api/modasphere/drops/${drop._id}`,
+        );
+
+        expect(response.statusCode).toBe(200);
+        expect(response.body.data.drop.title).toBe(`${status} Details Drop`);
+        expect(response.body.data.drop.productIds[0].name).toBe(
+          dropProduct.name,
+        );
+      },
+    );
+
+    test("seller can delete an untouched scheduled drop", async () => {
+      const drop = await makeUpcomingDrop();
+      const response = await request(app)
+        .delete(`/api/modasphere/drops/${drop._id}`)
+        .set("Authorization", `Bearer ${seller.token}`);
+
+      expect(response.statusCode).toBe(200);
+      expect(await Drop.exists({ _id: drop._id })).toBeNull();
+    });
+
+    test("a drop with order or waitlist activity cannot be edited or deleted", async () => {
+      const drop = await makeUpcomingDrop();
+      await DropWaitlist.create({ dropId: drop._id, userId: buyer1.userId });
+
+      const updateResponse = await request(app)
+        .patch(`/api/modasphere/drops/${drop._id}`)
+        .set("Authorization", `Bearer ${seller.token}`)
+        .send(dropPayload(drop));
+      const deleteResponse = await request(app)
+        .delete(`/api/modasphere/drops/${drop._id}`)
+        .set("Authorization", `Bearer ${seller.token}`);
+
+      expect(updateResponse.statusCode).toBe(409);
+      expect(deleteResponse.statusCode).toBe(409);
+      expect(await Drop.exists({ _id: drop._id })).toBeTruthy();
+    });
+
+    test("a drop referenced by an order cannot be deleted", async () => {
+      const drop = await makeUpcomingDrop();
+      await Order.create({
+        buyerId: buyer1.userId,
+        items: [
+          {
+            productId: dropProduct._id,
+            sellerId: seller.userId,
+            dropId: drop._id,
+            isDrop: true,
+            name: dropProduct.name,
+            price: dropProduct.price,
+            quantity: 1,
+          },
+        ],
+        subtotalAmount: dropProduct.price,
+        totalAmount: dropProduct.price,
+      });
+
+      const response = await request(app)
+        .delete(`/api/modasphere/drops/${drop._id}`)
+        .set("Authorization", `Bearer ${seller.token}`);
+
+      expect(response.statusCode).toBe(409);
+      expect(await Drop.exists({ _id: drop._id })).toBeTruthy();
+    });
+  });
 });

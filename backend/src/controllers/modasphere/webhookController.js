@@ -1,5 +1,7 @@
 const crypto = require("crypto");
 const Order = require("../../models/modasphere/Order");
+const Shipment = require("../../models/modasphere/Shipment");
+const env = require("../../config/environment");
 const {
   finalizePaidOrder,
   refundCancelledOrderPayment,
@@ -96,6 +98,144 @@ const handleRazorpayWebhook = async (req, res) => {
   }
 };
 
+const handleShiprocketWebhook = async (req, res) => {
+  try {
+    const webhookSecret = env.shiprocket.webhookSecret;
+    console.log("[Shiprocket Debug]", {
+      configured: !!webhookSecret,
+      secretLength: webhookSecret?.length,
+    });
+
+    if (!webhookSecret) {
+      console.error("[Delivery Webhook] Webhook secret is not configured.");
+      return res.status(500).json({
+        status: "error",
+        message: "Webhook secret is not configured.",
+      });
+    }
+
+    const receivedKey = req.headers["x-api-key"];
+
+    if (
+      typeof receivedKey !== "string" ||
+      Buffer.byteLength(receivedKey) !== Buffer.byteLength(webhookSecret) ||
+      !crypto.timingSafeEqual(
+        Buffer.from(receivedKey),
+        Buffer.from(webhookSecret)
+      )
+    ) {
+      return res.status(401).json({
+        status: "fail",
+        message: "Invalid webhook authentication.",
+      });
+    }
+
+    const payload = req.body;
+
+    if (!payload || typeof payload !== "object" || !payload.awb) {
+      return res.status(400).json({
+        status: "fail",
+        message: "Invalid delivery update payload.",
+      });
+    }
+
+    const shipment = await Shipment.findOne({
+      provider: "shiprocket",
+      awbCode: String(payload.awb),
+    });
+
+    if (
+        !shipment ||
+        (shipment.isMock &&
+          !(env.shiprocket.mockMode && env.nodeEnv !== "production"))
+      ) {
+          return res.status(200).json({
+            status: "success",
+            message: "Shipment not found or not eligible for updates.",
+          });
+        }
+
+    const statusMap = {
+      42: "picked_up",
+      18: "in_transit",
+      17: "out_for_delivery",
+      7: "delivered",
+      21: "failed_delivery",
+    };
+
+    const newStatus = statusMap[Number(payload.shipment_status_id)];
+
+    if (!newStatus) {
+      return res.status(200).json({
+        status: "success",
+        message: "Status acknowledged without an update.",
+      });
+    }
+
+    const statusOrder = {
+      pending_pickup: 0,
+      picked_up: 1,
+      in_transit: 2,
+      out_for_delivery: 3,
+      failed_delivery: 3,
+      delivered: 4,
+    };
+
+    if (
+      shipment.status === newStatus ||
+      shipment.status === "delivered" ||
+      statusOrder[newStatus] < statusOrder[shipment.status]
+    ) {
+      return res.status(200).json({
+        status: "success",
+        message: "Duplicate or outdated update ignored.",
+      });
+    }
+
+    const timestamp = payload.current_timestamp
+      ? new Date(payload.current_timestamp)
+      : new Date();
+
+    shipment.status = newStatus;
+    shipment.timeline.push({
+      status: newStatus,
+      note: `Shiprocket update: ${payload.shipment_status || payload.current_status || newStatus}`,
+      timestamp: Number.isNaN(timestamp.getTime()) ? new Date() : timestamp,
+    });
+
+    await shipment.save();
+
+    const order = await Order.findById(shipment.orderId);
+
+    if (order && order.status !== "cancelled") {
+      if (
+        ["picked_up", "in_transit", "out_for_delivery"].includes(newStatus) &&
+        order.status === "paid"
+      ) {
+        order.status = "shipped";
+        await order.save();
+      }
+
+      if (newStatus === "delivered" && order.status !== "delivered") {
+        order.status = "delivered";
+        await order.save();
+      }
+    }
+
+    return res.status(200).json({
+      status: "success",
+      message: "Delivery update processed.",
+    });
+  } catch (error) {
+    console.error("[Delivery Webhook] Processing failed:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "Failed to process delivery update.",
+    });
+  }
+};
+
 module.exports = {
   handleRazorpayWebhook,
+  handleShiprocketWebhook,
 };

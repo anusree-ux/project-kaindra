@@ -1,6 +1,8 @@
 ﻿const express = require("express");
 const {
   createDrop,
+  updateDrop,
+  deleteDrop,
   getDrops,
   getSellerDrops,
   getDropById,
@@ -19,6 +21,8 @@ const router = express.Router();
 router.get("/", getDrops);
 router.get("/seller/me", protect, getSellerDrops);
 router.post("/", protect, createDrop);
+router.patch("/:id", protect, updateDrop);
+router.delete("/:id", protect, deleteDrop);
 // Product-level ModaDrop routes
 router.get("/products/upcoming", getUpcomingProductDrops);
 router.get("/products/live", getLiveProductDrops);

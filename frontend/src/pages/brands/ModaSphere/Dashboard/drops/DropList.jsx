@@ -1,11 +1,30 @@
-import { useEffect, useMemo, useState } from "react";
-import { Plus, Loader2, Sparkles } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  Eye,
+  Loader2,
+  Pencil,
+  Plus,
+  Sparkles,
+  Trash2,
+  X,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import DataTable from "../components/DataTable";
 import StatusBadge from "../components/StatusBadge";
 import DropTabs from "./DropTabs";
-import { getSellerDrops } from "../services/dashboardApi";
+import { deleteDrop, getSellerDrops } from "../services/dashboardApi";
+
+const formatDateTime = (value) =>
+  value
+    ? new Date(value).toLocaleString("en-IN", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "Not set";
 
 const DropList = () => {
   const navigate = useNavigate();
@@ -13,15 +32,16 @@ const DropList = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [tab, setTab] = useState("all");
+  const [selectedDrop, setSelectedDrop] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
 
-  useEffect(() => {
-    let isMounted = true;
+  const refreshDrops = useCallback(async () => {
     setLoading(true);
+    setError(null);
 
-    getSellerDrops()
-      .then((data) => {
-        if (!isMounted) return;
-        const mapped = (data || []).map((drop) => {
+    try {
+      const data = await getSellerDrops();
+      const mapped = (data || []).map((drop) => {
           const rawStatus = drop.status || "upcoming";
           let normalizedStatus = rawStatus;
           if (rawStatus === "live") normalizedStatus = "active";
@@ -52,23 +72,21 @@ const DropList = () => {
             stock: totalStock || "-",
             status: normalizedStatus,
             rawStatus,
+            details: drop,
           };
-        });
-        setDrops(mapped);
-      })
-      .catch((err) => {
-        if (!isMounted) return;
-        console.error("Failed to load drops:", err);
-        setError(err.message || "Failed to load product drops.");
-      })
-      .finally(() => {
-        if (isMounted) setLoading(false);
       });
-
-    return () => {
-      isMounted = false;
-    };
+      setDrops(mapped);
+    } catch (err) {
+      console.error("Failed to load drops:", err);
+      setError(err.message || "Failed to load product drops.");
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    refreshDrops();
+  }, [refreshDrops]);
 
   const filtered = useMemo(
     () =>
@@ -91,7 +109,81 @@ const DropList = () => {
         <StatusBadge status={status} />
       ),
     },
+    {
+      key: "actions",
+      label: "Actions",
+      render: (_, drop) => (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+          <button
+            type="button"
+            className="dashboard-btn dashboard-btn-secondary"
+            onClick={() => setSelectedDrop(drop.details)}
+            aria-label={`View ${drop.name} details`}
+            title="View details"
+          >
+            <Eye size={15} /> View
+          </button>
+          <button
+            type="button"
+            className="dashboard-btn dashboard-btn-secondary"
+            onClick={() =>
+              navigate(`/businesses/modasphere/dashboard/drops/${drop.id}/edit`)
+            }
+            disabled={drop.rawStatus !== "upcoming"}
+            title={
+              drop.rawStatus === "upcoming"
+                ? "Edit drop"
+                : "Only scheduled drops can be edited"
+            }
+            aria-label={`Edit ${drop.name}`}
+          >
+            <Pencil size={15} /> Edit
+          </button>
+          <button
+            type="button"
+            className="dashboard-btn dashboard-btn-secondary"
+            onClick={() => handleDelete(drop)}
+            disabled={drop.rawStatus !== "upcoming" || deletingId === drop.id}
+            title={
+              drop.rawStatus === "upcoming"
+                ? "Delete drop"
+                : "Only scheduled drops can be deleted"
+            }
+            aria-label={`Delete ${drop.name}`}
+          >
+            {deletingId === drop.id ? (
+              <Loader2 size={15} style={{ animation: "spin 1s linear infinite" }} />
+            ) : (
+              <Trash2 size={15} />
+            )}
+            Delete
+          </button>
+        </div>
+      ),
+    },
   ];
+
+  async function handleDelete(drop) {
+    if (
+      !window.confirm(
+        `Delete "${drop.name}"? This is only allowed for scheduled drops without orders or waitlist activity.`,
+      )
+    ) {
+      return;
+    }
+
+    setDeletingId(drop.id);
+    setError(null);
+    try {
+      await deleteDrop(drop.id);
+      await refreshDrops();
+    } catch (err) {
+      console.error("Failed to delete drop:", err);
+      setError(err.response?.data?.message || err.message || "Failed to delete drop.");
+    } finally {
+      setDeletingId(null);
+    }
+  }
 
   return (
     <div className="dashboard-page">
@@ -155,6 +247,63 @@ const DropList = () => {
           />
         )}
       </div>
+
+      {selectedDrop && (
+        <div
+          role="presentation"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) setSelectedDrop(null);
+          }}
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 1000,
+            background: "rgba(15, 23, 42, 0.55)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 16,
+          }}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="drop-details-title"
+            className="dashboard-card"
+            style={{ width: "min(640px, 100%)", maxHeight: "90vh", overflowY: "auto" }}
+          >
+            <div
+              className="dashboard-card-header"
+              style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}
+            >
+              <h2 id="drop-details-title">{selectedDrop.title || "Drop details"}</h2>
+              <button
+                type="button"
+                className="dashboard-btn dashboard-btn-secondary"
+                onClick={() => setSelectedDrop(null)}
+                aria-label="Close drop details"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div className="dashboard-card-body">
+              <p><strong>Status:</strong> <StatusBadge status={selectedDrop.status === "live" ? "active" : selectedDrop.status === "upcoming" ? "scheduled" : "completed"} /></p>
+              <p><strong>Release:</strong> {formatDateTime(selectedDrop.startTime)}</p>
+              <p><strong>End:</strong> {formatDateTime(selectedDrop.endTime)}</p>
+              <p><strong>Purchase limit:</strong> {selectedDrop.maxPerUser ?? "—"} per customer</p>
+              <h3>Linked products and drop stock</h3>
+              <ul>
+                {(selectedDrop.productIds || []).map((product, index) => (
+                  <li key={product._id || index}>
+                    {product.name || "Product"} — {product.dropStock ?? product.stock ?? 0} in drop stock
+                  </li>
+                ))}
+              </ul>
+              {selectedDrop.description && <p>{selectedDrop.description}</p>}
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   );
 };

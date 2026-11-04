@@ -42,16 +42,21 @@ const OrderDetail = () => {
     fetchOrder();
   }, [fetchOrder]);
 
-  const handleShipOrder = async (shipData) => {
+  const handleShipOrder = async () => {
     setShipping(true);
     setShipError(null);
+
     try {
-      await shipOrder(orderId, shipData);
+      await shipOrder(orderId);
       setShipModal(false);
       await fetchOrder();
     } catch (err) {
-      console.error("Failed to ship order:", err);
-      setShipError(err.response?.data?.message || err.message || "Failed to ship order.");
+      console.error("Failed to create shipment:", err);
+      setShipError(
+        err.response?.data?.message ||
+        err.message ||
+        "Failed to create shipment."
+      );
     } finally {
       setShipping(false);
     }

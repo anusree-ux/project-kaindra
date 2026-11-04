@@ -5,6 +5,8 @@ const app = require("../../src/app");
 const Product = require("../../src/models/modasphere/Product");
 const Cart = require("../../src/models/modasphere/Cart");
 const Order = require("../../src/models/modasphere/Order");
+const Shipment = require("../../src/models/modasphere/Shipment");
+const env = require("../../src/config/environment");
 const {
   finalizePaidOrder,
   refundCancelledOrderPayment,
@@ -73,12 +75,16 @@ describe("ModaSphere Razorpay Webhooks & Stale Order Expiry", () => {
     process.env.RAZORPAY_KEY_ID = "rzp_test_mockKey123";
     process.env.RAZORPAY_KEY_SECRET = TEST_KEY_SECRET;
     process.env.RAZORPAY_WEBHOOK_SECRET = TEST_WEBHOOK_SECRET;
+    env.shiprocket.webhookSecret =
+      "test_shiprocket_webhook_secret_123456789";
+    env.shiprocket.mockMode = true;
 
     mockRefundCount = 0;
 
     await Order.deleteMany({});
     await Cart.deleteMany({});
     await Product.deleteMany({});
+    await Shipment.deleteMany({});
 
     seller = await createTestUser({ name: "Studio Moda", role: "user" });
     buyer = await createTestUser({ name: "Jane Buyer", role: "user" });
@@ -686,6 +692,130 @@ describe("ModaSphere Razorpay Webhooks & Stale Order Expiry", () => {
       // Paid order stays paid
       const o3 = await Order.findById(paidOldOrder._id);
       expect(o3.status).toBe("paid");
+    });
+  });
+
+  describe("6. Shiprocket Delivery Webhooks", () => {
+    const SHIPROCKET_TEST_SECRET =
+      "test_shiprocket_webhook_secret_123456789";
+
+    const sendDeliveryUpdate = (payload, apiKey = SHIPROCKET_TEST_SECRET) => {
+      let req = request(app)
+        .post("/api/modasphere/webhooks/delivery-updates")
+        .send(payload);
+
+      if (apiKey) {
+        req = req.set("x-api-key", apiKey);
+      }
+
+      return req;
+    };
+
+    const createShipmentForTest = async (status = "pending_pickup") => {
+      const order = await Order.create({
+        buyerId: buyer.userId,
+        items: [
+          {
+            productId: product1._id,
+            sellerId: seller.userId,
+            name: product1.name,
+            price: 5000,
+            quantity: 1,
+          },
+        ],
+        subtotalAmount: 5000,
+        totalAmount: 5000,
+        status: "paid",
+        shippingAddress: validShippingAddress,
+      });
+
+      const shipment = await Shipment.create({
+        orderId: order._id,
+        provider: "shiprocket",
+        providerShipmentId: "mock_provider_123",
+        awbCode: "TEST-AWB-123",
+        carrier: "Mock Express",
+        trackingNumber: "TEST-AWB-123",
+        isMock: true,
+        status,
+        timeline: [{ status, note: "Test shipment created" }],
+      });
+
+      return { order, shipment };
+    };
+
+    it("rejects a webhook with an invalid API key", async () => {
+      const { shipment } = await createShipmentForTest();
+
+      const response = await sendDeliveryUpdate(
+        {
+          awb: shipment.awbCode,
+          shipment_status_id: 42,
+          shipment_status: "PICKED UP",
+        },
+        "wrong-secret"
+      );
+
+      expect(response.status).toBe(401);
+
+      const unchanged = await Shipment.findById(shipment._id);
+      expect(unchanged.status).toBe("pending_pickup");
+    });
+
+    it("updates a mock shipment when pickup is confirmed", async () => {
+      const { order, shipment } = await createShipmentForTest();
+
+      const response = await sendDeliveryUpdate({
+        awb: shipment.awbCode,
+        shipment_status_id: 42,
+        shipment_status: "PICKED UP",
+        current_timestamp: new Date().toISOString(),
+      });
+
+      expect(response.status).toBe(200);
+
+      const updatedShipment = await Shipment.findById(shipment._id);
+      const updatedOrder = await Order.findById(order._id);
+
+      expect(updatedShipment.status).toBe("picked_up");
+      expect(updatedShipment.timeline).toHaveLength(2);
+      expect(updatedOrder.status).toBe("shipped");
+    });
+
+    it("updates the order to delivered after delivery confirmation", async () => {
+      const { order, shipment } = await createShipmentForTest("in_transit");
+
+      const response = await sendDeliveryUpdate({
+        awb: shipment.awbCode,
+        shipment_status_id: 7,
+        shipment_status: "DELIVERED",
+      });
+
+      expect(response.status).toBe(200);
+
+      const updatedShipment = await Shipment.findById(shipment._id);
+      const updatedOrder = await Order.findById(order._id);
+
+      expect(updatedShipment.status).toBe("delivered");
+      expect(updatedOrder.status).toBe("delivered");
+    });
+
+    it("ignores duplicate shipment updates", async () => {
+      const { shipment } = await createShipmentForTest();
+
+      const payload = {
+        awb: shipment.awbCode,
+        shipment_status_id: 42,
+        shipment_status: "PICKED UP",
+      };
+
+      await sendDeliveryUpdate(payload);
+      await sendDeliveryUpdate(payload);
+
+      const updatedShipment = await Shipment.findById(shipment._id);
+
+      expect(updatedShipment.status).toBe("picked_up");
+      expect(updatedShipment.timeline).toHaveLength(2);
     });
   });
 });
