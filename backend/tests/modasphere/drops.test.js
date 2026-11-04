@@ -83,6 +83,32 @@ describe("ModaSphere ModaDrop (Time-Limited Product Drops) API", () => {
     });
   });
 
+  it("hides exact inventory from public drops but preserves it for the owning seller", async () => {
+    await Drop.create({
+      title: "Inventory Visibility Drop",
+      createdBy: seller.userId,
+      productIds: [dropProduct._id],
+      startTime: new Date(Date.now() + 60 * 60 * 1000),
+      endTime: new Date(Date.now() + 2 * 60 * 60 * 1000),
+      status: "upcoming",
+    });
+
+    const publicResponse = await request(app).get("/api/modasphere/drops");
+    const publicProduct = publicResponse.body.data.drops[0].productIds[0];
+    expect(publicResponse.status).toBe(200);
+    expect(publicProduct.stock).toBeUndefined();
+    expect(publicProduct.dropStock).toBeUndefined();
+    expect(publicProduct.inStock).toBe(true);
+
+    const sellerResponse = await request(app)
+      .get("/api/modasphere/drops/seller/me")
+      .set("Authorization", `Bearer ${seller.token}`);
+
+    expect(sellerResponse.status).toBe(200);
+    expect(sellerResponse.body.data.drops[0].productIds[0].stock).toBe(50);
+    expect(sellerResponse.body.data.drops[0].productIds[0].dropStock).toBe(50);
+  });
+
   describe("1. Drop Creation & Product Ownership Validation", () => {
     test("Seller can create an upcoming drop with their own products", async () => {
       const futureStart = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h later

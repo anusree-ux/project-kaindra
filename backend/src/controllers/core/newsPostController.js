@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const NewsPost = require("../../models/core/NewsPost");
+const { uploadNewsCoverImage } = require("../../services/core/newsImageUploadService");
 
 const postFields = "title description content imageUrl publishedAt createdAt updatedAt";
 const isValidPostId = (id) => mongoose.Types.ObjectId.isValid(id);
@@ -90,11 +91,14 @@ const getNewsPostStats = async (req, res, next) => {
 
 const createNewsPost = async (req, res, next) => {
   try {
+    const imageUrl = req.file
+      ? await uploadNewsCoverImage(req.file.buffer)
+      : req.body.imageUrl || "";
     const post = await NewsPost.create({
       title: req.body.title,
       description: req.body.description,
       content: req.body.content,
-      imageUrl: req.body.imageUrl || "",
+      imageUrl,
       status: "draft",
       createdBy: req.user._id,
     });
@@ -118,6 +122,9 @@ const updateNewsPost = async (req, res, next) => {
       });
     }
 
+    const imageUrl = req.file
+      ? await uploadNewsCoverImage(req.file.buffer)
+      : req.body.imageUrl || "";
     const post = await NewsPost.findByIdAndUpdate(
       req.params.id,
       {
@@ -125,7 +132,7 @@ const updateNewsPost = async (req, res, next) => {
           title: req.body.title,
           description: req.body.description,
           content: req.body.content,
-          imageUrl: req.body.imageUrl || "",
+          imageUrl,
         },
       },
       { new: true, runValidators: true }

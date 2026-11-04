@@ -16,7 +16,7 @@ const courseCertificateSchema = new mongoose.Schema(
 
     enrollment: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "CourseEnrollment",
+      ref: "ModaAcademyEnrollment",
       required: [true, "Enrollment is required"],
     },
 

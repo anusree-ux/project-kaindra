@@ -367,6 +367,118 @@ describe("ModaSphere Orders & Razorpay Payment Integration (ModaPay)", () => {
       const product = await Product.findById(product1._id);
       expect(product.stock).toBe(5);
     });
+
+    it("should deduct ModaDrop purchases from dropStock instead of regular stock", async () => {
+      await Cart.findOneAndUpdate(
+        { userId: buyer.userId },
+        { $set: { items: [] } }
+      );
+      await Product.findByIdAndUpdate(product1._id, {
+        isDrop: true,
+        dropStock: 5,
+      });
+      await Drop.create({
+        title: "Live Stock Test Drop",
+        createdBy: seller.userId,
+        productIds: [product1._id],
+        startTime: new Date(Date.now() - 60 * 1000),
+        endTime: new Date(Date.now() + 60 * 60 * 1000),
+        maxPerUser: 5,
+        status: "live",
+      });
+
+      await request(app)
+        .post("/api/modasphere/cart/items")
+        .set("Authorization", `Bearer ${buyer.token}`)
+        .send({ productId: product1._id, quantity: 2 });
+      const checkoutRes = await request(app)
+        .post("/api/modasphere/orders/checkout")
+        .set("Authorization", `Bearer ${buyer.token}`)
+        .send({ shippingAddress: validShippingAddress });
+      expect(checkoutRes.status).toBe(201);
+      const paymentId = "pay_mock_drop_inventory";
+      const signature = crypto
+        .createHmac("sha256", TEST_KEY_SECRET)
+        .update(`${checkoutRes.body.data.razorpayOrderId}|${paymentId}`)
+        .digest("hex");
+
+      const verifyRes = await request(app)
+        .post(`/api/modasphere/orders/${checkoutRes.body.data.orderId}/verify-payment`)
+        .set("Authorization", `Bearer ${buyer.token}`)
+        .send({ razorpayPaymentId: paymentId, razorpaySignature: signature });
+
+      expect(verifyRes.status).toBe(200);
+      const updatedProduct = await Product.findById(product1._id);
+      expect(updatedProduct.stock).toBe(5);
+      expect(updatedProduct.dropStock).toBe(3);
+
+      const cancelRes = await request(app)
+        .patch(`/api/modasphere/orders/${checkoutRes.body.data.orderId}/cancel`)
+        .set("Authorization", `Bearer ${buyer.token}`);
+
+      expect(cancelRes.status).toBe(200);
+      const restoredProduct = await Product.findById(product1._id);
+      expect(restoredProduct.stock).toBe(5);
+      expect(restoredProduct.dropStock).toBe(5);
+    });
+
+    it("allows only one concurrent payment to claim limited stock", async () => {
+      await Cart.findOneAndUpdate(
+        { userId: buyer.userId },
+        { $set: { items: [] } }
+      );
+      await Product.findByIdAndUpdate(product1._id, { stock: 1 });
+      await request(app)
+        .post("/api/modasphere/cart/items")
+        .set("Authorization", `Bearer ${buyer.token}`)
+        .send({ productId: product1._id, quantity: 1 });
+      await request(app)
+        .post("/api/modasphere/cart/items")
+        .set("Authorization", `Bearer ${otherUser.token}`)
+        .send({ productId: product1._id, quantity: 1 });
+
+      const [buyerCheckout, otherCheckout] = await Promise.all([
+        request(app)
+          .post("/api/modasphere/orders/checkout")
+          .set("Authorization", `Bearer ${buyer.token}`)
+          .send({ shippingAddress: validShippingAddress }),
+        request(app)
+          .post("/api/modasphere/orders/checkout")
+          .set("Authorization", `Bearer ${otherUser.token}`)
+          .send({ shippingAddress: validShippingAddress }),
+      ]);
+      expect(buyerCheckout.status).toBe(201);
+      expect(otherCheckout.status).toBe(201);
+      const makeVerification = (checkout, paymentId, token) => {
+        const signature = crypto
+          .createHmac("sha256", TEST_KEY_SECRET)
+          .update(`${checkout.body.data.razorpayOrderId}|${paymentId}`)
+          .digest("hex");
+        return request(app)
+          .post(`/api/modasphere/orders/${checkout.body.data.orderId}/verify-payment`)
+          .set("Authorization", `Bearer ${token}`)
+          .send({ razorpayPaymentId: paymentId, razorpaySignature: signature });
+      };
+
+      const verificationResponses = await Promise.all([
+        makeVerification(buyerCheckout, "pay_mock_race_buyer", buyer.token),
+        makeVerification(otherCheckout, "pay_mock_race_other", otherUser.token),
+      ]);
+      const updatedProduct = await Product.findById(product1._id);
+      const resultingOrders = await Order.find({
+        _id: {
+          $in: [
+            buyerCheckout.body.data.orderId,
+            otherCheckout.body.data.orderId,
+          ],
+        },
+      });
+
+      expect(updatedProduct.stock).toBe(0);
+      expect(resultingOrders.filter((order) => order.status === "paid")).toHaveLength(1);
+      expect(resultingOrders.filter((order) => order.status === "cancelled")).toHaveLength(1);
+      expect(verificationResponses.filter((response) => response.status === 200)).toHaveLength(1);
+    });
   });
 
   describe("3. Order Visibility & Permissions", () => {
@@ -606,6 +718,21 @@ describe("ModaSphere Orders & Razorpay Payment Integration (ModaPay)", () => {
       // Verify product stock was restored: 3 + 2 = 5
       const afterProduct = await Product.findById(product1._id);
       expect(afterProduct.stock).toBe(5);
+    });
+
+    it("restores stock only once when paid-order cancellation requests race", async () => {
+      const cancel = () =>
+        request(app)
+          .patch(`/api/modasphere/orders/${paidOrderId}/cancel`)
+          .set("Authorization", `Bearer ${buyer.token}`);
+
+      const responses = await Promise.all([cancel(), cancel()]);
+      const afterProduct = await Product.findById(product1._id);
+      const order = await Order.findById(paidOrderId);
+
+      expect(responses.filter((response) => response.status === 200)).toHaveLength(1);
+      expect(afterProduct.stock).toBe(5);
+      expect(order.status).toBe("cancelled");
     });
 
     it("should allow buyer to cancel a pending_payment order without altering product stock", async () => {

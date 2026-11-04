@@ -167,7 +167,7 @@ const checkout = async (req, res, next) => {
         if (item.quantity > product.dropStock) {
           return next(
             new AppError(
-              `Insufficient drop stock for "${product.name}". Available drop stock: ${product.dropStock}.`,
+              `Insufficient drop stock for "${product.name}".`,
               400
             )
           );
@@ -177,7 +177,7 @@ const checkout = async (req, res, next) => {
         if (item.quantity > product.stock) {
           return next(
             new AppError(
-              `Insufficient stock for "${product.name}". Available stock: ${product.stock}.`,
+              `Insufficient stock for "${product.name}".`,
               400
             )
           );
@@ -761,10 +761,29 @@ const cancelOrder = async (req, res, next) => {
       );
     }
 
-    // If cancelling a paid order, restore product stock/drop stock
-    // and initiate Razorpay refund.
-    if (order.status === "paid") {
-      for (const item of order.items) {
+    const wasPaid = order.status === "paid";
+    const cancellationUpdate = {
+      status: "cancelled",
+    };
+    if (wasPaid && order.razorpayPaymentId) {
+      cancellationUpdate.refundStatus = "pending";
+    }
+
+    const cancelledOrder = await Order.findOneAndUpdate(
+      { _id: id, status: order.status },
+      { $set: cancellationUpdate },
+      { new: true }
+    );
+
+    if (!cancelledOrder) {
+      return next(
+        new AppError("Order status changed before cancellation could be completed.", 409)
+      );
+    }
+
+    // The atomic status transition ensures only one cancellation restores stock.
+    if (wasPaid) {
+      for (const item of cancelledOrder.items) {
         const product = await Product.findById(item.productId);
 
         if (!product) {
@@ -777,7 +796,7 @@ const cancelOrder = async (req, res, next) => {
         const usesDropStock =
           item.isDrop === undefined ? product.isDrop : item.isDrop;
         if (usesDropStock) {
-          await Product.findByIdAndUpdate(item.productId, {
+          await Product.updateOne({ _id: item.productId }, {
             $inc: { dropStock: item.quantity },
           });
 
@@ -792,46 +811,39 @@ const cancelOrder = async (req, res, next) => {
             );
           }
         } else {
-          await Product.findByIdAndUpdate(item.productId, {
+          await Product.updateOne({ _id: item.productId }, {
             $inc: { stock: item.quantity },
           });
         }
       }
 
-      order.status = "cancelled";
-
-      if (order.razorpayPaymentId) {
-        order.refundStatus = "pending";
+      if (cancelledOrder.razorpayPaymentId) {
         try {
-          const amountInPaise = Math.round(order.totalAmount * 100);
+          const amountInPaise = Math.round(cancelledOrder.totalAmount * 100);
           const refundResult = await initiateRefund(
-            order.razorpayPaymentId,
+            cancelledOrder.razorpayPaymentId,
             amountInPaise
           );
-          order.refundStatus = "processed";
-          order.refundId = refundResult.refundId;
-          order.refundAmount = order.totalAmount;
-          order.refundedAt = new Date();
+          cancelledOrder.refundStatus = "processed";
+          cancelledOrder.refundId = refundResult.refundId;
+          cancelledOrder.refundAmount = cancelledOrder.totalAmount;
+          cancelledOrder.refundedAt = new Date();
         } catch (refundError) {
           console.error(
-            `[ModaSphere Refund Error] Failed to process refund for order ${order._id}:`,
+            `[ModaSphere Refund Error] Failed to process refund for order ${cancelledOrder._id}:`,
             refundError
           );
           // Do NOT roll back order cancellation or stock restoration
-          order.refundStatus = "failed";
+          cancelledOrder.refundStatus = "failed";
         }
+        await cancelledOrder.save();
       }
-    } else {
-      // For pending_payment orders, no payment occurred so skip refund
-      order.status = "cancelled";
     }
-
-    await order.save();
 
     res.status(200).json({
       status: "success",
       message: "Order cancelled successfully.",
-      data: { order },
+      data: { order: cancelledOrder },
     });
   } catch (error) {
     next(error);

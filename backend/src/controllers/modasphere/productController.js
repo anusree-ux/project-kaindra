@@ -10,6 +10,7 @@ const {
 } = require("../../services/modasphere/dropService");
 const AppError = require("../../utils/AppError");
 const { normalizeCategory } = require("../../constants/categories");
+const { toCustomerProduct } = require("../../services/modasphere/productInventory");
 
 /**
  * Helper to parse tags from comma-separated string or array
@@ -464,7 +465,7 @@ const getProducts = async (req, res, next) => {
           pObj.sellerId.shopName = shop;
         }
       }
-      return pObj;
+      return toCustomerProduct(pObj);
     });
 
     res.status(200).json({
@@ -524,7 +525,7 @@ const getProductById = async (req, res, next) => {
 
     res.status(200).json({
       status: "success",
-      data: { product: prodObj },
+      data: { product: isOwner ? prodObj : toCustomerProduct(prodObj) },
     });
   } catch (error) {
     next(error);

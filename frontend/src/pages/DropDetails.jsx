@@ -59,7 +59,7 @@ function DropDetails() {
     products[0];
   const isUpcoming = drop?.status === "upcoming";
   const isLive = drop?.status === "live";
-  const isSoldOut = Boolean(selectedProduct && selectedProduct.dropStock <= 0);
+  const isSoldOut = Boolean(selectedProduct && !selectedProduct.inStock);
   const dropStatus = isLive
     ? isSoldOut
       ? "Sold Out"
@@ -272,8 +272,8 @@ function DropDetails() {
                     ? `Starts ${eventSchedule}`
                     : isLive
                       ? isSoldOut
-                        ? `Event ends ${drop.endTime ? eventSchedule.split(" – ")[1] : "when inventory is sold out"}`
-                        : `${selectedProduct.dropStock} available · Event ends ${drop.endTime ? eventSchedule.split(" – ")[1] : "as scheduled"}`
+                        ? "Out of Stock"
+                        : `In Stock · Event ends ${drop.endTime ? eventSchedule.split(" – ")[1] : "as scheduled"}`
                       : `Event ended ${eventSchedule}`}
                 </strong>
               </div>
@@ -307,11 +307,9 @@ function DropDetails() {
                     <button
                       type="button"
                       onClick={() =>
-                        setQuantity((current) =>
-                          Math.min(current + 1, selectedProduct.dropStock)
-                        )
+                        setQuantity((current) => current + 1)
                       }
-                      disabled={quantity >= selectedProduct.dropStock}
+                      disabled={!selectedProduct.inStock}
                     >
                       +
                     </button>

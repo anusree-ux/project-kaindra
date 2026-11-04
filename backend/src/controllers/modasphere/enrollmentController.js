@@ -7,6 +7,10 @@ const {
   uploadAcademyTaskSubmission,
   deleteAcademyTaskSubmission,
 } = require("../../services/modasphere/academyTaskUploadService");
+const {
+  getVerifiedCompletedLessonIds,
+  saveEnrollmentProgress,
+} = require("../../services/modasphere/courseProgressService");
 
 const getCourseLessons = (course) => ModaCourse.getLessons(course);
 
@@ -219,41 +223,28 @@ const updateEnrollmentProgress = async (req, res) => {
       });
     }
 
-    const lessons = getCourseLessons(course);
-    console.log("=== MODAACADEMY PROGRESS DEBUG ===");
-    console.log("Course ID:", String(course._id));
-    console.log("Modules:", course.modules.length);
-
-    console.log(
-      "Lessons detected by backend:",
-      lessons.map((lesson) => ({
-        id: String(lesson._id),
-        title: lesson.title,
-        isRequired: lesson.isRequired,
-      }))
+    const previousProgress = getVerifiedCompletedLessonIds(course, enrollment);
+    const requestedProgress = getVerifiedCompletedLessonIds(
+      course,
+      enrollment,
+      completedLessonIds,
     );
+    if (requestedProgress.error) {
+      return res.status(400).json({
+        success: false,
+        message: requestedProgress.error,
+      });
+    }
 
-    console.log(
-      "Completed IDs received:",
-      completedLessonIds
+    const wasCompleted =
+      ModaCourse.getProgress(course, previousProgress.completedLessonIds).status ===
+      "Completed";
+    const progressSummary = saveEnrollmentProgress(
+      enrollment,
+      course,
+      requestedProgress.completedLessonIds,
+      wasCompleted,
     );
-
-    console.log(
-      "Required lessons count:",
-      lessons.filter((lesson) => lesson.isRequired !== false).length
-    );
-    const validLessonIds = new Set(lessons.map((lesson) => String(lesson._id)));
-
-    const unknownLessonId = completedLessonIds.find((id) => !validLessonIds.has(id));
-    if (unknownLessonId) return res.status(400).json({ success: false, message: "A lesson does not belong to this course" });
-    const completed = [...new Set([...(enrollment.completedLessonIds || []).map(String), ...completedLessonIds])]
-      .filter((id) => validLessonIds.has(id));
-
-    const progressSummary = ModaCourse.getProgress(course, completed);
-
-    enrollment.completedLessonIds = completed;
-    enrollment.progress = progressSummary.progress;
-    enrollment.status = progressSummary.status;
 
     await enrollment.save();
 
@@ -265,13 +256,14 @@ const updateEnrollmentProgress = async (req, res) => {
       totalRequiredLessons: progressSummary.totalRequiredLessons,
       completedLessonIds: enrollment.completedLessonIds,
       status: enrollment.status,
+      completedAt: enrollment.completedAt,
     });
   } catch (error) {
     console.error("Update academy progress error:", error);
 
-    return res.status(500).json({
+    return res.status(error.statusCode || 500).json({
       success: false,
-      message: "Failed to save course progress",
+      message: error.message || "Failed to save course progress",
     });
   }
 };
@@ -348,24 +340,31 @@ const submitQuiz = async (req, res) => {
     const score = Math.round((correctCount / questions.length) * 100);
     const passingScore = Number(lesson.passingScore ?? 70);
     const passed = score >= passingScore;
-    const validLessonIds = new Set(
-      getCourseLessons(course).map((courseLesson) =>
-        String(courseLesson._id),
-      ),
-    );
-    const completedLessonIds = [
-      ...new Set(
-        (enrollment.completedLessonIds || [])
-          .map(String)
-          .filter((id) => validLessonIds.has(id)),
-      ),
-    ];
+    const previousProgress = getVerifiedCompletedLessonIds(course, enrollment);
+    const wasCompleted =
+      ModaCourse.getProgress(course, previousProgress.completedLessonIds).status ===
+      "Completed";
 
-    if (passed && !completedLessonIds.includes(lessonId)) completedLessonIds.push(lessonId);
-    const progressSummary = ModaCourse.getProgress(course, completedLessonIds);
-    enrollment.completedLessonIds = completedLessonIds;
-    enrollment.progress = progressSummary.progress;
-    enrollment.status = progressSummary.status;
+    if (passed) {
+      enrollment.passedQuizLessonIds = [
+        ...new Set([
+          ...(enrollment.passedQuizLessonIds || []).map(String),
+          lessonId,
+        ]),
+      ];
+    }
+
+    const updatedProgress = getVerifiedCompletedLessonIds(
+      course,
+      enrollment,
+      passed ? [lessonId] : [],
+    );
+    const progressSummary = saveEnrollmentProgress(
+      enrollment,
+      course,
+      updatedProgress.completedLessonIds,
+      wasCompleted,
+    );
     await enrollment.save();
 
     return res.status(200).json({
@@ -378,8 +377,9 @@ const submitQuiz = async (req, res) => {
       progress: progressSummary.progress,
       completedRequiredLessons: progressSummary.completedRequiredLessons,
       totalRequiredLessons: progressSummary.totalRequiredLessons,
-      completedLessonIds: enrollment.completedLessonIds || completedLessonIds,
+      completedLessonIds: enrollment.completedLessonIds || [],
       status: progressSummary.status,
+      completedAt: enrollment.completedAt,
     });
   } catch (error) {
     console.error("Submit academy quiz error:", error);

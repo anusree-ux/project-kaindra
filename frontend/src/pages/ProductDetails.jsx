@@ -89,7 +89,7 @@ function ProductDetails() {
 
   // Increase quantity
   const increaseQuantity = () => {
-    if (product?.stock && quantity >= product.stock) return;
+    if (product?.inStock !== true) return;
     setQuantity((current) => current + 1);
   };
 
@@ -163,6 +163,9 @@ function ProductDetails() {
     product.shopName ||
     product.sellerId?.name ||
     "ModaSphere Studio";
+  const hasStock =
+    product.inStock ??
+    (product.isDrop ? product.dropStock > 0 : product.stock > 0);
 
   return (
     <main className="product-details-page">
@@ -244,7 +247,7 @@ function ProductDetails() {
 
               <div>
                 <span>Availability</span>
-                <strong>{product.stock > 0 ? `In Stock (${product.stock} left)` : "Out of Stock"}</strong>
+                <strong>{hasStock ? "In Stock" : "Out of Stock"}</strong>
               </div>
             </div>
 
@@ -267,7 +270,7 @@ function ProductDetails() {
                   type="button"
                   onClick={increaseQuantity}
                   aria-label="Increase quantity"
-                  disabled={product.stock <= quantity}
+                  disabled={!hasStock}
                 >
                   <Plus size={16} />
                 </button>
@@ -297,12 +300,12 @@ function ProductDetails() {
                 type="button"
                 className="add-to-cart-button"
                 onClick={addToCart}
-                disabled={product.stock <= 0 || submitting}
+                disabled={!hasStock || submitting}
               >
                 <ShoppingBag size={19} />
                 {submitting
                   ? "Adding..."
-                  : product.stock > 0
+                  : hasStock
                   ? "Add to Cart"
                   : "Out of Stock"}
               </button>

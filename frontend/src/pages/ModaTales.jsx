@@ -34,6 +34,7 @@ function ModaTales() {
   const [submitted, setSubmitted] = useState(false);
   const [approvedTales, setApprovedTales] = useState([]);
   const [loadingTales, setLoadingTales] = useState(true);
+  const [talesError, setTalesError] = useState("");
 
   useEffect(() => {
     const fetchApprovedTales = async () => {
@@ -46,9 +47,16 @@ function ModaTales() {
           throw new Error(data.message || "Failed to fetch approved stories");
         }
 
-        setApprovedTales(data.tales || []);
+        if (!Array.isArray(data.tales)) {
+          throw new Error("The approved stories response was invalid.");
+        }
+
+        setApprovedTales(data.tales);
       } catch (error) {
         console.error("Fetch approved tales error:", error);
+        setTalesError(
+          error.message || "Failed to fetch approved stories"
+        );
       } finally {
         setLoadingTales(false);
       }
@@ -124,39 +132,41 @@ function ModaTales() {
             </p>
           </div>
 
-          <div className="modatales-grid">
-            {stories.map((story) => {
-              const Icon = story.icon;
+          {!loadingTales && !talesError && approvedTales.length === 0 && (
+            <div className="modatales-grid">
+              {stories.map((story) => {
+                const Icon = story.icon;
 
-              return (
-                <article
-                  className="modatales-card"
-                  key={story.title}
-                >
-                  <div className="modatales-card-icon">
-                    <Icon size={23} />
-                  </div>
-
-                  <h3>{story.title}</h3>
-
-                  <p>{story.text}</p>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      // Category filtering can be added later.
-                      document
-                        .getElementById("modatales-stories")
-                        ?.scrollIntoView({ behavior: "smooth" });
-                    }}
+                return (
+                  <article
+                    className="modatales-card"
+                    key={story.title}
                   >
-                    Explore
-                    <ArrowRight size={15} />
-                  </button>
-                </article>
-              );
-            })}
-          </div>
+                    <div className="modatales-card-icon">
+                      <Icon size={23} />
+                    </div>
+
+                    <h3>{story.title}</h3>
+
+                    <p>{story.text}</p>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        // Category filtering can be added later.
+                        document
+                          .getElementById("modatales-stories")
+                          ?.scrollIntoView({ behavior: "smooth" });
+                      }}
+                    >
+                      Explore
+                      <ArrowRight size={15} />
+                    </button>
+                  </article>
+                );
+              })}
+            </div>
+          )}
 
           <section
             className="modatales-stories"
@@ -164,6 +174,8 @@ function ModaTales() {
           >
             {loadingTales ? (
               <p>Loading stories...</p>
+            ) : talesError ? (
+              <p role="alert">{talesError}</p>
             ) : approvedTales.length === 0 ? (
               <p>No stories are available yet. Check back soon.</p>
             ) : (

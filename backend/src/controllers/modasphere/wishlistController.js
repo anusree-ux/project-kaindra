@@ -1,6 +1,7 @@
 const Wishlist = require("../../models/modasphere/Wishlist");
 const Product = require("../../models/modasphere/Product");
 const AppError = require("../../utils/AppError");
+const { toCustomerProduct } = require("../../services/modasphere/productInventory");
 
 /**
  * @desc    Get user's wishlist (active products only)
@@ -11,7 +12,7 @@ const getWishlist = async (req, res, next) => {
   try {
     const wishlist = await Wishlist.findOne({ userId: req.user._id }).populate({
       path: "productIds",
-      select: "name price images stock status category sellerId",
+      select: "name price images stock dropStock isDrop status category sellerId",
     });
 
     if (!wishlist || !wishlist.productIds) {
@@ -25,9 +26,9 @@ const getWishlist = async (req, res, next) => {
     }
 
     // Filter out inactive/archived products from the response without deleting them from DB
-    const activeProducts = wishlist.productIds.filter(
-      (product) => product && product.status === "active"
-    );
+    const activeProducts = wishlist.productIds
+      .filter((product) => product && product.status === "active")
+      .map(toCustomerProduct);
 
     res.status(200).json({
       status: "success",

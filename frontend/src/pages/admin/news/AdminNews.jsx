@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Newspaper, Pencil, Plus, Send, Trash2, X } from "lucide-react";
+import { Newspaper, Pencil, Plus, Send, Trash2, Upload, X } from "lucide-react";
 import "./AdminNews.css";
 
 const API_BASE = "/api/news/admin";
@@ -20,10 +20,13 @@ const requestAdminApi = async (url, options = {}) => {
     throw new Error("Your admin session has expired. Please sign in again.");
   }
 
+  const isFormData = options.body instanceof FormData;
   const response = await fetch(url, {
     ...options,
     headers: {
-      ...(options.body ? { "Content-Type": "application/json" } : {}),
+      ...(options.body && !isFormData
+        ? { "Content-Type": "application/json" }
+        : {}),
       Authorization: `Bearer ${token}`,
       ...options.headers,
     },
@@ -58,6 +61,20 @@ function AdminNews() {
   const [showForm, setShowForm] = useState(false);
   const [editingPost, setEditingPost] = useState(null);
   const [formData, setFormData] = useState(emptyForm);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState("");
+
+  useEffect(() => {
+    if (!selectedImage) {
+      setImagePreview("");
+      return undefined;
+    }
+
+    const previewUrl = URL.createObjectURL(selectedImage);
+    setImagePreview(previewUrl);
+
+    return () => URL.revokeObjectURL(previewUrl);
+  }, [selectedImage]);
 
   const fetchPosts = useCallback(async () => {
     setLoading(true);
@@ -80,6 +97,7 @@ function AdminNews() {
   const openCreateForm = () => {
     setEditingPost(null);
     setFormData(emptyForm);
+    setSelectedImage(null);
     setFormError("");
     setShowForm(true);
   };
@@ -92,6 +110,7 @@ function AdminNews() {
       content: post.content || "",
       imageUrl: post.imageUrl || "",
     });
+    setSelectedImage(null);
     setFormError("");
     setShowForm(true);
   };
@@ -100,6 +119,7 @@ function AdminNews() {
     setShowForm(false);
     setEditingPost(null);
     setFormData(emptyForm);
+    setSelectedImage(null);
     setFormError("");
   };
 
@@ -110,16 +130,20 @@ function AdminNews() {
 
     try {
       const isEditing = Boolean(editingPost);
+      const body = new FormData();
+      body.append("title", formData.title.trim());
+      body.append("description", formData.description.trim());
+      body.append("content", formData.content.trim());
+      body.append("imageUrl", formData.imageUrl.trim());
+      if (selectedImage) {
+        body.append("image", selectedImage);
+      }
+
       const result = await requestAdminApi(
         isEditing ? `${API_BASE}/${editingPost._id}` : API_BASE,
         {
           method: isEditing ? "PUT" : "POST",
-          body: JSON.stringify({
-            title: formData.title.trim(),
-            description: formData.description.trim(),
-            content: formData.content.trim(),
-            imageUrl: formData.imageUrl.trim(),
-          }),
+          body,
         }
       );
 
@@ -173,6 +197,34 @@ function AdminNews() {
     const { name, value } = event.target;
     setFormData((current) => ({ ...current, [name]: value }));
   };
+
+  const selectCoverImage = (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowedTypes.includes(file.type)) {
+      setSelectedImage(null);
+      setFormError("Choose a JPG, JPEG, PNG, or WebP image.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setSelectedImage(null);
+      setFormError("Cover images must be 5 MB or smaller.");
+      return;
+    }
+
+    setFormError("");
+    setSelectedImage(file);
+  };
+
+  const removeCoverImage = () => {
+    setSelectedImage(null);
+    setFormData((current) => ({ ...current, imageUrl: "" }));
+  };
+
+  const coverPreview = imagePreview || formData.imageUrl;
 
   return (
     <main className="admin-news-page">
@@ -248,16 +300,38 @@ function AdminNews() {
                   required
                 />
               </label>
-              <label>
-                Cover image URL (optional)
+              <div className="admin-news-cover-field">
+                <span className="admin-news-cover-label">Cover image (optional)</span>
+                {coverPreview ? (
+                  <div className="admin-news-cover-preview">
+                    <img src={coverPreview} alt="Cover preview" />
+                    <button
+                      className="admin-news-secondary-button"
+                      type="button"
+                      onClick={removeCoverImage}
+                      disabled={saving}
+                    >
+                      <Trash2 size={15} />
+                      Remove image
+                    </button>
+                  </div>
+                ) : (
+                  <p className="admin-news-cover-empty">No cover image selected.</p>
+                )}
+                <label className="admin-news-upload-button" htmlFor="news-cover-image">
+                  <Upload size={16} />
+                  {coverPreview ? "Replace image" : "Upload image"}
+                </label>
                 <input
-                  name="imageUrl"
-                  type="url"
-                  value={formData.imageUrl}
-                  onChange={updateFormField}
-                  placeholder="https://example.com/image.jpg"
+                  className="admin-news-file-input"
+                  id="news-cover-image"
+                  type="file"
+                  accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                  onChange={selectCoverImage}
+                  disabled={saving}
                 />
-              </label>
+                <small className="admin-news-cover-help">JPG, JPEG, PNG, or WebP. Maximum file size: 5 MB.</small>
+              </div>
 
               {formError && (
                 <p className="admin-news-error" role="alert">{formError}</p>

@@ -183,6 +183,9 @@ function Wishlist() {
                       <p className="product-category-tag">
                         {getCategoryLabel(product.category)}
                       </p>
+                      <p className="product-availability">
+                        {product.inStock ? "In Stock" : "Out of Stock"}
+                      </p>
 
                       <div className="wishlist-card-bottom">
                         <strong className="product-price">
@@ -192,10 +195,14 @@ function Wishlist() {
                         <button
                           className="wishlist-add-cart-btn"
                           onClick={() => addToCart(product)}
-                          disabled={addingId === productId}
+                          disabled={addingId === productId || !product.inStock}
                         >
                           <ShoppingBag size={15} />
-                          {addingId === productId ? "Adding..." : "Add to Cart"}
+                          {addingId === productId
+                            ? "Adding..."
+                            : product.inStock
+                              ? "Add to Cart"
+                              : "Out of Stock"}
                         </button>
                       </div>
                     </div>

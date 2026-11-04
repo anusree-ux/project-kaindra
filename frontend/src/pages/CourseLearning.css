@@ -191,6 +191,23 @@
   font-size: 11px;
 }
 
+.course-learning-certificate-button {
+  width: 100%;
+  margin-top: 15px;
+  border-color: #e4b99d;
+  background: #e4b99d;
+  color: #28241f;
+}
+
+.course-learning-certificate-button:hover:not(:disabled) {
+  border-color: #f0c9ad;
+  background: #f0c9ad;
+}
+
+.course-learning-progress-card .course-learning-message {
+  margin-top: 10px;
+}
+
 .course-learning-cover {
   position: absolute;
   inset: 0 0 0 auto;

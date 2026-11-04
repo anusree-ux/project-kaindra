@@ -353,6 +353,22 @@
   scroll-margin-top: 85px;
 }
 
+.modaacademy-certificates-shortcut {
+  width: fit-content;
+  margin: -35px 0 34px auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #8c642f;
+  font-size: 13px;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.modaacademy-certificates-shortcut:hover {
+  color: #171717;
+}
+
 .modaacademy-no-learning {
   padding: 70px 30px;
   background: white;
@@ -598,6 +614,206 @@
 .learning-card-resume:hover {
   background: #bd8b46;
   border-color: #bd8b46;
+}
+
+/* =========================================
+   MY CERTIFICATES
+========================================= */
+
+.modaacademy-certificates {
+  padding: 100px 0;
+  background: #fff;
+  scroll-margin-top: 85px;
+}
+
+.modaacademy-certificates-heading {
+  margin-bottom: 42px;
+}
+
+.modaacademy-certificates-heading p {
+  max-width: 560px;
+  margin: 16px 0 0;
+  color: #777;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.modaacademy-certificate-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 310px), 1fr));
+  gap: 18px;
+}
+
+.modaacademy-certificate-card {
+  min-width: 0;
+  padding: 26px;
+  border: 1px solid #ddd9d2;
+  background:
+    linear-gradient(135deg, rgb(189 139 70 / 5%), transparent 48%),
+    #fff;
+}
+
+.modaacademy-certificate-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.modaacademy-certificate-card-top > span {
+  color: #8c642f;
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 2px;
+}
+
+.modaacademy-certificate-icon {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid rgb(189 139 70 / 40%);
+  color: #bd8b46;
+}
+
+.modaacademy-certificate-card h3 {
+  margin: 20px 0 0;
+  color: #202020;
+  font-size: 21px;
+  font-weight: 600;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.modaacademy-certificate-details {
+  display: grid;
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.modaacademy-certificate-details > div {
+  min-width: 0;
+  padding-top: 12px;
+  border-top: 1px solid #e8e4de;
+}
+
+.modaacademy-certificate-details span {
+  display: block;
+  margin-bottom: 6px;
+  color: #999;
+  font-size: 9px;
+  letter-spacing: 1.3px;
+}
+
+.modaacademy-certificate-details strong {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  color: #39352f;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.modaacademy-certificate-details strong svg {
+  flex: 0 0 auto;
+  color: #a97936;
+}
+
+.modaacademy-certificate-download,
+.modaacademy-certificate-action {
+  min-height: 44px;
+  padding: 0 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border: 0;
+  background: #171717;
+  color: #fff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 180ms ease;
+}
+
+.modaacademy-certificate-download {
+  width: 100%;
+  margin-top: 22px;
+}
+
+.modaacademy-certificate-download:hover:not(:disabled),
+.modaacademy-certificate-action:hover {
+  background: #bd8b46;
+}
+
+.modaacademy-certificate-download:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.modaacademy-certificate-download:focus-visible,
+.modaacademy-certificate-action:focus-visible,
+.modaacademy-certificates-shortcut:focus-visible {
+  outline: 3px solid #bd8b46;
+  outline-offset: 3px;
+}
+
+.modaacademy-certificate-state {
+  min-height: 230px;
+  padding: 44px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #ddd9d2;
+  background: #fbfaf8;
+  text-align: center;
+}
+
+.modaacademy-certificate-state > svg {
+  color: #bd8b46;
+}
+
+.modaacademy-certificate-state h3 {
+  margin: 16px 0 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.modaacademy-certificate-state p {
+  max-width: 480px;
+  margin: 9px auto 0;
+  color: #777;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.modaacademy-certificate-state .modaacademy-certificate-action {
+  margin-top: 20px;
+}
+
+.modaacademy-certificate-state.is-error > svg {
+  color: #a34236;
+}
+
+.modaacademy-certificate-download-error {
+  margin: 0 0 16px;
+  color: #a34236;
+  font-size: 13px;
+}
+
+.modaacademy-certificate-spinner {
+  animation: modaacademy-certificate-spin 1s linear infinite;
+}
+
+@keyframes modaacademy-certificate-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Responsive card layout */
@@ -992,6 +1208,7 @@
   .modaacademy-intro,
   .modaacademy-courses,
   .modaacademy-my-learning,
+  .modaacademy-certificates,
   .modaacademy-areas,
   .modaacademy-practical {
     padding: 85px 0;
@@ -1008,6 +1225,18 @@
   .modaacademy-course-grid,
   .modaacademy-learning-grid {
     grid-template-columns: 1fr;
+  }
+
+  .modaacademy-certificates-shortcut {
+    margin: -22px 0 26px auto;
+  }
+
+  .modaacademy-certificates-heading {
+    margin-bottom: 30px;
+  }
+
+  .modaacademy-certificate-card {
+    padding: 22px;
   }
 
   .modaacademy-areas-grid {

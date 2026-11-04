@@ -2,6 +2,7 @@
 const {
   createDrop,
   getDrops,
+  getSellerDrops,
   getDropById,
   joinWaitlist,
   leaveWaitlist,
@@ -16,6 +17,7 @@ const { protect } = require("../../middleware/authMiddleware");
 const router = express.Router();
 
 router.get("/", getDrops);
+router.get("/seller/me", protect, getSellerDrops);
 router.post("/", protect, createDrop);
 // Product-level ModaDrop routes
 router.get("/products/upcoming", getUpcomingProductDrops);

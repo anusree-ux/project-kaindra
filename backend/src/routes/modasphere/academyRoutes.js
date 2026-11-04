@@ -29,6 +29,10 @@ const {
   submitQuiz,
   uploadTaskSubmission,
 } = require("../../controllers/modasphere/enrollmentController");
+const {
+  issueCourseCertificate,
+  getMyCertificates,
+} = require("../../controllers/modasphere/certificateController");
 
 const router = express.Router();
 const validateAcademyRequest = (req, res, next) => {
@@ -144,6 +148,13 @@ router.get(
   getAcademyMyEnrollments
 );
 
+// Student - Get the authenticated student's certificates
+router.get(
+  "/certificates/my",
+  protect,
+  getMyCertificates
+);
+
 // Admin - Get all academy enrollments
 router.get(
   "/enrollments",
@@ -172,6 +183,13 @@ router.get(
   "/courses/id/:id",
   protect,
   getEnrolledCourseById
+);
+
+// Student - Issue or retrieve the authenticated student's course certificate
+router.post(
+  "/courses/:courseId/certificate",
+  protect,
+  issueCourseCertificate
 );
 
 // Student - Save lesson progress

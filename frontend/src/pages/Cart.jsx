@@ -19,9 +19,8 @@ function Cart() {
   const [confirmClear, setConfirmClear] = useState(false);
   const [updatingId, setUpdatingId] = useState(null);
 
-  const handleUpdateQuantity = async (productId, newQuantity, currentStock) => {
+  const handleUpdateQuantity = async (productId, newQuantity) => {
     if (newQuantity < 1) return;
-    if (currentStock !== undefined && newQuantity > currentStock) return;
 
     setUpdatingId(productId);
     await updateQuantity(productId, newQuantity);
@@ -186,7 +185,7 @@ function Cart() {
               const productId = product._id || product.id;
               const name = product.name || "Product";
               const price = product.price || 0;
-              const stock = product.stock !== undefined ? product.stock : 999;
+              const hasStock = product.inStock === true;
               const category = product.category || "";
               const brand = product.sellerId?.name || "ModaSphere";
               const imageUrl =
@@ -195,7 +194,6 @@ function Cart() {
                 "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&q=80";
 
               const lineTotal = price * item.quantity;
-              const isAtMaxStock = item.quantity >= stock;
               const isBusy = updatingId === productId;
 
               return (
@@ -220,17 +218,15 @@ function Cart() {
 
                     <strong>₹{price.toLocaleString("en-IN")}</strong>
 
-                    {stock <= 5 && (
-                      <p style={{ fontSize: "12px", color: "#d97706", marginTop: "4px" }}>
-                        Only {stock} available in stock
-                      </p>
-                    )}
+                    <p style={{ fontSize: "12px", color: hasStock ? "#166534" : "#b91c1c", marginTop: "4px" }}>
+                      {hasStock ? "In Stock" : "Out of Stock"}
+                    </p>
 
                     <div className="cart-item-actions">
                       <div className="cart-quantity">
                         <button
                           type="button"
-                          onClick={() => handleUpdateQuantity(productId, item.quantity - 1, stock)}
+                          onClick={() => handleUpdateQuantity(productId, item.quantity - 1)}
                           aria-label="Decrease quantity"
                           disabled={item.quantity <= 1 || isBusy}
                         >
@@ -241,10 +237,10 @@ function Cart() {
 
                         <button
                           type="button"
-                          onClick={() => handleUpdateQuantity(productId, item.quantity + 1, stock)}
+                          onClick={() => handleUpdateQuantity(productId, item.quantity + 1)}
                           aria-label="Increase quantity"
-                          disabled={isAtMaxStock || isBusy}
-                          title={isAtMaxStock ? `Maximum available stock (${stock}) reached` : ""}
+                          disabled={!hasStock || isBusy}
+                          title={!hasStock ? "Out of stock" : ""}
                         >
                           <Plus size={15} />
                         </button>

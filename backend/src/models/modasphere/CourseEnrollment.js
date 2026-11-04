@@ -119,9 +119,19 @@ const modaAcademyEnrollmentSchema = new mongoose.Schema(
       default: [],
     },
 
+    passedQuizLessonIds: {
+      type: [String],
+      default: [],
+    },
+
     taskSubmissions: {
       type: [academyTaskSubmissionSchema],
       default: [],
+    },
+
+    completedAt: {
+      type: Date,
+      default: null,
     },
 
     enrolledAt: {

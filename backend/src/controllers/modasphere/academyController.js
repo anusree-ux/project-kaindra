@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const ModaCourse = require("../../models/modasphere/ModaCourse");
 const ModaAcademyEnrollment = require("../../models/modasphere/CourseEnrollment");
+const { getVerifiedCompletedLessonIds } = require("../../services/modasphere/courseProgressService");
 
 const stripQuizAnswerKeys = (course) => {
   const data = typeof course.toObject === "function" ? course.toObject() : course;
@@ -387,10 +388,32 @@ const getEnrolledCourseById = async (req, res) => {
     }
 
     const courseData = stripQuizAnswerKeys(course);
-    const progressSummary = ModaCourse.getProgress(course, enrollment.completedLessonIds || []);
-    if (enrollment.progress !== progressSummary.progress || enrollment.status !== progressSummary.status) {
+    const verifiedProgress = getVerifiedCompletedLessonIds(course, enrollment);
+    const progressSummary = ModaCourse.getProgress(
+      course,
+      verifiedProgress.completedLessonIds,
+    );
+    const storedCompletedLessonIds = enrollment.completedLessonIds || [];
+    const wasCompleted = enrollment.status === "Completed";
+    if (
+      enrollment.progress !== progressSummary.progress ||
+      enrollment.status !== progressSummary.status ||
+      storedCompletedLessonIds.length !== verifiedProgress.completedLessonIds.length ||
+      storedCompletedLessonIds.some(
+        (lessonId, index) =>
+          String(lessonId) !== verifiedProgress.completedLessonIds[index],
+      )
+    ) {
+      enrollment.completedLessonIds = verifiedProgress.completedLessonIds;
       enrollment.progress = progressSummary.progress;
       enrollment.status = progressSummary.status;
+      if (
+        progressSummary.status === "Completed" &&
+        !enrollment.completedAt &&
+        !wasCompleted
+      ) {
+        enrollment.completedAt = new Date();
+      }
       await enrollment.save();
     }
 
@@ -400,7 +423,9 @@ const getEnrolledCourseById = async (req, res) => {
       progress: progressSummary.progress,
       completedRequiredLessons: progressSummary.completedRequiredLessons,
       totalRequiredLessons: progressSummary.totalRequiredLessons,
+      status: enrollment.status,
       completedLessonIds: enrollment.completedLessonIds || [],
+      completedAt: enrollment.completedAt,
       taskSubmissions: (enrollment.taskSubmissions || []).map((submission) => ({
         lessonId: submission.lessonId,
         fileUrl: submission.fileUrl,

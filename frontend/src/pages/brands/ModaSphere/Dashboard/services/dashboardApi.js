@@ -118,7 +118,7 @@ export const cancelOrder = async (id, reason = "") => {
 
 // --- Drops ---
 export const getSellerDrops = async (params = {}) => {
-  const res = await apiClient.get("/api/modasphere/drops", { params });
+  const res = await apiClient.get("/api/modasphere/drops/seller/me", { params });
   return res.data?.data?.drops || res.data?.drops || [];
 };
 
@@ -210,4 +210,3 @@ export const getSellerReviews = async () => {
   const res = await apiClient.get("/api/modasphere/reviews/seller");
   return res.data?.data?.reviews || res.data?.reviews || [];
 };
-

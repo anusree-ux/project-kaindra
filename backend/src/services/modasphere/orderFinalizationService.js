@@ -103,9 +103,13 @@ const finalizePaidOrder = async (orderId, razorpayPaymentId, razorpaySignature =
 
   for (const item of updatedOrder.items) {
     try {
+      const inventoryField = item.isDrop ? "dropStock" : "stock";
       const res = await Product.updateOne(
-        { _id: item.productId, stock: { $gte: item.quantity } },
-        { $inc: { stock: -item.quantity } }
+        {
+          _id: item.productId,
+          [inventoryField]: { $gte: item.quantity },
+        },
+        { $inc: { [inventoryField]: -item.quantity } }
       );
 
       if (res.modifiedCount === 0) {
@@ -117,6 +121,7 @@ const finalizePaidOrder = async (orderId, razorpayPaymentId, razorpaySignature =
       decrementedItems.push({
         productId: item.productId,
         quantity: item.quantity,
+        inventoryField,
       });
     } catch (nonStockError) {
       // Non-stock error mid-loop (e.g. DB network drop):
@@ -124,7 +129,7 @@ const finalizePaidOrder = async (orderId, razorpayPaymentId, razorpaySignature =
       for (const dec of decrementedItems) {
         await Product.updateOne(
           { _id: dec.productId },
-          { $inc: { stock: dec.quantity } }
+          { $inc: { [dec.inventoryField]: dec.quantity } }
         );
       }
       // Revert order back to pending_payment
@@ -141,7 +146,7 @@ const finalizePaidOrder = async (orderId, razorpayPaymentId, razorpaySignature =
     for (const dec of decrementedItems) {
       await Product.updateOne(
         { _id: dec.productId },
-        { $inc: { stock: dec.quantity } }
+        { $inc: { [dec.inventoryField]: dec.quantity } }
       );
     }
 

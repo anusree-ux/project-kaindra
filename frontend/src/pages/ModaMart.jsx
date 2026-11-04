@@ -448,6 +448,9 @@ function ModaMart() {
                       <p className="product-category" style={{ textTransform: "capitalize" }}>
                         {getCategoryLabel(product.category)}
                       </p>
+                      <p className="product-availability">
+                        {product.inStock ? "In Stock" : "Out of Stock"}
+                      </p>
 
                       <div className="product-bottom">
                         <strong>
@@ -456,9 +459,13 @@ function ModaMart() {
 
                         <button
                           onClick={() => addToCart(product)}
-                          disabled={addingId === productId}
+                          disabled={addingId === productId || !product.inStock}
                         >
-                          {addingId === productId ? "Adding..." : "Add to Cart"}
+                          {addingId === productId
+                            ? "Adding..."
+                            : product.inStock
+                              ? "Add to Cart"
+                              : "Out of Stock"}
                         </button>
                       </div>
                     </div>

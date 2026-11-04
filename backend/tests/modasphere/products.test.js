@@ -285,6 +285,21 @@ describe("ModaSphere Products / Marketplace API (ModaMart)", () => {
       expect(res.body.data.products.length).toBe(3);
       const statuses = res.body.data.products.map((p) => p.status);
       expect(statuses.every((s) => s === "active")).toBe(true);
+      expect(res.body.data.products[0].stock).toBeUndefined();
+      expect(res.body.data.products[0].dropStock).toBeUndefined();
+      expect(res.body.data.products[0].inStock).toBe(true);
+    });
+
+    test("Public product details expose availability without exact stock", async () => {
+      const product = await Product.findOne({ name: "Linen Summer Shirt" });
+      const res = await request(app).get(
+        `/api/modasphere/products/${product._id}`
+      );
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body.data.product.stock).toBeUndefined();
+      expect(res.body.data.product.dropStock).toBeUndefined();
+      expect(res.body.data.product.inStock).toBe(true);
     });
 
     test("Filters products by category", async () => {

@@ -9,6 +9,10 @@ const {
   updateDropStatuses,
 } = require("../../services/modasphere/dropService");
 const AppError = require("../../utils/AppError");
+const {
+  toCustomerDrop,
+  toCustomerProduct,
+} = require("../../services/modasphere/productInventory");
 
 /**
  * @desc    Create a new ModaDrop
@@ -156,6 +160,33 @@ const getDrops = async (req, res, next) => {
 
     res.status(200).json({
       status: "success",
+      data: { drops: drops.map(toCustomerDrop) },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getSellerDrops = async (req, res, next) => {
+  try {
+    const { status } = req.query;
+    const filter = { createdBy: req.user._id };
+
+    if (status && !["upcoming", "live", "ended"].includes(status)) {
+      return next(new AppError("Invalid ModaDrop status filter.", 400));
+    }
+    if (status) {
+      filter.status = status;
+    }
+
+    await updateDropStatuses();
+    const drops = await Drop.find(filter)
+      .populate("productIds")
+      .populate("createdBy", "name")
+      .sort({ startTime: 1 });
+
+    res.status(200).json({
+      status: "success",
       data: { drops },
     });
   } catch (error) {
@@ -182,7 +213,7 @@ const getDropById = async (req, res, next) => {
 
     res.status(200).json({
       status: "success",
-      data: { drop },
+      data: { drop: toCustomerDrop(drop) },
     });
   } catch (error) {
     next(error);
@@ -318,7 +349,7 @@ const getUpcomingProductDrops = async (req, res, next) => {
 
     res.status(200).json({
       status: "success",
-      data: { products },
+      data: { products: products.map(toCustomerProduct) },
     });
   } catch (error) {
     next(error);
@@ -351,7 +382,7 @@ const getLiveProductDrops = async (req, res, next) => {
 
     res.status(200).json({
       status: "success",
-      data: { products },
+      data: { products: products.map(toCustomerProduct) },
     });
   } catch (error) {
     next(error);
@@ -479,6 +510,7 @@ const getProductDropWaitlistPosition = async (req, res, next) => {
 module.exports = {
   createDrop,
   getDrops,
+  getSellerDrops,
   getDropById,
   joinWaitlist,
   leaveWaitlist,

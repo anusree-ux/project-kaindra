@@ -6,6 +6,7 @@ const {
   isDropLiveAt,
 } = require("../../services/modasphere/dropService");
 const AppError = require("../../utils/AppError");
+const { toCustomerProduct } = require("../../services/modasphere/productInventory");
 
 const getProductDropForPurchase = async (product) => {
   const drops = await getDropsForProducts([product._id]);
@@ -58,7 +59,7 @@ const formatCartResponse = (cart, unavailableItemsRemoved = false) => {
 
     return {
       _id: item._id,
-      product: product,
+      product: toCustomerProduct(product),
       quantity: qty,
       itemTotal: price * qty,
     };
@@ -186,7 +187,7 @@ const addItemToCart = async (req, res, next) => {
     if (requestedTotalQty > availableStock) {
       return next(
         new AppError(
-          `Cannot add ${numQuantity} item(s). Requested total (${requestedTotalQty}) exceeds available stock (${availableStock}).`,
+          "Requested quantity exceeds available stock.",
           400
         )
       );
@@ -273,7 +274,7 @@ const updateCartItem = async (req, res, next) => {
     if (numQuantity > availableStock) {
       return next(
         new AppError(
-          `Requested quantity (${numQuantity}) exceeds available stock (${availableStock}).`,
+          "Requested quantity exceeds available stock.",
           400
         )
       );

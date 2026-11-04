@@ -17,9 +17,16 @@ import {
   UserRound,
   BarChart3,
   MoreVertical,
+  Award,
+  CalendarDays,
+  Download,
+  RefreshCw,
 } from "lucide-react";
 
 import "./ModaAcademy.css";
+import { useAuth } from "../context/AuthContext";
+import apiClient from "../services/apiClient";
+import { downloadAcademyCertificatePdf } from "../services/modasphere/academyCertificatePdf";
 
 const placeholderCourses = [
   {
@@ -139,8 +146,20 @@ const learningAreas = [
   },
 ];
 
+const formatCertificateDate = (value) => {
+  const date = value ? new Date(value) : null;
+  if (!date || !Number.isFinite(date.getTime())) return "Date unavailable";
+
+  return new Intl.DateTimeFormat(undefined, {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(date);
+};
+
 function ModaAcademy() {
   const navigate = useNavigate();
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const [courses, setCourses] = useState([]);
   const [loadingCourses, setLoadingCourses] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState(null);
@@ -152,6 +171,11 @@ function ModaAcademy() {
 
   const [openEnrollmentMenuId, setOpenEnrollmentMenuId] = useState(null);
   const [unenrollingId, setUnenrollingId] = useState(null);
+  const [certificates, setCertificates] = useState([]);
+  const [loadingCertificates, setLoadingCertificates] = useState(true);
+  const [certificateError, setCertificateError] = useState("");
+  const [certificateDownloadError, setCertificateDownloadError] = useState("");
+  const [certificateReload, setCertificateReload] = useState(0);
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -189,6 +213,76 @@ function ModaAcademy() {
 
     fetchCourses();
   }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    if (authLoading) return () => {
+      active = false;
+    };
+
+    if (!isAuthenticated) {
+      setCertificates([]);
+      setCertificateError("");
+      setLoadingCertificates(false);
+      return () => {
+        active = false;
+      };
+    }
+
+    const fetchMyCertificates = async () => {
+      setCertificates([]);
+      setLoadingCertificates(true);
+      setCertificateError("");
+
+      try {
+        const response = await apiClient.get(
+          "/api/modasphere/academy/certificates/my",
+        );
+        if (
+          !response.data?.success ||
+          !Array.isArray(response.data.certificates)
+        ) {
+          throw new Error(
+            response.data?.message || "The certificate list is unavailable.",
+          );
+        }
+
+        if (active) setCertificates(response.data.certificates);
+      } catch (error) {
+        if (!active) return;
+        const status = error.response?.status;
+        setCertificateError(
+          status === 401
+            ? "Your session has expired. Sign in again to view your certificates."
+            : status === 403
+              ? "You do not have permission to view these certificates."
+              : error.response?.data?.message ||
+                error.message ||
+                "Unable to load your certificates. Please try again.",
+        );
+      } finally {
+        if (active) setLoadingCertificates(false);
+      }
+    };
+
+    fetchMyCertificates();
+    return () => {
+      active = false;
+    };
+  }, [authLoading, isAuthenticated, certificateReload]);
+
+  const handleDownloadCertificate = (certificate) => {
+    setCertificateDownloadError("");
+
+    try {
+      downloadAcademyCertificatePdf(certificate);
+    } catch (error) {
+      setCertificateDownloadError(
+        error.message || "Unable to download this certificate.",
+      );
+    }
+  };
 
   /*
    * =========================================
@@ -630,6 +724,14 @@ function ModaAcademy() {
             </h2>
 
           </div>
+          <a
+            className="modaacademy-certificates-shortcut"
+            href="#my-certificates"
+          >
+            <Award size={17} />
+            My Certificates
+            <ArrowRight size={16} />
+          </a>
 
           {loadingEnrollments ? (
 
@@ -836,6 +938,152 @@ function ModaAcademy() {
 
         </div>
 
+      </section>
+
+      {/* =========================================
+          MY CERTIFICATES
+      ========================================= */}
+
+      <section
+        className="modaacademy-certificates"
+        id="my-certificates"
+        aria-labelledby="modaacademy-certificates-title"
+      >
+        <div className="modaacademy-container">
+          <div className="modaacademy-section-heading modaacademy-certificates-heading">
+            <span>YOUR ACHIEVEMENTS</span>
+            <h2 id="modaacademy-certificates-title">My Certificates</h2>
+            <p>
+              Your course achievements, ready to revisit and download anytime.
+            </p>
+          </div>
+
+          {authLoading || loadingCertificates ? (
+            <div className="modaacademy-certificate-state" role="status">
+              <RefreshCw size={24} className="modaacademy-certificate-spinner" />
+              <p>Loading your certificates...</p>
+            </div>
+          ) : !isAuthenticated ? (
+            <div className="modaacademy-certificate-state">
+              <Award size={34} />
+              <h3>Sign in to view your certificates</h3>
+              <p>
+                Certificates are saved to your account and will be here when
+                you sign back in.
+              </p>
+              <button
+                type="button"
+                className="modaacademy-certificate-action"
+                onClick={() => navigate("/login")}
+              >
+                Sign in
+                <ArrowRight size={16} />
+              </button>
+            </div>
+          ) : certificateError ? (
+            <div
+              className="modaacademy-certificate-state is-error"
+              role="alert"
+            >
+              <Award size={34} />
+              <h3>We couldn’t load your certificates</h3>
+              <p>{certificateError}</p>
+              <button
+                type="button"
+                className="modaacademy-certificate-action"
+                onClick={() => setCertificateReload((attempt) => attempt + 1)}
+              >
+                <RefreshCw size={16} />
+                Try again
+              </button>
+            </div>
+          ) : certificates.length === 0 ? (
+            <div className="modaacademy-certificate-state">
+              <Award size={34} />
+              <h3>Your next achievement starts with a course</h3>
+              <p>
+                Complete a ModaAcademy course to earn a certificate. Your
+                certificates will stay here for you.
+              </p>
+              <a className="modaacademy-certificate-action" href="#courses">
+                Explore courses
+                <ArrowRight size={16} />
+              </a>
+            </div>
+          ) : (
+            <>
+              {certificateDownloadError && (
+                <p className="modaacademy-certificate-download-error" role="alert">
+                  {certificateDownloadError}
+                </p>
+              )}
+              <div className="modaacademy-certificate-grid">
+                {certificates.map((certificate) => {
+                  const key =
+                    certificate.id ||
+                    certificate._id ||
+                    certificate.certificateNumber;
+
+                  return (
+                    <article
+                      className="modaacademy-certificate-card"
+                      key={key}
+                    >
+                      <div className="modaacademy-certificate-card-top">
+                        <div className="modaacademy-certificate-icon">
+                          <Award size={22} />
+                        </div>
+                        <span>MODAACADEMY</span>
+                      </div>
+                      <h3>{certificate.courseTitle || "Course certificate"}</h3>
+                      <div className="modaacademy-certificate-details">
+                        <div>
+                          <span>STUDENT</span>
+                          <strong>{certificate.studentName || "—"}</strong>
+                        </div>
+                        <div>
+                          <span>CERTIFICATE NUMBER</span>
+                          <strong>{certificate.certificateNumber || "—"}</strong>
+                        </div>
+                        <div>
+                          <span>COMPLETED</span>
+                          <strong>
+                            <CalendarDays size={15} />
+                            {formatCertificateDate(certificate.completedAt)}
+                          </strong>
+                        </div>
+                        {certificate.issuedAt && (
+                          <div>
+                            <span>ISSUED</span>
+                            <strong>
+                              {formatCertificateDate(certificate.issuedAt)}
+                            </strong>
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        className="modaacademy-certificate-download"
+                        onClick={() =>
+                          handleDownloadCertificate(certificate)
+                        }
+                        disabled={
+                          !certificate.courseTitle ||
+                          !certificate.studentName ||
+                          !certificate.certificateNumber ||
+                          !certificate.completedAt
+                        }
+                      >
+                        <Download size={17} />
+                        Download Certificate
+                      </button>
+                    </article>
+                  );
+                })}
+              </div>
+            </>
+          )}
+        </div>
       </section>
 
       {/* =========================================

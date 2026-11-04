@@ -12,6 +12,7 @@ import {
   ClipboardList,
   Clock3,
   Circle,
+  Download,
   FileText,
   GraduationCap,
   HelpCircle,
@@ -22,6 +23,8 @@ import {
 } from "lucide-react";
 import "./CourseLearning.css";
 import DOMPurify from "dompurify";
+import apiClient from "../services/apiClient";
+import { downloadAcademyCertificatePdf } from "../services/modasphere/academyCertificatePdf";
 
 const ordered = (items) =>
   (Array.isArray(items) ? items : [])
@@ -203,6 +206,8 @@ function CourseLearning() {
   const [savingLessonId, setSavingLessonId] = useState(null);
   const [saveError, setSaveError] = useState("");
   const [saveMessage, setSaveMessage] = useState("");
+  const [downloadingCertificate, setDownloadingCertificate] = useState(false);
+  const [certificateError, setCertificateError] = useState("");
   const [videoPlaybackError, setVideoPlaybackError] = useState(false);
   const [expandedModules, setExpandedModules] = useState(() => new Set());
   const [expandedSubmodules, setExpandedSubmodules] = useState(() => new Set());
@@ -284,7 +289,6 @@ function CourseLearning() {
             result?.message || "Unable to load this course. Please try again.",
           );
         }
-
         const nextCourse = result.course;
         const nextSections = getCourseSections(nextCourse);
         const loadedCompletedLessonIds = Array.isArray(result.completedLessonIds)
@@ -456,6 +460,42 @@ function CourseLearning() {
       setSaveError(error.message || "Unable to save your progress.");
     } finally {
       setSavingLessonId(null);
+    }
+  };
+
+  const downloadCertificate = async () => {
+    if (downloadingCertificate) return;
+
+    setDownloadingCertificate(true);
+    setCertificateError("");
+    try {
+      const response = await apiClient.post(
+        `/api/modasphere/academy/courses/${encodeURIComponent(courseId)}/certificate`,
+      );
+      const certificate = response.data?.certificate;
+      if (!response.data?.success || !certificate) {
+        throw new Error(
+          response.data?.message ||
+            "The certificate could not be issued. Please try again.",
+        );
+      }
+
+      downloadAcademyCertificatePdf(certificate);
+    } catch (error) {
+      const status = error.response?.status;
+      const message =
+        status === 401
+          ? "Your session has expired. Sign in again to download your certificate."
+          : status === 403
+            ? "You are not enrolled in this course or do not have permission to request its certificate."
+            : status === 409
+              ? "The server could not verify course completion yet. Refresh your progress and try again."
+              : error.response?.data?.message ||
+                error.message ||
+                "Unable to download your certificate.";
+      setCertificateError(message);
+    } finally {
+      setDownloadingCertificate(false);
     }
   };
 
@@ -1156,6 +1196,36 @@ function CourseLearning() {
                 ? `${progressSummary.completedRequiredLessons} / ${progressSummary.totalRequiredLessons} required lessons complete`
                 : "No required lessons; progress is 0%"}
             </p>
+            {progressSummary.totalRequiredLessons > 0 && progress === 100 && (
+              <>
+                <button
+                  type="button"
+                  className="course-learning-button course-learning-certificate-button"
+                  onClick={downloadCertificate}
+                  disabled={downloadingCertificate}
+                >
+                  {downloadingCertificate ? (
+                    <LoaderCircle
+                      className="course-learning-spinner"
+                      size={16}
+                    />
+                  ) : (
+                    <Download size={16} />
+                  )}
+                  {downloadingCertificate
+                    ? "Preparing certificate..."
+                    : "Get Your Certificate"}
+                </button>
+                {certificateError && (
+                  <p
+                    className="course-learning-message is-error"
+                    role="alert"
+                  >
+                    {certificateError}
+                  </p>
+                )}
+              </>
+            )}
           </div>
         </div>
       </header>

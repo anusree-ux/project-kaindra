@@ -73,6 +73,15 @@ describe("ModaSphere Cart System", () => {
       expect(res.body.data.cart.items[0].quantity).toBe(2);
       expect(res.body.data.cart.totalItems).toBe(2);
       expect(res.body.data.cart.subtotal).toBe(3000);
+      expect(res.body.data.cart.items[0].product.stock).toBeUndefined();
+      expect(res.body.data.cart.items[0].product.inStock).toBe(true);
+
+      const cartRes = await request(app)
+        .get("/api/modasphere/cart")
+        .set("Authorization", `Bearer ${buyer.token}`);
+
+      expect(cartRes.body.data.cart.items[0].product.stock).toBeUndefined();
+      expect(cartRes.body.data.cart.items[0].product.inStock).toBe(true);
     });
 
     it("should increase quantity when adding the same product twice (no duplicate items)", async () => {

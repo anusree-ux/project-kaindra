@@ -155,6 +155,8 @@ describe("ModaSphere Wishlist / Favorites API", () => {
       expect(returnedNames).toContain("Cashmere Turtleneck Sweater");
       expect(returnedNames).toContain("Handcrafted Leather Belt");
       expect(returnedNames).not.toContain("Archived Vintage Trench");
+      expect(res.body.data.wishlist[0].stock).toBeUndefined();
+      expect(res.body.data.wishlist[0].inStock).toBe(true);
 
       // Verify DB still retains the inactive product ID
       const dbWishlist = await Wishlist.findOne({ userId: buyer.userId });
