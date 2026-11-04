@@ -21,7 +21,7 @@ export default function PushAlertSettings() {
   const [loading, setLoading] = useState(false);
   const [prefLoading, setPrefLoading] = useState(true);
   const [preferences, setPreferences] = useState({ enabled: true, muted: [] });
-  const [mutableTypes, setMutableTypes] = useState({});
+  const [mutableTypes, setMutableTypes] = useState([]);
   const [testCooldown, setTestCooldown] = useState(0);
   const [feedback, setFeedback] = useState(null);
 
@@ -45,15 +45,15 @@ export default function PushAlertSettings() {
       if (data.push) {
         setPreferences(data.push);
       }
-      if (data.mutableTypes) {
-        // Exclude any SOS keys if present
-        const cleanTypes = {};
-        Object.entries(data.mutableTypes).forEach(([key, label]) => {
-          if (!key.toUpperCase().includes("SOS")) {
-            cleanTypes[key] = label;
-          }
-        });
-        setMutableTypes(cleanTypes);
+      if (Array.isArray(data.mutableTypes)) {
+        setMutableTypes(
+          data.mutableTypes.filter(
+            (category) =>
+              category &&
+              typeof category.type === "string" &&
+              !category.type.toUpperCase().includes("SOS")
+          )
+        );
       }
     } catch (err) {
       console.warn("[PushAlertSettings] Could not load preferences:", err);
@@ -294,21 +294,21 @@ export default function PushAlertSettings() {
               <div className="push-loading-indicator">Loading preferences...</div>
             ) : (
               <div className="push-types-grid">
-                {Object.entries(mutableTypes).map(([typeKey, typeLabel]) => {
-                  const isChecked = !preferences.muted.includes(typeKey);
+                {mutableTypes.map(({ type, label }) => {
+                  const isChecked = !preferences.muted.includes(type);
                   return (
                     <label
-                      key={typeKey}
+                      key={type}
                       className={`push-type-card ${isChecked ? "active" : "muted"}`}
                     >
                       <div className="type-card-info">
-                        <span className="type-name">{typeLabel}</span>
-                        <span className="type-key-badge">{typeKey}</span>
+                        <span className="type-name">{label}</span>
+                        <span className="type-key-badge">{type}</span>
                       </div>
                       <input
                         type="checkbox"
                         checked={isChecked}
-                        onChange={() => handleTypeToggle(typeKey)}
+                        onChange={() => handleTypeToggle(type)}
                         disabled={!preferences.enabled}
                       />
                       <span className="type-checkbox-custom"></span>

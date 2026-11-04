@@ -1,27 +1,46 @@
 import { useEffect, useState } from "react";
 import { ArrowLeft, FileText, Mail, Phone, MapPin, ExternalLink, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import apiClient from "../../../services/apiClient";
 import "./AdminApplications.css";
 
-const API_BASE = "";
+const getApplicationErrorMessage = (error) => {
+  const status = error.response?.status;
+
+  if (status === 401) {
+    return "Your admin session has expired or you are not logged in. Please sign in again.";
+  }
+  if (status === 403) {
+    return "You do not have permission to manage applications. Sign in with an admin account.";
+  }
+
+  return error.response?.data?.message || error.message || "Failed to load applications.";
+};
 
 function AdminApplications() {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const fetchApplications = () => {
+  const fetchApplications = async () => {
     setLoading(true);
-    fetch(`${API_BASE}/api/applications`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.status === "success" && Array.isArray(data.data?.applications)) {
-          setApplications(data.data.applications);
-        }
-      })
-      .catch((err) => {
-        console.error("Error loading applications from backend:", err);
-      })
-      .finally(() => setLoading(false));
+    setError("");
+
+    try {
+      const response = await apiClient.get("/api/applications");
+      const data = response.data;
+
+      if (data.status !== "success" || !Array.isArray(data.data?.applications)) {
+        throw new Error(data.message || "The server returned an invalid applications response.");
+      }
+
+      setApplications(data.data.applications);
+    } catch (err) {
+      console.error("Error loading applications from backend:", err);
+      setError(getApplicationErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -32,17 +51,16 @@ function AdminApplications() {
     if (!window.confirm("Are you sure you want to delete this application?")) return;
 
     try {
-      const res = await fetch(`${API_BASE}/api/applications/${id}`, {
-        method: "DELETE",
-      });
+      setError("");
+      const response = await apiClient.delete(`/api/applications/${id}`);
 
-      if (res.ok) {
-        setApplications((prev) => prev.filter((a) => (a._id || a.id) !== id));
-      } else {
-        alert("Failed to delete application.");
+      if (response.data.status !== "success") {
+        throw new Error(response.data.message || "Failed to delete application.");
       }
+      setApplications((prev) => prev.filter((application) => (application._id || application.id) !== id));
     } catch (err) {
       console.error("Error deleting application:", err);
+      setError(getApplicationErrorMessage(err));
     }
   };
 
@@ -68,14 +86,38 @@ function AdminApplications() {
           <div className="applications-total">
             <FileText size={22} />
 
-            <span>{applications.length}</span>
+            <span>{loading || error ? "—" : applications.length}</span>
 
             <small>Total Applications</small>
           </div>
         </div>
 
-        {/* No applications */}
-        {applications.length === 0 && !loading ? (
+        {error && (
+          <div
+            role="alert"
+            style={{
+              background: "#fee2e2",
+              border: "1px solid #ef4444",
+              color: "#b91c1c",
+              borderRadius: 8,
+              padding: "12px 16px",
+              marginBottom: 20,
+            }}
+          >
+            {error}
+            <button
+              type="button"
+              onClick={fetchApplications}
+              style={{ marginLeft: 12 }}
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
+        {loading ? (
+          <div className="no-applications" role="status">Loading applications...</div>
+        ) : error ? null : applications.length === 0 ? (
           <div className="no-applications">
             <FileText size={50} />
 

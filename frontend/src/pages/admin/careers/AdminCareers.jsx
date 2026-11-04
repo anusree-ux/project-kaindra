@@ -13,9 +13,23 @@ import {
   MapPin,
   ExternalLink,
 } from "lucide-react";
+import apiClient from "../../../services/apiClient";
 import "./AdminCareers.css";
 
 const API_BASE = "";
+
+const getApplicationErrorMessage = (error) => {
+  const status = error.response?.status;
+
+  if (status === 401) {
+    return "Your admin session has expired or you are not logged in. Please sign in again.";
+  }
+  if (status === 403) {
+    return "You do not have permission to manage applications. Sign in with an admin account.";
+  }
+
+  return error.response?.data?.message || error.message || "Failed to load applications.";
+};
 
 const emptyForm = {
   title: "",
@@ -32,6 +46,7 @@ function AdminCareers() {
   const [applications, setApplications] = useState([]);
   const [loadingCareers, setLoadingCareers] = useState(true);
   const [loadingApplications, setLoadingApplications] = useState(true);
+  const [applicationsError, setApplicationsError] = useState("");
   const [selectedCareer, setSelectedCareer] = useState(null);
   const [formData, setFormData] = useState(emptyForm);
 
@@ -56,22 +71,20 @@ function AdminCareers() {
 
   const fetchApplications = async () => {
     setLoadingApplications(true);
+    setApplicationsError("");
 
     try {
-      const res = await fetch(`${API_BASE}/api/applications`);
-      const data = await res.json();
+      const response = await apiClient.get("/api/applications");
+      const data = response.data;
 
-      if (!res.ok || data.status !== "success") {
+      if (data.status !== "success" || !Array.isArray(data.data?.applications)) {
         throw new Error(data.message || "Failed to load applications.");
       }
 
-      setApplications(
-        Array.isArray(data.data?.applications)
-          ? data.data.applications
-          : []
-      );
+      setApplications(data.data.applications);
     } catch (error) {
       console.error("Error loading applications:", error);
+      setApplicationsError(getApplicationErrorMessage(error));
     } finally {
       setLoadingApplications(false);
     }
@@ -199,13 +212,11 @@ function AdminCareers() {
     }
 
     try {
-      const res = await fetch(`${API_BASE}/api/applications/${id}`, {
-        method: "DELETE",
-      });
+      setApplicationsError("");
+      const response = await apiClient.delete(`/api/applications/${id}`);
+      const result = response.data;
 
-      const result = await res.json().catch(() => ({}));
-
-      if (!res.ok || result.status !== "success") {
+      if (result.status !== "success") {
         throw new Error(result.message || "Failed to delete application.");
       }
 
@@ -216,7 +227,7 @@ function AdminCareers() {
       );
     } catch (error) {
       console.error("Error deleting application:", error);
-      window.alert(error.message || "Failed to delete application.");
+      setApplicationsError(getApplicationErrorMessage(error));
     }
   };
 
@@ -237,6 +248,21 @@ function AdminCareers() {
   const renderApplications = () => {
     if (loadingApplications) {
       return <div className="applications-status">Loading applications...</div>;
+    }
+
+    if (applicationsError) {
+      return (
+        <div className="applications-status" role="alert">
+          {applicationsError}
+          <button
+            type="button"
+            onClick={fetchApplications}
+            style={{ marginLeft: 12 }}
+          >
+            Retry
+          </button>
+        </div>
+      );
     }
 
     if (selectedApplications.length === 0) {
@@ -407,7 +433,7 @@ function AdminCareers() {
 
               <div className="career-application-total">
                 <FileText size={22} />
-                <span>{selectedApplications.length}</span>
+                <span>{loadingApplications || applicationsError ? "—" : selectedApplications.length}</span>
                 <small>Applications</small>
               </div>
             </div>
@@ -432,6 +458,19 @@ function AdminCareers() {
                 Add Career
               </button>
             </div>
+
+            {applicationsError && (
+              <div className="applications-status" role="alert">
+                {applicationsError}
+                <button
+                  type="button"
+                  onClick={fetchApplications}
+                  style={{ marginLeft: 12 }}
+                >
+                  Retry
+                </button>
+              </div>
+            )}
 
             {showForm && (
               <div className="career-form-card">
@@ -588,6 +627,8 @@ function AdminCareers() {
                           <span>
                             {loadingApplications
                               ? "Loading application count..."
+                              : applicationsError
+                              ? "Application count unavailable"
                               : `${applicationCount} ${applicationCount === 1 ? "application" : "applications"}`}
                           </span>
 
