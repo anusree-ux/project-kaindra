@@ -1,7 +1,13 @@
-
 name: Deploy
 
 on:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
+    branches:
+      - main
+
   workflow_dispatch:
     inputs:
       target:
@@ -13,12 +19,6 @@ on:
         default: development
         required: true
 
-      rollback_test:
-        description: Inject one controlled health-check failure (development only)
-        type: boolean
-        default: false
-        required: false
-
 permissions:
   id-token: write
   contents: read
@@ -26,9 +26,12 @@ permissions:
 jobs:
   deploy:
     if: >
-      github.event_name == 'workflow_dispatch' &&
-      github.ref == 'refs/heads/main' &&
-      (inputs.target == 'development' || inputs.target == 'production')
+      (github.event_name == 'workflow_dispatch' &&
+       github.ref == 'refs/heads/main' &&
+       (inputs.target == 'development' || inputs.target == 'production')) ||
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'main')
     runs-on: ubuntu-latest
     concurrency:
       group: deploy-${{ github.event_name == 'workflow_dispatch' && inputs.target || 'development' }}
@@ -46,12 +49,11 @@ jobs:
       ECR_FRONTEND_REPOSITORY: ${{ vars.ECR_FRONTEND_REPOSITORY }}
       CADDY_DOMAIN: ${{ vars.CADDY_DOMAIN }}
       DATABASE_ROLLBACK_SAFE: ${{ vars.DATABASE_ROLLBACK_SAFE }}
-      DEPLOYMENT_ENVIRONMENT: ${{ inputs.target }}
-      ROLLBACK_TEST_FORCE_HEALTH_FAILURE: ${{ inputs.rollback_test && 'true' || 'false' }}
-      DEPLOY_SHA: ${{ github.sha }}
-      IMAGE_TAG: ${{ github.sha }}
-      BACKEND_TAG_IMAGE: ${{ vars.ECR_REGISTRY }}/${{ vars.ECR_BACKEND_REPOSITORY }}:${{ github.sha }}
-      FRONTEND_TAG_IMAGE: ${{ vars.ECR_REGISTRY }}/${{ vars.ECR_FRONTEND_REPOSITORY }}:${{ github.sha }}
+      DEPLOYMENT_ENVIRONMENT: ${{ github.event_name == 'workflow_dispatch' && inputs.target || 'development' }}
+      DEPLOY_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+      IMAGE_TAG: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+      BACKEND_TAG_IMAGE: ${{ vars.ECR_REGISTRY }}/${{ vars.ECR_BACKEND_REPOSITORY }}:${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+      FRONTEND_TAG_IMAGE: ${{ vars.ECR_REGISTRY }}/${{ vars.ECR_FRONTEND_REPOSITORY }}:${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
 
     steps:
       - name: Validate deployment configuration
@@ -66,11 +68,6 @@ jobs:
           done
           if [[ "$DATABASE_ROLLBACK_SAFE" != "true" ]]; then
             echo "::error::Set DATABASE_ROLLBACK_SAFE=true only after confirming the release uses backward-compatible database migrations."
-            exit 1
-          fi
-          if [[ "$ROLLBACK_TEST_FORCE_HEALTH_FAILURE" == "true" &&
-            "$DEPLOYMENT_ENVIRONMENT" != "development" ]]; then
-            echo "::error::Rollback testing is permitted only in development."
             exit 1
           fi
           if [[ "$EC2_ENVIRONMENT_TAG" != "$DEPLOYMENT_ENVIRONMENT" ]]; then
@@ -257,9 +254,8 @@ jobs:
             --arg frontend_image "$FRONTEND_IMAGE" \
             --arg caddy_domain "$CADDY_DOMAIN" \
             --arg database_rollback_safe "$DATABASE_ROLLBACK_SAFE" \
-            --arg rollback_test_force_health_failure "$ROLLBACK_TEST_FORCE_HEALTH_FAILURE" \
             '[
-              ("script=/tmp/kaindra-deploy-" + $run_id + "-" + $run_attempt + ".sh; cleanup() { rm -f -- \"$script\" || echo DEPLOY_SCRIPT_CLEANUP_FAILED; }; trap cleanup EXIT; trap \"exit 1\" HUP INT TERM; curl -fsSL https://raw.githubusercontent.com/" + $repo + "/" + $sha + "/docker/deploy.sh -o \"$script\" && chmod 700 \"$script\" && flock -n -E 75 /var/lock/kaindra-deploy.lock env AWS_REGION=" + ($region | @sh) + " SECRET_NAME=" + ($secret | @sh) + " ECR_REGISTRY=" + ($registry | @sh) + " ECR_BACKEND_REPOSITORY=" + ($backend_repository | @sh) + " ECR_FRONTEND_REPOSITORY=" + ($frontend_repository | @sh) + " BACKEND_IMAGE=" + ($backend_image | @sh) + " FRONTEND_IMAGE=" + ($frontend_image | @sh) + " CADDY_DOMAIN=" + ($caddy_domain | @sh) + " DEPLOYMENT_ENVIRONMENT=" + ($deployment_environment | @sh) + " DATABASE_ROLLBACK_SAFE=" + ($database_rollback_safe | @sh) + " ROLLBACK_TEST_FORCE_HEALTH_FAILURE=" + ($rollback_test_force_health_failure | @sh) + " IMAGE_TAG=" + ($image_tag | @sh) + " GITHUB_SHA=" + ($github_sha | @sh) + " GITHUB_REPOSITORY=" + ($repo | @sh) + " /bin/bash \"$script\" || { status=$?; if [[ $status -eq 75 ]]; then echo DEPLOYMENT_LOCK=busy; fi; exit $status; }")
+              ("script=/tmp/kaindra-deploy-" + $run_id + "-" + $run_attempt + ".sh; cleanup() { rm -f -- \"$script\" || echo DEPLOY_SCRIPT_CLEANUP_FAILED; }; trap cleanup EXIT; trap \"exit 1\" HUP INT TERM; curl -fsSL https://raw.githubusercontent.com/" + $repo + "/" + $sha + "/docker/deploy.sh -o \"$script\" && chmod 700 \"$script\" && flock -n -E 75 /var/lock/kaindra-deploy.lock env AWS_REGION=" + ($region | @sh) + " SECRET_NAME=" + ($secret | @sh) + " ECR_REGISTRY=" + ($registry | @sh) + " ECR_BACKEND_REPOSITORY=" + ($backend_repository | @sh) + " ECR_FRONTEND_REPOSITORY=" + ($frontend_repository | @sh) + " BACKEND_IMAGE=" + ($backend_image | @sh) + " FRONTEND_IMAGE=" + ($frontend_image | @sh) + " CADDY_DOMAIN=" + ($caddy_domain | @sh) + " DEPLOYMENT_ENVIRONMENT=" + ($deployment_environment | @sh) + " DATABASE_ROLLBACK_SAFE=" + ($database_rollback_safe | @sh) + " IMAGE_TAG=" + ($image_tag | @sh) + " GITHUB_SHA=" + ($github_sha | @sh) + " GITHUB_REPOSITORY=" + ($repo | @sh) + " /bin/bash \"$script\" || { status=$?; if [[ $status -eq 75 ]]; then echo DEPLOYMENT_LOCK=busy; fi; exit $status; }")
             ]')
 
           COMMAND_ID=$(aws ssm send-command \

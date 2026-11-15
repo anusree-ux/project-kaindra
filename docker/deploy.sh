@@ -13,8 +13,6 @@ FRONTEND_IMAGE="${FRONTEND_IMAGE:?FRONTEND_IMAGE is required}"
 CADDY_DOMAIN="${CADDY_DOMAIN:?CADDY_DOMAIN is required}"
 DEPLOYMENT_ENVIRONMENT="${DEPLOYMENT_ENVIRONMENT:?DEPLOYMENT_ENVIRONMENT is required}"
 DATABASE_ROLLBACK_SAFE="${DATABASE_ROLLBACK_SAFE:-false}"
-ROLLBACK_TEST_FORCE_HEALTH_FAILURE="${ROLLBACK_TEST_FORCE_HEALTH_FAILURE:-false}"
-ROLLBACK_TEST_FAILURE_INJECTED=0
 IMAGE_TAG="${IMAGE_TAG:?IMAGE_TAG is required}"
 GITHUB_REPOSITORY="${GITHUB_REPOSITORY:?GITHUB_REPOSITORY is required}"
 GITHUB_SHA="${GITHUB_SHA:?GITHUB_SHA is required}"
@@ -179,13 +177,7 @@ verify_running_images() {
 
 wait_for_health() {
   local attempt backend_status backend_ready frontend_status caddy_status
-  local http_status https_status inject_test_failure=0
-
-  if [[ "$ROLLBACK_TEST_FORCE_HEALTH_FAILURE" == "true" &&
-    "$ROLLBACK_TEST_FAILURE_INJECTED" -eq 0 ]]; then
-    ROLLBACK_TEST_FAILURE_INJECTED=1
-    inject_test_failure=1
-  fi
+  local http_status https_status
 
   for attempt in {1..30}; do
     backend_status="$(docker inspect --format='{{.State.Health.Status}}' kaindra-backend 2>/dev/null || true)"
@@ -211,11 +203,6 @@ wait_for_health() {
       "$caddy_status" == "running" &&
       "$http_status" =~ ^[23][0-9][0-9]$ &&
       ( "$DEPLOYMENT_ENVIRONMENT" != "production" || "$https_status" =~ ^2[0-9][0-9]$ ) ]]; then
-
-      if [[ "$inject_test_failure" -eq 1 ]]; then
-        echo "ROLLBACK_TEST_INJECTED_FAILURE=after-new-release-health-check"
-        return 1
-      fi
 
       echo "HEALTH_CHECK backend=$backend_status readiness=$backend_ready frontend=$frontend_status caddy=$caddy_status http=$http_status https=$https_status"
       return 0
@@ -329,18 +316,6 @@ fi
 
 if [[ "$DEPLOYMENT_ENVIRONMENT" != "development" && "$DEPLOYMENT_ENVIRONMENT" != "production" ]]; then
   echo "DEPLOYMENT_ENVIRONMENT must be development or production."
-  false
-fi
-
-if [[ "$ROLLBACK_TEST_FORCE_HEALTH_FAILURE" != "true" &&
-  "$ROLLBACK_TEST_FORCE_HEALTH_FAILURE" != "false" ]]; then
-  echo "Invalid ROLLBACK_TEST_FORCE_HEALTH_FAILURE value."
-  false
-fi
-
-if [[ "$ROLLBACK_TEST_FORCE_HEALTH_FAILURE" == "true" &&
-  "$DEPLOYMENT_ENVIRONMENT" != "development" ]]; then
-  echo "Rollback testing is permitted only in development."
   false
 fi
 
