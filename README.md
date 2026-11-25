@@ -24,7 +24,6 @@ communities, careers, and administration features.
 | [AWS infrastructure setup](./docs/aws-infrastructure-setup.md) | AWS and Terraform overview |
 | [Terraform deployment](./docs/terraform-deployment.md) | Infrastructure and application deployment overview |
 | [CI/CD deployment](./docs/cicd-deployment.md) | Automated checks and release workflow |
-| [Production handover](./docs/production-handover.md) | Production readiness checklist |
 | [Security and secrets](./docs/security-and-secrets.md) | Credentials, access, and sensitive files |
 | [Terraform operations](./terraform/README.md) | Detailed infrastructure and operations references |
 
@@ -73,6 +72,6 @@ details.
 - Deployment rollback does not reverse database changes. Only deploy
   backward-compatible database changes under the documented release process.
 
-See the [production handover checklist](./docs/production-handover.md) and
-[Terraform operations guide](./terraform/DEPLOYMENT.md) before enabling
-production.
+Before enabling production, read the [CI/CD deployment guide](./docs/cicd-deployment.md),
+[security and secrets guide](./docs/security-and-secrets.md), and
+[Terraform operations guide](./terraform/DEPLOYMENT.md).
